@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function Home() {
   const [selectedAreas, setSelectedAreas] = useState([]);
@@ -29,7 +30,7 @@ export default function Home() {
     );
   };
 
- const generateResponse = () => {
+ const generateResponse = async () => {
   if (selectedAreas.length === 0) return;
 
   let areasText = selectedAreas.join(", ");
@@ -96,7 +97,13 @@ export default function Home() {
   // 🌿 FINAL GUIDANCE
   message +=
     " Would you like to explore what may be influencing this, support it now, or track it over time?";
-
+await supabase.from("body_signals").insert([
+  {
+    areas: selectedAreas,
+    signal,
+    depth,
+  },
+]);
   setResponse(message);
 };
   return (
