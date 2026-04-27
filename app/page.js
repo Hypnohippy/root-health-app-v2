@@ -3,10 +3,23 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [response, setResponse] = useState("");
   const [selectedAreas, setSelectedAreas] = useState([]);
+  const [signal, setSignal] = useState("");
+  const [depth, setDepth] = useState("");
+  const [response, setResponse] = useState("");
 
   const areas = ["Head", "Chest", "Gut", "Skin", "Energy"];
+
+  const signals = [
+    "Tension",
+    "Discomfort",
+    "Pain",
+    "Irritation",
+    "Fatigue",
+    "Other",
+  ];
+
+  const depths = ["Surface", "Tight / Tense", "Deep", "Hard to describe"];
 
   const toggleArea = (area) => {
     setSelectedAreas((prev) =>
@@ -16,14 +29,32 @@ export default function Home() {
     );
   };
 
-  const handleAnalyze = () => {
+  const generateResponse = () => {
     if (selectedAreas.length === 0) return;
 
-    setResponse(
-      `You're noticing signals in: ${selectedAreas.join(
-        ", "
-      )}. These areas can sometimes be connected through stress, sleep, or lifestyle patterns. Would you like to explore what might be linking them or calm this now?`
-    );
+    let areasText = selectedAreas.join(", ");
+
+    let base = `You're noticing something in ${areasText}.`;
+
+    let connection = "";
+
+    if (selectedAreas.length > 1) {
+      connection =
+        " These areas can sometimes be connected through stress, sleep, or nervous system patterns.";
+    }
+
+    let signalText = signal
+      ? ` You're describing it as ${signal.toLowerCase()}.`
+      : "";
+
+    let depthText = depth
+      ? ` It feels more ${depth.toLowerCase()}.`
+      : "";
+
+    let guidance =
+      " Would you like to explore what may be influencing this, support it now, or track it over time?";
+
+    setResponse(base + connection + signalText + depthText + guidance);
   };
 
   return (
@@ -35,33 +66,82 @@ export default function Home() {
           Where is your body asking for attention?
         </p>
 
-        {/* Body Area Buttons */}
-        <div style={styles.areaContainer}>
-          {areas.map((area) => (
-            <button
-              key={area}
-              onClick={() => toggleArea(area)}
-              style={{
-                ...styles.areaButton,
-                background: selectedAreas.includes(area)
-                  ? "#1A1A1A"
-                  : "#E6E2DA",
-                color: selectedAreas.includes(area)
-                  ? "#fff"
-                  : "#333",
-              }}
-            >
-              {area}
-            </button>
-          ))}
+        {/* STEP 1 — AREAS */}
+        <div style={styles.section}>
+          <p style={styles.label}>Select area</p>
+          <div style={styles.row}>
+            {areas.map((area) => (
+              <button
+                key={area}
+                onClick={() => toggleArea(area)}
+                style={{
+                  ...styles.button,
+                  background: selectedAreas.includes(area)
+                    ? "#1A1A1A"
+                    : "#E6E2DA",
+                  color: selectedAreas.includes(area)
+                    ? "#fff"
+                    : "#333",
+                }}
+              >
+                {area}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Analyze Button */}
-        <button style={styles.mainButton} onClick={handleAnalyze}>
-          Explore
-        </button>
+        {/* STEP 2 — SIGNAL */}
+        {selectedAreas.length > 0 && (
+          <div style={styles.section}>
+            <p style={styles.label}>What are you noticing?</p>
+            <div style={styles.row}>
+              {signals.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSignal(s)}
+                  style={{
+                    ...styles.button,
+                    background: signal === s ? "#1A1A1A" : "#E6E2DA",
+                    color: signal === s ? "#fff" : "#333",
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Coach Response */}
+        {/* STEP 3 — DEPTH */}
+        {signal && (
+          <div style={styles.section}>
+            <p style={styles.label}>How does it feel?</p>
+            <div style={styles.row}>
+              {depths.map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDepth(d)}
+                  style={{
+                    ...styles.button,
+                    background: depth === d ? "#1A1A1A" : "#E6E2DA",
+                    color: depth === d ? "#fff" : "#333",
+                  }}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ANALYZE */}
+        {depth && (
+          <button style={styles.mainButton} onClick={generateResponse}>
+            Explore
+          </button>
+        )}
+
+        {/* RESPONSE */}
         {response && <p style={styles.response}>{response}</p>}
       </div>
     </main>
@@ -80,7 +160,7 @@ const styles = {
     background: "#FFFFFF",
     padding: "40px",
     borderRadius: "16px",
-    width: "420px",
+    width: "450px",
     textAlign: "center",
     boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
   },
@@ -92,14 +172,21 @@ const styles = {
     color: "#555",
     marginBottom: "20px",
   },
-  areaContainer: {
+  section: {
+    marginBottom: "20px",
+  },
+  label: {
+    marginBottom: "10px",
+    fontSize: "14px",
+    color: "#666",
+  },
+  row: {
     display: "flex",
     flexWrap: "wrap",
     gap: "10px",
     justifyContent: "center",
-    marginBottom: "20px",
   },
-  areaButton: {
+  button: {
     padding: "10px 14px",
     borderRadius: "8px",
     border: "none",
@@ -113,7 +200,7 @@ const styles = {
     border: "none",
     borderRadius: "10px",
     cursor: "pointer",
-    marginBottom: "20px",
+    marginTop: "10px",
   },
   response: {
     marginTop: "20px",
