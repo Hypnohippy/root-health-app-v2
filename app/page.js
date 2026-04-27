@@ -141,47 +141,64 @@ export default function Home() {
 
   setSaving(true);
 
-  // 🔹 Save current entry
-  await supabase.from("body_signals").insert([
-    {
-      areas: [current.label],
-      system: current.system,
-      signal: selectedSignal,
-      depth: feeling,
-      intensity: intensity,
-    },
-  ]);
+  const entryToSave = {
+    areas: [current.label],
+    system: current.system,
+    signal: selectedSignal,
+    depth: feeling,
+    intensity: intensity,
+  };
 
-  // 🔹 Fetch recent entries
-  const { data } = await supabase
+  await supabase.from("body_signals").insert([entryToSave]);
+
+  const { data, error } = await supabase
     .from("body_signals")
-    .select("*")
+    .select("areas, system, signal, depth, intensity, created_at")
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(20);
 
   let message = buildCoachResponse();
 
-  // 🔹 Simple pattern detection
-  if (data && data.length > 1) {
-    const sameSystemCount = data.filter(
-      (entry) => entry.system === current.system
-    ).length;
+  if (error) {
+    message += " I tried to check recent patterns, but couldn't read the history yet.";
+    setResponse(message);
+    setSaving(false);
+    return;
+  }
 
-    if (sameSystemCount >= 3) {
-      message += ` I've noticed this area has come up a few times recently, which may suggest an underlying pattern worth exploring.`;
-    }
+  const recent = data || [];
 
-    const highIntensity = data.filter((entry) => entry.intensity >= 7).length;
+  const sameSystemCount = recent.filter((entry) => {
+    const sameSystem = entry.system === current.system;
+    const sameArea =
+      Array.isArray(entry.areas) && entry.areas.includes(current.label);
 
-    if (highIntensity >= 2) {
-      message += ` Some of these signals have been quite strong, so it may be important to give this area more attention.`;
-    }
+    return sameSystem || sameArea;
+  }).length;
+
+  const sameSignalCount = recent.filter(
+    (entry) => entry.signal === selectedSignal
+  ).length;
+
+  const highIntensityCount = recent.filter(
+    (entry) => Number(entry.intensity) >= 7
+  ).length;
+
+  if (sameSystemCount >= 3) {
+    message += ` I’ve noticed ${current.label.toLowerCase()} has come up ${sameSystemCount} times recently, so this may be worth tracking as a pattern rather than a one-off signal.`;
+  }
+
+  if (sameSignalCount >= 3) {
+    message += ` The signal "${selectedSignal}" has also repeated, which may help us understand what tends to show up for you.`;
+  }
+
+  if (highIntensityCount >= 2) {
+    message += ` A few recent signals have been strong, so let’s be gentle and practical with this.`;
   }
 
   setResponse(message);
   setSaving(false);
-};
-  return (
+};  return (
     <main style={styles.page}>
       <section style={styles.shell}>
         <div style={styles.brandMark}>◯</div>
