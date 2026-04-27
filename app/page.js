@@ -4,10 +4,25 @@ import { useState } from "react";
 
 export default function Home() {
   const [response, setResponse] = useState("");
+  const [selectedAreas, setSelectedAreas] = useState([]);
 
-  const handleCheckIn = () => {
+  const areas = ["Head", "Chest", "Gut", "Skin", "Energy"];
+
+  const toggleArea = (area) => {
+    setSelectedAreas((prev) =>
+      prev.includes(area)
+        ? prev.filter((a) => a !== area)
+        : [...prev, area]
+    );
+  };
+
+  const handleAnalyze = () => {
+    if (selectedAreas.length === 0) return;
+
     setResponse(
-      "Good to see you. How are you arriving today? You can journal, explore your body signals, or talk to me."
+      `You're noticing signals in: ${selectedAreas.join(
+        ", "
+      )}. These areas can sometimes be connected through stress, sleep, or lifestyle patterns. Would you like to explore what might be linking them or calm this now?`
     );
   };
 
@@ -17,20 +32,37 @@ export default function Home() {
         <h1 style={styles.title}>Root Health</h1>
 
         <p style={styles.subtitle}>
-          A system that listens, learns, and guides you.
+          Where is your body asking for attention?
         </p>
 
-        <div style={styles.coachBox}>
-          <p style={styles.coachText}>
-            Welcome. I'm here with you.
-          </p>
-
-          <button style={styles.button} onClick={handleCheckIn}>
-            Check in
-          </button>
-
-          {response && <p style={styles.response}>{response}</p>}
+        {/* Body Area Buttons */}
+        <div style={styles.areaContainer}>
+          {areas.map((area) => (
+            <button
+              key={area}
+              onClick={() => toggleArea(area)}
+              style={{
+                ...styles.areaButton,
+                background: selectedAreas.includes(area)
+                  ? "#1A1A1A"
+                  : "#E6E2DA",
+                color: selectedAreas.includes(area)
+                  ? "#fff"
+                  : "#333",
+              }}
+            >
+              {area}
+            </button>
+          ))}
         </div>
+
+        {/* Analyze Button */}
+        <button style={styles.mainButton} onClick={handleAnalyze}>
+          Explore
+        </button>
+
+        {/* Coach Response */}
+        {response && <p style={styles.response}>{response}</p>}
       </div>
     </main>
   );
@@ -42,40 +74,50 @@ const styles = {
     minHeight: "100vh",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   card: {
     background: "#FFFFFF",
     padding: "40px",
     borderRadius: "16px",
-    width: "400px",
+    width: "420px",
     textAlign: "center",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.05)"
+    boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
   },
   title: {
     fontSize: "28px",
-    marginBottom: "10px"
+    marginBottom: "10px",
   },
   subtitle: {
     color: "#555",
-    marginBottom: "30px"
+    marginBottom: "20px",
   },
-  coachBox: {
-    marginTop: "20px"
+  areaContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    justifyContent: "center",
+    marginBottom: "20px",
   },
-  coachText: {
-    marginBottom: "20px"
+  areaButton: {
+    padding: "10px 14px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "14px",
   },
-  button: {
-    padding: "10px 20px",
+  mainButton: {
+    padding: "12px 20px",
     background: "#1A1A1A",
     color: "white",
     border: "none",
-    borderRadius: "8px",
-    cursor: "pointer"
+    borderRadius: "10px",
+    cursor: "pointer",
+    marginBottom: "20px",
   },
   response: {
     marginTop: "20px",
-    color: "#333"
-  }
+    color: "#333",
+    lineHeight: "1.5",
+  },
 };
