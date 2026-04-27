@@ -136,24 +136,51 @@ export default function Home() {
     return message;
   };
 
-  const handleExplore = async () => {
-    if (!current || !selectedSignal || !feeling) return;
+ const handleExplore = async () => {
+  if (!current || !selectedSignal || !feeling) return;
 
-    const coachMessage = buildCoachResponse();
-    setResponse(coachMessage);
-    setSaving(true);
+  setSaving(true);
 
-    await supabase.from("body_signals").insert([
-      {
-        areas: [current.label],
-        signal: selectedSignal,
-        depth: feeling,
-      },
-    ]);
+  // 🔹 Save current entry
+  await supabase.from("body_signals").insert([
+    {
+      areas: [current.label],
+      system: current.system,
+      signal: selectedSignal,
+      depth: feeling,
+      intensity: intensity,
+    },
+  ]);
 
-    setSaving(false);
-  };
+  // 🔹 Fetch recent entries
+  const { data } = await supabase
+    .from("body_signals")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(5);
 
+  let message = buildCoachResponse();
+
+  // 🔹 Simple pattern detection
+  if (data && data.length > 1) {
+    const sameSystemCount = data.filter(
+      (entry) => entry.system === current.system
+    ).length;
+
+    if (sameSystemCount >= 3) {
+      message += ` I've noticed this area has come up a few times recently, which may suggest an underlying pattern worth exploring.`;
+    }
+
+    const highIntensity = data.filter((entry) => entry.intensity >= 7).length;
+
+    if (highIntensity >= 2) {
+      message += ` Some of these signals have been quite strong, so it may be important to give this area more attention.`;
+    }
+  }
+
+  setResponse(message);
+  setSaving(false);
+};
   return (
     <main style={styles.page}>
       <section style={styles.shell}>
