@@ -29,34 +29,76 @@ export default function Home() {
     );
   };
 
-  const generateResponse = () => {
-    if (selectedAreas.length === 0) return;
+ const generateResponse = () => {
+  if (selectedAreas.length === 0) return;
 
-    let areasText = selectedAreas.join(", ");
+  let areasText = selectedAreas.join(", ");
 
-    let base = `You're noticing something in ${areasText}.`;
+  let message = `You're noticing something in ${areasText}.`;
 
-    let connection = "";
+  // 🧠 CONNECTION LOGIC
+  const has = (area) => selectedAreas.includes(area);
 
-    if (selectedAreas.length > 1) {
-      connection =
-        " These areas can sometimes be connected through stress, sleep, or nervous system patterns.";
+  if (has("Gut") && has("Head")) {
+    message +=
+      " There may be a connection between digestion and mental state — these can sometimes influence each other.";
+  } else if (has("Chest") && has("Head")) {
+    message +=
+      " This combination can sometimes reflect stress or tension patterns in the body.";
+  } else if (has("Skin") && has("Gut")) {
+    message +=
+      " Skin and digestion can sometimes be linked through inflammation or dietary patterns.";
+  } else if (selectedAreas.length > 1) {
+    message +=
+      " These areas may be connected through broader lifestyle patterns like stress, sleep, or nutrition.";
+  }
+
+  // 🧠 SIGNAL INTERPRETATION
+  if (signal) {
+    message += ` You're describing it as ${signal.toLowerCase()}.`;
+
+    if (signal === "Tension") {
+      message +=
+        " This can sometimes build with stress or lack of recovery.";
     }
 
-    let signalText = signal
-      ? ` You're describing it as ${signal.toLowerCase()}.`
-      : "";
+    if (signal === "Fatigue") {
+      message +=
+        " Fatigue can often reflect sleep, nutrition, or overall load on the system.";
+    }
 
-    let depthText = depth
-      ? ` It feels more ${depth.toLowerCase()}.`
-      : "";
+    if (signal === "Irritation") {
+      message +=
+        " Irritation may reflect sensitivity, inflammation, or environmental factors.";
+    }
+  }
 
-    let guidance =
-      " Would you like to explore what may be influencing this, support it now, or track it over time?";
+  // 🧠 DEPTH INTERPRETATION
+  if (depth) {
+    message += ` It feels more ${depth.toLowerCase()}.`;
 
-    setResponse(base + connection + signalText + depthText + guidance);
-  };
+    if (depth === "Tight / Tense") {
+      message +=
+        " This often points toward muscular or stress-related holding patterns.";
+    }
 
+    if (depth === "Surface") {
+      message +=
+        " Surface sensations often relate to skin or environmental interactions.";
+    }
+
+    if (depth === "Deep") {
+      message +=
+        " Deeper sensations may reflect internal or longer-standing patterns.";
+    }
+  }
+
+  // 🌿 FINAL GUIDANCE
+  message +=
+    " Would you like to explore what may be influencing this, support it now, or track it over time?";
+
+  setResponse(message);
+};
   return (
     <main style={styles.container}>
       <div style={styles.card}>
