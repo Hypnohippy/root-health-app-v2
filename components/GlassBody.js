@@ -10,43 +10,43 @@ function getBodyRegion(x, y) {
   // ARMS / OUTSIDE
   if (x < 30 || x > 70) return { id: "muscles_joints", label: "Muscles & joints" };
 
-  // CHEST - BREATHING
-  if (y >= 20 && y < 32) {
-    return { id: "breathing", label: "Breathing" };
-  }
-
-  // HEART
-  if (y >= 32 && y < 42 && x >= 42 && x <= 60) {
+  // 🔥 HEART FIRST (so lungs don't steal it)
+  if (y >= 24 && y < 32 && x >= 45 && x <= 55) {
     return { id: "heart_circulation", label: "Heart & circulation" };
   }
 
-  // 🔥 REPRODUCTIVE (MOVED UP — THIS FIXES YOUR ISSUE)
-  if (y >= 48 && y < 58 && x >= 38 && x <= 62) {
+  // BREATHING (wider chest)
+  if (y >= 22 && y < 34) {
+    return { id: "breathing", label: "Breathing" };
+  }
+
+  // UPPER ABDOMEN (LIVER / STOMACH)
+  if (y >= 34 && y < 46) {
+    return { id: "digestion", label: "Digestion" };
+  }
+
+  // LOWER ABDOMEN
+  if (y >= 46 && y < 52) {
+    return { id: "digestion", label: "Digestion" };
+  }
+
+  // REPRODUCTIVE
+  if (y >= 52 && y < 60 && x >= 38 && x <= 62) {
     return { id: "reproductive", label: "Pelvis & reproductive" };
   }
 
-  // UPPER ABDOMEN (liver/stomach)
-  if (y >= 42 && y < 48) {
-    return { id: "digestion", label: "Digestion" };
-  }
-
-  // LOWER ABDOMEN (bowel)
-  if (y >= 58 && y < 62) {
-    return { id: "digestion", label: "Digestion" };
-  }
-
-  // HIPS / OUTER PELVIS
-  if (y >= 48 && y < 65 && (x < 38 || x > 62)) {
+  // HIPS / OUTER
+  if (y >= 52 && y < 65 && (x < 38 || x > 62)) {
     return { id: "muscles_joints", label: "Hips & joints" };
   }
 
-  // BLADDER (lower centre only)
+  // BLADDER
   if (y >= 58 && y < 66 && x >= 45 && x <= 55) {
     return { id: "bladder_hydration", label: "Bladder & hydration" };
   }
 
   // LEGS
-  if (y >= 62) {
+  if (y >= 60) {
     return { id: "muscles_joints", label: "Muscles & joints" };
   }
 
