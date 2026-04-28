@@ -63,14 +63,14 @@ export default function GlassBody({ selectedSystem, onSelect }) {
             left: zone.left,
             width: zone.width,
             height: zone.height,
-            background:
-              selectedSystem === zone.id
-                ? "rgba(194,59,48,0.22)"
-                : "rgba(255,255,255,0.08)",
-            border:
-              selectedSystem === zone.id
-                ? "1px solid rgba(194,59,48,0.55)"
-                : "1px solid rgba(255,255,255,0.12)",
+           background:
+  selectedSystem === zone.id
+    ? "rgba(194,59,48,0.18)"
+    : "transparent",
+border:
+  selectedSystem === zone.id
+    ? "1px solid rgba(194,59,48,0.4)"
+    : "none",
           }}
         />
       ))}
@@ -99,10 +99,13 @@ const styles = {
     height: "100%",
     filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.10))",
   },
-  zone: {
-    position: "absolute",
-    borderRadius: "999px",
-    cursor: "pointer",
-    backdropFilter: "blur(3px)",
-  },
+ zone: {
+  position: "absolute",
+  borderRadius: "999px",
+  cursor: "pointer",
+  background: "transparent",
+  border: "none",
+  opacity: 0.15,
+  transition: "all 0.3s ease",
+},
 };
