@@ -30,7 +30,7 @@ if (y >= 42 && y < 47) {
   return { id: "digestion", label: "Digestion" };
 }
 // 🔥 PELVIS / REPRODUCTIVE (moved UP)
-if (y >= 47 && y < 60 && x >= 38 && x <= 62) {
+if (y >= 47 && y < 54 && x >= 38 && x <= 62) {
   return { id: "reproductive", label: "Pelvis & reproductive" };
 }
   // HIPS / OUTER
@@ -44,9 +44,15 @@ if (y >= 47 && y < 60 && x >= 38 && x <= 62) {
   }
 
   // LEGS
-  if (y >= 60) {
-    return { id: "muscles_joints", label: "Muscles & joints" };
-  }
+ // UPPER THIGH
+if (y >= 54 && y < 65) {
+  return { id: "muscles_joints", label: "Muscles & joints" };
+}
+
+// LOWER LEGS
+if (y >= 65) {
+  return { id: "muscles_joints", label: "Muscles & joints" };
+}
 
   // SKIN EDGE
   if (x < 35 || x > 65) {
