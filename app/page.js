@@ -514,7 +514,7 @@ export default function Home() {
               <>
                 <p style={styles.label}>How does it feel or appear?</p>
                 <div style={styles.choiceRow}>
-                  {feelings.map((item) => (
+                  {(systemFeelings[current.id] || feelings).map((item) => (
                     <button
                       key={item}
                       onClick={() => setFeeling(item)}
