@@ -1,56 +1,27 @@
 import { useState } from "react";
 
-const points = [
-  // Head / senses
-  { id: "stress_nerves", label: "Stress & nerves", x: 50, y: 10 },
-  { id: "senses", label: "Senses", x: 50, y: 15 },
+function getBodyRegion(x, y) {
+  if (y < 18) return { id: "stress_nerves", label: "Stress & nerves" };
+  if (y >= 18 && y < 25) return { id: "senses", label: "Senses" };
+  if (y >= 25 && y < 34) return { id: "breathing", label: "Breathing" };
 
-  // Chest
-  { id: "breathing", label: "Breathing", x: 50, y: 30 },
-  { id: "heart_circulation", label: "Heart & circulation", x: 50, y: 38 },
+  if (y >= 34 && y < 42) {
+    if (x < 52) return { id: "heart_circulation", label: "Heart & circulation" };
+    return { id: "breathing", label: "Breathing" };
+  }
 
-  // Abdomen / pelvis
-  { id: "digestion", label: "Digestion", x: 50, y: 51 },
-  { id: "hormones_balance", label: "Hormones & balance", x: 50, y: 62 },
-  { id: "bladder_hydration", label: "Bladder & hydration", x: 50, y: 70 },
+  if (y >= 42 && y < 58) return { id: "digestion", label: "Digestion" };
+  if (y >= 58 && y < 68) return { id: "hormones_balance", label: "Hormones & balance" };
 
-  // Arms / shoulders = muscles & joints
-  { id: "muscles_joints", label: "Muscles & joints", x: 24, y: 35 },
-  { id: "muscles_joints", label: "Muscles & joints", x: 76, y: 35 },
-  { id: "muscles_joints", label: "Muscles & joints", x: 27, y: 52 },
-  { id: "muscles_joints", label: "Muscles & joints", x: 73, y: 52 },
+  if (y >= 68 && y < 78 && x > 40 && x < 60) {
+    return { id: "bladder_hydration", label: "Bladder & hydration" };
+  }
 
-  // Knees / legs / feet = muscles & joints
-  { id: "muscles_joints", label: "Muscles & joints", x: 42, y: 78 },
-  { id: "muscles_joints", label: "Muscles & joints", x: 58, y: 78 },
-  { id: "muscles_joints", label: "Muscles & joints", x: 40, y: 92 },
-  { id: "muscles_joints", label: "Muscles & joints", x: 60, y: 92 },
+  if (y >= 70) return { id: "muscles_joints", label: "Muscles & joints" };
+  if (x < 25 || x > 75) return { id: "muscles_joints", label: "Muscles & joints" };
+  if (x < 30 || x > 70) return { id: "skin", label: "Skin" };
 
-  // Skin points around outer body
-  { id: "skin", label: "Skin", x: 18, y: 45 },
-  { id: "skin", label: "Skin", x: 82, y: 45 },
-  { id: "skin", label: "Skin", x: 20, y: 66 },
-  { id: "skin", label: "Skin", x: 80, y: 66 },
-
-  // Whole-body energy lower/central
-  { id: "energy_recovery", label: "Energy & recovery", x: 50, y: 84 },
-];
-function getNearestPoint(x, y) {
-  let nearest = points[0];
-  let nearestDistance = Infinity;
-
-  points.forEach((point) => {
-    const dx = point.x - x;
-    const dy = point.y - y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance < nearestDistance) {
-      nearest = point;
-      nearestDistance = distance;
-    }
-  });
-
-  return nearest;
+  return { id: "energy_recovery", label: "Energy & recovery" };
 }
 
 export default function GlassBody({ selectedSystems = [], onSelect, onClear = () => {} }) {
@@ -65,19 +36,19 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
     const clampedX = Math.max(5, Math.min(95, x));
     const clampedY = Math.max(3, Math.min(97, y));
 
-    const nearest = getNearestPoint(clampedX, clampedY);
+    const region = getBodyRegion(clampedX, clampedY);
 
     setMarkers((prev) => [
       ...prev,
       {
-        id: nearest.id,
-        label: nearest.label,
+        id: region.id,
+        label: region.label,
         x: clampedX,
         y: clampedY,
       },
     ]);
 
-    onSelect(nearest.id);
+    onSelect(region.id);
   };
 
   const clearMarkers = () => {
@@ -87,7 +58,9 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.instruction}>Tap each place your body is asking for attention</div>
+      <div style={styles.instruction}>
+        Tap each place your body is asking for attention
+      </div>
 
       <div style={styles.bodyArea} onClick={handleClick}>
         <img src="/glass-human.png" alt="Glass Human" style={styles.image} />
