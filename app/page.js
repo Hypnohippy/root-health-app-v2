@@ -305,12 +305,24 @@ const feelings = [
   "Visible but not painful",
   "Hard to describe",
 ];
-
+const contextOptions = [
+  "just started",
+  "comes and goes",
+  "constant",
+  "after eating",
+  "under stress",
+  "after movement",
+  "at night",
+  "random",
+  "getting worse",
+  "improving",
+];
 export default function Home() {
   const [selectedSystems, setSelectedSystems] = useState([]);
   const [activeSystemId, setActiveSystemId] = useState(null);
   const [selectedSignal, setSelectedSignal] = useState("");
   const [feeling, setFeeling] = useState("");
+  const [context, setContext] = useState("");
   const [intensity, setIntensity] = useState(5);
   const [response, setResponse] = useState("");
   const [saving, setSaving] = useState(false);
@@ -330,6 +342,7 @@ export default function Home() {
     setActiveSystemId(id);
     setSelectedSignal("");
     setFeeling("");
+    setContext("");
     setIntensity(5);
     setResponse("");
   };
@@ -339,6 +352,7 @@ export default function Home() {
     setActiveSystemId(null);
     setSelectedSignal("");
     setFeeling("");
+    setContext("");
     setIntensity(5);
     setResponse("");
   };
@@ -397,7 +411,7 @@ export default function Home() {
         " Pelvic, reproductive and bladder signals can sometimes overlap, so it is useful to track them carefully and notice timing, irritation and hydration.";
     }
 
-    message += ` You described this as ${feeling.toLowerCase()}, with an intensity of ${intensity}/10.`;
+    message += ` You described this as ${feeling.toLowerCase()}, and said it tends to show up ${context}. The intensity today is ${intensity}/10.`;
 
     message += "\n\nA gentle place to begin could be:";
 
@@ -458,6 +472,7 @@ export default function Home() {
       system: selectedItems.map((item) => item.system).join(", "),
       signal: selectedSignal,
       depth: feeling,
+      context: context,
       intensity: intensity,
     };
 
@@ -596,9 +611,30 @@ export default function Home() {
               </>
             )}
 
-            {feeling && (
-              <>
-                <p style={styles.label}>How strong or concerning is it today?</p>
+           {feeling && (
+  <>
+    <p style={styles.label}>When does this tend to show up?</p>
+    <div style={styles.choiceRow}>
+      {contextOptions.map((item) => (
+        <button
+          key={item}
+          onClick={() => setContext(item)}
+          style={{
+            ...styles.choiceButton,
+            background: context === item ? "#1A1A1A" : "#E6E2DA",
+            color: context === item ? "#FFFFFF" : "#333333",
+          }}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  </>
+)}
+
+{context && (
+  <>
+    <p style={styles.label}>How strong or concerning is it today?</p>
                 <div style={styles.scoreRow}>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
                     <button
