@@ -212,6 +212,14 @@ const bodySystems = [
     ],
   },
 ];
+const directExperienceSignals = [
+  "light-headed",
+  "dizziness",
+  "fatigue",
+  "burnout feeling",
+  "panic feeling",
+  "nausea",
+];
 const systemFeelings = {
   stress_nerves: [
     "overwhelmed",
@@ -411,7 +419,7 @@ export default function Home() {
         " Pelvic, reproductive and bladder signals can sometimes overlap, so it is useful to track them carefully and notice timing, irritation and hydration.";
     }
 
-    message += ` You described this as ${feeling.toLowerCase()}, and said it tends to show up ${context}. The intensity today is ${intensity}/10.`;
+    message += ` You described this as ${effectiveFeeling.toLowerCase()}, and said it tends to show up ${context}. The intensity today is ${intensity}/10.`;
 
     message += "\n\nA gentle place to begin could be:";
 
@@ -463,6 +471,9 @@ export default function Home() {
   const handleExplore = async () => {
     if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) {
       return;
+      const effectiveFeeling = directExperienceSignals.includes(selectedSignal)
+  ? selectedSignal
+  : feeling;
     }
 
     setSaving(true);
@@ -590,7 +601,7 @@ export default function Home() {
               ))}
             </div>
 
-            {selectedSignal && (
+            {selectedSignal && !directExperienceSignals.includes(selectedSignal) && (
               <>
                 <p style={styles.label}>How does it feel or appear?</p>
                 <div style={styles.choiceRow}>
