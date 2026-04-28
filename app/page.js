@@ -159,13 +159,12 @@ export default function Home() {
 
   let message = buildCoachResponse();
 
-  if (error) {
-    message += " I tried to check recent patterns, but couldn't read the history yet.";
-    setResponse(message);
-    setSaving(false);
-    return;
-  }
-
+ if (error) {
+  message += ` Supabase read error: ${error.message}`;
+  setResponse(message);
+  setSaving(false);
+  return;
+}
   const recent = data || [];
 
   const sameSystemCount = recent.filter((entry) => {
