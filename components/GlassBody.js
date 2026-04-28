@@ -1,25 +1,62 @@
 import { useState } from "react";
 
 function getBodyRegion(x, y) {
-  if (y < 18) return { id: "stress_nerves", label: "Stress & nerves" };
-  if (y >= 18 && y < 25) return { id: "senses", label: "Senses" };
-  if (y >= 25 && y < 34) return { id: "breathing", label: "Breathing" };
+  // x and y are percentages across the visible image.
+  // These values are calibrated for the current glass-human.png image.
 
-  if (y >= 34 && y < 42) {
-    if (x < 52) return { id: "heart_circulation", label: "Heart & circulation" };
+  // HEAD / FACE
+  if (y >= 3 && y < 15 && x >= 38 && x <= 62) {
+    return { id: "stress_nerves", label: "Stress & nerves" };
+  }
+
+  if (y >= 12 && y < 20 && x >= 35 && x <= 65) {
+    return { id: "senses", label: "Senses" };
+  }
+
+  // ARMS / HANDS / SHOULDERS
+  if (x < 32 || x > 68) {
+    return { id: "muscles_joints", label: "Muscles & joints" };
+  }
+
+  // CHEST / LUNGS
+  if (y >= 24 && y < 34 && x >= 34 && x <= 66) {
     return { id: "breathing", label: "Breathing" };
   }
 
-  if (y >= 42 && y < 58) return { id: "digestion", label: "Digestion" };
-  if (y >= 58 && y < 68) return { id: "hormones_balance", label: "Hormones & balance" };
+  // HEART — slightly lower/central than lungs on this image
+  if (y >= 31 && y < 41 && x >= 43 && x <= 58) {
+    return { id: "heart_circulation", label: "Heart & circulation" };
+  }
 
-  if (y >= 68 && y < 78 && x > 40 && x < 60) {
+  // UPPER ABDOMEN / LIVER / STOMACH
+  if (y >= 39 && y < 50 && x >= 34 && x <= 66) {
+    return { id: "digestion", label: "Digestion" };
+  }
+
+  // LOWER DIGESTION / BOWEL
+  if (y >= 50 && y < 61 && x >= 35 && x <= 65) {
+    return { id: "digestion", label: "Digestion" };
+  }
+
+  // HORMONAL / PELVIS
+  if (y >= 61 && y < 68 && x >= 38 && x <= 62) {
+    return { id: "hormones_balance", label: "Hormones & balance" };
+  }
+
+  // BLADDER — lower centre, not knees
+  if (y >= 66 && y < 73 && x >= 43 && x <= 57) {
     return { id: "bladder_hydration", label: "Bladder & hydration" };
   }
 
-  if (y >= 70) return { id: "muscles_joints", label: "Muscles & joints" };
-  if (x < 25 || x > 75) return { id: "muscles_joints", label: "Muscles & joints" };
-  if (x < 30 || x > 70) return { id: "skin", label: "Skin" };
+  // LEGS / KNEES / FEET
+  if (y >= 68) {
+    return { id: "muscles_joints", label: "Muscles & joints" };
+  }
+
+  // OUTER TORSO SKIN
+  if ((x >= 32 && x < 38) || (x > 62 && x <= 68)) {
+    return { id: "skin", label: "Skin" };
+  }
 
   return { id: "energy_recovery", label: "Energy & recovery" };
 }
@@ -33,8 +70,8 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
 
-    const clampedX = Math.max(5, Math.min(95, x));
-    const clampedY = Math.max(3, Math.min(97, y));
+    const clampedX = Math.max(0, Math.min(100, x));
+    const clampedY = Math.max(0, Math.min(100, y));
 
     const region = getBodyRegion(clampedX, clampedY);
 
