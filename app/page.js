@@ -19,19 +19,6 @@ const bodySystems = [
       "numb or detached",
       "hard to settle",
     ],
-    const systemFeelings = {
-  heart_circulation: ["pressure", "tight", "fluttering", "pounding", "heavy", "irregular"],
-  breathing: ["tight", "restricted", "shallow", "heavy", "effortful"],
-  stress_nerves: ["overwhelmed", "tense", "wired", "restless", "on edge"],
-  digestion: ["bloated", "cramping", "heavy", "uncomfortable", "sensitive"],
-  reproductive: ["irritated", "sensitive", "burning", "uncomfortable", "visible change"],
-  bladder_hydration: ["burning", "urgent", "pressure", "uncomfortable"],
-  muscles_joints: ["tight", "stiff", "aching", "sharp", "restricted"],
-  skin: ["itchy", "burning", "irritated", "sensitive", "visible change"],
-  senses: ["strained", "sensitive", "dizzy", "tingling"],
-  energy_recovery: ["drained", "heavy", "flat", "low"],
-  sleep_rhythm: ["restless", "broken", "light", "unrefreshing"],
-};
   },
   {
     id: "heart_circulation",
@@ -226,6 +213,20 @@ const bodySystems = [
   },
 ];
 
+const systemFeelings = {
+  heart_circulation: ["pressure", "tight", "fluttering", "pounding", "heavy", "irregular"],
+  breathing: ["tight", "restricted", "shallow", "heavy", "effortful"],
+  stress_nerves: ["overwhelmed", "tense", "wired", "restless", "on edge"],
+  digestion: ["bloated", "cramping", "heavy", "uncomfortable", "sensitive"],
+  reproductive: ["irritated", "sensitive", "burning", "uncomfortable", "visible change"],
+  bladder_hydration: ["burning", "urgent", "pressure", "uncomfortable"],
+  muscles_joints: ["tight", "stiff", "aching", "sharp", "restricted"],
+  skin: ["itchy", "burning", "irritated", "sensitive", "visible change"],
+  senses: ["strained", "sensitive", "dizzy", "tingling"],
+  energy_recovery: ["drained", "heavy", "flat", "low"],
+  sleep_rhythm: ["restless", "broken", "light", "unrefreshing"],
+};
+
 const feelings = [
   "Surface",
   "Tight / tense",
@@ -246,435 +247,42 @@ export default function Home() {
   const [activeSystemId, setActiveSystemId] = useState(null);
   const [selectedSignal, setSelectedSignal] = useState("");
   const [feeling, setFeeling] = useState("");
-  const [intensity, setIntensity] = useState(5);
-  const [response, setResponse] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const selectedItems = bodySystems.filter((item) =>
-    selectedSystems.includes(item.id)
-  );
 
   const current = bodySystems.find((item) => item.id === activeSystemId);
 
   const selectSystem = (id) => {
-    setSelectedSystems((prev) => {
-      if (prev.includes(id)) return prev;
-      return [...prev, id];
-    });
-
+    setSelectedSystems((prev) =>
+      prev.includes(id) ? prev : [...prev, id]
+    );
     setActiveSystemId(id);
     setSelectedSignal("");
     setFeeling("");
-    setIntensity(5);
-    setResponse("");
-  };
-
-  const clearSelections = () => {
-    setSelectedSystems([]);
-    setActiveSystemId(null);
-    setSelectedSignal("");
-    setFeeling("");
-    setIntensity(5);
-    setResponse("");
-  };
-
-  const buildCoachResponse = () => {
-    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) {
-      return "";
-    }
-
-    const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
-
-    let message = `You’ve marked ${labels}. Right now, we’re exploring ${current.label.toLowerCase()}, where you’re noticing ${selectedSignal}.`;
-
-    if (selectedSystems.length > 1) {
-      message +=
-        " Because more than one area is showing up, Root Health will treat this as a connected body pattern rather than a single isolated signal.";
-    }
-
-    const hasDigestion = selectedSystems.includes("digestion");
-    const hasStress = selectedSystems.includes("stress_nerves");
-    const hasBreathing = selectedSystems.includes("breathing");
-    const hasHeart = selectedSystems.includes("heart_circulation");
-    const hasSkin = selectedSystems.includes("skin");
-    const hasEnergy = selectedSystems.includes("energy_recovery");
-    const hasSleep = selectedSystems.includes("sleep_rhythm");
-    const hasReproductive = selectedSystems.includes("reproductive");
-    const hasBladder = selectedSystems.includes("bladder_hydration");
-
-    if (hasDigestion && hasStress) {
-      message +=
-        " Digestion and stress can sometimes influence each other through the gut–brain connection.";
-    }
-
-    if ((hasBreathing || hasHeart) && hasStress) {
-      message +=
-        " Breathing, heart rhythm and stress can sometimes move together when the nervous system is carrying more load.";
-    }
-
-    if (hasSkin && hasDigestion) {
-      message +=
-        " Skin and digestion can sometimes be worth observing together, especially around food patterns, stress and inflammation.";
-    }
-
-    if (hasEnergy && hasSleep) {
-      message +=
-        " Energy and sleep rhythm often give useful clues about recovery and overall system load.";
-    }
-
-    if (hasReproductive && hasStress) {
-      message +=
-        " Pelvic and reproductive signals can sometimes be influenced by stress, tension, hormones, sleep and emotional load.";
-    }
-
-    if (hasReproductive && hasBladder) {
-      message +=
-        " Pelvic, reproductive and bladder signals can sometimes overlap, so it is useful to track them carefully and notice timing, irritation and hydration.";
-    }
-
-    message += ` You described this as ${feeling.toLowerCase()}, with an intensity of ${intensity}/10.`;
-
-    message += "\n\nA gentle place to begin could be:";
-
-    if (current.id === "digestion") {
-      message +=
-        "\n• hydration and fibre check\n• notice stress around meals\n• slow eating and allow space after food";
-    } else if (current.id === "stress_nerves") {
-      message +=
-        "\n• slow breathing or grounding\n• reduce stimulation briefly\n• notice what feels mentally heavy today";
-    } else if (current.id === "breathing") {
-      message +=
-        "\n• soften the breath\n• check posture\n• pause for a nervous-system reset";
-    } else if (current.id === "skin") {
-      message +=
-        "\n• notice visible changes, products, clothing or irritation\n• check hydration, sleep and stress\n• track whether it spreads, changes colour or becomes painful";
-    } else if (current.id === "reproductive") {
-      message +=
-        "\n• notice irritation, timing, clothing, friction or recent changes\n• track whether it is linked to stress, cycle, sex, products or hydration\n• avoid assuming one cause too quickly";
-    } else if (current.id === "bladder_hydration") {
-      message +=
-        "\n• check hydration and caffeine/alcohol intake\n• notice burning, urgency or colour changes\n• track frequency and timing";
-    } else if (current.id === "energy_recovery") {
-      message +=
-        "\n• check sleep quality\n• reduce load slightly today\n• support with food and hydration";
-    } else {
-      message +=
-        "\n• check sleep, stress and hydration\n• notice recent changes\n• track this for a few days";
-    }
-
-    if (
-      selectedSignal.includes("blister") ||
-      selectedSignal.includes("discharge") ||
-      selectedSignal.includes("burning when passing urine") ||
-      selectedSignal.includes("swelling") ||
-      selectedSignal.includes("colour change")
-    ) {
-      message +=
-        "\n\nBecause this includes a visible or potentially sensitive change, it may be worth monitoring carefully. If it worsens, spreads, is painful, unusual, persistent, or worrying, it’s important to speak with a healthcare professional.";
-    }
-
-    if (intensity >= 8) {
-      message +=
-        "\n\nBecause this feels strong, be gentle with yourself. If it feels severe, unusual, persistent or worrying, it’s important to speak with a healthcare professional.";
-    }
-
-    return message;
-  };
-
-  const handleExplore = async () => {
-    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) {
-      return;
-    }
-
-    setSaving(true);
-
-    const entryToSave = {
-      areas: selectedItems.map((item) => item.label),
-      system: selectedItems.map((item) => item.system).join(", "),
-      signal: selectedSignal,
-      depth: feeling,
-      intensity: intensity,
-    };
-
-    await supabase.from("body_signals").insert([entryToSave]);
-
-    const { data, error } = await supabase
-      .from("body_signals")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(20);
-
-    let message = buildCoachResponse();
-
-    if (error) {
-      message += ` Supabase read error: ${error.message}`;
-      setResponse(message);
-      setSaving(false);
-      return;
-    }
-
-    if (data && data.length > 1) {
-      const selectedLabels = selectedItems.map((item) => item.label);
-
-      const repeatedAreaCount = data.filter((entry) => {
-        if (!Array.isArray(entry.areas)) return false;
-        return entry.areas.some((area) => selectedLabels.includes(area));
-      }).length;
-
-      const sameSignalCount = data.filter(
-        (entry) => entry.signal === selectedSignal
-      ).length;
-
-      const highIntensity = data.filter(
-        (entry) => Number(entry.intensity) >= 7
-      ).length;
-
-      if (repeatedAreaCount >= 3) {
-        message +=
-          "\n\nI’m noticing a pattern here — one or more of these areas has come up a few times recently. It may be your body gently trying to get your attention rather than this being a one-off moment.";
-      }
-
-      if (sameSignalCount >= 3) {
-        message +=
-          "\n\nThe same signal has also been repeating, which can sometimes help us understand what your system tends to return to under certain conditions.";
-      }
-
-      if (highIntensity >= 2) {
-        message +=
-          "\n\nSome of these signals have been quite strong, so rather than pushing through, it may help to slow things down and support this area with a bit more care.";
-      }
-    }
-
-    setResponse(message);
-    setSaving(false);
   };
 
   return (
-    <main style={styles.page}>
-      <section style={styles.shell}>
-        <div style={styles.brandMark}>◯</div>
+    <main style={{ padding: 20 }}>
+      <h1>Root Health</h1>
 
-        <h1 style={styles.title}>Root Health</h1>
-        <p style={styles.subtitle}>
-          Tap each place your body is asking for attention today.
-        </p>
+      <GlassBody onSelect={selectSystem} />
 
-        <GlassBody
-          selectedSystems={selectedItems.map((item) => item.label)}
-          onSelect={selectSystem}
-          onClear={clearSelections}
-        />
+      {current && (
+        <>
+          <h3>{current.label}</h3>
 
-        <div style={styles.grid}>
-          {bodySystems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => selectSystem(item.id)}
-              style={{
-                ...styles.systemButton,
-                background: selectedSystems.includes(item.id)
-                  ? "#1A1A1A"
-                  : "#F0EDE7",
-                color: selectedSystems.includes(item.id) ? "#FFFFFF" : "#2F2F2F",
-              }}
-            >
-              {item.label}
+          {current.signals.map((sig) => (
+            <button key={sig} onClick={() => setSelectedSignal(sig)}>
+              {sig}
             </button>
           ))}
-        </div>
 
-        {current && (
-          <div style={styles.panel}>
-            <p style={styles.panelTitle}>
-              {selectedItems.length > 1 ? "Connected body pattern" : current.label}
-            </p>
-
-            <p style={styles.microText}>
-              Selected: {selectedItems.map((item) => item.label).join(", ")}
-            </p>
-
-            <p style={styles.label}>Which signal should we explore first?</p>
-            <div style={styles.choiceRow}>
-              {current.signals.map((sig) => (
-                <button
-                  key={sig}
-                  onClick={() => setSelectedSignal(sig)}
-                  style={{
-                    ...styles.choiceButton,
-                    background: selectedSignal === sig ? "#1A1A1A" : "#E6E2DA",
-                    color: selectedSignal === sig ? "#FFFFFF" : "#333333",
-                  }}
-                >
-                  {sig}
-                </button>
-              ))}
-            </div>
-
-            {selectedSignal && (
-              <>
-                <p style={styles.label}>How does it feel or appear?</p>
-                <div style={styles.choiceRow}>
-                  {(systemFeelings[current.id] || feelings).map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => setFeeling(item)}
-                      style={{
-                        ...styles.choiceButton,
-                        background: feeling === item ? "#1A1A1A" : "#E6E2DA",
-                        color: feeling === item ? "#FFFFFF" : "#333333",
-                      }}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {feeling && (
-              <>
-                <p style={styles.label}>How strong or concerning is it today?</p>
-                <div style={styles.scoreRow}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
-                    <button
-                      key={score}
-                      onClick={() => setIntensity(score)}
-                      style={{
-                        ...styles.scoreButton,
-                        background: intensity === score ? "#C23B30" : "#F0EDE7",
-                        color: intensity === score ? "#FFFFFF" : "#333333",
-                      }}
-                    >
-                      {score}
-                    </button>
-                  ))}
-                </div>
-
-                <button style={styles.mainButton} onClick={handleExplore}>
-                  {saving ? "Saving..." : "Explore this signal"}
-                </button>
-              </>
-            )}
-
-            {response && <p style={styles.response}>{response}</p>}
-          </div>
-        )}
-      </section>
+          {selectedSignal &&
+            (systemFeelings[current.id] || feelings).map((f) => (
+              <button key={f} onClick={() => setFeeling(f)}>
+                {f}
+              </button>
+            ))}
+        </>
+      )}
     </main>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "24px",
-  },
-  shell: {
-    width: "100%",
-    maxWidth: "820px",
-    background: "rgba(255,255,255,0.82)",
-    borderRadius: "28px",
-    padding: "34px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
-    textAlign: "center",
-  },
-  brandMark: {
-    fontSize: "38px",
-    color: "#1A1A1A",
-    marginBottom: "6px",
-  },
-  title: {
-    fontSize: "34px",
-    margin: "0 0 8px",
-    color: "#1A1A1A",
-  },
-  subtitle: {
-    color: "#555",
-    fontSize: "17px",
-    marginBottom: "28px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    gap: "12px",
-    marginBottom: "24px",
-  },
-  systemButton: {
-    border: "none",
-    borderRadius: "16px",
-    padding: "16px 12px",
-    cursor: "pointer",
-    fontSize: "15px",
-    boxShadow: "0 8px 18px rgba(0,0,0,0.04)",
-  },
-  panel: {
-    marginTop: "18px",
-    background: "#FFFFFF",
-    borderRadius: "22px",
-    padding: "24px",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.06)",
-  },
-  panelTitle: {
-    fontSize: "22px",
-    fontWeight: "600",
-    margin: "0 0 6px",
-  },
-  microText: {
-    color: "#777",
-    fontSize: "13px",
-    marginBottom: "20px",
-  },
-  label: {
-    marginTop: "22px",
-    marginBottom: "10px",
-    fontSize: "14px",
-    color: "#555",
-  },
-  choiceRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    justifyContent: "center",
-  },
-  choiceButton: {
-    border: "none",
-    borderRadius: "999px",
-    padding: "10px 14px",
-    cursor: "pointer",
-    fontSize: "14px",
-  },
-  scoreRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-    justifyContent: "center",
-    marginBottom: "18px",
-  },
-  scoreButton: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "50%",
-    border: "none",
-    cursor: "pointer",
-  },
-  mainButton: {
-    background: "#1A1A1A",
-    color: "#FFFFFF",
-    border: "none",
-    borderRadius: "14px",
-    padding: "14px 22px",
-    cursor: "pointer",
-    fontSize: "15px",
-  },
-  response: {
-    marginTop: "22px",
-    color: "#333",
-    lineHeight: "1.65",
-    fontSize: "15px",
-    whiteSpace: "pre-line",
-  },
-};
