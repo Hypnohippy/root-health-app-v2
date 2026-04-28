@@ -1,10 +1,32 @@
 "use client";
 
 import Nav from "../components/Nav";
+import { supabase } from "../lib/supabase";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  return (
-    <>
+  const [latestInsight, setLatestInsight] = useState("");
+
+  useEffect(() => {
+  const load = async () => {
+    const { data } = await supabase
+      .from("body_signals")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (data && data.length > 0) {
+      const areas = data[0].areas || [];
+      setLatestInsight(
+        "Your body has recently been signalling around " + areas.join(", ")
+      );
+    }
+  };
+
+  load();
+}, []);
+
+  return (    <>
       <Nav />
 
       <main style={styles.page}>
@@ -35,7 +57,7 @@ export default function Home() {
             </p>
 
             <p style={styles.microText}>
-              System balance: 68%
+              {latestInsight || "No recent signals yet"}
             </p>
           </div>
         </section>
