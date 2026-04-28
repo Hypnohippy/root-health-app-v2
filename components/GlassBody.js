@@ -7,10 +7,10 @@ function getBodyRegion(x, y) {
   // FACE
   if (y >= 12 && y < 20) return { id: "senses", label: "Senses" };
 
-  // ARMS / OUTSIDE BODY
+  // ARMS / OUTSIDE
   if (x < 30 || x > 70) return { id: "muscles_joints", label: "Muscles & joints" };
 
-  // UPPER CHEST → BREATHING
+  // CHEST - BREATHING
   if (y >= 20 && y < 32) {
     return { id: "breathing", label: "Breathing" };
   }
@@ -20,28 +20,33 @@ function getBodyRegion(x, y) {
     return { id: "heart_circulation", label: "Heart & circulation" };
   }
 
-  // UPPER ABDOMEN / STOMACH / LIVER
+  // UPPER ABDOMEN (liver/stomach)
   if (y >= 42 && y < 50) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // LOWER BOWEL
-  if (y >= 50 && y < 51.5 && x >= 35 && x <= 65) {
+  // LOWER ABDOMEN (bowel)
+  if (y >= 50 && y < 54) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // GROIN / PELVIS CENTRE
-  if (y >= 51.5 && y < 58 && x >= 42 && x <= 58) {
-    return { id: "hormones_balance", label: "Hormones & balance" };
+  // 🔥 GROIN / REPRODUCTIVE (FIXED)
+  if (y >= 54 && y < 62 && x >= 38 && x <= 62) {
+    return { id: "reproductive", label: "Pelvis & reproductive" };
   }
 
-  // LOWER PELVIS / BLADDER CENTRE
-  if (y >= 58 && y < 64 && x >= 45 && x <= 55) {
+  // HIPS / OUTER PELVIS
+  if (y >= 54 && y < 65 && (x < 38 || x > 62)) {
+    return { id: "muscles_joints", label: "Hips & joints" };
+  }
+
+  // BLADDER (lower centre only)
+  if (y >= 60 && y < 68 && x >= 45 && x <= 55) {
     return { id: "bladder_hydration", label: "Bladder & hydration" };
   }
 
-  // LEGS / THIGHS / KNEES / FEET
-  if (y >= 58) {
+  // LEGS
+  if (y >= 62) {
     return { id: "muscles_joints", label: "Muscles & joints" };
   }
 
@@ -96,20 +101,8 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
 
         {markers.map((marker, index) => (
           <div key={index}>
-            <div
-              style={{
-                ...styles.glow,
-                left: `${marker.x}%`,
-                top: `${marker.y}%`,
-              }}
-            />
-            <div
-              style={{
-                ...styles.marker,
-                left: `${marker.x}%`,
-                top: `${marker.y}%`,
-              }}
-            >
+            <div style={{ ...styles.glow, left: `${marker.x}%`, top: `${marker.y}%` }} />
+            <div style={{ ...styles.marker, left: `${marker.x}%`, top: `${marker.y}%` }}>
               {index + 1}
             </div>
           </div>
@@ -138,25 +131,10 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
 }
 
 const styles = {
-  wrap: {
-    width: "320px",
-    margin: "0 auto 30px",
-    textAlign: "center",
-  },
-  instruction: {
-    fontSize: "13px",
-    color: "#666",
-    marginBottom: "10px",
-  },
-  bodyArea: {
-    position: "relative",
-    width: "100%",
-    cursor: "pointer",
-  },
-  image: {
-    width: "100%",
-    display: "block",
-  },
+  wrap: { width: "320px", margin: "0 auto 30px", textAlign: "center" },
+  instruction: { fontSize: "13px", color: "#666", marginBottom: "10px" },
+  bodyArea: { position: "relative", width: "100%", cursor: "pointer" },
+  image: { width: "100%", display: "block" },
   marker: {
     position: "absolute",
     width: "22px",
@@ -181,14 +159,8 @@ const styles = {
     borderRadius: "50%",
     background: "radial-gradient(circle, rgba(194,59,48,0.35), transparent 70%)",
   },
-  debugText: {
-    marginTop: "8px",
-    fontSize: "12px",
-    color: "#777",
-  },
-  selectedText: {
-    marginTop: "10px",
-  },
+  debugText: { marginTop: "8px", fontSize: "12px", color: "#777" },
+  selectedText: { marginTop: "10px" },
   clearButton: {
     marginTop: "10px",
     border: "none",
