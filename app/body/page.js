@@ -262,7 +262,10 @@ export default function Home() {
     setSaving(false);
   };
 
-  return (
+ return (
+  <>
+    <Nav />
+
     <main style={styles.page}>
       <section style={styles.shell}>
         <div style={styles.brandMark}>◯</div>
@@ -373,8 +376,9 @@ export default function Home() {
           </div>
         )}
       </section>
-    </main>
-  );
+       </main>
+  </>
+);
 }
 
 const styles = {
