@@ -82,185 +82,198 @@ const bodySystems = [
 const feelings = ["Surface", "Tight / tense", "Deep", "Moving around", "Hard to describe"];
 
 export default function Home() {
-  const [selectedSystem, setSelectedSystem] = useState(null);
+  const [selectedSystems, setSelectedSystems] = useState([]);
+  const [activeSystemId, setActiveSystemId] = useState(null);
   const [selectedSignal, setSelectedSignal] = useState("");
   const [feeling, setFeeling] = useState("");
   const [intensity, setIntensity] = useState(5);
   const [response, setResponse] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const current = bodySystems.find((item) => item.id === selectedSystem);
+  const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
+  const current = bodySystems.find((item) => item.id === activeSystemId);
 
-  const resetDetail = (id) => {
-    setSelectedSystem(id);
+  const selectSystem = (id) => {
+    setSelectedSystems((prev) => {
+      if (prev.includes(id)) return prev;
+      return [...prev, id];
+    });
+
+    setActiveSystemId(id);
     setSelectedSignal("");
     setFeeling("");
     setIntensity(5);
     setResponse("");
   };
 
- const buildCoachResponse = () => {
-  if (!current || !selectedSignal || !feeling) return "";
-
-  let message = `You’re noticing ${selectedSignal} around ${current.label.toLowerCase()}.`;
-
-  // 🧠 SYSTEM CONTEXT
-  if (current.id === "digestion") {
-    message +=
-      " Digestion can sometimes be influenced by stress, food timing, hydration, and the gut–brain connection.";
-  } else if (current.id === "stress_nerves") {
-    message +=
-      " This can sometimes reflect your nervous system carrying more load than usual.";
-  } else if (current.id === "skin") {
-    message +=
-      " Skin can reflect hydration, stress, sleep, and what’s happening internally.";
-  } else if (current.id === "breathing") {
-    message +=
-      " Breathing patterns often shift with stress, posture, and nervous system state.";
-  } else if (current.id === "energy_recovery") {
-    message +=
-      " Energy often reflects sleep, stress, nutrition, and overall load.";
-  } else {
-    message +=
-      " This may be influenced by lifestyle patterns like stress, sleep, nutrition, or recovery.";
-  }
-
-  message += ` You described it as ${feeling.toLowerCase()}, with an intensity of ${intensity}/10.`;
-
-  // 🌿 GUIDANCE (THIS IS NEW)
-  message += `\n\nWe could gently explore this in a few ways:`;
-
-  if (current.id === "digestion") {
-    message += `\n• check hydration and fibre intake\n• notice stress levels around meals\n• slow eating and give space after food`;
-  }
-
-  if (current.id === "stress_nerves") {
-    message += `\n• slow breathing or grounding\n• short breaks from stimulation\n• noticing what’s mentally loading you`;
-  }
-
-  if (current.id === "energy_recovery") {
-    message += `\n• check sleep quality and timing\n• reduce load slightly today\n• support with food and hydration`;
-  }
-
-  if (current.id === "skin") {
-    message += `\n• hydration and sleep check\n• look at stress levels\n• notice any recent product or diet changes`;
-  }
-
-  if (current.id === "breathing") {
-    message += `\n• slow, steady breathing\n• posture check\n• brief pause to reset your system`;
-  }
-
-  if (!["digestion", "stress_nerves", "energy_recovery", "skin", "breathing"].includes(current.id)) {
-    message += `\n• notice stress and recovery balance\n• check sleep and hydration\n• keep observing patterns for a few days`;
-  }
-
-  message += `\n\nWe can go deeper into any of these, or simply track this over time.`;
-
-  // ⚠️ SAFETY
-  if (intensity >= 8) {
-    message +=
-      " If this feels severe, unusual, or persistent, it’s important to speak with a healthcare professional.";
-  }
-
-  return message;
-};
-
-const handleExplore = async () => {
-  if (!current || !selectedSignal || !feeling) return;
-
-  setSaving(true);
-
-  const entryToSave = {
-    areas: [current.label],
-    system: current.system,
-    signal: selectedSignal,
-    depth: feeling,
-    intensity: intensity,
+  const clearSelections = () => {
+    setSelectedSystems([]);
+    setActiveSystemId(null);
+    setSelectedSignal("");
+    setFeeling("");
+    setIntensity(5);
+    setResponse("");
   };
 
-  // Save entry
-  await supabase.from("body_signals").insert([entryToSave]);
+  const buildCoachResponse = () => {
+    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) return "";
 
-  // Get recent entries
-  const { data, error } = await supabase
-    .from("body_signals")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(20);
+    const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
+    let message = `You’ve marked ${labels}. Right now, we’re exploring ${current.label.toLowerCase()}, where you’re noticing ${selectedSignal}.`;
 
-  let message = buildCoachResponse();
+    if (selectedSystems.length > 1) {
+      message += " Because more than one area is showing up, Root Health will treat this as a connected body pattern rather than a single isolated signal.";
+    }
 
-  if (error) {
-    message += ` Supabase read error: ${error.message}`;
+    const hasDigestion = selectedSystems.includes("digestion");
+    const hasStress = selectedSystems.includes("stress_nerves");
+    const hasBreathing = selectedSystems.includes("breathing");
+    const hasHeart = selectedSystems.includes("heart_circulation");
+    const hasSkin = selectedSystems.includes("skin");
+    const hasEnergy = selectedSystems.includes("energy_recovery");
+    const hasSleep = selectedSystems.includes("sleep_rhythm");
+
+    if (hasDigestion && hasStress) {
+      message += " Digestion and stress can sometimes influence each other through the gut–brain connection.";
+    }
+
+    if ((hasBreathing || hasHeart) && hasStress) {
+      message += " Breathing, heart rhythm and stress can sometimes move together when the nervous system is carrying more load.";
+    }
+
+    if (hasSkin && hasDigestion) {
+      message += " Skin and digestion can sometimes be worth observing together, especially around food patterns, stress and inflammation.";
+    }
+
+    if (hasEnergy && hasSleep) {
+      message += " Energy and sleep rhythm often give useful clues about recovery and overall system load.";
+    }
+
+    message += ` You described this as ${feeling.toLowerCase()}, with an intensity of ${intensity}/10.`;
+
+    message += `\n\nA gentle place to begin could be:`;
+
+    if (current.id === "digestion") {
+      message += `\n• hydration and fibre check\n• notice stress around meals\n• slow eating and allow space after food`;
+    } else if (current.id === "stress_nerves") {
+      message += `\n• slow breathing or grounding\n• reduce stimulation briefly\n• notice what feels mentally heavy today`;
+    } else if (current.id === "breathing") {
+      message += `\n• soften the breath\n• check posture\n• pause for a nervous-system reset`;
+    } else if (current.id === "skin") {
+      message += `\n• hydration and sleep check\n• notice recent food or product changes\n• observe stress levels`;
+    } else if (current.id === "energy_recovery") {
+      message += `\n• check sleep quality\n• reduce load slightly today\n• support with food and hydration`;
+    } else {
+      message += `\n• check sleep, stress and hydration\n• notice recent changes\n• track this for a few days`;
+    }
+
+    if (intensity >= 8) {
+      message += `\n\nBecause this feels strong, be gentle with yourself. If it feels severe, unusual, persistent or worrying, it’s important to speak with a healthcare professional.`;
+    }
+
+    return message;
+  };
+
+  const handleExplore = async () => {
+    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) return;
+
+    setSaving(true);
+
+    const entryToSave = {
+      areas: selectedItems.map((item) => item.label),
+      system: selectedItems.map((item) => item.system).join(", "),
+      signal: selectedSignal,
+      depth: feeling,
+      intensity: intensity,
+    };
+
+    await supabase.from("body_signals").insert([entryToSave]);
+
+    const { data, error } = await supabase
+      .from("body_signals")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    let message = buildCoachResponse();
+
+    if (error) {
+      message += ` Supabase read error: ${error.message}`;
+      setResponse(message);
+      setSaving(false);
+      return;
+    }
+
+    if (data && data.length > 1) {
+      const selectedLabels = selectedItems.map((item) => item.label);
+
+      const repeatedAreaCount = data.filter((entry) => {
+        if (!Array.isArray(entry.areas)) return false;
+        return entry.areas.some((area) => selectedLabels.includes(area));
+      }).length;
+
+      const sameSignalCount = data.filter((entry) => entry.signal === selectedSignal).length;
+
+      const highIntensity = data.filter((entry) => Number(entry.intensity) >= 7).length;
+
+      if (repeatedAreaCount >= 3) {
+        message += `\n\nI’m noticing a pattern here — one or more of these areas has come up a few times recently. It may be your body gently trying to get your attention rather than this being a one-off moment.`;
+      }
+
+      if (sameSignalCount >= 3) {
+        message += `\n\nThe same signal has also been repeating, which can sometimes help us understand what your system tends to return to under certain conditions.`;
+      }
+
+      if (highIntensity >= 2) {
+        message += `\n\nSome of these signals have been quite strong, so rather than pushing through, it may help to slow things down and support this area with a bit more care.`;
+      }
+    }
+
     setResponse(message);
     setSaving(false);
-    return;
-  }
+  };
 
-  // 🧠 PATTERN AWARENESS (NEW VOICE)
-  if (data && data.length > 1) {
-    const sameSystemCount = data.filter(
-      (entry) => entry.system === current.system
-    ).length;
-
-    const sameSignalCount = data.filter(
-      (entry) => entry.signal === selectedSignal
-    ).length;
-
-    const highIntensity = data.filter(
-      (entry) => Number(entry.intensity) >= 7
-    ).length;
-
-    if (sameSystemCount >= 3) {
-      message += `\n\nI’m noticing a pattern here — this area has come up a few times recently. It may be your body gently trying to get your attention rather than this being a one-off moment.`;
-    }
-
-    if (sameSignalCount >= 3) {
-      message += `\n\nThe same signal has also been repeating, which can sometimes help us understand what your system tends to return to under certain conditions.`;
-    }
-
-    if (highIntensity >= 2) {
-      message += `\n\nSome of these signals have been quite strong, so rather than pushing through, it may help to slow things down and support this area with a bit more care.`;
-    }
-  }
-
-  setResponse(message);
-  setSaving(false);
-}; return (
+  return (
     <main style={styles.page}>
       <section style={styles.shell}>
         <div style={styles.brandMark}>◯</div>
 
         <h1 style={styles.title}>Root Health</h1>
-        <p style={styles.subtitle}>
-          Where is your body asking for attention today?
-        </p>
+        <p style={styles.subtitle}>Tap each place your body is asking for attention today.</p>
 
-       <GlassBody selectedSystem={selectedSystem} onSelect={resetDetail} />
+        <GlassBody
+          selectedSystems={selectedItems.map((item) => item.label)}
+          onSelect={selectSystem}
+          onClear={clearSelections}
+        />
 
-<div style={styles.grid}>
-  {bodySystems.map((item) => (
-    <button
-      key={item.id}
-      onClick={() => resetDetail(item.id)}
-      style={{
-        ...styles.systemButton,
-        background: selectedSystem === item.id ? "#1A1A1A" : "#F0EDE7",
-        color: selectedSystem === item.id ? "#FFFFFF" : "#2F2F2F",
-      }}
-    >
-      {item.label}
-    </button>
-  ))}
-</div>
+        <div style={styles.grid}>
+          {bodySystems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => selectSystem(item.id)}
+              style={{
+                ...styles.systemButton,
+                background: selectedSystems.includes(item.id) ? "#1A1A1A" : "#F0EDE7",
+                color: selectedSystems.includes(item.id) ? "#FFFFFF" : "#2F2F2F",
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
         {current && (
           <div style={styles.panel}>
-            <p style={styles.panelTitle}>{current.label}</p>
-            <p style={styles.microText}>
-              Root Health reads this as a {current.system} signal — shown to you in plain language.
+            <p style={styles.panelTitle}>
+              {selectedItems.length > 1 ? "Connected body pattern" : current.label}
             </p>
 
-            <p style={styles.label}>What are you noticing?</p>
+            <p style={styles.microText}>
+              Selected: {selectedItems.map((item) => item.label).join(", ")}
+            </p>
+
+            <p style={styles.label}>Which signal should we explore first?</p>
             <div style={styles.choiceRow}>
               {current.signals.map((sig) => (
                 <button
@@ -442,5 +455,6 @@ const styles = {
     color: "#333",
     lineHeight: "1.65",
     fontSize: "15px",
+    whiteSpace: "pre-line",
   },
 };
