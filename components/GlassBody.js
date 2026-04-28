@@ -25,16 +25,14 @@ function getBodyRegion(x, y) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // LOWER ABDOMEN
-  if (y >= 46 && y < 52) {
-    return { id: "digestion", label: "Digestion" };
-  }
-
-  // REPRODUCTIVE
-  if (y >= 52 && y < 60 && x >= 38 && x <= 62) {
-    return { id: "reproductive", label: "Pelvis & reproductive" };
-  }
-
+  // LOWER ABDOMEN (just above pelvis)
+if (y >= 42 && y < 47) {
+  return { id: "digestion", label: "Digestion" };
+}
+// 🔥 PELVIS / REPRODUCTIVE (moved UP)
+if (y >= 47 && y < 60 && x >= 38 && x <= 62) {
+  return { id: "reproductive", label: "Pelvis & reproductive" };
+}
   // HIPS / OUTER
   if (y >= 52 && y < 65 && (x < 38 || x > 62)) {
     return { id: "muscles_joints", label: "Hips & joints" };
