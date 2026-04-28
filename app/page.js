@@ -98,43 +98,71 @@ export default function Home() {
     setResponse("");
   };
 
-  const buildCoachResponse = () => {
-    if (!current || !selectedSignal || !feeling) return "";
+ const buildCoachResponse = () => {
+  if (!current || !selectedSignal || !feeling) return "";
 
-    let message = `You’re noticing ${selectedSignal} around ${current.label.toLowerCase()}.`;
+  let message = `You’re noticing ${selectedSignal} around ${current.label.toLowerCase()}.`;
 
-    if (current.id === "digestion") {
-      message +=
-        " Digestion can sometimes be influenced by stress, sleep, food timing, hydration and the gut–brain connection.";
-    } else if (current.id === "stress_nerves") {
-      message +=
-        " This can sometimes reflect the nervous system carrying more load than usual.";
-    } else if (current.id === "skin") {
-      message +=
-        " Skin can reflect several lifestyle layers, including hydration, sleep, stress, food patterns and environment.";
-    } else if (current.id === "breathing" || current.id === "heart_circulation") {
-      message +=
-        " These signals can sometimes link with stress, breathing habits, sleep, caffeine or physical strain.";
-    } else if (current.id === "energy_recovery" || current.id === "sleep_rhythm") {
-      message +=
-        " Recovery often connects with sleep, stress, nutrition, movement and emotional load.";
-    } else {
-      message +=
-        " This may connect with lifestyle patterns such as stress, sleep, nutrition, movement, hydration or recovery.";
-    }
+  // 🧠 SYSTEM CONTEXT
+  if (current.id === "digestion") {
+    message +=
+      " Digestion can sometimes be influenced by stress, food timing, hydration, and the gut–brain connection.";
+  } else if (current.id === "stress_nerves") {
+    message +=
+      " This can sometimes reflect your nervous system carrying more load than usual.";
+  } else if (current.id === "skin") {
+    message +=
+      " Skin can reflect hydration, stress, sleep, and what’s happening internally.";
+  } else if (current.id === "breathing") {
+    message +=
+      " Breathing patterns often shift with stress, posture, and nervous system state.";
+  } else if (current.id === "energy_recovery") {
+    message +=
+      " Energy often reflects sleep, stress, nutrition, and overall load.";
+  } else {
+    message +=
+      " This may be influenced by lifestyle patterns like stress, sleep, nutrition, or recovery.";
+  }
 
-    message += ` You described it as ${feeling.toLowerCase()}, with an intensity of ${intensity}/10.`;
+  message += ` You described it as ${feeling.toLowerCase()}, with an intensity of ${intensity}/10.`;
 
-    if (intensity >= 8) {
-      message +=
-        " Because this feels strong, please treat it with care. If it is severe, unusual, persistent or worrying, it’s important to speak with a healthcare professional.";
-    } else {
-      message +=
-        " We can explore what may be contributing, support it now, or track it over time.";
-    }
+  // 🌿 GUIDANCE (THIS IS NEW)
+  message += `\n\nWe could gently explore this in a few ways:`;
 
-    return message;
-  };
+  if (current.id === "digestion") {
+    message += `\n• check hydration and fibre intake\n• notice stress levels around meals\n• slow eating and give space after food`;
+  }
+
+  if (current.id === "stress_nerves") {
+    message += `\n• slow breathing or grounding\n• short breaks from stimulation\n• noticing what’s mentally loading you`;
+  }
+
+  if (current.id === "energy_recovery") {
+    message += `\n• check sleep quality and timing\n• reduce load slightly today\n• support with food and hydration`;
+  }
+
+  if (current.id === "skin") {
+    message += `\n• hydration and sleep check\n• look at stress levels\n• notice any recent product or diet changes`;
+  }
+
+  if (current.id === "breathing") {
+    message += `\n• slow, steady breathing\n• posture check\n• brief pause to reset your system`;
+  }
+
+  if (!["digestion", "stress_nerves", "energy_recovery", "skin", "breathing"].includes(current.id)) {
+    message += `\n• notice stress and recovery balance\n• check sleep and hydration\n• keep observing patterns for a few days`;
+  }
+
+  message += `\n\nWe can go deeper into any of these, or simply track this over time.`;
+
+  // ⚠️ SAFETY
+  if (intensity >= 8) {
+    message +=
+      " If this feels severe, unusual, or persistent, it’s important to speak with a healthcare professional.";
+  }
+
+  return message;
+};
 
 const handleExplore = async () => {
   if (!current || !selectedSignal || !feeling) return;
