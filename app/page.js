@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
+import GlassBody from "../components/GlassBody";
 
 const bodySystems = [
   {
@@ -235,22 +236,23 @@ const handleExplore = async () => {
           Where is your body asking for attention today?
         </p>
 
-        <div style={styles.grid}>
-          {bodySystems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => resetDetail(item.id)}
-              style={{
-                ...styles.systemButton,
-                background: selectedSystem === item.id ? "#1A1A1A" : "#F0EDE7",
-                color: selectedSystem === item.id ? "#FFFFFF" : "#2F2F2F",
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+       <GlassBody selectedSystem={selectedSystem} onSelect={resetDetail} />
 
+<div style={styles.grid}>
+  {bodySystems.map((item) => (
+    <button
+      key={item.id}
+      onClick={() => resetDetail(item.id)}
+      style={{
+        ...styles.systemButton,
+        background: selectedSystem === item.id ? "#1A1A1A" : "#F0EDE7",
+        color: selectedSystem === item.id ? "#FFFFFF" : "#2F2F2F",
+      }}
+    >
+      {item.label}
+    </button>
+  ))}
+</div>
         {current && (
           <div style={styles.panel}>
             <p style={styles.panelTitle}>{current.label}</p>
