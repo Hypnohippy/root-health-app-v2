@@ -212,7 +212,85 @@ const bodySystems = [
     ],
   },
 ];
-
+const systemFeelings = {
+  stress_nerves: [
+    "overwhelmed",
+    "tense",
+    "wired",
+    "restless",
+    "on edge",
+    "unable to switch off",
+  ],
+  heart_circulation: [
+    "pressure",
+    "tight",
+    "fluttering",
+    "pounding",
+    "heavy",
+    "irregular",
+  ],
+  breathing: [
+    "tight",
+    "restricted",
+    "shallow",
+    "heavy",
+    "effortful",
+    "can't get a full breath",
+  ],
+  digestion: [
+    "bloated",
+    "cramping",
+    "heavy",
+    "uncomfortable",
+    "sensitive",
+    "gurgling",
+  ],
+  reproductive: [
+    "irritated",
+    "sensitive",
+    "burning",
+    "uncomfortable",
+    "visible change",
+  ],
+  bladder_hydration: [
+    "burning",
+    "urgent",
+    "pressure",
+    "uncomfortable",
+  ],
+  muscles_joints: [
+    "tight",
+    "stiff",
+    "aching",
+    "sharp",
+    "restricted",
+  ],
+  skin: [
+    "itchy",
+    "burning",
+    "irritated",
+    "sensitive",
+    "visible change",
+  ],
+  senses: [
+    "strained",
+    "sensitive",
+    "dizzy",
+    "tingling",
+  ],
+  energy_recovery: [
+    "drained",
+    "heavy",
+    "flat",
+    "low",
+  ],
+  sleep_rhythm: [
+    "restless",
+    "broken",
+    "light",
+    "unrefreshing",
+  ],
+};
 const feelings = [
   "Surface",
   "Tight / tense",
@@ -501,7 +579,7 @@ export default function Home() {
               <>
                 <p style={styles.label}>How does it feel or appear?</p>
                 <div style={styles.choiceRow}>
-                  {feelings.map((item) => (
+                  {(systemFeelings[current.id] || feelings).map((item) => (
                     <button
                       key={item}
                       onClick={() => setFeeling(item)}
