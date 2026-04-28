@@ -1,18 +1,40 @@
 import { useState } from "react";
 
 const points = [
-  { id: "stress_nerves", label: "Stress & nerves", x: 50, y: 8 },
-  { id: "senses", label: "Senses", x: 50, y: 13 },
-  { id: "breathing", label: "Breathing", x: 50, y: 27 },
-  { id: "heart_circulation", label: "Heart & circulation", x: 52, y: 35 },
-  { id: "digestion", label: "Digestion", x: 50, y: 48 },
-  { id: "hormones_balance", label: "Hormones & balance", x: 50, y: 61 },
-  { id: "bladder_hydration", label: "Bladder & hydration", x: 50, y: 69 },
-  { id: "muscles_joints", label: "Muscles & joints", x: 30, y: 45 },
-  { id: "skin", label: "Skin", x: 75, y: 42 },
-  { id: "energy_recovery", label: "Energy & recovery", x: 50, y: 83 },
-];
+  // Head / senses
+  { id: "stress_nerves", label: "Stress & nerves", x: 50, y: 10 },
+  { id: "senses", label: "Senses", x: 50, y: 15 },
 
+  // Chest
+  { id: "breathing", label: "Breathing", x: 50, y: 30 },
+  { id: "heart_circulation", label: "Heart & circulation", x: 50, y: 38 },
+
+  // Abdomen / pelvis
+  { id: "digestion", label: "Digestion", x: 50, y: 51 },
+  { id: "hormones_balance", label: "Hormones & balance", x: 50, y: 62 },
+  { id: "bladder_hydration", label: "Bladder & hydration", x: 50, y: 70 },
+
+  // Arms / shoulders = muscles & joints
+  { id: "muscles_joints", label: "Muscles & joints", x: 24, y: 35 },
+  { id: "muscles_joints", label: "Muscles & joints", x: 76, y: 35 },
+  { id: "muscles_joints", label: "Muscles & joints", x: 27, y: 52 },
+  { id: "muscles_joints", label: "Muscles & joints", x: 73, y: 52 },
+
+  // Knees / legs / feet = muscles & joints
+  { id: "muscles_joints", label: "Muscles & joints", x: 42, y: 78 },
+  { id: "muscles_joints", label: "Muscles & joints", x: 58, y: 78 },
+  { id: "muscles_joints", label: "Muscles & joints", x: 40, y: 92 },
+  { id: "muscles_joints", label: "Muscles & joints", x: 60, y: 92 },
+
+  // Skin points around outer body
+  { id: "skin", label: "Skin", x: 18, y: 45 },
+  { id: "skin", label: "Skin", x: 82, y: 45 },
+  { id: "skin", label: "Skin", x: 20, y: 66 },
+  { id: "skin", label: "Skin", x: 80, y: 66 },
+
+  // Whole-body energy lower/central
+  { id: "energy_recovery", label: "Energy & recovery", x: 50, y: 84 },
+];
 function getNearestPoint(x, y) {
   let nearest = points[0];
   let nearestDistance = Infinity;
