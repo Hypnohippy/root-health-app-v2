@@ -19,6 +19,19 @@ const bodySystems = [
       "numb or detached",
       "hard to settle",
     ],
+    const systemFeelings = {
+  heart_circulation: ["pressure", "tight", "fluttering", "pounding", "heavy", "irregular"],
+  breathing: ["tight", "restricted", "shallow", "heavy", "effortful"],
+  stress_nerves: ["overwhelmed", "tense", "wired", "restless", "on edge"],
+  digestion: ["bloated", "cramping", "heavy", "uncomfortable", "sensitive"],
+  reproductive: ["irritated", "sensitive", "burning", "uncomfortable", "visible change"],
+  bladder_hydration: ["burning", "urgent", "pressure", "uncomfortable"],
+  muscles_joints: ["tight", "stiff", "aching", "sharp", "restricted"],
+  skin: ["itchy", "burning", "irritated", "sensitive", "visible change"],
+  senses: ["strained", "sensitive", "dizzy", "tingling"],
+  energy_recovery: ["drained", "heavy", "flat", "low"],
+  sleep_rhythm: ["restless", "broken", "light", "unrefreshing"],
+};
   },
   {
     id: "heart_circulation",
