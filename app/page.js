@@ -9,77 +9,224 @@ const bodySystems = [
     id: "stress_nerves",
     label: "Stress & nerves",
     system: "nervous/autonomic",
-    signals: ["overwhelm", "racing thoughts", "tension", "panic feeling", "wired but tired"],
+    signals: [
+      "overwhelm",
+      "racing thoughts",
+      "panic feeling",
+      "tension",
+      "wired but tired",
+      "shaky",
+      "numb or detached",
+      "hard to settle",
+    ],
   },
   {
     id: "heart_circulation",
     label: "Heart & circulation",
     system: "circulatory",
-    signals: ["racing heart", "cold hands/feet", "pressure", "light-headed", "low stamina"],
+    signals: [
+      "racing heart",
+      "fluttering",
+      "pressure",
+      "cold hands/feet",
+      "light-headed",
+      "low stamina",
+      "swelling",
+      "colour change",
+    ],
   },
   {
     id: "breathing",
     label: "Breathing",
     system: "respiratory",
-    signals: ["shallow breathing", "tight chest", "breathlessness", "sighing", "air hunger"],
+    signals: [
+      "shallow breathing",
+      "tight chest",
+      "breathlessness",
+      "air hunger",
+      "cough",
+      "wheeze",
+      "sighing",
+      "chest heaviness",
+    ],
   },
   {
     id: "digestion",
     label: "Digestion",
     system: "digestive",
-    signals: ["bloating", "reflux", "cramps", "constipation", "loose bowels", "appetite change"],
+    signals: [
+      "bloating",
+      "reflux",
+      "cramps",
+      "constipation",
+      "loose bowels",
+      "nausea",
+      "appetite change",
+      "wind/gas",
+      "food sensitivity",
+    ],
+  },
+  {
+    id: "reproductive",
+    label: "Pelvis & reproductive",
+    system: "reproductive/pelvic",
+    signals: [
+      "pelvic discomfort",
+      "groin discomfort",
+      "genital irritation",
+      "burning",
+      "itching",
+      "discharge/change",
+      "swelling",
+      "rash or blistering",
+      "cycle-related change",
+      "sexual discomfort",
+    ],
   },
   {
     id: "hormones_balance",
     label: "Hormones & balance",
     system: "endocrine",
-    signals: ["cravings", "energy dips", "mood swings", "temperature changes", "cycle changes"],
+    signals: [
+      "cravings",
+      "energy dips",
+      "mood swings",
+      "temperature changes",
+      "sweats",
+      "cycle changes",
+      "skin changes",
+      "sleep disruption",
+      "weight change",
+    ],
   },
   {
     id: "bladder_hydration",
     label: "Bladder & hydration",
     system: "urinary/excretory",
-    signals: ["thirst", "frequent urination", "dark urine", "fluid retention", "lower back discomfort"],
+    signals: [
+      "thirst",
+      "frequent urination",
+      "burning when passing urine",
+      "dark urine",
+      "fluid retention",
+      "lower back discomfort",
+      "urgency",
+      "reduced urination",
+    ],
   },
   {
     id: "muscles_joints",
     label: "Muscles & joints",
     system: "musculoskeletal",
-    signals: ["aching", "stiffness", "weakness", "cramps", "reduced movement"],
+    signals: [
+      "aching",
+      "stiffness",
+      "sharp pain",
+      "deep ache",
+      "weakness",
+      "cramps",
+      "reduced movement",
+      "swelling",
+      "clicking/grinding",
+    ],
   },
   {
     id: "skin",
     label: "Skin",
     system: "skin/barrier",
-    signals: ["dryness", "itching", "redness", "spots", "sensitivity", "slow healing"],
+    signals: [
+      "rash",
+      "blistering",
+      "redness",
+      "itching",
+      "dryness",
+      "spots",
+      "sensitivity",
+      "swelling",
+      "colour change",
+      "visible change but no feeling",
+      "slow healing",
+    ],
   },
   {
     id: "senses",
     label: "Senses",
     system: "sensory",
-    signals: ["eye strain", "noise sensitivity", "dizziness", "light sensitivity", "tingling"],
+    signals: [
+      "eye strain",
+      "blurred vision",
+      "light sensitivity",
+      "noise sensitivity",
+      "dizziness",
+      "tingling",
+      "numbness",
+      "ringing ears",
+      "altered smell/taste",
+    ],
   },
   {
     id: "energy_recovery",
     label: "Energy & recovery",
     system: "whole-body recovery",
-    signals: ["fatigue", "burnout feeling", "heavy body", "low motivation", "poor recovery"],
+    signals: [
+      "fatigue",
+      "burnout feeling",
+      "heavy body",
+      "low motivation",
+      "poor recovery",
+      "weakness",
+      "brain fog",
+      "flu-like feeling",
+      "generally depleted",
+    ],
   },
   {
     id: "sleep_rhythm",
     label: "Sleep rhythm",
     system: "circadian/sleep",
-    signals: ["poor sleep", "waking often", "early waking", "tired on waking", "sleepy daytime"],
+    signals: [
+      "poor sleep",
+      "waking often",
+      "early waking",
+      "tired on waking",
+      "sleepy daytime",
+      "wired at night",
+      "restless sleep",
+      "night sweats",
+    ],
   },
   {
     id: "whole_body",
     label: "Whole body",
     system: "multi-system",
-    signals: ["generally off", "run down", "inflamed feeling", "unsettled", "hard to describe"],
+    signals: [
+      "generally off",
+      "run down",
+      "inflamed feeling",
+      "unsettled",
+      "heavy",
+      "shaky",
+      "hard to describe",
+      "visible change",
+      "recurring pattern",
+    ],
   },
 ];
 
-const feelings = ["Surface", "Tight / tense", "Deep", "Moving around", "Hard to describe"];
+const feelings = [
+  "Surface",
+  "Tight / tense",
+  "Deep",
+  "Burning",
+  "Itchy",
+  "Sharp",
+  "Dull ache",
+  "Throbbing",
+  "Numb",
+  "Moving around",
+  "Visible but not painful",
+  "Hard to describe",
+];
 
 export default function Home() {
   const [selectedSystems, setSelectedSystems] = useState([]);
@@ -90,7 +237,10 @@ export default function Home() {
   const [response, setResponse] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
+  const selectedItems = bodySystems.filter((item) =>
+    selectedSystems.includes(item.id)
+  );
+
   const current = bodySystems.find((item) => item.id === activeSystemId);
 
   const selectSystem = (id) => {
@@ -116,13 +266,17 @@ export default function Home() {
   };
 
   const buildCoachResponse = () => {
-    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) return "";
+    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) {
+      return "";
+    }
 
     const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
+
     let message = `You’ve marked ${labels}. Right now, we’re exploring ${current.label.toLowerCase()}, where you’re noticing ${selectedSignal}.`;
 
     if (selectedSystems.length > 1) {
-      message += " Because more than one area is showing up, Root Health will treat this as a connected body pattern rather than a single isolated signal.";
+      message +=
+        " Because more than one area is showing up, Root Health will treat this as a connected body pattern rather than a single isolated signal.";
     }
 
     const hasDigestion = selectedSystems.includes("digestion");
@@ -132,50 +286,92 @@ export default function Home() {
     const hasSkin = selectedSystems.includes("skin");
     const hasEnergy = selectedSystems.includes("energy_recovery");
     const hasSleep = selectedSystems.includes("sleep_rhythm");
+    const hasReproductive = selectedSystems.includes("reproductive");
+    const hasBladder = selectedSystems.includes("bladder_hydration");
 
     if (hasDigestion && hasStress) {
-      message += " Digestion and stress can sometimes influence each other through the gut–brain connection.";
+      message +=
+        " Digestion and stress can sometimes influence each other through the gut–brain connection.";
     }
 
     if ((hasBreathing || hasHeart) && hasStress) {
-      message += " Breathing, heart rhythm and stress can sometimes move together when the nervous system is carrying more load.";
+      message +=
+        " Breathing, heart rhythm and stress can sometimes move together when the nervous system is carrying more load.";
     }
 
     if (hasSkin && hasDigestion) {
-      message += " Skin and digestion can sometimes be worth observing together, especially around food patterns, stress and inflammation.";
+      message +=
+        " Skin and digestion can sometimes be worth observing together, especially around food patterns, stress and inflammation.";
     }
 
     if (hasEnergy && hasSleep) {
-      message += " Energy and sleep rhythm often give useful clues about recovery and overall system load.";
+      message +=
+        " Energy and sleep rhythm often give useful clues about recovery and overall system load.";
+    }
+
+    if (hasReproductive && hasStress) {
+      message +=
+        " Pelvic and reproductive signals can sometimes be influenced by stress, tension, hormones, sleep and emotional load.";
+    }
+
+    if (hasReproductive && hasBladder) {
+      message +=
+        " Pelvic, reproductive and bladder signals can sometimes overlap, so it is useful to track them carefully and notice timing, irritation and hydration.";
     }
 
     message += ` You described this as ${feeling.toLowerCase()}, with an intensity of ${intensity}/10.`;
 
-    message += `\n\nA gentle place to begin could be:`;
+    message += "\n\nA gentle place to begin could be:";
 
     if (current.id === "digestion") {
-      message += `\n• hydration and fibre check\n• notice stress around meals\n• slow eating and allow space after food`;
+      message +=
+        "\n• hydration and fibre check\n• notice stress around meals\n• slow eating and allow space after food";
     } else if (current.id === "stress_nerves") {
-      message += `\n• slow breathing or grounding\n• reduce stimulation briefly\n• notice what feels mentally heavy today`;
+      message +=
+        "\n• slow breathing or grounding\n• reduce stimulation briefly\n• notice what feels mentally heavy today";
     } else if (current.id === "breathing") {
-      message += `\n• soften the breath\n• check posture\n• pause for a nervous-system reset`;
+      message +=
+        "\n• soften the breath\n• check posture\n• pause for a nervous-system reset";
     } else if (current.id === "skin") {
-      message += `\n• hydration and sleep check\n• notice recent food or product changes\n• observe stress levels`;
+      message +=
+        "\n• notice visible changes, products, clothing or irritation\n• check hydration, sleep and stress\n• track whether it spreads, changes colour or becomes painful";
+    } else if (current.id === "reproductive") {
+      message +=
+        "\n• notice irritation, timing, clothing, friction or recent changes\n• track whether it is linked to stress, cycle, sex, products or hydration\n• avoid assuming one cause too quickly";
+    } else if (current.id === "bladder_hydration") {
+      message +=
+        "\n• check hydration and caffeine/alcohol intake\n• notice burning, urgency or colour changes\n• track frequency and timing";
     } else if (current.id === "energy_recovery") {
-      message += `\n• check sleep quality\n• reduce load slightly today\n• support with food and hydration`;
+      message +=
+        "\n• check sleep quality\n• reduce load slightly today\n• support with food and hydration";
     } else {
-      message += `\n• check sleep, stress and hydration\n• notice recent changes\n• track this for a few days`;
+      message +=
+        "\n• check sleep, stress and hydration\n• notice recent changes\n• track this for a few days";
+    }
+
+    if (
+      selectedSignal.includes("blister") ||
+      selectedSignal.includes("discharge") ||
+      selectedSignal.includes("burning when passing urine") ||
+      selectedSignal.includes("swelling") ||
+      selectedSignal.includes("colour change")
+    ) {
+      message +=
+        "\n\nBecause this includes a visible or potentially sensitive change, it may be worth monitoring carefully. If it worsens, spreads, is painful, unusual, persistent, or worrying, it’s important to speak with a healthcare professional.";
     }
 
     if (intensity >= 8) {
-      message += `\n\nBecause this feels strong, be gentle with yourself. If it feels severe, unusual, persistent or worrying, it’s important to speak with a healthcare professional.`;
+      message +=
+        "\n\nBecause this feels strong, be gentle with yourself. If it feels severe, unusual, persistent or worrying, it’s important to speak with a healthcare professional.";
     }
 
     return message;
   };
 
   const handleExplore = async () => {
-    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) return;
+    if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) {
+      return;
+    }
 
     setSaving(true);
 
@@ -212,20 +408,27 @@ export default function Home() {
         return entry.areas.some((area) => selectedLabels.includes(area));
       }).length;
 
-      const sameSignalCount = data.filter((entry) => entry.signal === selectedSignal).length;
+      const sameSignalCount = data.filter(
+        (entry) => entry.signal === selectedSignal
+      ).length;
 
-      const highIntensity = data.filter((entry) => Number(entry.intensity) >= 7).length;
+      const highIntensity = data.filter(
+        (entry) => Number(entry.intensity) >= 7
+      ).length;
 
       if (repeatedAreaCount >= 3) {
-        message += `\n\nI’m noticing a pattern here — one or more of these areas has come up a few times recently. It may be your body gently trying to get your attention rather than this being a one-off moment.`;
+        message +=
+          "\n\nI’m noticing a pattern here — one or more of these areas has come up a few times recently. It may be your body gently trying to get your attention rather than this being a one-off moment.";
       }
 
       if (sameSignalCount >= 3) {
-        message += `\n\nThe same signal has also been repeating, which can sometimes help us understand what your system tends to return to under certain conditions.`;
+        message +=
+          "\n\nThe same signal has also been repeating, which can sometimes help us understand what your system tends to return to under certain conditions.";
       }
 
       if (highIntensity >= 2) {
-        message += `\n\nSome of these signals have been quite strong, so rather than pushing through, it may help to slow things down and support this area with a bit more care.`;
+        message +=
+          "\n\nSome of these signals have been quite strong, so rather than pushing through, it may help to slow things down and support this area with a bit more care.";
       }
     }
 
@@ -239,7 +442,9 @@ export default function Home() {
         <div style={styles.brandMark}>◯</div>
 
         <h1 style={styles.title}>Root Health</h1>
-        <p style={styles.subtitle}>Tap each place your body is asking for attention today.</p>
+        <p style={styles.subtitle}>
+          Tap each place your body is asking for attention today.
+        </p>
 
         <GlassBody
           selectedSystems={selectedItems.map((item) => item.label)}
@@ -254,7 +459,9 @@ export default function Home() {
               onClick={() => selectSystem(item.id)}
               style={{
                 ...styles.systemButton,
-                background: selectedSystems.includes(item.id) ? "#1A1A1A" : "#F0EDE7",
+                background: selectedSystems.includes(item.id)
+                  ? "#1A1A1A"
+                  : "#F0EDE7",
                 color: selectedSystems.includes(item.id) ? "#FFFFFF" : "#2F2F2F",
               }}
             >
@@ -292,7 +499,7 @@ export default function Home() {
 
             {selectedSignal && (
               <>
-                <p style={styles.label}>How does it feel?</p>
+                <p style={styles.label}>How does it feel or appear?</p>
                 <div style={styles.choiceRow}>
                   {feelings.map((item) => (
                     <button
@@ -313,7 +520,7 @@ export default function Home() {
 
             {feeling && (
               <>
-                <p style={styles.label}>How strong is it today?</p>
+                <p style={styles.label}>How strong or concerning is it today?</p>
                 <div style={styles.scoreRow}>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
                     <button
