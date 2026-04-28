@@ -1,51 +1,56 @@
 import { useState } from "react";
 
 function getBodyRegion(x, y) {
-
   // HEAD
   if (y < 12) return { id: "stress_nerves", label: "Stress & nerves" };
 
   // FACE
-  if (y < 20) return { id: "senses", label: "Senses" };
+  if (y >= 12 && y < 20) return { id: "senses", label: "Senses" };
 
-  // CHEST TOP (lungs)
-  if (y < 28) return { id: "breathing", label: "Breathing" };
+  // ARMS / OUTSIDE
+  if (x < 30 || x > 70) return { id: "muscles_joints", label: "Muscles & joints" };
 
-  // HEART (very tight centre band)
-  if (y >= 28 && y < 34 && x >= 45 && x <= 55) {
+  // 🔥 HEART FIRST (so lungs don't steal it)
+  if (y >= 24 && y < 32 && x >= 45 && x <= 55) {
     return { id: "heart_circulation", label: "Heart & circulation" };
   }
 
-  // CHEST REMAINDER (lungs again)
-  if (y < 36) return { id: "breathing", label: "Breathing" };
+  // BREATHING (wider chest)
+  if (y >= 22 && y < 34) {
+    return { id: "breathing", label: "Breathing" };
+  }
 
-  // UPPER ABDOMEN (liver / stomach)
-  if (y < 48) return { id: "digestion", label: "Digestion" };
+  // UPPER ABDOMEN (LIVER / STOMACH)
+  if (y >= 34 && y < 46) {
+    return { id: "digestion", label: "Digestion" };
+  }
 
   // LOWER ABDOMEN
-  if (y < 52) return { id: "digestion", label: "Digestion" };
+  if (y >= 46 && y < 52) {
+    return { id: "digestion", label: "Digestion" };
+  }
 
-  // REPRODUCTIVE (groin)
-  if (y < 60 && x >= 38 && x <= 62) {
+  // REPRODUCTIVE
+  if (y >= 52 && y < 60 && x >= 38 && x <= 62) {
     return { id: "reproductive", label: "Pelvis & reproductive" };
   }
 
-  // HIPS
-  if (y < 62) {
+  // HIPS / OUTER
+  if (y >= 52 && y < 65 && (x < 38 || x > 62)) {
     return { id: "muscles_joints", label: "Hips & joints" };
   }
 
-  // BLADDER (tight centre)
-  if (y < 66 && x >= 45 && x <= 55) {
+  // BLADDER
+  if (y >= 58 && y < 66 && x >= 45 && x <= 55) {
     return { id: "bladder_hydration", label: "Bladder & hydration" };
   }
 
   // LEGS
-  if (y >= 62) {
+  if (y >= 60) {
     return { id: "muscles_joints", label: "Muscles & joints" };
   }
 
-  // OUTSIDE EDGE
+  // SKIN EDGE
   if (x < 35 || x > 65) {
     return { id: "skin", label: "Skin" };
   }
