@@ -611,7 +611,7 @@ export default function Home() {
               </>
             )}
 
-           {feeling && (
+           {selectedSignal && (
   <>
     <p style={styles.label}>When does this tend to show up?</p>
     <div style={styles.choiceRow}>
