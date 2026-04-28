@@ -603,18 +603,7 @@ export default function Home() {
 
             {selectedSignal && !directExperienceSignals.includes(selectedSignal) && (
               <>
-                <p style={styles.label}>How does it feel or appear?</p>
-                <div style={styles.choiceRow}>
-                  {(systemFeelings[current.id] || feelings).map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => setFeeling(item)}
-                      style={{
-                        ...styles.choiceButton,
-                        background: feeling === item ? "#1A1A1A" : "#E6E2DA",
-                        color: feeling === item ? "#FFFFFF" : "#333333",
-                      }}
-                    >
+              
                       {item}
                     </button>
                   ))}
