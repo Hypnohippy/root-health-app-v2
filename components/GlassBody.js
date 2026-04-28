@@ -31,11 +31,10 @@ function getNearestPoint(x, y) {
   return nearest;
 }
 
-export default function GlassBody({ selectedSystem, onSelect }) {
-  const [marker, setMarker] = useState({ x: 50, y: 48 });
-  const [selectedLabel, setSelectedLabel] = useState("Digestion");
+export default function GlassBody({ selectedSystems, onSelect, onClear }) {
+  const [markers, setMarkers] = useState([]);
 
-  const handlePointer = (event) => {
+  const handleClick = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
 
     const x = ((event.clientX - rect.left) / rect.width) * 100;
@@ -46,46 +45,64 @@ export default function GlassBody({ selectedSystem, onSelect }) {
 
     const nearest = getNearestPoint(clampedX, clampedY);
 
-    setMarker({ x: clampedX, y: clampedY });
-    setSelectedLabel(nearest.label);
+    setMarkers((prev) => [
+      ...prev,
+      {
+        id: nearest.id,
+        label: nearest.label,
+        x: clampedX,
+        y: clampedY,
+      },
+    ]);
+
     onSelect(nearest.id);
+  };
+
+  const clearMarkers = () => {
+    setMarkers([]);
+    onClear();
   };
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.instruction}>
-        Tap or drag the marker to where you feel it
-      </div>
+      <div style={styles.instruction}>Tap each place your body is asking for attention</div>
 
-      <div
-        style={styles.bodyArea}
-        onPointerDown={handlePointer}
-        onPointerMove={(event) => {
-          if (event.buttons === 1) handlePointer(event);
-        }}
-      >
+      <div style={styles.bodyArea} onClick={handleClick}>
         <img src="/glass-human.png" alt="Glass Human" style={styles.image} />
 
-        <div
-          style={{
-            ...styles.marker,
-            left: `${marker.x}%`,
-            top: `${marker.y}%`,
-          }}
-        />
-
-        <div
-          style={{
-            ...styles.glow,
-            left: `${marker.x}%`,
-            top: `${marker.y}%`,
-          }}
-        />
+        {markers.map((marker, index) => (
+          <div key={`${marker.id}-${index}`}>
+            <div
+              style={{
+                ...styles.glow,
+                left: `${marker.x}%`,
+                top: `${marker.y}%`,
+              }}
+            />
+            <div
+              style={{
+                ...styles.marker,
+                left: `${marker.x}%`,
+                top: `${marker.y}%`,
+              }}
+            >
+              {index + 1}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div style={styles.selectedText}>
-        Selected: <strong>{selectedLabel}</strong>
-      </div>
+      {selectedSystems.length > 0 && (
+        <>
+          <div style={styles.selectedText}>
+            Selected: <strong>{selectedSystems.join(", ")}</strong>
+          </div>
+
+          <button style={styles.clearButton} onClick={clearMarkers}>
+            Clear selections
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -104,9 +121,9 @@ const styles = {
   bodyArea: {
     position: "relative",
     width: "100%",
-    cursor: "crosshair",
+    cursor: "pointer",
     userSelect: "none",
-    touchAction: "none",
+    touchAction: "manipulation",
   },
   image: {
     width: "100%",
@@ -114,35 +131,46 @@ const styles = {
     filter: "drop-shadow(0 25px 40px rgba(0,0,0,0.25))",
     borderRadius: "18px",
   },
- marker: {
-  position: "absolute",
-  width: "16px",
-  height: "16px",
-  marginLeft: "-8px",
-  marginTop: "-8px",
-  borderRadius: "50%",
-  background: "#C23B30",
-  border: "2px solid white",
-  boxShadow: "0 0 25px rgba(194,59,48,0.9)",
-  zIndex: 3,
-  pointerEvents: "none",
-  transition: "all 0.25s ease",
-},
+  marker: {
+    position: "absolute",
+    width: "22px",
+    height: "22px",
+    marginLeft: "-11px",
+    marginTop: "-11px",
+    borderRadius: "50%",
+    background: "#C23B30",
+    border: "2px solid white",
+    boxShadow: "0 0 25px rgba(194,59,48,0.9)",
+    zIndex: 3,
+    pointerEvents: "none",
+    color: "#fff",
+    fontSize: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   glow: {
-  position: "absolute",
-  width: "90px",
-  height: "90px",
-  marginLeft: "-45px",
-  marginTop: "-45px",
-  borderRadius: "50%",
-  background: "radial-gradient(circle, rgba(194,59,48,0.35), transparent 70%)",
-  zIndex: 2,
-  pointerEvents: "none",
-  transition: "all 0.4s ease",
-},
+    position: "absolute",
+    width: "90px",
+    height: "90px",
+    marginLeft: "-45px",
+    marginTop: "-45px",
+    borderRadius: "50%",
+    background: "radial-gradient(circle, rgba(194,59,48,0.35), transparent 70%)",
+    zIndex: 2,
+    pointerEvents: "none",
+  },
   selectedText: {
     marginTop: "10px",
     fontSize: "14px",
     color: "#333",
+  },
+  clearButton: {
+    marginTop: "10px",
+    border: "none",
+    background: "#E6E2DA",
+    padding: "8px 12px",
+    borderRadius: "999px",
+    cursor: "pointer",
   },
 };
