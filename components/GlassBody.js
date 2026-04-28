@@ -1,68 +1,52 @@
 import { useState } from "react";
 
 function getBodyRegion(x, y) {
-  /*
-    x and y are direct percentages across the displayed image.
-    This version is calibrated from the actual glass-human.png image.
-  */
+  // HEAD
+  if (y < 12) return { id: "stress_nerves", label: "Stress & nerves" };
 
-  // Brain / top of head
-  if (y >= 3 && y < 10 && x >= 38 && x <= 62) {
-    return { id: "stress_nerves", label: "Stress & nerves" };
-  }
+  // FACE
+  if (y >= 12 && y < 20) return { id: "senses", label: "Senses" };
 
-  // Face / eyes / senses
-  if (y >= 10 && y < 19 && x >= 36 && x <= 64) {
-    return { id: "senses", label: "Senses" };
-  }
+  // ARMS / OUTSIDE BODY
+  if (x < 30 || x > 70) return { id: "muscles_joints", label: "Muscles & joints" };
 
-  // Neck
-  if (y >= 19 && y < 24 && x >= 42 && x <= 58) {
+  // UPPER CHEST → BREATHING
+  if (y >= 20 && y < 32) {
     return { id: "breathing", label: "Breathing" };
   }
 
-  // Arms / outer shoulders
-  if ((x < 30 || x > 70) && y >= 20 && y < 76) {
-    return { id: "muscles_joints", label: "Muscles & joints" };
-  }
-
-  // Heart — narrower and higher so liver does not become heart
-  if (y >= 27 && y < 36 && x >= 43 && x <= 58) {
+  // HEART (central, slightly lower than lungs)
+  if (y >= 32 && y < 42 && x >= 42 && x <= 60) {
     return { id: "heart_circulation", label: "Heart & circulation" };
   }
 
-  // Lungs / breathing — chest area around the heart
-  if (y >= 24 && y < 38 && x >= 32 && x <= 68) {
-    return { id: "breathing", label: "Breathing" };
-  }
-
-  // Liver / stomach / upper digestion
-  if (y >= 36 && y < 50 && x >= 32 && x <= 68) {
+  // UPPER ABDOMEN (liver/stomach)
+  if (y >= 42 && y < 52) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // Bowels / lower digestion
-  if (y >= 50 && y < 58 && x >= 34 && x <= 66) {
+  // MID ABDOMEN (gut)
+  if (y >= 52 && y < 60) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // Pelvis centre — bladder / hydration
-  if (y >= 58 && y < 70 && x >= 42 && x <= 58) {
-    return { id: "bladder_hydration", label: "Bladder & hydration" };
-  }
-
-  // Pelvis wider — hormones / balance
-  if (y >= 58 && y < 70 && x >= 34 && x <= 66) {
+  // PELVIS (hormones FIRST so it doesn’t get swallowed by digestion)
+  if (y >= 60 && y < 68 && x >= 35 && x <= 65) {
     return { id: "hormones_balance", label: "Hormones & balance" };
   }
 
-  // Thighs, knees, calves, feet
-  if (y >= 58) {
+  // BLADDER (tight centre only)
+  if (y >= 66 && y < 74 && x >= 45 && x <= 55) {
+    return { id: "bladder_hydration", label: "Bladder & hydration" };
+  }
+
+  // LEGS / THIGHS / KNEES / FEET
+  if (y >= 68) {
     return { id: "muscles_joints", label: "Muscles & joints" };
   }
 
-  // Outer torso / surface
-  if ((x >= 30 && x < 34) || (x > 66 && x <= 70)) {
+  // SKIN EDGE
+  if (x < 35 || x > 65) {
     return { id: "skin", label: "Skin" };
   }
 
@@ -79,25 +63,17 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
 
-    const clampedX = Math.max(0, Math.min(100, x));
-    const clampedY = Math.max(0, Math.min(100, y));
-
-    const region = getBodyRegion(clampedX, clampedY);
+    const region = getBodyRegion(x, y);
 
     setLastTap({
-      x: clampedX.toFixed(1),
-      y: clampedY.toFixed(1),
+      x: x.toFixed(1),
+      y: y.toFixed(1),
       label: region.label,
     });
 
     setMarkers((prev) => [
       ...prev,
-      {
-        id: region.id,
-        label: region.label,
-        x: clampedX,
-        y: clampedY,
-      },
+      { id: region.id, label: region.label, x, y },
     ]);
 
     onSelect(region.id);
@@ -119,7 +95,7 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
         <img src="/glass-human.png" alt="Glass Human" style={styles.image} />
 
         {markers.map((marker, index) => (
-          <div key={`${marker.id}-${index}`}>
+          <div key={index}>
             <div
               style={{
                 ...styles.glow,
@@ -176,14 +152,10 @@ const styles = {
     position: "relative",
     width: "100%",
     cursor: "pointer",
-    userSelect: "none",
-    touchAction: "manipulation",
   },
   image: {
     width: "100%",
     display: "block",
-    filter: "drop-shadow(0 25px 40px rgba(0,0,0,0.25))",
-    borderRadius: "18px",
   },
   marker: {
     position: "absolute",
@@ -194,9 +166,6 @@ const styles = {
     borderRadius: "50%",
     background: "#C23B30",
     border: "2px solid white",
-    boxShadow: "0 0 25px rgba(194,59,48,0.9)",
-    zIndex: 3,
-    pointerEvents: "none",
     color: "#fff",
     fontSize: "12px",
     display: "flex",
@@ -211,8 +180,6 @@ const styles = {
     marginTop: "-45px",
     borderRadius: "50%",
     background: "radial-gradient(circle, rgba(194,59,48,0.35), transparent 70%)",
-    zIndex: 2,
-    pointerEvents: "none",
   },
   debugText: {
     marginTop: "8px",
@@ -221,8 +188,6 @@ const styles = {
   },
   selectedText: {
     marginTop: "10px",
-    fontSize: "14px",
-    color: "#333",
   },
   clearButton: {
     marginTop: "10px",
