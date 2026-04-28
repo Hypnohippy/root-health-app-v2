@@ -31,7 +31,7 @@ function getNearestPoint(x, y) {
   return nearest;
 }
 
-export default function GlassBody({ selectedSystems, onSelect, onClear }) {
+export default function GlassBody({ selectedSystems = [], onSelect, onClear = () => {} }) {
   const [markers, setMarkers] = useState([]);
 
   const handleClick = (event) => {
