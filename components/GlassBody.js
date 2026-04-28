@@ -1,60 +1,80 @@
 import { useState } from "react";
 
-function getBodyRegion(x, y) {
-  // x and y are percentages across the visible image.
-  // These values are calibrated for the current glass-human.png image.
+function getBodyRegion(rawX, rawY) {
+  /*
+    The image includes black space around the figure.
+    These values map the visible human body inside the image.
+  */
+  const bodyLeft = 22;
+  const bodyRight = 78;
+  const bodyTop = 2;
+  const bodyBottom = 97;
 
-  // HEAD / FACE
-  if (y >= 3 && y < 15 && x >= 38 && x <= 62) {
+  const x = ((rawX - bodyLeft) / (bodyRight - bodyLeft)) * 100;
+  const y = ((rawY - bodyTop) / (bodyBottom - bodyTop)) * 100;
+
+  // Outside the main body silhouette = skin / outer body awareness
+  if (x < 0 || x > 100 || y < 0 || y > 100) {
+    return { id: "skin", label: "Skin" };
+  }
+
+  // Brain / head
+  if (y >= 0 && y < 10) {
     return { id: "stress_nerves", label: "Stress & nerves" };
   }
 
-  if (y >= 12 && y < 20 && x >= 35 && x <= 65) {
+  // Face / senses
+  if (y >= 10 && y < 18) {
     return { id: "senses", label: "Senses" };
   }
 
-  // ARMS / HANDS / SHOULDERS
-  if (x < 32 || x > 68) {
-    return { id: "muscles_joints", label: "Muscles & joints" };
-  }
-
-  // CHEST / LUNGS
-  if (y >= 24 && y < 34 && x >= 34 && x <= 66) {
+  // Neck / upper chest
+  if (y >= 18 && y < 24) {
     return { id: "breathing", label: "Breathing" };
   }
 
-  // HEART — slightly lower/central than lungs on this image
-  if (y >= 31 && y < 41 && x >= 43 && x <= 58) {
+  // Heart region first — central chest, slightly user-left/centre
+  if (y >= 24 && y < 36 && x >= 38 && x <= 62) {
     return { id: "heart_circulation", label: "Heart & circulation" };
   }
 
-  // UPPER ABDOMEN / LIVER / STOMACH
-  if (y >= 39 && y < 50 && x >= 34 && x <= 66) {
-    return { id: "digestion", label: "Digestion" };
+  // Lung fields — wider upper chest
+  if (y >= 22 && y < 40 && x >= 18 && x <= 82) {
+    return { id: "breathing", label: "Breathing" };
   }
 
-  // LOWER DIGESTION / BOWEL
-  if (y >= 50 && y < 61 && x >= 35 && x <= 65) {
-    return { id: "digestion", label: "Digestion" };
-  }
-
-  // HORMONAL / PELVIS
-  if (y >= 61 && y < 68 && x >= 38 && x <= 62) {
-    return { id: "hormones_balance", label: "Hormones & balance" };
-  }
-
-  // BLADDER — lower centre, not knees
-  if (y >= 66 && y < 73 && x >= 43 && x <= 57) {
-    return { id: "bladder_hydration", label: "Bladder & hydration" };
-  }
-
-  // LEGS / KNEES / FEET
-  if (y >= 68) {
+  // Shoulders / arms
+  if ((x < 18 || x > 82) && y >= 18 && y < 62) {
     return { id: "muscles_joints", label: "Muscles & joints" };
   }
 
-  // OUTER TORSO SKIN
-  if ((x >= 32 && x < 38) || (x > 62 && x <= 68)) {
+  // Liver / stomach / upper digestive organs
+  if (y >= 36 && y < 50 && x >= 25 && x <= 75) {
+    return { id: "digestion", label: "Digestion" };
+  }
+
+  // Intestines / lower digestive organs
+  if (y >= 50 && y < 64 && x >= 25 && x <= 75) {
+    return { id: "digestion", label: "Digestion" };
+  }
+
+  // Hormonal / pelvic balance
+  if (y >= 64 && y < 72 && x >= 30 && x <= 70) {
+    return { id: "hormones_balance", label: "Hormones & balance" };
+  }
+
+  // Bladder / hydration — lower central pelvis only
+  if (y >= 72 && y < 80 && x >= 38 && x <= 62) {
+    return { id: "bladder_hydration", label: "Bladder & hydration" };
+  }
+
+  // Legs, knees, feet
+  if (y >= 72) {
+    return { id: "muscles_joints", label: "Muscles & joints" };
+  }
+
+  // Outer torso
+  if (x < 25 || x > 75) {
     return { id: "skin", label: "Skin" };
   }
 
