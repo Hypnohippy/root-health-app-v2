@@ -1,12 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../../lib/supabase";
-import GlassBody from "../../components/GlassBody";
 import Nav from "../../components/Nav";
+import GlassBody from "../../components/GlassBody";
+
+const bodySystems = [
+  { id: "stress_nerves", label: "Stress & nerves", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension"] },
+  { id: "heart_circulation", label: "Heart & circulation", signals: ["racing heart", "fluttering", "pressure"] },
+  { id: "breathing", label: "Breathing", signals: ["tight chest", "shallow breathing", "breathlessness"] },
+  { id: "digestion", label: "Digestion", signals: ["bloating", "cramps", "reflux"] },
+  { id: "reproductive", label: "Pelvis & reproductive", signals: ["irritation", "discomfort", "burning"] },
+  { id: "muscles_joints", label: "Muscles & joints", signals: ["aching", "stiffness", "pain"] },
+];
+
+const feelings = [
+  "tight",
+  "sharp",
+  "dull",
+  "burning",
+  "itchy",
+  "heavy",
+  "numb",
+  "hard to describe",
+];
 
 export default function BodyPage() {
   const [selectedSystem, setSelectedSystem] = useState(null);
+  const [selectedSignal, setSelectedSignal] = useState("");
+  const [feeling, setFeeling] = useState("");
+
+  const current = bodySystems.find((b) => b.id === selectedSystem);
 
   return (
     <>
@@ -14,23 +37,61 @@ export default function BodyPage() {
 
       <main style={styles.page}>
         <section style={styles.shell}>
-          <div style={styles.brandMark}>◯</div>
-
           <h1 style={styles.title}>Body Signals</h1>
-          <p style={styles.subtitle}>
-            Tap each place your body is asking for attention.
-          </p>
 
           <GlassBody
             selectedSystems={[]}
-            onSelect={(id) => setSelectedSystem(id)}
-            onClear={() => setSelectedSystem(null)}
+            onSelect={(id) => {
+              setSelectedSystem(id);
+              setSelectedSignal("");
+              setFeeling("");
+            }}
+            onClear={() => {
+              setSelectedSystem(null);
+              setSelectedSignal("");
+              setFeeling("");
+            }}
           />
 
-          {selectedSystem && (
+          {current && (
             <div style={styles.panel}>
-              <p style={styles.panelTitle}>Selected</p>
-              <p style={styles.response}>{selectedSystem}</p>
+              <p style={styles.panelTitle}>{current.label}</p>
+
+              <p style={styles.label}>What are you noticing?</p>
+              <div style={styles.row}>
+                {current.signals.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSelectedSignal(s)}
+                    style={styles.btn}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+
+              {selectedSignal && (
+                <>
+                  <p style={styles.label}>How does it feel?</p>
+                  <div style={styles.row}>
+                    {feelings.map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setFeeling(f)}
+                        style={styles.btn}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {feeling && (
+                <p style={styles.result}>
+                  You selected: {current.label} → {selectedSignal} → {feeling}
+                </p>
+              )}
             </div>
           )}
         </section>
@@ -42,51 +103,49 @@ export default function BodyPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
+    background: "#F7F5F2",
     display: "flex",
-    alignItems: "center",
     justifyContent: "center",
     padding: "24px",
   },
   shell: {
+    maxWidth: "800px",
     width: "100%",
-    maxWidth: "820px",
-    background: "rgba(255,255,255,0.82)",
-    borderRadius: "28px",
-    padding: "34px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
     textAlign: "center",
   },
-  brandMark: {
-    fontSize: "38px",
-    color: "#1A1A1A",
-    marginBottom: "6px",
-  },
   title: {
-    fontSize: "34px",
-    margin: "0 0 8px",
-    color: "#1A1A1A",
-  },
-  subtitle: {
-    color: "#555",
-    fontSize: "17px",
-    marginBottom: "28px",
+    fontSize: "28px",
+    marginBottom: "20px",
   },
   panel: {
-    marginTop: "18px",
-    background: "#FFFFFF",
-    borderRadius: "22px",
-    padding: "24px",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.06)",
+    marginTop: "20px",
+    padding: "20px",
+    background: "#fff",
+    borderRadius: "12px",
   },
   panelTitle: {
-    fontSize: "20px",
-    fontWeight: "600",
-    margin: "0 0 10px",
+    fontSize: "18px",
+    marginBottom: "10px",
   },
-  response: {
-    color: "#333",
-    lineHeight: "1.6",
-    fontSize: "15px",
+  label: {
+    marginTop: "15px",
+  },
+  row: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    justifyContent: "center",
+    marginTop: "10px",
+  },
+  btn: {
+    padding: "8px 12px",
+    border: "none",
+    borderRadius: "999px",
+    background: "#eee",
+    cursor: "pointer",
+  },
+  result: {
+    marginTop: "20px",
+    fontWeight: "bold",
   },
 };
