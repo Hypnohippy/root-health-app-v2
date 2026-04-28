@@ -7,7 +7,6 @@ export default function GlassBody({ selectedSystem, onSelect }) {
     { id: "hormones_balance", top: "58%", left: "36%", width: "28%", height: "10%" },
     { id: "bladder_hydration", top: "68%", left: "38%", width: "24%", height: "10%" },
     { id: "muscles_joints", top: "15%", left: "15%", width: "70%", height: "60%" },
-    { id: "skin", top: "10%", left: "10%", width: "80%", height: "75%" },
     { id: "energy_recovery", top: "82%", left: "30%", width: "40%", height: "10%" },
   ];
 
