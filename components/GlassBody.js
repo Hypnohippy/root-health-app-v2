@@ -1,80 +1,68 @@
 import { useState } from "react";
 
-function getBodyRegion(rawX, rawY) {
+function getBodyRegion(x, y) {
   /*
-    The image includes black space around the figure.
-    These values map the visible human body inside the image.
+    x and y are direct percentages across the displayed image.
+    This version is calibrated from the actual glass-human.png image.
   */
-  const bodyLeft = 22;
-  const bodyRight = 78;
-  const bodyTop = 2;
-  const bodyBottom = 97;
 
-  const x = ((rawX - bodyLeft) / (bodyRight - bodyLeft)) * 100;
-  const y = ((rawY - bodyTop) / (bodyBottom - bodyTop)) * 100;
-
-  // Outside the main body silhouette = skin / outer body awareness
-  if (x < 0 || x > 100 || y < 0 || y > 100) {
-    return { id: "skin", label: "Skin" };
-  }
-
-  // Brain / head
-  if (y >= 0 && y < 10) {
+  // Brain / top of head
+  if (y >= 3 && y < 10 && x >= 38 && x <= 62) {
     return { id: "stress_nerves", label: "Stress & nerves" };
   }
 
-  // Face / senses
-  if (y >= 10 && y < 18) {
+  // Face / eyes / senses
+  if (y >= 10 && y < 19 && x >= 36 && x <= 64) {
     return { id: "senses", label: "Senses" };
   }
 
-  // Neck / upper chest
-  if (y >= 18 && y < 24) {
+  // Neck
+  if (y >= 19 && y < 24 && x >= 42 && x <= 58) {
     return { id: "breathing", label: "Breathing" };
   }
 
-  // Heart region first — central chest, slightly user-left/centre
-  if (y >= 24 && y < 36 && x >= 38 && x <= 62) {
+  // Arms / outer shoulders
+  if ((x < 30 || x > 70) && y >= 20 && y < 76) {
+    return { id: "muscles_joints", label: "Muscles & joints" };
+  }
+
+  // Heart — narrower and higher so liver does not become heart
+  if (y >= 27 && y < 36 && x >= 43 && x <= 58) {
     return { id: "heart_circulation", label: "Heart & circulation" };
   }
 
-  // Lung fields — wider upper chest
-  if (y >= 22 && y < 40 && x >= 18 && x <= 82) {
+  // Lungs / breathing — chest area around the heart
+  if (y >= 24 && y < 38 && x >= 32 && x <= 68) {
     return { id: "breathing", label: "Breathing" };
   }
 
-  // Shoulders / arms
-  if ((x < 18 || x > 82) && y >= 18 && y < 62) {
-    return { id: "muscles_joints", label: "Muscles & joints" };
-  }
-
-  // Liver / stomach / upper digestive organs
-  if (y >= 36 && y < 50 && x >= 25 && x <= 75) {
+  // Liver / stomach / upper digestion
+  if (y >= 36 && y < 50 && x >= 32 && x <= 68) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // Intestines / lower digestive organs
-  if (y >= 50 && y < 64 && x >= 25 && x <= 75) {
+  // Bowels / lower digestion
+  if (y >= 50 && y < 58 && x >= 34 && x <= 66) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // Hormonal / pelvic balance
-  if (y >= 64 && y < 72 && x >= 30 && x <= 70) {
-    return { id: "hormones_balance", label: "Hormones & balance" };
-  }
-
-  // Bladder / hydration — lower central pelvis only
-  if (y >= 72 && y < 80 && x >= 38 && x <= 62) {
+  // Pelvis centre — bladder / hydration
+  if (y >= 58 && y < 70 && x >= 42 && x <= 58) {
     return { id: "bladder_hydration", label: "Bladder & hydration" };
   }
 
-  // Legs, knees, feet
-  if (y >= 72) {
+  // Pelvis wider — hormones / balance
+  if (y >= 58 && y < 70 && x >= 34 && x <= 66) {
+    return { id: "hormones_balance", label: "Hormones & balance" };
+  }
+
+  // Thighs, knees, calves, feet
+  if (y >= 58) {
     return { id: "muscles_joints", label: "Muscles & joints" };
   }
 
-  // Outer torso
-  if (x < 25 || x > 75) {
+  // Outer torso / surface
+  if ((x >= 30 && x < 34) || (x > 66 && x <= 70)) {
     return { id: "skin", label: "Skin" };
   }
 
@@ -83,6 +71,7 @@ function getBodyRegion(rawX, rawY) {
 
 export default function GlassBody({ selectedSystems = [], onSelect, onClear = () => {} }) {
   const [markers, setMarkers] = useState([]);
+  const [lastTap, setLastTap] = useState(null);
 
   const handleClick = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -94,6 +83,12 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
     const clampedY = Math.max(0, Math.min(100, y));
 
     const region = getBodyRegion(clampedX, clampedY);
+
+    setLastTap({
+      x: clampedX.toFixed(1),
+      y: clampedY.toFixed(1),
+      label: region.label,
+    });
 
     setMarkers((prev) => [
       ...prev,
@@ -110,6 +105,7 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
 
   const clearMarkers = () => {
     setMarkers([]);
+    setLastTap(null);
     onClear();
   };
 
@@ -143,6 +139,12 @@ export default function GlassBody({ selectedSystems = [], onSelect, onClear = ()
           </div>
         ))}
       </div>
+
+      {lastTap && (
+        <div style={styles.debugText}>
+          Last tap: x {lastTap.x}, y {lastTap.y} → {lastTap.label}
+        </div>
+      )}
 
       {selectedSystems.length > 0 && (
         <>
@@ -211,6 +213,11 @@ const styles = {
     background: "radial-gradient(circle, rgba(194,59,48,0.35), transparent 70%)",
     zIndex: 2,
     pointerEvents: "none",
+  },
+  debugText: {
+    marginTop: "8px",
+    fontSize: "12px",
+    color: "#777",
   },
   selectedText: {
     marginTop: "10px",
