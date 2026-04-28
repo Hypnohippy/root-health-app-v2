@@ -15,33 +15,33 @@ function getBodyRegion(x, y) {
     return { id: "breathing", label: "Breathing" };
   }
 
-  // HEART (central, slightly lower than lungs)
+  // HEART
   if (y >= 32 && y < 42 && x >= 42 && x <= 60) {
     return { id: "heart_circulation", label: "Heart & circulation" };
   }
 
-  // UPPER ABDOMEN (liver/stomach)
-  if (y >= 42 && y < 52) {
+  // UPPER ABDOMEN / STOMACH / LIVER
+  if (y >= 42 && y < 50) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // MID ABDOMEN (gut)
-  if (y >= 52 && y < 60) {
+  // LOWER BOWEL
+  if (y >= 50 && y < 51.5 && x >= 35 && x <= 65) {
     return { id: "digestion", label: "Digestion" };
   }
 
-  // PELVIS (hormones FIRST so it doesn’t get swallowed by digestion)
-  if (y >= 60 && y < 68 && x >= 35 && x <= 65) {
+  // GROIN / PELVIS CENTRE
+  if (y >= 51.5 && y < 58 && x >= 42 && x <= 58) {
     return { id: "hormones_balance", label: "Hormones & balance" };
   }
 
-  // BLADDER (tight centre only)
-  if (y >= 66 && y < 74 && x >= 45 && x <= 55) {
+  // LOWER PELVIS / BLADDER CENTRE
+  if (y >= 58 && y < 64 && x >= 45 && x <= 55) {
     return { id: "bladder_hydration", label: "Bladder & hydration" };
   }
 
   // LEGS / THIGHS / KNEES / FEET
-  if (y >= 68) {
+  if (y >= 58) {
     return { id: "muscles_joints", label: "Muscles & joints" };
   }
 
