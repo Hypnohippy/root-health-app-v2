@@ -239,12 +239,32 @@ const buildCoachResponse = () => {
 
     let message = buildCoachResponse();
     // 🔁 LOOK BACK: what helped before
-const previous = data.find(
-  (entry) =>
+// 🔁 BUILD PERSONAL "WHAT HELPS" PROFILE
+const helpCounts = {};
+
+data.forEach((entry) => {
+  if (
     entry.signal === selectedSignal &&
     entry.what_helped &&
     entry.what_helped !== ""
-);
+  ) {
+    helpCounts[entry.what_helped] =
+      (helpCounts[entry.what_helped] || 0) + 1;
+  }
+});
+
+const rankedHelp = Object.entries(helpCounts)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 3););
+    if (rankedHelp.length > 0) {
+  message += `\n\nWhat tends to help you most:`;
+
+  rankedHelp.forEach(([item, count], index) => {
+    message += `\n${index + 1}. ${item} (${count} ${
+      count === 1 ? "time" : "times"
+    })`;
+  });
+}
 
 if (previous) {
   message += `\n\nLast time this showed up, you noted that "${previous.what_helped}" helped. It might be worth trying that again.`;
