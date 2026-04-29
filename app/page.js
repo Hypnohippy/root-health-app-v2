@@ -8,6 +8,7 @@ export default function Home() {
   const [latestInsight, setLatestInsight] = useState("");
   const [balanceScore, setBalanceScore] = useState(null);
   const [patternNote, setPatternNote] = useState("");
+  const [trendNote, setTrendNote] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -15,39 +16,52 @@ export default function Home() {
         .from("body_signals")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(20);
 
       if (!data || data.length === 0) {
         setLatestInsight("No recent signals yet");
         setPatternNote("Start a body check to begin building your pattern.");
+        setTrendNote("");
         setBalanceScore(null);
         return;
       }
 
-      const averageIntensity =
-        data.reduce((sum, item) => sum + Number(item.intensity || 0), 0) /
-        data.length;
+      const now = new Date();
+
+      const last24h = data.filter((d) => {
+        const t = new Date(d.created_at);
+        return now - t <= 24 * 60 * 60 * 1000;
+      });
+
+      const last7d = data.filter((d) => {
+        const t = new Date(d.created_at);
+        return now - t <= 7 * 24 * 60 * 60 * 1000;
+      });
+
+      const avg = (arr) =>
+        arr.length === 0
+          ? 0
+          : arr.reduce((s, i) => s + Number(i.intensity || 0), 0) / arr.length;
+
+      const avg24 = avg(last24h);
+      const avg7 = avg(last7d);
 
       const areaCounts = {};
-
       data.forEach((entry) => {
         const areas = Array.isArray(entry.areas) ? entry.areas : [];
-
-        areas.forEach((area) => {
-          areaCounts[area] = (areaCounts[area] || 0) + 1;
+        areas.forEach((a) => {
+          areaCounts[a] = (areaCounts[a] || 0) + 1;
         });
       });
 
-      const repeatedAreas = Object.entries(areaCounts).sort(
-        (a, b) => b[1] - a[1]
-      );
+      const sorted = Object.entries(areaCounts).sort((a, b) => b[1] - a[1]);
+      const top = sorted[0];
 
-      const topArea = repeatedAreas[0];
-      const repetitionPenalty = topArea && topArea[1] >= 3 ? 10 : 0;
-      const frequencyPenalty = data.length >= 5 ? 5 : 0;
-      const intensityPenalty = averageIntensity * 8;
+      const repetitionPenalty = top && top[1] >= 3 ? 10 : 0;
+      const frequencyPenalty = data.length >= 6 ? 5 : 0;
+      const intensityPenalty = avg7 * 8;
 
-      const calculatedScore = Math.max(
+      const score = Math.max(
         0,
         Math.min(
           100,
@@ -55,23 +69,40 @@ export default function Home() {
         )
       );
 
-      setBalanceScore(calculatedScore);
+      setBalanceScore(score);
 
       const latestAreas = data[0].areas || [];
-
       setLatestInsight(
         "Your body has recently been signalling around " +
           latestAreas.join(", ")
       );
 
-      if (topArea && topArea[1] >= 3) {
+      if (top && top[1] >= 3) {
         setPatternNote(
-          `${topArea[0]} has appeared ${topArea[1]} times recently, so Root Health is treating this as a possible pattern rather than a one-off signal.`
+          `${top[0]} has appeared ${top[1]} times recently, so this may be a developing pattern.`
         );
       } else {
         setPatternNote(
-          "No strong repeated pattern yet. Keep tracking gently and Root Health will begin to notice what returns."
+          "No strong repeated pattern yet. Keep tracking and patterns will emerge."
         );
+      }
+
+      if (last24h.length >= 2) {
+        if (avg24 > avg7 + 0.5) {
+          setTrendNote(
+            "Signals have been stronger in the last 24 hours, suggesting an increase in system load."
+          );
+        } else if (avg24 < avg7 - 0.5) {
+          setTrendNote(
+            "Signals appear to be easing compared to earlier in the week."
+          );
+        } else {
+          setTrendNote(
+            "Signals are relatively stable with no clear upward or downward trend."
+          );
+        }
+      } else {
+        setTrendNote("Not enough recent data to assess short-term trend.");
       }
     };
 
@@ -111,6 +142,8 @@ export default function Home() {
             <p style={styles.response}>{latestInsight}</p>
 
             <p style={styles.pattern}>{patternNote}</p>
+
+            <p style={styles.trend}>{trendNote}</p>
           </div>
         </section>
       </main>
@@ -199,9 +232,14 @@ const styles = {
     marginTop: "18px",
   },
   pattern: {
-    marginTop: "14px",
+    marginTop: "12px",
     color: "#555",
-    lineHeight: "1.6",
     fontSize: "14px",
+  },
+  trend: {
+    marginTop: "12px",
+    color: "#444",
+    fontSize: "14px",
+    fontStyle: "italic",
   },
 };
