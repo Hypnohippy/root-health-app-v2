@@ -14,7 +14,7 @@ export default function CoachPage() {
         .from("body_signals")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(30);
+        .limit(50);
 
       if (error || !data || data.length === 0) {
         setCoachMessage("Start with a body check and I’ll begin learning what helps you.");
@@ -29,7 +29,7 @@ export default function CoachPage() {
           signalCounts[entry.signal] = (signalCounts[entry.signal] || 0) + 1;
         }
 
-        if (entry.signal && entry.what_helped) {
+        if (entry.signal && entry.what_helped && entry.what_helped !== "Nothing yet") {
           const key = `${entry.signal}|||${entry.what_helped}`;
           helpCounts[key] = (helpCounts[key] || 0) + 1;
         }
@@ -37,18 +37,27 @@ export default function CoachPage() {
 
       const topSignalEntry = Object.entries(signalCounts).sort((a, b) => b[1] - a[1])[0];
       const topSignal = topSignalEntry ? topSignalEntry[0] : null;
+      const topSignalCount = topSignalEntry ? topSignalEntry[1] : 0;
 
       const rankedHelp = Object.entries(helpCounts)
         .sort((a, b) => b[1] - a[1])
         .map(([key, count]) => {
           const [signal, helped] = key.split("|||");
-          return { signal, helped, count };
+          const totalForSignal = signalCounts[signal] || 1;
+          const confidence = Math.round((count / totalForSignal) * 100);
+
+          return {
+            signal,
+            helped,
+            count,
+            confidence,
+          };
         });
 
       setTopHelp(rankedHelp.slice(0, 3));
 
       if (!topSignal) {
-        setCoachMessage("Keep logging signals so I can start learning patterns.");
+        setCoachMessage("Keep logging signals so I can start learning what helps you most.");
         return;
       }
 
@@ -56,11 +65,11 @@ export default function CoachPage() {
 
       if (bestMatch) {
         setCoachMessage(
-          `When "${topSignal}" shows up, you tend to improve it by "${bestMatch.helped}". Start there — it’s already working for you.`
+          `When "${topSignal}" shows up, "${bestMatch.helped}" has helped most often. Based on your recent logs, this has worked about ${bestMatch.confidence}% of the time for that signal. Start there first.`
         );
       } else {
         setCoachMessage(
-          `"${topSignal}" has been showing up recently. Let’s keep tracking what helps most.`
+          `"${topSignal}" has shown up ${topSignalCount} ${topSignalCount === 1 ? "time" : "times"} recently. I don’t yet have enough evidence on what helps it most, so keep logging what works.`
         );
       }
     };
@@ -79,7 +88,7 @@ export default function CoachPage() {
           <h1 style={styles.title}>Root Coach</h1>
 
           <p style={styles.subtitle}>
-            Personal guidance based on your patterns.
+            Personal guidance based on your patterns and what has helped before.
           </p>
 
           <div style={styles.panel}>
@@ -89,14 +98,17 @@ export default function CoachPage() {
 
           {topHelp.length > 0 && (
             <div style={styles.panel}>
-              <p style={styles.panelTitle}>What helps you most</p>
+              <p style={styles.panelTitle}>What seems to work for you</p>
 
               {topHelp.map((item, index) => (
-                <div key={index} style={styles.row}>
-                  <strong>{index + 1}. {item.helped}</strong>
+                <div key={`${item.signal}-${item.helped}`} style={styles.row}>
+                  <strong>
+                    {index + 1}. {item.helped}
+                  </strong>
+
                   <span>
-  {" "}when “{item.signal}” shows up ({item.count} {item.count === 1 ? "time" : "times"})
-</span>
+                    {" "}when “{item.signal}” shows up — {item.confidence}% confidence ({item.count} {item.count === 1 ? "time" : "times"})
+                  </span>
                 </div>
               ))}
             </div>
@@ -165,6 +177,7 @@ const styles = {
     padding: "10px 0",
     borderBottom: "1px solid #eee",
     fontSize: "14px",
+    lineHeight: "1.5",
   },
   button: {
     display: "inline-block",
