@@ -5,7 +5,7 @@ import Nav from "../../components/Nav";
 import { supabase } from "../../lib/supabase";
 
 export default function CoachPage() {
-  const [coachMessage, setCoachMessage] = useState("Loading your coach insight...");
+  const [coachMessage, setCoachMessage] = useState("");
   const [topHelp, setTopHelp] = useState([]);
 
   useEffect(() => {
@@ -16,13 +16,8 @@ export default function CoachPage() {
         .order("created_at", { ascending: false })
         .limit(30);
 
-      if (error) {
-        setCoachMessage("I couldn’t read your recent patterns yet.");
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        setCoachMessage("Start with a body check, and I’ll begin learning what tends to help you.");
+      if (error || !data || data.length === 0) {
+        setCoachMessage("Start with a body check and I’ll begin learning what helps you.");
         return;
       }
 
@@ -40,32 +35,34 @@ export default function CoachPage() {
         }
       });
 
-      const topSignal = Object.entries(signalCounts).sort((a, b) => b[1] - a[1])[0];
+      const topSignalEntry = Object.entries(signalCounts).sort((a, b) => b[1] - a[1])[0];
+      const topSignal = topSignalEntry ? topSignalEntry[0] : null;
 
       const rankedHelp = Object.entries(helpCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
         .map(([key, count]) => {
           const [signal, helped] = key.split("|||");
           return { signal, helped, count };
         });
 
-      setTopHelp(rankedHelp);
+      setTopHelp(rankedHelp.slice(0, 3));
 
-      if (topSignal) {
-       const bestMatch = rankedHelp.find(
-  (item) => item.signal === topSignal[0]
-);
+      if (!topSignal) {
+        setCoachMessage("Keep logging signals so I can start learning patterns.");
+        return;
+      }
 
-if (bestMatch) {
-  setCoachMessage(
-    `When "${topSignal[0]}" shows up, you tend to improve it by "${bestMatch.helped}". Start there — it’s already working for you.`
-  );
-} else {
-  setCoachMessage(
-    `I’m noticing that "${topSignal[0]}" has shown up ${topSignal[1]} times recently. Let’s keep tracking what helps most.`
-  );
-}
+      const bestMatch = rankedHelp.find((item) => item.signal === topSignal);
+
+      if (bestMatch) {
+        setCoachMessage(
+          `When "${topSignal}" shows up, you tend to improve it by "${bestMatch.helped}". Start there — it’s already working for you.`
+        );
+      } else {
+        setCoachMessage(
+          `"${topSignal}" has been showing up recently. Let’s keep tracking what helps most.`
+        );
+      }
     };
 
     loadCoachInsight();
@@ -82,7 +79,7 @@ if (bestMatch) {
           <h1 style={styles.title}>Root Coach</h1>
 
           <p style={styles.subtitle}>
-            Personal guidance based on your recent body signals and what has helped before.
+            Personal guidance based on your patterns.
           </p>
 
           <div style={styles.panel}>
@@ -92,13 +89,13 @@ if (bestMatch) {
 
           {topHelp.length > 0 && (
             <div style={styles.panel}>
-              <p style={styles.panelTitle}>What seems to help you</p>
+              <p style={styles.panelTitle}>What helps you most</p>
 
               {topHelp.map((item, index) => (
-                <div key={`${item.signal}-${item.helped}`} style={styles.row}>
+                <div key={index} style={styles.row}>
                   <strong>{index + 1}. {item.helped}</strong>
                   <span>
-                    helped when “{item.signal}” showed up ({item.count} {item.count === 1 ? "time" : "times"})
+                    when “{item.signal}” shows up ({item.count} times)
                   </span>
                 </div>
               ))}
@@ -106,7 +103,7 @@ if (bestMatch) {
           )}
 
           <a href="/body" style={styles.button}>
-            Start a body check
+            Start Body Check
           </a>
         </section>
       </main>
@@ -145,7 +142,6 @@ const styles = {
   subtitle: {
     color: "#555",
     fontSize: "17px",
-    lineHeight: "1.6",
     marginBottom: "24px",
   },
   panel: {
@@ -159,21 +155,15 @@ const styles = {
   panelTitle: {
     fontSize: "18px",
     fontWeight: "700",
-    margin: "0 0 10px",
-    color: "#1A1A1A",
+    marginBottom: "10px",
   },
   message: {
-    color: "#333",
-    lineHeight: "1.65",
     fontSize: "15px",
-    margin: 0,
+    lineHeight: "1.6",
   },
   row: {
-    display: "grid",
-    gap: "4px",
-    padding: "12px 0",
+    padding: "10px 0",
     borderBottom: "1px solid #eee",
-    color: "#333",
     fontSize: "14px",
   },
   button: {
