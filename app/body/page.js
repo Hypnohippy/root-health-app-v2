@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import GlassBody from "../../components/GlassBody";
 import Nav from "../../components/Nav";
+
 const bodySystems = [
   {
     id: "stress_nerves",
@@ -97,6 +98,7 @@ const contextOptions = [
   "getting worse",
   "improving",
 ];
+
 const helpOptions = [
   "Drank more water",
   "Ate differently",
@@ -106,6 +108,7 @@ const helpOptions = [
   "Improved sleep",
   "Nothing yet",
 ];
+
 export default function Home() {
   const [whatHelped, setWhatHelped] = useState("");
   const [latestEntryId, setLatestEntryId] = useState(null);
@@ -129,6 +132,9 @@ export default function Home() {
     setContext("");
     setIntensity(5);
     setResponse("");
+    setWhatHelped("");
+    setSavedHelp(false);
+    setRankedHelp([]);
   };
 
   const clearSelections = () => {
@@ -138,90 +144,82 @@ export default function Home() {
     setContext("");
     setIntensity(5);
     setResponse("");
+    setWhatHelped("");
+    setSavedHelp(false);
+    setRankedHelp([]);
   };
 
-const buildCoachResponse = () => {
-  if (selectedItems.length === 0 || !current || !selectedSignal || !context) return "";
+  const buildCoachResponse = () => {
+    if (selectedItems.length === 0 || !current || !selectedSignal || !context) return "";
 
-  const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
+    const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
 
-  let message = `You’ve marked ${labels}. Right now we’re looking at ${selectedSignal} around ${current.label.toLowerCase()}.`;
+    let message = `You’ve marked ${labels}. Right now we’re looking at ${selectedSignal} around ${current.label.toLowerCase()}.`;
 
-  message += ` It feels ${context}, sitting around ${intensity}/10.`;
+    message += ` It feels ${context}, sitting around ${intensity}/10.`;
 
-  // 🧠 CONTEXT AWARE OPENING
-  if (context === "improving") {
-    message += `\n\nThis looks like it’s settling compared to before. That’s a really good sign — something you’ve done recently may be helping.`;
-  } else if (context === "worsening") {
-    message += `\n\nThis looks like it’s building a bit. Worth slowing things down slightly and giving this area some support.`;
-  } else if (context === "same") {
-    message += `\n\nThis seems to be sticking around rather than shifting. That usually means it’s worth looking a little closer at what might be maintaining it.`;
-  } else {
-    message += `\n\nLet’s just get a sense of this without rushing to fix it.`;
-  }
+    if (context === "improving") {
+      message += `\n\nThis looks like it’s settling compared to before. That’s a really good sign — something you’ve done recently may be helping.`;
+    } else if (context === "getting worse") {
+      message += `\n\nThis looks like it’s building a bit. Worth slowing things down slightly and giving this area some support.`;
+    } else if (context === "constant") {
+      message += `\n\nThis seems to be sticking around rather than shifting. That usually means it’s worth looking a little closer at what might be maintaining it.`;
+    } else {
+      message += `\n\nLet’s just get a sense of this without rushing to fix it.`;
+    }
 
-  // 🔁 PATTERN (ONLY IF IT MATTERS)
-  if (selectedSystems.length > 1) {
-    message += `\n\nBecause a couple of areas are showing up together, this may be more of a connected pattern than a single issue.`;
-  }
+    if (selectedSystems.length > 1) {
+      message += `\n\nBecause a couple of areas are showing up together, this may be more of a connected pattern than a single issue.`;
+    }
 
-  // 🎯 ACTIONABLE GUIDANCE (REAL, NOT VAGUE)
-  message += `\n\nA simple way to support this today could be:`;
+    message += `\n\nA simple way to support this today could be:`;
 
-  if (current.id === "digestion") {
-    message += `\n• Drink an extra 1–2 glasses of water today\n• Add one simple fibre source (veg, oats, fruit)\n• Eat a little slower and notice how your body responds after meals`;
-  } 
-  else if (current.id === "stress_nerves") {
-    message += `\n• Take 2–3 slow breaths, longer out than in\n• Step away from stimulation for a few minutes\n• Ask “what’s actually loading me right now?”`;
-  } 
-  else if (current.id === "breathing") {
-    message += `\n• Slow your breathing slightly (in for 4, out for 6)\n• Sit or stand a little taller\n• Give yourself a short pause to reset`;
-  } 
-  else if (current.id === "heart_circulation") {
-    message += `\n• Pause and reduce stimulation for a moment\n• Notice caffeine, stress, or tiredness today\n• Keep an eye on whether this settles or repeats`;
-  } 
-  else if (current.id === "skin") {
-    message += `\n• Notice anything new touching your skin (products, clothes)\n• Check hydration and sleep\n• Watch if it spreads or settles`;
-  } 
-  else if (current.id === "reproductive") {
-    message += `\n• Notice any irritation, friction, or recent changes\n• Track timing (cycle, stress, activity)\n• Avoid jumping to conclusions — just observe patterns`;
-  } 
-  else if (current.id === "bladder_hydration") {
-    message += `\n• Drink water steadily through the day\n• Reduce caffeine/alcohol for now\n• Notice frequency, urgency, or discomfort`;
-  } 
-  else if (current.id === "energy_recovery") {
-    message += `\n• Ease your load slightly today if you can\n• Eat something supportive and hydrate\n• Prioritise rest where possible`;
-  } 
-  else {
-    message += `\n• Check sleep, stress, and hydration\n• Notice anything that’s changed recently\n• Give it a little space and observe`;
-  }
+    if (current.id === "digestion") {
+      message += `\n• Drink an extra 1–2 glasses of water today\n• Add one simple fibre source (veg, oats, fruit)\n• Eat a little slower and notice how your body responds after meals`;
+    } else if (current.id === "stress_nerves") {
+      message += `\n• Take 2–3 slow breaths, longer out than in\n• Step away from stimulation for a few minutes\n• Ask “what’s actually loading me right now?”`;
+    } else if (current.id === "breathing") {
+      message += `\n• Slow your breathing slightly (in for 4, out for 6)\n• Sit or stand a little taller\n• Give yourself a short pause to reset`;
+    } else if (current.id === "heart_circulation") {
+      message += `\n• Pause and reduce stimulation for a moment\n• Notice caffeine, stress, or tiredness today\n• Keep an eye on whether this settles or repeats`;
+    } else if (current.id === "skin") {
+      message += `\n• Notice anything new touching your skin (products, clothes)\n• Check hydration and sleep\n• Watch if it spreads or settles`;
+    } else if (current.id === "reproductive") {
+      message += `\n• Notice any irritation, friction, or recent changes\n• Track timing (cycle, stress, activity)\n• Avoid jumping to conclusions — just observe patterns`;
+    } else if (current.id === "bladder_hydration") {
+      message += `\n• Drink water steadily through the day\n• Reduce caffeine/alcohol for now\n• Notice frequency, urgency, or discomfort`;
+    } else if (current.id === "energy_recovery") {
+      message += `\n• Ease your load slightly today if you can\n• Eat something supportive and hydrate\n• Prioritise rest where possible`;
+    } else {
+      message += `\n• Check sleep, stress, and hydration\n• Notice anything that’s changed recently\n• Give it a little space and observe`;
+    }
 
-  // 🟢 POSITIVE CLOSE (IMPORTANT SHIFT)
-  if (context === "improving") {
-    message += `\n\nIf this keeps moving in this direction, you don’t need to do much more — just keep doing what seems to be working.`;
-  } else {
-    message += `\n\nWe don’t need to solve this all at once — just noticing and making small adjustments is enough for now.`;
-  }
+    if (context === "improving") {
+      message += `\n\nIf this keeps moving in this direction, you don’t need to do much more — just keep doing what seems to be working.`;
+    } else {
+      message += `\n\nWe don’t need to solve this all at once — just noticing and making small adjustments is enough for now.`;
+    }
 
-  // ⚠️ SAFETY (ONLY WHEN NEEDED)
-  if (
-    selectedSignal.includes("blister") ||
-    selectedSignal.includes("discharge") ||
-    selectedSignal.includes("burning when passing urine") ||
-    selectedSignal.includes("swelling") ||
-    selectedSignal.includes("colour change") ||
-    intensity >= 8
-  ) {
-    message += `\n\nIf this becomes painful, unusual, or doesn’t settle, it’s worth getting it checked just to be safe.`;
-  }
+    if (
+      selectedSignal.includes("blister") ||
+      selectedSignal.includes("discharge") ||
+      selectedSignal.includes("burning when passing urine") ||
+      selectedSignal.includes("swelling") ||
+      selectedSignal.includes("colour change") ||
+      intensity >= 8
+    ) {
+      message += `\n\nIf this becomes painful, unusual, or doesn’t settle, it’s worth getting it checked just to be safe.`;
+    }
 
-  return message;
-};
+    return message;
+  };
 
   const handleExplore = async () => {
     if (selectedItems.length === 0 || !current || !selectedSignal || !context) return;
 
     setSaving(true);
+    setSavedHelp(false);
+    setWhatHelped("");
 
     const entryToSave = {
       areas: selectedItems.map((item) => item.label),
@@ -229,16 +227,16 @@ const buildCoachResponse = () => {
       signal: selectedSignal,
       context,
       intensity,
-      what_helped: whatHelped,
+      what_helped: "",
     };
 
     const { data: savedEntry } = await supabase
-  .from("body_signals")
-  .insert([entryToSave])
-  .select("id")
-  .single();
+      .from("body_signals")
+      .insert([entryToSave])
+      .select("id")
+      .single();
 
-setLatestEntryId(savedEntry?.id || null);
+    setLatestEntryId(savedEntry?.id || null);
 
     const { data, error } = await supabase
       .from("body_signals")
@@ -247,65 +245,6 @@ setLatestEntryId(savedEntry?.id || null);
       .limit(20);
 
     let message = buildCoachResponse();
-    let message = buildCoachResponse();
-
-// 🔮 PREDICTIVE COACH
-const helpCounts = {};
-
-data.forEach((entry) => {
-  if (
-    entry.signal === selectedSignal &&
-    entry.what_helped &&
-    entry.what_helped !== "Nothing yet"
-  ) {
-    helpCounts[entry.what_helped] =
-      (helpCounts[entry.what_helped] || 0) + 1;
-  }
-});
-
-const ranked = Object.entries(helpCounts)
-  .sort((a, b) => b[1] - a[1]);
-
-if (ranked.length > 0) {
-  const [topHelp, count] = ranked[0];
-
-  const total = ranked.reduce((sum, [, c]) => sum + c, 0);
-  const confidence = Math.round((count / total) * 100);
-
-  if (confidence >= 40) {
-    message += `\n\nTry this first: ${topHelp} — this has helped you about ${confidence}% of the time when this shows up.`;
-  }
-}
-    // 🔁 BUILD HELP RANKING
-const helpCounts = {};
-
-data.forEach((entry) => {
-  if (
-    entry.signal === selectedSignal &&
-    entry.what_helped &&
-    entry.what_helped !== ""
-  ) {
-    helpCounts[entry.what_helped] =
-      (helpCounts[entry.what_helped] || 0) + 1;
-  }
-});
-
-const ranked = Object.entries(helpCounts)
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 3);
-
-setRankedHelp(ranked);
-    // 🔁 LOOK BACK: what helped before
-const previous = data.find(
-  (entry) =>
-    entry.signal === selectedSignal &&
-    entry.what_helped &&
-    entry.what_helped !== ""
-);
-
-if (previous) {
-  message += `\n\nLast time this showed up, you noted that "${previous.what_helped}" helped. It might be worth trying that again.`;
-}
 
     if (error) {
       message += ` Supabase read error: ${error.message}`;
@@ -314,27 +253,32 @@ if (previous) {
       return;
     }
 
-    if (data && data.length > 1) {
-      const selectedLabels = selectedItems.map((item) => item.label);
+    const helpCounts = {};
 
-      const repeatedAreaCount = data.filter((entry) => {
-        if (!Array.isArray(entry.areas)) return false;
-        return entry.areas.some((area) => selectedLabels.includes(area));
-      }).length;
-
-      const sameSignalCount = data.filter((entry) => entry.signal === selectedSignal).length;
-      const highIntensity = data.filter((entry) => Number(entry.intensity) >= 7).length;
-
-      if (repeatedAreaCount >= 3) {
-        message += "\n\nI’m noticing a pattern here — one or more of these areas has come up a few times recently. It may be your body gently trying to get your attention rather than this being a one-off moment.";
+    data.forEach((entry) => {
+      if (
+        entry.signal === selectedSignal &&
+        entry.what_helped &&
+        entry.what_helped !== "" &&
+        entry.what_helped !== "Nothing yet"
+      ) {
+        helpCounts[entry.what_helped] = (helpCounts[entry.what_helped] || 0) + 1;
       }
+    });
 
-      if (sameSignalCount >= 3) {
-        message += "\n\nThe same signal has also been repeating, which can sometimes help us understand what your system tends to return to under certain conditions.";
-      }
+    const ranked = Object.entries(helpCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
 
-      if (highIntensity >= 2) {
-        message += "\n\nSome of these signals have been quite strong, so rather than pushing through, it may help to slow things down and support this area with a bit more care.";
+    setRankedHelp(ranked);
+
+    if (ranked.length > 0) {
+      const [topHelp, count] = ranked[0];
+      const total = ranked.reduce((sum, [, c]) => sum + c, 0);
+      const confidence = Math.round((count / total) * 100);
+
+      if (confidence >= 40) {
+        message += `\n\nTry this first: ${topHelp} — this has helped you about ${confidence}% of the time when this shows up.`;
       }
     }
 
@@ -342,174 +286,179 @@ if (previous) {
     setSaving(false);
   };
 
- return (
-  <>
-    <Nav />
+  return (
+    <>
+      <Nav />
 
-    <main style={styles.page}>
-      <section style={styles.shell}>
-        <div style={styles.brandMark}>◯</div>
+      <main style={styles.page}>
+        <section style={styles.shell}>
+          <div style={styles.brandMark}>◯</div>
 
-        <h1 style={styles.title}>Root Health</h1>
-        <p style={styles.subtitle}>Tap each place your body is asking for attention today.</p>
+          <h1 style={styles.title}>Root Health</h1>
+          <p style={styles.subtitle}>Tap each place your body is asking for attention today.</p>
 
-        <GlassBody
-          selectedSystems={selectedItems.map((item) => item.label)}
-          onSelect={selectSystem}
-          onClear={clearSelections}
-        />
+          <GlassBody
+            selectedSystems={selectedItems.map((item) => item.label)}
+            onSelect={selectSystem}
+            onClear={clearSelections}
+          />
 
-        <div style={styles.grid}>
-          {bodySystems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => selectSystem(item.id)}
-              style={{
-                ...styles.systemButton,
-                background: selectedSystems.includes(item.id) ? "#1A1A1A" : "#F0EDE7",
-                color: selectedSystems.includes(item.id) ? "#FFFFFF" : "#2F2F2F",
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        {current && (
-          <div style={styles.panel}>
-            <p style={styles.panelTitle}>
-              {selectedItems.length > 1 ? "Connected body pattern" : current.label}
-            </p>
-
-            <p style={styles.microText}>
-              Selected: {selectedItems.map((item) => item.label).join(", ")}
-            </p>
-
-            <p style={styles.label}>Which signal should we explore first?</p>
-            <div style={styles.choiceRow}>
-              {current.signals.map((sig) => (
-                <button
-                  key={sig}
-                  onClick={() => {
-                    setSelectedSignal(sig);
-                    setContext("");
-                    setResponse("");
-                  }}
-                  style={{
-                    ...styles.choiceButton,
-                    background: selectedSignal === sig ? "#1A1A1A" : "#E6E2DA",
-                    color: selectedSignal === sig ? "#FFFFFF" : "#333333",
-                  }}
-                >
-                  {sig}
-                </button>
-              ))}
-            </div>
-
-            {selectedSignal && (
-              <>
-                <p style={styles.label}>When does this tend to show up?</p>
-                <div style={styles.choiceRow}>
-                  {contextOptions.map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => setContext(item)}
-                      style={{
-                        ...styles.choiceButton,
-                        background: context === item ? "#1A1A1A" : "#E6E2DA",
-                        color: context === item ? "#FFFFFF" : "#333333",
-                      }}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {context && (
-              <>
-                <p style={styles.label}>How strong or concerning is it today?</p>
-                <div style={styles.scoreRow}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
-                    <button
-                      key={score}
-                      onClick={() => setIntensity(score)}
-                      style={{
-                        ...styles.scoreButton,
-                        background: intensity === score ? "#C23B30" : "#F0EDE7",
-                        color: intensity === score ? "#FFFFFF" : "#333333",
-                      }}
-                    >
-                      {score}
-                    </button>
-                  ))}
-                </div>
-
-                <button style={styles.mainButton} onClick={handleExplore}>
-                  {saving ? "Saving..." : "Explore this signal"}
-                </button>
-              </>
-            )}
-
-           {response && (
-  <>
-    <p style={styles.response}>{response}</p>
-             {rankedHelp.length > 0 && (
-  <>
-    <p style={styles.label}>What tends to help you most:</p>
-
-    <div style={styles.choiceRow}>
-      {rankedHelp.map(([item, count], index) => (
-        <div key={item} style={{ fontSize: "14px", color: "#333" }}>
-          {index + 1}. {item} ({count})
-        </div>
-      ))}
-    </div>
-  </>
-)}
-
-    <p style={styles.label}>What helped (if anything)?</p>
-             {savedHelp && (
-  <p style={{ color: "#2e7d32", fontSize: "13px", marginTop: "-6px" }}>
-    Saved ✓
-  </p>
-)}
-
-    <div style={styles.choiceRow}>
-      {helpOptions.map((opt) => (
-        <button
-          key={opt}
-         onClick={async () => {
-  setWhatHelped(opt);
-
-  if (latestEntryId) {
-    await supabase
-      .from("body_signals")
-      .update({ what_helped: opt })
-      .eq("id", latestEntryId);
-
-    setSavedHelp(true);
-  }
-}}
-          style={{
-            ...styles.choiceButton,
-            background: whatHelped === opt ? "#1A1A1A" : "#E6E2DA",
-            color: whatHelped === opt ? "#FFFFFF" : "#333333",
-          }}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  </>
-)} 
+          <div style={styles.grid}>
+            {bodySystems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => selectSystem(item.id)}
+                style={{
+                  ...styles.systemButton,
+                  background: selectedSystems.includes(item.id) ? "#1A1A1A" : "#F0EDE7",
+                  color: selectedSystems.includes(item.id) ? "#FFFFFF" : "#2F2F2F",
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-        )}
-      </section>
-       </main>
-  </>
-);
+
+          {current && (
+            <div style={styles.panel}>
+              <p style={styles.panelTitle}>
+                {selectedItems.length > 1 ? "Connected body pattern" : current.label}
+              </p>
+
+              <p style={styles.microText}>
+                Selected: {selectedItems.map((item) => item.label).join(", ")}
+              </p>
+
+              <p style={styles.label}>Which signal should we explore first?</p>
+              <div style={styles.choiceRow}>
+                {current.signals.map((sig) => (
+                  <button
+                    key={sig}
+                    onClick={() => {
+                      setSelectedSignal(sig);
+                      setContext("");
+                      setResponse("");
+                      setWhatHelped("");
+                      setSavedHelp(false);
+                      setRankedHelp([]);
+                    }}
+                    style={{
+                      ...styles.choiceButton,
+                      background: selectedSignal === sig ? "#1A1A1A" : "#E6E2DA",
+                      color: selectedSignal === sig ? "#FFFFFF" : "#333333",
+                    }}
+                  >
+                    {sig}
+                  </button>
+                ))}
+              </div>
+
+              {selectedSignal && (
+                <>
+                  <p style={styles.label}>When does this tend to show up?</p>
+                  <div style={styles.choiceRow}>
+                    {contextOptions.map((item) => (
+                      <button
+                        key={item}
+                        onClick={() => setContext(item)}
+                        style={{
+                          ...styles.choiceButton,
+                          background: context === item ? "#1A1A1A" : "#E6E2DA",
+                          color: context === item ? "#FFFFFF" : "#333333",
+                        }}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {context && (
+                <>
+                  <p style={styles.label}>How strong or concerning is it today?</p>
+                  <div style={styles.scoreRow}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                      <button
+                        key={score}
+                        onClick={() => setIntensity(score)}
+                        style={{
+                          ...styles.scoreButton,
+                          background: intensity === score ? "#C23B30" : "#F0EDE7",
+                          color: intensity === score ? "#FFFFFF" : "#333333",
+                        }}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button style={styles.mainButton} onClick={handleExplore}>
+                    {saving ? "Saving..." : "Explore this signal"}
+                  </button>
+                </>
+              )}
+
+              {response && (
+                <>
+                  <p style={styles.response}>{response}</p>
+
+                  {rankedHelp.length > 0 && (
+                    <>
+                      <p style={styles.label}>What tends to help you most:</p>
+
+                      <div style={styles.choiceRow}>
+                        {rankedHelp.map(([item, count], index) => (
+                          <div key={item} style={{ fontSize: "14px", color: "#333" }}>
+                            {index + 1}. {item} ({count})
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  <p style={styles.label}>What helped (if anything)?</p>
+
+                  {savedHelp && (
+                    <p style={{ color: "#2e7d32", fontSize: "13px", marginTop: "-6px" }}>
+                      Saved ✓
+                    </p>
+                  )}
+
+                  <div style={styles.choiceRow}>
+                    {helpOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={async () => {
+                          setWhatHelped(opt);
+
+                          if (latestEntryId) {
+                            await supabase
+                              .from("body_signals")
+                              .update({ what_helped: opt })
+                              .eq("id", latestEntryId);
+
+                            setSavedHelp(true);
+                          }
+                        }}
+                        style={{
+                          ...styles.choiceButton,
+                          background: whatHelped === opt ? "#1A1A1A" : "#E6E2DA",
+                          color: whatHelped === opt ? "#FFFFFF" : "#333333",
+                        }}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </section>
+      </main>
+    </>
+  );
 }
 
 const styles = {
