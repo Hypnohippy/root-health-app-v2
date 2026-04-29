@@ -128,81 +128,83 @@ export default function Home() {
     setResponse("");
   };
 
-  const buildCoachResponse = () => {
-    if (selectedItems.length === 0 || !current || !selectedSignal || !context) return "";
+const buildCoachResponse = () => {
+  if (selectedItems.length === 0 || !current || !selectedSignal || !context) return "";
 
-    const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
+  const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
 
-    let message = `You’ve marked ${labels}. Right now, we’re exploring ${current.label.toLowerCase()}, where you’re noticing ${selectedSignal}.`;
+  let message = `You’ve marked ${labels}. Right now we’re looking at ${selectedSignal} around ${current.label.toLowerCase()}.`;
 
-    if (selectedSystems.length > 1) {
-      message += " Because more than one area is showing up, Root Health will treat this as a connected body pattern rather than a single isolated signal.";
-    }
+  message += ` It feels ${context}, sitting around ${intensity}/10.`;
 
-    if (selectedSystems.includes("digestion") && selectedSystems.includes("stress_nerves")) {
-      message += " Digestion and stress can sometimes influence each other through the gut–brain connection.";
-    }
+  // 🧠 CONTEXT AWARE OPENING
+  if (context === "improving") {
+    message += `\n\nThis looks like it’s settling compared to before. That’s a really good sign — something you’ve done recently may be helping.`;
+  } else if (context === "worsening") {
+    message += `\n\nThis looks like it’s building a bit. Worth slowing things down slightly and giving this area some support.`;
+  } else if (context === "same") {
+    message += `\n\nThis seems to be sticking around rather than shifting. That usually means it’s worth looking a little closer at what might be maintaining it.`;
+  } else {
+    message += `\n\nLet’s just get a sense of this without rushing to fix it.`;
+  }
 
-    if ((selectedSystems.includes("breathing") || selectedSystems.includes("heart_circulation")) && selectedSystems.includes("stress_nerves")) {
-      message += " Breathing, heart rhythm and stress can sometimes move together when the nervous system is carrying more load.";
-    }
+  // 🔁 PATTERN (ONLY IF IT MATTERS)
+  if (selectedSystems.length > 1) {
+    message += `\n\nBecause a couple of areas are showing up together, this may be more of a connected pattern than a single issue.`;
+  }
 
-    if (selectedSystems.includes("skin") && selectedSystems.includes("digestion")) {
-      message += " Skin and digestion can sometimes be worth observing together, especially around food patterns, stress and inflammation.";
-    }
+  // 🎯 ACTIONABLE GUIDANCE (REAL, NOT VAGUE)
+  message += `\n\nA simple way to support this today could be:`;
 
-    if (selectedSystems.includes("energy_recovery") && selectedSystems.includes("sleep_rhythm")) {
-      message += " Energy and sleep rhythm often give useful clues about recovery and overall system load.";
-    }
+  if (current.id === "digestion") {
+    message += `\n• Drink an extra 1–2 glasses of water today\n• Add one simple fibre source (veg, oats, fruit)\n• Eat a little slower and notice how your body responds after meals`;
+  } 
+  else if (current.id === "stress_nerves") {
+    message += `\n• Take 2–3 slow breaths, longer out than in\n• Step away from stimulation for a few minutes\n• Ask “what’s actually loading me right now?”`;
+  } 
+  else if (current.id === "breathing") {
+    message += `\n• Slow your breathing slightly (in for 4, out for 6)\n• Sit or stand a little taller\n• Give yourself a short pause to reset`;
+  } 
+  else if (current.id === "heart_circulation") {
+    message += `\n• Pause and reduce stimulation for a moment\n• Notice caffeine, stress, or tiredness today\n• Keep an eye on whether this settles or repeats`;
+  } 
+  else if (current.id === "skin") {
+    message += `\n• Notice anything new touching your skin (products, clothes)\n• Check hydration and sleep\n• Watch if it spreads or settles`;
+  } 
+  else if (current.id === "reproductive") {
+    message += `\n• Notice any irritation, friction, or recent changes\n• Track timing (cycle, stress, activity)\n• Avoid jumping to conclusions — just observe patterns`;
+  } 
+  else if (current.id === "bladder_hydration") {
+    message += `\n• Drink water steadily through the day\n• Reduce caffeine/alcohol for now\n• Notice frequency, urgency, or discomfort`;
+  } 
+  else if (current.id === "energy_recovery") {
+    message += `\n• Ease your load slightly today if you can\n• Eat something supportive and hydrate\n• Prioritise rest where possible`;
+  } 
+  else {
+    message += `\n• Check sleep, stress, and hydration\n• Notice anything that’s changed recently\n• Give it a little space and observe`;
+  }
 
-    if (selectedSystems.includes("reproductive") && selectedSystems.includes("stress_nerves")) {
-      message += " Pelvic and reproductive signals can sometimes be influenced by stress, tension, hormones, sleep and emotional load.";
-    }
+  // 🟢 POSITIVE CLOSE (IMPORTANT SHIFT)
+  if (context === "improving") {
+    message += `\n\nIf this keeps moving in this direction, you don’t need to do much more — just keep doing what seems to be working.`;
+  } else {
+    message += `\n\nWe don’t need to solve this all at once — just noticing and making small adjustments is enough for now.`;
+  }
 
-    if (selectedSystems.includes("reproductive") && selectedSystems.includes("bladder_hydration")) {
-      message += " Pelvic, reproductive and bladder signals can sometimes overlap, so it is useful to track them carefully and notice timing, irritation and hydration.";
-    }
+  // ⚠️ SAFETY (ONLY WHEN NEEDED)
+  if (
+    selectedSignal.includes("blister") ||
+    selectedSignal.includes("discharge") ||
+    selectedSignal.includes("burning when passing urine") ||
+    selectedSignal.includes("swelling") ||
+    selectedSignal.includes("colour change") ||
+    intensity >= 8
+  ) {
+    message += `\n\nIf this becomes painful, unusual, or doesn’t settle, it’s worth getting it checked just to be safe.`;
+  }
 
-    message += ` You said this tends to show up ${context}, with an intensity of ${intensity}/10.`;
-
-    message += "\n\nA gentle place to begin could be:";
-
-    if (current.id === "digestion") {
-      message += "\n• hydration and fibre check\n• notice stress around meals\n• slow eating and allow space after food";
-    } else if (current.id === "stress_nerves") {
-      message += "\n• slow breathing or grounding\n• reduce stimulation briefly\n• notice what feels mentally heavy today";
-    } else if (current.id === "breathing") {
-      message += "\n• soften the breath\n• check posture\n• pause for a nervous-system reset";
-    } else if (current.id === "heart_circulation") {
-      message += "\n• pause and reduce stimulation\n• notice caffeine, stress, sleep and exertion\n• track whether this is new, repeated, or linked to anxiety";
-    } else if (current.id === "skin") {
-      message += "\n• notice visible changes, products, clothing or irritation\n• check hydration, sleep and stress\n• track whether it spreads, changes colour or becomes painful";
-    } else if (current.id === "reproductive") {
-      message += "\n• notice irritation, timing, clothing, friction or recent changes\n• track whether it is linked to stress, cycle, sex, products or hydration\n• avoid assuming one cause too quickly";
-    } else if (current.id === "bladder_hydration") {
-      message += "\n• check hydration and caffeine/alcohol intake\n• notice burning, urgency or colour changes\n• track frequency and timing";
-    } else if (current.id === "energy_recovery") {
-      message += "\n• check sleep quality\n• reduce load slightly today\n• support with food and hydration";
-    } else {
-      message += "\n• check sleep, stress and hydration\n• notice recent changes\n• track this for a few days";
-    }
-
-    if (
-      selectedSignal.includes("blister") ||
-      selectedSignal.includes("discharge") ||
-      selectedSignal.includes("burning when passing urine") ||
-      selectedSignal.includes("swelling") ||
-      selectedSignal.includes("colour change")
-    ) {
-      message += "\n\nBecause this includes a visible or potentially sensitive change, it may be worth monitoring carefully. If it worsens, spreads, is painful, unusual, persistent, or worrying, it’s important to speak with a healthcare professional.";
-    }
-
-    if (intensity >= 8) {
-      message += "\n\nBecause this feels strong, be gentle with yourself. If it feels severe, unusual, persistent or worrying, it’s important to speak with a healthcare professional.";
-    }
-
-    return message;
-  };
+  return message;
+};
 
   const handleExplore = async () => {
     if (selectedItems.length === 0 || !current || !selectedSignal || !context) return;
