@@ -1,32 +1,50 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Nav from "../components/Nav";
 import { supabase } from "../lib/supabase";
-import { useEffect, useState } from "react";
 
 export default function Home() {
   const [latestInsight, setLatestInsight] = useState("");
+  const [balanceScore, setBalanceScore] = useState(null);
 
   useEffect(() => {
-  const load = async () => {
-    const { data } = await supabase
-      .from("body_signals")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const load = async () => {
+      const { data } = await supabase
+        .from("body_signals")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
 
-    if (data && data.length > 0) {
-      const areas = data[0].areas || [];
-      setLatestInsight(
-        "Your body has recently been signalling around " + areas.join(", ")
+      if (!data || data.length === 0) {
+        setLatestInsight("No recent signals yet");
+        setBalanceScore(null);
+        return;
+      }
+
+      const latestAreas = data[0].areas || [];
+      const averageIntensity =
+        data.reduce((sum, item) => sum + Number(item.intensity || 0), 0) /
+        data.length;
+
+      const calculatedScore = Math.max(
+        0,
+        Math.min(100, Math.round(100 - averageIntensity * 10))
       );
-    }
-  };
 
-  load();
-}, []);
+      setBalanceScore(calculatedScore);
 
-  return (    <>
+      setLatestInsight(
+        "Your body has recently been signalling around " +
+          latestAreas.join(", ")
+      );
+    };
+
+    load();
+  }, []);
+
+  return (
+    <>
       <Nav />
 
       <main style={styles.page}>
@@ -34,9 +52,7 @@ export default function Home() {
           <div style={styles.brandMark}>◯</div>
 
           <h1 style={styles.title}>Root Health</h1>
-          <p style={styles.subtitle}>
-            How are you feeling today?
-          </p>
+          <p style={styles.subtitle}>How are you feeling today?</p>
 
           <div style={styles.grid}>
             <a href="/body" style={styles.systemButton}>
@@ -51,12 +67,13 @@ export default function Home() {
           <div style={styles.panel}>
             <p style={styles.panelTitle}>Today’s Insight</p>
 
-            <p style={styles.response}>
-              You’ve had a few repeated signals recently. It may be worth gently
-              observing patterns around stress, sleep, and digestion.
+            <p style={styles.score}>
+              {balanceScore !== null ? `${balanceScore}%` : "—"}
             </p>
 
-            <p style={styles.microText}>
+            <p style={styles.microText}>System balance</p>
+
+            <p style={styles.response}>
               {latestInsight || "No recent signals yet"}
             </p>
           </div>
@@ -129,14 +146,21 @@ const styles = {
     fontWeight: "600",
     margin: "0 0 10px",
   },
+  score: {
+    fontSize: "48px",
+    fontWeight: "700",
+    margin: "8px 0 0",
+    color: "#1A1A1A",
+  },
   microText: {
     color: "#777",
     fontSize: "13px",
-    marginTop: "12px",
+    marginTop: "4px",
   },
   response: {
     color: "#333",
     lineHeight: "1.6",
     fontSize: "15px",
+    marginTop: "18px",
   },
 };
