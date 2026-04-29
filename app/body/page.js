@@ -255,7 +255,7 @@ data.forEach((entry) => {
 
 const rankedHelp = Object.entries(helpCounts)
   .sort((a, b) => b[1] - a[1])
-  .slice(0, 3););
+  .slice(0, 3);
     if (rankedHelp.length > 0) {
   message += `\n\nWhat tends to help you most:`;
 
