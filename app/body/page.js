@@ -97,8 +97,17 @@ const contextOptions = [
   "getting worse",
   "improving",
 ];
-
+const helpOptions = [
+  "Drank more water",
+  "Ate differently",
+  "Rested",
+  "Reduced stress",
+  "Moved/exercised",
+  "Improved sleep",
+  "Nothing yet",
+];
 export default function Home() {
+  const [whatHelped, setWhatHelped] = useState("");
   const [selectedSystems, setSelectedSystems] = useState([]);
   const [activeSystemId, setActiveSystemId] = useState(null);
   const [selectedSignal, setSelectedSignal] = useState("");
@@ -217,6 +226,7 @@ const buildCoachResponse = () => {
       signal: selectedSignal,
       context,
       intensity,
+      what_helped: whatHelped,
     };
 
     await supabase.from("body_signals").insert([entryToSave]);
@@ -374,7 +384,29 @@ const buildCoachResponse = () => {
               </>
             )}
 
-            {response && <p style={styles.response}>{response}</p>}
+           {response && (
+  <>
+    <p style={styles.response}>{response}</p>
+
+    <p style={styles.label}>What helped (if anything)?</p>
+
+    <div style={styles.choiceRow}>
+      {helpOptions.map((opt) => (
+        <button
+          key={opt}
+          onClick={() => setWhatHelped(opt)}
+          style={{
+            ...styles.choiceButton,
+            background: whatHelped === opt ? "#1A1A1A" : "#E6E2DA",
+            color: whatHelped === opt ? "#FFFFFF" : "#333333",
+          }}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  </>
+)} 
           </div>
         )}
       </section>
