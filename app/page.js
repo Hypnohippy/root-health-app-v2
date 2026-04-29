@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabase";
 export default function Home() {
   const [latestInsight, setLatestInsight] = useState("");
   const [balanceScore, setBalanceScore] = useState(null);
+  const [patternNote, setPatternNote] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -18,26 +19,60 @@ export default function Home() {
 
       if (!data || data.length === 0) {
         setLatestInsight("No recent signals yet");
+        setPatternNote("Start a body check to begin building your pattern.");
         setBalanceScore(null);
         return;
       }
 
-      const latestAreas = data[0].areas || [];
       const averageIntensity =
         data.reduce((sum, item) => sum + Number(item.intensity || 0), 0) /
         data.length;
 
+      const areaCounts = {};
+
+      data.forEach((entry) => {
+        const areas = Array.isArray(entry.areas) ? entry.areas : [];
+
+        areas.forEach((area) => {
+          areaCounts[area] = (areaCounts[area] || 0) + 1;
+        });
+      });
+
+      const repeatedAreas = Object.entries(areaCounts).sort(
+        (a, b) => b[1] - a[1]
+      );
+
+      const topArea = repeatedAreas[0];
+      const repetitionPenalty = topArea && topArea[1] >= 3 ? 10 : 0;
+      const frequencyPenalty = data.length >= 5 ? 5 : 0;
+      const intensityPenalty = averageIntensity * 8;
+
       const calculatedScore = Math.max(
         0,
-        Math.min(100, Math.round(100 - averageIntensity * 10))
+        Math.min(
+          100,
+          Math.round(100 - intensityPenalty - repetitionPenalty - frequencyPenalty)
+        )
       );
 
       setBalanceScore(calculatedScore);
+
+      const latestAreas = data[0].areas || [];
 
       setLatestInsight(
         "Your body has recently been signalling around " +
           latestAreas.join(", ")
       );
+
+      if (topArea && topArea[1] >= 3) {
+        setPatternNote(
+          `${topArea[0]} has appeared ${topArea[1]} times recently, so Root Health is treating this as a possible pattern rather than a one-off signal.`
+        );
+      } else {
+        setPatternNote(
+          "No strong repeated pattern yet. Keep tracking gently and Root Health will begin to notice what returns."
+        );
+      }
     };
 
     load();
@@ -73,9 +108,9 @@ export default function Home() {
 
             <p style={styles.microText}>System balance</p>
 
-            <p style={styles.response}>
-              {latestInsight || "No recent signals yet"}
-            </p>
+            <p style={styles.response}>{latestInsight}</p>
+
+            <p style={styles.pattern}>{patternNote}</p>
           </div>
         </section>
       </main>
@@ -162,5 +197,11 @@ const styles = {
     lineHeight: "1.6",
     fontSize: "15px",
     marginTop: "18px",
+  },
+  pattern: {
+    marginTop: "14px",
+    color: "#555",
+    lineHeight: "1.6",
+    fontSize: "14px",
   },
 };
