@@ -43,7 +43,9 @@ export default function CoachPage() {
         .sort((a, b) => b[1] - a[1])
         .map(([key, count]) => {
           const [signal, helped] = key.split("|||");
-          const totalForSignal = signalCounts[signal] || 1;
+          const totalForSignal = Object.entries(helpCounts)
+  .filter(([key]) => key.startsWith(signal + "|||"))
+  .reduce((sum, [, count]) => sum + count, 0) || 1;
           const confidence = Math.round((count / totalForSignal) * 100);
 
           return {
