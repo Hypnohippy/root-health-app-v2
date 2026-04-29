@@ -238,6 +238,17 @@ const buildCoachResponse = () => {
       .limit(20);
 
     let message = buildCoachResponse();
+    // 🔁 LOOK BACK: what helped before
+const previous = data.find(
+  (entry) =>
+    entry.signal === selectedSignal &&
+    entry.what_helped &&
+    entry.what_helped !== ""
+);
+
+if (previous) {
+  message += `\n\nLast time this showed up, you noted that "${previous.what_helped}" helped. It might be worth trying that again.`;
+}
 
     if (error) {
       message += ` Supabase read error: ${error.message}`;
