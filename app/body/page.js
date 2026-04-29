@@ -121,6 +121,8 @@ export default function Home() {
   const [response, setResponse] = useState("");
   const [rankedHelp, setRankedHelp] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [suggestedHelp, setSuggestedHelp] = useState("");
+  
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
@@ -273,7 +275,16 @@ export default function Home() {
     setRankedHelp(ranked);
 
     if (ranked.length > 0) {
-      const [topHelp, count] = ranked[0];
+    const [topHelp, count] = ranked[0];
+
+const total = ranked.reduce((sum, [, c]) => sum + c, 0);
+const confidence = Math.round((count / total) * 100);
+
+if (confidence >= 40) {
+  setSuggestedHelp(topHelp);
+} else {
+  setSuggestedHelp("");
+}
       const total = ranked.reduce((sum, [, c]) => sum + c, 0);
       const confidence = Math.round((count / total) * 100);
 
