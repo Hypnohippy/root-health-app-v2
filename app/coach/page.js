@@ -53,10 +53,19 @@ export default function CoachPage() {
       setTopHelp(rankedHelp);
 
       if (topSignal) {
-        setCoachMessage(
-          `I’m noticing that "${topSignal[0]}" has shown up ${topSignal[1]} times recently. Let’s use what has helped before, rather than starting from scratch each time.`
-        );
-      }
+       const bestMatch = rankedHelp.find(
+  (item) => item.signal === topSignal[0]
+);
+
+if (bestMatch) {
+  setCoachMessage(
+    `When "${topSignal[0]}" shows up, you tend to improve it by "${bestMatch.helped}". Start there — it’s already working for you.`
+  );
+} else {
+  setCoachMessage(
+    `I’m noticing that "${topSignal[0]}" has shown up ${topSignal[1]} times recently. Let’s keep tracking what helps most.`
+  );
+}
     };
 
     loadCoachInsight();
