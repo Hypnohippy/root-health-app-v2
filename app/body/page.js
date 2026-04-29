@@ -116,6 +116,7 @@ export default function Home() {
   const [context, setContext] = useState("");
   const [intensity, setIntensity] = useState(5);
   const [response, setResponse] = useState("");
+  const [rankedHelp, setRankedHelp] = useState([]);
   const [saving, setSaving] = useState(false);
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
@@ -246,6 +247,25 @@ setLatestEntryId(savedEntry?.id || null);
       .limit(20);
 
     let message = buildCoachResponse();
+    // 🔁 BUILD HELP RANKING
+const helpCounts = {};
+
+data.forEach((entry) => {
+  if (
+    entry.signal === selectedSignal &&
+    entry.what_helped &&
+    entry.what_helped !== ""
+  ) {
+    helpCounts[entry.what_helped] =
+      (helpCounts[entry.what_helped] || 0) + 1;
+  }
+});
+
+const ranked = Object.entries(helpCounts)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 3);
+
+setRankedHelp(ranked);
     // 🔁 LOOK BACK: what helped before
 const previous = data.find(
   (entry) =>
@@ -406,6 +426,19 @@ if (previous) {
            {response && (
   <>
     <p style={styles.response}>{response}</p>
+             {rankedHelp.length > 0 && (
+  <>
+    <p style={styles.label}>What tends to help you most:</p>
+
+    <div style={styles.choiceRow}>
+      {rankedHelp.map(([item, count], index) => (
+        <div key={item} style={{ fontSize: "14px", color: "#333" }}>
+          {index + 1}. {item} ({count})
+        </div>
+      ))}
+    </div>
+  </>
+)}
 
     <p style={styles.label}>What helped (if anything)?</p>
              {savedHelp && (
