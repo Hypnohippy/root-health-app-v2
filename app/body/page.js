@@ -215,69 +215,76 @@ const buildCoachResponse = () => {
   return message;
 };
 
- const handleExplore = async () => {
-  if (selectedItems.length === 0 || !current || !selectedSignal || !feeling) {
-    return;
-  }
+  const handleExplore = async () => {
+    if (selectedItems.length === 0 || !current || !selectedSignal || !context) return;
 
-  setSaving(true);
+    setSaving(true);
 
-  const entryToSave = {
-    areas: selectedItems.map((item) => item.label),
-    system: selectedItems.map((item) => item.system).join(", "),
-    signal: selectedSignal,
-    depth: feeling,
-    intensity: intensity,
-    what_helped: whatHelped,
+    const entryToSave = {
+      areas: selectedItems.map((item) => item.label),
+      system: selectedItems.map((item) => item.system).join(", "),
+      signal: selectedSignal,
+      context,
+      intensity,
+      what_helped: whatHelped,
+    };
+
+    await supabase.from("body_signals").insert([entryToSave]);
+
+    const { data, error } = await supabase
+      .from("body_signals")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    let message = buildCoachResponse();
+    // 🔁 LOOK BACK: what helped before
+const previous = data.find(
+  (entry) =>
+    entry.signal === selectedSignal &&
+    entry.what_helped &&
+    entry.what_helped !== ""
+);
+
+if (previous) {
+  message += `\n\nLast time this showed up, you noted that "${previous.what_helped}" helped. It might be worth trying that again.`;
+}
+
+    if (error) {
+      message += ` Supabase read error: ${error.message}`;
+      setResponse(message);
+      setSaving(false);
+      return;
+    }
+
+    if (data && data.length > 1) {
+      const selectedLabels = selectedItems.map((item) => item.label);
+
+      const repeatedAreaCount = data.filter((entry) => {
+        if (!Array.isArray(entry.areas)) return false;
+        return entry.areas.some((area) => selectedLabels.includes(area));
+      }).length;
+
+      const sameSignalCount = data.filter((entry) => entry.signal === selectedSignal).length;
+      const highIntensity = data.filter((entry) => Number(entry.intensity) >= 7).length;
+
+      if (repeatedAreaCount >= 3) {
+        message += "\n\nI’m noticing a pattern here — one or more of these areas has come up a few times recently. It may be your body gently trying to get your attention rather than this being a one-off moment.";
+      }
+
+      if (sameSignalCount >= 3) {
+        message += "\n\nThe same signal has also been repeating, which can sometimes help us understand what your system tends to return to under certain conditions.";
+      }
+
+      if (highIntensity >= 2) {
+        message += "\n\nSome of these signals have been quite strong, so rather than pushing through, it may help to slow things down and support this area with a bit more care.";
+      }
+    }
+
+    setResponse(message);
+    setSaving(false);
   };
 
-  await supabase.from("body_signals").insert([entryToSave]);
-
-  const { data, error } = await supabase
-    .from("body_signals")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  let message = buildCoachResponse();
-
-  if (error) {
-    setResponse("Something went wrong saving your entry.");
-    setSaving(false);
-    return;
-  }
-
-  // 🔁 BUILD PERSONAL "WHAT HELPS" PROFILE
-  const helpCounts = {};
-
-  data.forEach((entry) => {
-    if (
-      entry.signal === selectedSignal &&
-      entry.what_helped &&
-      entry.what_helped !== ""
-    ) {
-      helpCounts[entry.what_helped] =
-        (helpCounts[entry.what_helped] || 0) + 1;
-    }
-  });
-
-  const rankedHelp = Object.entries(helpCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
-
-  if (rankedHelp.length > 0) {
-    message += `\n\nWhat tends to help you most:`;
-
-    rankedHelp.forEach(([item, count], index) => {
-      message += `\n${index + 1}. ${item} (${count} ${
-        count === 1 ? "time" : "times"
-      })`;
-    });
-  }
-
-  setResponse(message);
-  setSaving(false);
-};
  return (
   <>
     <Nav />
