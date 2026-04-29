@@ -285,12 +285,7 @@ if (confidence >= 40) {
 } else {
   setSuggestedHelp("");
 }
-      const total = ranked.reduce((sum, [, c]) => sum + c, 0);
-      const confidence = Math.round((count / total) * 100);
-
-      if (confidence >= 40) {
-        message += `\n\nTry this first: ${topHelp} — this has helped you about ${confidence}% of the time when this shows up.`;
-      }
+    
     }
 
     setResponse(message);
