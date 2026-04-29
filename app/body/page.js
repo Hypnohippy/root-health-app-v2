@@ -109,6 +109,7 @@ const helpOptions = [
 export default function Home() {
   const [whatHelped, setWhatHelped] = useState("");
   const [latestEntryId, setLatestEntryId] = useState(null);
+  const [savedHelp, setSavedHelp] = useState(false);
   const [selectedSystems, setSelectedSystems] = useState([]);
   const [activeSystemId, setActiveSystemId] = useState(null);
   const [selectedSignal, setSelectedSignal] = useState("");
@@ -407,12 +408,17 @@ if (previous) {
     <p style={styles.response}>{response}</p>
 
     <p style={styles.label}>What helped (if anything)?</p>
+             {savedHelp && (
+  <p style={{ color: "#2e7d32", fontSize: "13px", marginTop: "-6px" }}>
+    Saved ✓
+  </p>
+)}
 
     <div style={styles.choiceRow}>
       {helpOptions.map((opt) => (
         <button
           key={opt}
-          onClick={async () => {
+         onClick={async () => {
   setWhatHelped(opt);
 
   if (latestEntryId) {
@@ -420,6 +426,8 @@ if (previous) {
       .from("body_signals")
       .update({ what_helped: opt })
       .eq("id", latestEntryId);
+
+    setSavedHelp(true);
   }
 }}
           style={{
