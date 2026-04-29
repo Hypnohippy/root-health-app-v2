@@ -247,6 +247,35 @@ setLatestEntryId(savedEntry?.id || null);
       .limit(20);
 
     let message = buildCoachResponse();
+    let message = buildCoachResponse();
+
+// 🔮 PREDICTIVE COACH
+const helpCounts = {};
+
+data.forEach((entry) => {
+  if (
+    entry.signal === selectedSignal &&
+    entry.what_helped &&
+    entry.what_helped !== "Nothing yet"
+  ) {
+    helpCounts[entry.what_helped] =
+      (helpCounts[entry.what_helped] || 0) + 1;
+  }
+});
+
+const ranked = Object.entries(helpCounts)
+  .sort((a, b) => b[1] - a[1]);
+
+if (ranked.length > 0) {
+  const [topHelp, count] = ranked[0];
+
+  const total = ranked.reduce((sum, [, c]) => sum + c, 0);
+  const confidence = Math.round((count / total) * 100);
+
+  if (confidence >= 40) {
+    message += `\n\nTry this first: ${topHelp} — this has helped you about ${confidence}% of the time when this shows up.`;
+  }
+}
     // 🔁 BUILD HELP RANKING
 const helpCounts = {};
 
