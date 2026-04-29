@@ -95,7 +95,7 @@ export default function CoachPage() {
                 <div key={index} style={styles.row}>
                   <strong>{index + 1}. {item.helped}</strong>
                   <span>
-  {" "}when “{item.signal}” shows up ({item.count} times)
+  {" "}when “{item.signal}” shows up ({item.count} {item.count === 1 ? "time" : "times"})
 </span>
                 </div>
               ))}
