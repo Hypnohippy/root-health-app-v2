@@ -108,6 +108,7 @@ const helpOptions = [
 ];
 export default function Home() {
   const [whatHelped, setWhatHelped] = useState("");
+  const [latestEntryId, setLatestEntryId] = useState(null);
   const [selectedSystems, setSelectedSystems] = useState([]);
   const [activeSystemId, setActiveSystemId] = useState(null);
   const [selectedSignal, setSelectedSignal] = useState("");
@@ -229,7 +230,13 @@ const buildCoachResponse = () => {
       what_helped: whatHelped,
     };
 
-    await supabase.from("body_signals").insert([entryToSave]);
+    const { data: savedEntry } = await supabase
+  .from("body_signals")
+  .insert([entryToSave])
+  .select("id")
+  .single();
+
+setLatestEntryId(savedEntry?.id || null);
 
     const { data, error } = await supabase
       .from("body_signals")
@@ -405,7 +412,16 @@ if (previous) {
       {helpOptions.map((opt) => (
         <button
           key={opt}
-          onClick={() => setWhatHelped(opt)}
+          onClick={async () => {
+  setWhatHelped(opt);
+
+  if (latestEntryId) {
+    await supabase
+      .from("body_signals")
+      .update({ what_helped: opt })
+      .eq("id", latestEntryId);
+  }
+}}
           style={{
             ...styles.choiceButton,
             background: whatHelped === opt ? "#1A1A1A" : "#E6E2DA",
