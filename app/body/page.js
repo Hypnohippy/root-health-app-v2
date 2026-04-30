@@ -158,10 +158,16 @@ export default function BodyPage() {
   const [confidenceScore, setConfidenceScore] = useState(null);
   const [rankedHelp, setRankedHelp] = useState([]);
   const [saving, setSaving] = useState(false);
-  
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
+
+  const resetLearningUI = () => {
+    setResponse("");
+    setSuggestedHelp("");
+    setConfidenceScore(null);
+    setRankedHelp([]);
+  };
 
   const selectSystem = (id) => {
     setSelectedSystems((prev) => (prev.includes(id) ? prev : [...prev, id]));
@@ -170,10 +176,7 @@ export default function BodyPage() {
     setContext("");
     setIntensity(5);
     setWhatHelped("");
-    setResponse("");
-    setSuggestedHelp("");
-    setConfidenceScore(null);
-    setRankedHelp([]);
+    resetLearningUI();
   };
 
   const clearSelections = () => {
@@ -183,10 +186,7 @@ export default function BodyPage() {
     setContext("");
     setIntensity(5);
     setWhatHelped("");
-    setResponse("");
-    setSuggestedHelp("");
-    setConfidenceScore(null);
-    setRankedHelp([]);
+    resetLearningUI();
   };
 
   const buildBaseResponse = () => {
@@ -231,7 +231,12 @@ export default function BodyPage() {
       message += `\n• Track whether it improves, repeats, or spreads`;
     }
 
-    if (intensity >= 8 || selectedSignal.includes("blister") || selectedSignal.includes("discharge") || selectedSignal.includes("burning when passing urine")) {
+    if (
+      intensity >= 8 ||
+      selectedSignal.includes("blister") ||
+      selectedSignal.includes("discharge") ||
+      selectedSignal.includes("burning when passing urine")
+    ) {
       message += `\n\nBecause this is strong, sensitive, unusual, or potentially visible, it is worth getting checked if it persists, worsens, or worries you.`;
     }
 
@@ -242,12 +247,9 @@ export default function BodyPage() {
     if (selectedItems.length === 0 || !current || !selectedSignal || !context) return;
 
     setSaving(true);
-    setResponse("");
-    setSuggestedHelp("");
-    setConfidenceScore(null);
-    setRankedHelp([]);
+    resetLearningUI();
 
-    const { data: history, error: historyError } = await supabase
+    const { data: history } = await supabase
       .from("body_signals")
       .select("*")
       .order("created_at", { ascending: false })
@@ -260,7 +262,7 @@ export default function BodyPage() {
       if (
         normalise(entry.signal) === normalise(selectedSignal) &&
         entry.what_helped &&
-        entry.what_helped !== "Nothing yet"
+        normalise(entry.what_helped) !== "nothing yet"
       ) {
         helpCounts[entry.what_helped] = (helpCounts[entry.what_helped] || 0) + 1;
       }
@@ -278,6 +280,7 @@ export default function BodyPage() {
       const total = ranked.reduce((sum, [, count]) => sum + count, 0);
       confidence = Math.round((top[1] / total) * 100);
       predictedHelp = top[0];
+
       setSuggestedHelp(predictedHelp);
       setConfidenceScore(confidence);
       setRankedHelp(ranked);
@@ -303,27 +306,6 @@ export default function BodyPage() {
     }
 
     let message = buildBaseResponse();
-  
-});
-
-const ranked = Object.entries(helpCounts).sort((a, b) => b[1] - a[1]);
-
-if (ranked.length > 0) {
-  const [topHelp, count] = ranked[0];
-  const total = ranked.reduce((sum, [, c]) => sum + c, 0);
-  const confidence = Math.round((count / total) * 100);
-
-  if (confidence >= 40) {
-    setSuggestedHelp(topHelp);
-    setConfidenceScore(confidence);
-  } else {
-    setSuggestedHelp("");
-    setConfidenceScore(null);
-  }
-} else {
-  setSuggestedHelp("");
-  setConfidenceScore(null);
-}
 
     if (predictedHelp) {
       message =
@@ -387,10 +369,7 @@ if (ranked.length > 0) {
                       setSelectedSignal(sig);
                       setContext("");
                       setWhatHelped("");
-                      setResponse("");
-                      setSuggestedHelp("");
-                      setConfidenceScore(null);
-                      setRankedHelp([]);
+                      resetLearningUI();
                     }}
                     style={{
                       ...styles.choiceButton,
@@ -412,7 +391,7 @@ if (ranked.length > 0) {
                         key={item}
                         onClick={() => {
                           setContext(item);
-                          setResponse("");
+                          resetLearningUI();
                         }}
                         style={{
                           ...styles.choiceButton,
@@ -612,7 +591,7 @@ const styles = {
     fontSize: "15px",
   },
   suggestionCard: {
-    background: "#F7F5F2",
+    background: "linear-gradient(135deg, #E8F5E9 0%, #DFF1E3 100%)",
     borderRadius: "18px",
     padding: "18px",
     marginTop: "22px",
@@ -620,7 +599,7 @@ const styles = {
   },
   suggestionLabel: {
     fontSize: "13px",
-    color: "#777",
+    color: "#2e7d32",
     margin: "0 0 6px",
   },
   suggestionMain: {
@@ -631,13 +610,13 @@ const styles = {
   },
   suggestionSub: {
     fontSize: "13px",
-    color: "#777",
+    color: "#555",
     marginTop: "6px",
   },
   confidenceBadge: {
     marginLeft: "10px",
     fontSize: "12px",
-    background: "#E6E2DA",
+    background: "#D4EDDA",
     padding: "4px 8px",
     borderRadius: "999px",
     color: "#333",
