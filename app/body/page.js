@@ -109,20 +109,55 @@ const helpOptions = [
   "Nothing yet",
 ];
 
-export default function Home() {
-  const [whatHelped, setWhatHelped] = useState("");
-  const [latestEntryId, setLatestEntryId] = useState(null);
-  const [savedHelp, setSavedHelp] = useState(false);
+const signalGuidance = {
+  reflux: [
+    "Stay upright for a while after eating",
+    "Try a smaller, lighter meal next time",
+    "Notice if spicy, fatty, acidic foods or late meals make it worse",
+  ],
+  bloating: [
+    "Eat a little slower and notice whether that changes things",
+    "Try one simple fibre source rather than lots at once",
+    "Notice whether certain foods or stress make it worse",
+  ],
+  constipation: [
+    "Drink water steadily across the day",
+    "Add one gentle fibre source like oats, fruit, or veg",
+    "A short walk may help movement without forcing anything",
+  ],
+  "racing heart": [
+    "Pause and reduce stimulation for a few minutes",
+    "Notice caffeine, tiredness, stress, or exertion today",
+    "Track whether it settles or keeps returning",
+  ],
+  "light-headed": [
+    "Sit down and give yourself a moment",
+    "Check food, hydration, heat, and sudden movement",
+    "If it feels unusual, strong, or repeated, get it checked",
+  ],
+  aching: [
+    "Try gentle movement rather than pushing hard",
+    "Notice whether rest, warmth, or stretching helps",
+    "Track whether it is improving or spreading",
+  ],
+};
+
+function normalise(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
+export default function BodyPage() {
   const [selectedSystems, setSelectedSystems] = useState([]);
   const [activeSystemId, setActiveSystemId] = useState(null);
   const [selectedSignal, setSelectedSignal] = useState("");
   const [context, setContext] = useState("");
   const [intensity, setIntensity] = useState(5);
+  const [whatHelped, setWhatHelped] = useState("");
   const [response, setResponse] = useState("");
+  const [suggestedHelp, setSuggestedHelp] = useState("");
+  const [confidenceScore, setConfidenceScore] = useState(null);
   const [rankedHelp, setRankedHelp] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [suggestedHelp, setSuggestedHelp] = useState("");
-  
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
@@ -133,9 +168,10 @@ export default function Home() {
     setSelectedSignal("");
     setContext("");
     setIntensity(5);
-    setResponse("");
     setWhatHelped("");
-    setSavedHelp(false);
+    setResponse("");
+    setSuggestedHelp("");
+    setConfidenceScore(null);
     setRankedHelp([]);
   };
 
@@ -145,73 +181,57 @@ export default function Home() {
     setSelectedSignal("");
     setContext("");
     setIntensity(5);
-    setResponse("");
     setWhatHelped("");
-    setSavedHelp(false);
-    setRankedHelp([]);
+    setResponse("");
     setSuggestedHelp("");
+    setConfidenceScore(null);
+    setRankedHelp([]);
   };
 
-  const buildCoachResponse = () => {
-    if (selectedItems.length === 0 || !current || !selectedSignal || !context) return "";
-
+  const buildBaseResponse = () => {
     const labels = selectedItems.map((item) => item.label.toLowerCase()).join(", ");
-
     let message = `You’ve marked ${labels}. Right now we’re looking at ${selectedSignal} around ${current.label.toLowerCase()}.`;
 
-    message += ` It feels ${context}, sitting around ${intensity}/10.`;
+    message += ` It is ${context}, sitting around ${intensity}/10.`;
 
     if (context === "improving") {
-      message += `\n\nThis looks like it’s settling compared to before. That’s a really good sign — something you’ve done recently may be helping.`;
+      message += `\n\nThis looks like it may be settling. That is useful information — your system may already be responding to something you changed.`;
     } else if (context === "getting worse") {
-      message += `\n\nThis looks like it’s building a bit. Worth slowing things down slightly and giving this area some support.`;
+      message += `\n\nThis looks like it may be building. Rather than pushing through, it is worth slowing down and supporting this area today.`;
     } else if (context === "constant") {
-      message += `\n\nThis seems to be sticking around rather than shifting. That usually means it’s worth looking a little closer at what might be maintaining it.`;
+      message += `\n\nBecause this is hanging around, it may be worth looking for what is maintaining it rather than treating it as a one-off.`;
     } else {
-      message += `\n\nLet’s just get a sense of this without rushing to fix it.`;
+      message += `\n\nLet’s read this as information from your body, not something to panic about.`;
     }
 
-    if (selectedSystems.length > 1) {
-      message += `\n\nBecause a couple of areas are showing up together, this may be more of a connected pattern than a single issue.`;
-    }
+    const specific = signalGuidance[normalise(selectedSignal)];
 
-    message += `\n\nA simple way to support this today could be:`;
+    message += `\n\nA practical next step could be:`;
 
-    if (current.id === "digestion") {
-      message += `\n• Drink an extra 1–2 glasses of water today\n• Add one simple fibre source (veg, oats, fruit)\n• Eat a little slower and notice how your body responds after meals`;
+    if (specific) {
+      specific.forEach((item) => {
+        message += `\n• ${item}`;
+      });
+    } else if (current.id === "digestion") {
+      message += `\n• Notice food timing, stress, and whether symptoms appear after meals`;
+      message += `\n• Keep the next meal simple and easy to digest`;
+      message += `\n• Track whether this settles, repeats, or links to a particular trigger`;
     } else if (current.id === "stress_nerves") {
-      message += `\n• Take 2–3 slow breaths, longer out than in\n• Step away from stimulation for a few minutes\n• Ask “what’s actually loading me right now?”`;
+      message += `\n• Take 2–3 slow breaths, with a longer out-breath`;
+      message += `\n• Step away from stimulation for a few minutes`;
+      message += `\n• Ask what is loading your system right now`;
     } else if (current.id === "breathing") {
-      message += `\n• Slow your breathing slightly (in for 4, out for 6)\n• Sit or stand a little taller\n• Give yourself a short pause to reset`;
-    } else if (current.id === "heart_circulation") {
-      message += `\n• Pause and reduce stimulation for a moment\n• Notice caffeine, stress, or tiredness today\n• Keep an eye on whether this settles or repeats`;
-    } else if (current.id === "skin") {
-      message += `\n• Notice anything new touching your skin (products, clothes)\n• Check hydration and sleep\n• Watch if it spreads or settles`;
-    } else if (current.id === "reproductive") {
-      message += `\n• Notice any irritation, friction, or recent changes\n• Track timing (cycle, stress, activity)\n• Avoid jumping to conclusions — just observe patterns`;
-    } else if (current.id === "bladder_hydration") {
-      message += `\n• Drink water steadily through the day\n• Reduce caffeine/alcohol for now\n• Notice frequency, urgency, or discomfort`;
-    } else if (current.id === "energy_recovery") {
-      message += `\n• Ease your load slightly today if you can\n• Eat something supportive and hydrate\n• Prioritise rest where possible`;
+      message += `\n• Slow the breath gently rather than forcing deep breaths`;
+      message += `\n• Sit or stand a little taller`;
+      message += `\n• Notice if stress, posture, or exertion changes it`;
     } else {
-      message += `\n• Check sleep, stress, and hydration\n• Notice anything that’s changed recently\n• Give it a little space and observe`;
+      message += `\n• Notice what changed before this appeared`;
+      message += `\n• Keep today’s response simple and gentle`;
+      message += `\n• Track whether it improves, repeats, or spreads`;
     }
 
-    if (context === "improving") {
-      message += `\n\nIf this keeps moving in this direction, you don’t need to do much more — just keep doing what seems to be working.`;
-    } else {
-      message += `\n\nWe don’t need to solve this all at once — just noticing and making small adjustments is enough for now.`;
-    }
-
-    if (
-      selectedSignal.includes("blister") ||
-      selectedSignal.includes("discharge") ||
-      selectedSignal.includes("burning when passing urine") ||
-      selectedSignal.includes("swelling") ||
-      selectedSignal.includes("colour change") ||
-      intensity >= 8
-    ) {
-      message += `\n\nIf this becomes painful, unusual, or doesn’t settle, it’s worth getting it checked just to be safe.`;
+    if (intensity >= 8 || selectedSignal.includes("blister") || selectedSignal.includes("discharge") || selectedSignal.includes("burning when passing urine")) {
+      message += `\n\nBecause this is strong, sensitive, unusual, or potentially visible, it is worth getting checked if it persists, worsens, or worries you.`;
     }
 
     return message;
@@ -221,8 +241,46 @@ export default function Home() {
     if (selectedItems.length === 0 || !current || !selectedSignal || !context) return;
 
     setSaving(true);
-    setSavedHelp(false);
-    setWhatHelped("");
+    setResponse("");
+    setSuggestedHelp("");
+    setConfidenceScore(null);
+    setRankedHelp([]);
+
+    const { data: history, error: historyError } = await supabase
+      .from("body_signals")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    const helpCounts = {};
+    const usefulHistory = Array.isArray(history) ? history : [];
+
+    usefulHistory.forEach((entry) => {
+      if (
+        normalise(entry.signal) === normalise(selectedSignal) &&
+        entry.what_helped &&
+        entry.what_helped !== "Nothing yet"
+      ) {
+        helpCounts[entry.what_helped] = (helpCounts[entry.what_helped] || 0) + 1;
+      }
+    });
+
+    const ranked = Object.entries(helpCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+
+    const top = ranked[0];
+    let predictedHelp = "";
+    let confidence = null;
+
+    if (top) {
+      const total = ranked.reduce((sum, [, count]) => sum + count, 0);
+      confidence = Math.round((top[1] / total) * 100);
+      predictedHelp = top[0];
+      setSuggestedHelp(predictedHelp);
+      setConfidenceScore(confidence);
+      setRankedHelp(ranked);
+    }
 
     const entryToSave = {
       areas: selectedItems.map((item) => item.label),
@@ -230,78 +288,29 @@ export default function Home() {
       signal: selectedSignal,
       context,
       intensity,
-      what_helped: "",
+      what_helped: whatHelped || "",
     };
 
-    const insertResult = await supabase
-  .from("body_signals")
-  .insert([entryToSave])
-  .select();
-
-if (insertResult.error) {
-  console.error("Insert failed:", insertResult.error);
-}
-
-const savedEntry = insertResult.data?.[0];
-
-setLatestEntryId(savedEntry?.id || null);
-      
-    
-    setLatestEntryId(savedEntry?.id || null);
-
-    const { data, error } = await supabase
+    const { error: saveError } = await supabase
       .from("body_signals")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(20);
+      .insert([entryToSave]);
 
-    let message = buildCoachResponse();
-    // 🔮 PREDICTIVE INSERT (signal-specific)
-const helpCounts = {};
-
-data.forEach((entry) => {
-  if (
-    entry.signal?.toLowerCase().trim() === selectedSignal?.toLowerCase().trim() &&
-    entry.what_helped &&
-    entry.what_helped !== "Nothing yet"
-  ) {
-    helpCounts[entry.what_helped] =
-      (helpCounts[entry.what_helped] || 0) + 1;
-  }
-});
-
-const ranked = Object.entries(helpCounts).sort((a, b) => b[1] - a[1]);
-
-if (ranked.length > 0) {
-  const [topHelp, count] = ranked[0];
-  const total = ranked.reduce((sum, [, c]) => sum + c, 0);
-  const confidence = Math.round((count / total) * 100);
-
-  if (confidence >= 20) {
-    message = `Based on your previous entries, "${topHelp}" has helped this before.\n\n` + message;
-  }
-}
-
-    if (error) {
-      message += ` Supabase read error: ${error.message}`;
-      setResponse(message);
+    if (saveError) {
+      setResponse("Something went wrong saving this entry. Please try again.");
       setSaving(false);
       return;
     }
 
-    
-    if (ranked.length > 0) {
-    const [topHelp, count] = ranked[0];
+    let message = buildBaseResponse();
 
-const total = ranked.reduce((sum, [, c]) => sum + c, 0);
-const confidence = Math.round((count / total) * 100);
+    if (predictedHelp) {
+      message =
+        `Based on your previous entries, "${predictedHelp}" has helped this before${confidence !== null ? ` (${confidence}%)` : ""}.\n\n` +
+        message;
+    }
 
-if (confidence >= 20) {
-  setSuggestedHelp(topHelp);
-} else {
-  setSuggestedHelp("");
-}
-    
+    if (whatHelped && whatHelped !== "Nothing yet") {
+      message += `\n\nI’ve also saved that "${whatHelped}" helped this time, so Root Health can learn from it.`;
     }
 
     setResponse(message);
@@ -316,8 +325,8 @@ if (confidence >= 20) {
         <section style={styles.shell}>
           <div style={styles.brandMark}>◯</div>
 
-          <h1 style={styles.title}>Root Health</h1>
-          <p style={styles.subtitle}>Tap each place your body is asking for attention today.</p>
+          <h1 style={styles.title}>Body Signals</h1>
+          <p style={styles.subtitle}>Tap where your body is asking for attention, then build the picture.</p>
 
           <GlassBody
             selectedSystems={selectedItems.map((item) => item.label)}
@@ -343,15 +352,11 @@ if (confidence >= 20) {
 
           {current && (
             <div style={styles.panel}>
-              <p style={styles.panelTitle}>
-                {selectedItems.length > 1 ? "Connected body pattern" : current.label}
-              </p>
+              <p style={styles.panelTitle}>{selectedItems.length > 1 ? "Connected body pattern" : current.label}</p>
 
-              <p style={styles.microText}>
-                Selected: {selectedItems.map((item) => item.label).join(", ")}
-              </p>
+              <p style={styles.microText}>Selected: {selectedItems.map((item) => item.label).join(", ")}</p>
 
-              <p style={styles.label}>Which signal should we explore first?</p>
+              <p style={styles.label}>1. What are you noticing?</p>
               <div style={styles.choiceRow}>
                 {current.signals.map((sig) => (
                   <button
@@ -359,11 +364,11 @@ if (confidence >= 20) {
                     onClick={() => {
                       setSelectedSignal(sig);
                       setContext("");
-                      setResponse("");
                       setWhatHelped("");
-                      setSavedHelp(false);
-                      setRankedHelp([]);
+                      setResponse("");
                       setSuggestedHelp("");
+                      setConfidenceScore(null);
+                      setRankedHelp([]);
                     }}
                     style={{
                       ...styles.choiceButton,
@@ -378,12 +383,15 @@ if (confidence >= 20) {
 
               {selectedSignal && (
                 <>
-                  <p style={styles.label}>When does this tend to show up?</p>
+                  <p style={styles.label}>2. When does this show up?</p>
                   <div style={styles.choiceRow}>
                     {contextOptions.map((item) => (
                       <button
                         key={item}
-                        onClick={() => setContext(item)}
+                        onClick={() => {
+                          setContext(item);
+                          setResponse("");
+                        }}
                         style={{
                           ...styles.choiceButton,
                           background: context === item ? "#1A1A1A" : "#E6E2DA",
@@ -399,7 +407,7 @@ if (confidence >= 20) {
 
               {context && (
                 <>
-                  <p style={styles.label}>How strong or concerning is it today?</p>
+                  <p style={styles.label}>3. How strong is it today?</p>
                   <div style={styles.scoreRow}>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
                       <button
@@ -416,54 +424,12 @@ if (confidence >= 20) {
                     ))}
                   </div>
 
-                  <button style={styles.mainButton} onClick={handleExplore}>
-                    {saving ? "Saving..." : "Explore this signal"}
-                  </button>
-                </>
-              )}
-
-              {response && (
-                <>
-                  <p style={styles.response}>{response}</p>
-
-                  {rankedHelp.length > 0 && (
-                    <>
-                      <p style={styles.label}>What tends to help you most:</p>
-
-                      <div style={styles.choiceRow}>
-                        {rankedHelp.map(([item, count], index) => (
-                          <div key={item} style={{ fontSize: "14px", color: "#333" }}>
-                            {index + 1}. {item} ({count})
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  <p style={styles.label}>What helped (if anything)?</p>
-
-                  {savedHelp && (
-                    <p style={{ color: "#2e7d32", fontSize: "13px", marginTop: "-6px" }}>
-                      Saved ✓
-                    </p>
-                  )}
-
+                  <p style={styles.label}>4. What helped, if anything?</p>
                   <div style={styles.choiceRow}>
                     {helpOptions.map((opt) => (
                       <button
                         key={opt}
-                        onClick={async () => {
-                          setWhatHelped(opt);
-
-                          if (latestEntryId) {
-                            await supabase
-                              .from("body_signals")
-                              .update({ what_helped: opt })
-                              .eq("id", latestEntryId);
-
-                            setSavedHelp(true);
-                          }
-                        }}
+                        onClick={() => setWhatHelped(opt)}
                         style={{
                           ...styles.choiceButton,
                           background: whatHelped === opt ? "#1A1A1A" : "#E6E2DA",
@@ -474,7 +440,37 @@ if (confidence >= 20) {
                       </button>
                     ))}
                   </div>
+
+                  <button style={styles.mainButton} onClick={handleExplore}>
+                    {saving ? "Saving..." : "Save & reflect"}
+                  </button>
                 </>
+              )}
+
+              {suggestedHelp && (
+                <div style={styles.suggestionCard}>
+                  <p style={styles.suggestionLabel}>Suggested first step</p>
+                  <p style={styles.suggestionMain}>
+                    {suggestedHelp}
+                    {confidenceScore !== null && (
+                      <span style={styles.confidenceBadge}>{confidenceScore}%</span>
+                    )}
+                  </p>
+                  <p style={styles.suggestionSub}>Based on what has helped you before</p>
+                </div>
+              )}
+
+              {response && <p style={styles.response}>{response}</p>}
+
+              {rankedHelp.length > 0 && (
+                <div style={styles.memoryCard}>
+                  <p style={styles.panelTitle}>What tends to help this signal</p>
+                  {rankedHelp.map(([item, count], index) => (
+                    <p key={item} style={styles.memoryLine}>
+                      {index + 1}. {item} ({count} {count === 1 ? "time" : "times"})
+                    </p>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -495,7 +491,7 @@ const styles = {
   },
   shell: {
     width: "100%",
-    maxWidth: "820px",
+    maxWidth: "860px",
     background: "rgba(255,255,255,0.82)",
     borderRadius: "28px",
     padding: "34px",
@@ -539,9 +535,10 @@ const styles = {
     boxShadow: "0 12px 28px rgba(0,0,0,0.06)",
   },
   panelTitle: {
-    fontSize: "22px",
-    fontWeight: "600",
-    margin: "0 0 6px",
+    fontSize: "20px",
+    fontWeight: "700",
+    margin: "0 0 10px",
+    color: "#1A1A1A",
   },
   microText: {
     color: "#777",
@@ -553,6 +550,7 @@ const styles = {
     marginBottom: "10px",
     fontSize: "14px",
     color: "#555",
+    fontWeight: "600",
   },
   choiceRow: {
     display: "flex",
@@ -582,6 +580,7 @@ const styles = {
     cursor: "pointer",
   },
   mainButton: {
+    marginTop: "22px",
     background: "#1A1A1A",
     color: "#FFFFFF",
     border: "none",
@@ -590,11 +589,55 @@ const styles = {
     cursor: "pointer",
     fontSize: "15px",
   },
+  suggestionCard: {
+    background: "#F7F5F2",
+    borderRadius: "18px",
+    padding: "18px",
+    marginTop: "22px",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+  },
+  suggestionLabel: {
+    fontSize: "13px",
+    color: "#777",
+    margin: "0 0 6px",
+  },
+  suggestionMain: {
+    fontSize: "22px",
+    fontWeight: "700",
+    color: "#1A1A1A",
+    margin: 0,
+  },
+  suggestionSub: {
+    fontSize: "13px",
+    color: "#777",
+    marginTop: "6px",
+  },
+  confidenceBadge: {
+    marginLeft: "10px",
+    fontSize: "12px",
+    background: "#E6E2DA",
+    padding: "4px 8px",
+    borderRadius: "999px",
+    color: "#333",
+  },
   response: {
     marginTop: "22px",
     color: "#333",
     lineHeight: "1.65",
     fontSize: "15px",
     whiteSpace: "pre-line",
+    textAlign: "left",
+  },
+  memoryCard: {
+    marginTop: "20px",
+    background: "#FAFAFA",
+    borderRadius: "18px",
+    padding: "18px",
+    textAlign: "left",
+  },
+  memoryLine: {
+    margin: "6px 0",
+    fontSize: "14px",
+    color: "#333",
   },
 };
