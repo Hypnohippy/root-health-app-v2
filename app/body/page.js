@@ -276,16 +276,20 @@ export default function BodyPage() {
     let predictedHelp = "";
     let confidence = null;
 
-    if (top) {
-      const total = ranked.reduce((sum, [, count]) => sum + count, 0);
-      confidence = Math.round((top[1] / total) * 100);
-      predictedHelp = top[0];
+   if (whatHelped && whatHelped !== "Nothing yet") {
+  // 🧠 PRIORITISE USER'S LATEST INPUT
+  setSuggestedHelp(whatHelped);
+  setConfidenceScore(null);
+} else if (top) {
+  const total = ranked.reduce((sum, [, count]) => sum + count, 0);
+  confidence = Math.round((top[1] / total) * 100);
+  predictedHelp = top[0];
 
-      setSuggestedHelp(predictedHelp);
-      setConfidenceScore(confidence);
-      setRankedHelp(ranked);
-    }
+  setSuggestedHelp(predictedHelp);
+  setConfidenceScore(confidence);
+}
 
+setRankedHelp(ranked);
     const entryToSave = {
       areas: selectedItems.map((item) => item.label),
       system: selectedItems.map((item) => item.system).join(", "),
