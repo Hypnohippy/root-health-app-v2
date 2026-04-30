@@ -245,11 +245,8 @@ if (insertResult.error) {
 const savedEntry = insertResult.data?.[0];
 
 setLatestEntryId(savedEntry?.id || null);
-      .from("body_signals")
-      .insert([entryToSave])
-      .select("id")
-      .single();
-
+      
+    
     setLatestEntryId(savedEntry?.id || null);
 
     const { data, error } = await supabase
