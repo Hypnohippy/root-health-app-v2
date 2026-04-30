@@ -139,15 +139,7 @@ export default function CoachPage() {
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "24px",
-    confidenceSmall: {
+confidenceSmall: {
   display: "block",
   marginTop: "4px",
   color: "#777",
