@@ -318,8 +318,7 @@ setRankedHelp(ranked);
     }
 
     if (whatHelped && whatHelped !== "Nothing yet") {
-      message += `\n\nI’ve also saved that "${whatHelped}" helped this time, so Root Health can learn from it.`;
-    }
+      message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;    }
 
     setResponse(message);
     setSaving(false);
