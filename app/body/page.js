@@ -233,7 +233,18 @@ export default function Home() {
       what_helped: "",
     };
 
-    const { data: savedEntry } = await supabase
+    const insertResult = await supabase
+  .from("body_signals")
+  .insert([entryToSave])
+  .select();
+
+if (insertResult.error) {
+  console.error("Insert failed:", insertResult.error);
+}
+
+const savedEntry = insertResult.data?.[0];
+
+setLatestEntryId(savedEntry?.id || null);
       .from("body_signals")
       .insert([entryToSave])
       .select("id")
