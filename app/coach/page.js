@@ -102,17 +102,31 @@ export default function CoachPage() {
             <div style={styles.panel}>
               <p style={styles.panelTitle}>What seems to work for you</p>
 
-              {topHelp.map((item, index) => (
-                <div key={`${item.signal}-${item.helped}`} style={styles.row}>
-                  <strong>
-                    {index + 1}. {item.helped}
-                  </strong>
+            {topHelp.map((item, index) => {
+  let sentence = "";
 
-                  <span>
-                    {" "}when “{item.signal}” shows up — {item.confidence}% confidence ({item.count} {item.count === 1 ? "time" : "times"})
-                  </span>
-                </div>
-              ))}
+  if (item.confidence >= 70) {
+    sentence = `I’m confident that when your ${item.signal} shows up, ${item.helped.toLowerCase()} helps you.`;
+  } else if (item.confidence >= 40) {
+    sentence = `There’s a pattern forming — ${item.helped.toLowerCase()} may be helping when your ${item.signal} appears.`;
+  } else {
+    sentence = `Early signal: ${item.helped.toLowerCase()} might be worth trying when your ${item.signal} shows up.`;
+  }
+
+  return (
+    <div key={`${item.signal}-${item.helped}`} style={styles.row}>
+      <strong>
+        {index + 1}. {item.helped}
+      </strong>
+
+      <span>{sentence}</span>
+
+      <small style={styles.confidenceSmall}>
+        {item.confidence}% confidence · seen {item.count} {item.count === 1 ? "time" : "times"}
+      </small>
+    </div>
+  );
+})}
             </div>
           )}
 
@@ -133,7 +147,13 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     padding: "24px",
-  },
+    confidenceSmall: {
+  display: "block",
+  marginTop: "4px",
+  color: "#777",
+  fontSize: "12px",
+},
+
   card: {
     width: "100%",
     maxWidth: "820px",
