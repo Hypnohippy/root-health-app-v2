@@ -269,7 +269,7 @@ if (ranked.length > 0) {
   const total = ranked.reduce((sum, [, c]) => sum + c, 0);
   const confidence = Math.round((count / total) * 100);
 
-  if (confidence >= 40) {
+  if (confidence >= 20) {
     message = `Based on your previous entries, "${topHelp}" has helped this before.\n\n` + message;
   }
 }
@@ -288,7 +288,7 @@ if (ranked.length > 0) {
 const total = ranked.reduce((sum, [, c]) => sum + c, 0);
 const confidence = Math.round((count / total) * 100);
 
-if (confidence >= 40) {
+if (confidence >= 20) {
   setSuggestedHelp(topHelp);
 } else {
   setSuggestedHelp("");
