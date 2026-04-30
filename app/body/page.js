@@ -287,12 +287,24 @@ export default function BodyPage() {
       message = `${trendText}\n\n` + message;
     }
 
-    if (predictedHelp) {
-      message =
-        `Suggested focus: "${predictedHelp}".\n\n` +
-        message;
-    }
+  const needsEscalation =
+  context === "getting worse" &&
+  intensity >= 7 &&
+  (!whatHelped || whatHelped === "Nothing yet");
 
+if (needsEscalation) {
+  setSuggestedHelp("");
+  setConfidenceScore(null);
+
+  message =
+    `This looks different from a normal tracking entry.\n\n` +
+    `Because it is getting worse and sitting at ${intensity}/10, don’t push through it today. Reduce load, avoid testing it, and watch for changes like swelling, heat, spreading pain, weakness, or loss of movement.\n\n` +
+    message;
+} else if (predictedHelp) {
+  message =
+    `Suggested focus: "${predictedHelp}".\n\n` +
+    message;
+}
     if (whatHelped && whatHelped !== "Nothing yet") {
       message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;
     }
