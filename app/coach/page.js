@@ -153,6 +153,7 @@ const styles = {
   color: "#777",
   fontSize: "12px",
 },
+    };
 
   card: {
     width: "100%",
