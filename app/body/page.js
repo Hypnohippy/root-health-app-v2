@@ -303,19 +303,7 @@ export default function BodyPage() {
     }
 
     let message = buildBaseResponse();
-    // 🔮 SUGGESTED STEP (based on your history)
-const helpCounts = {};
-
-data.forEach((entry) => {
-  if (
-    entry.signal === selectedSignal &&
-    entry.what_helped &&
-    entry.what_helped !== "" &&
-    entry.what_helped !== "Nothing yet"
-  ) {
-    helpCounts[entry.what_helped] =
-      (helpCounts[entry.what_helped] || 0) + 1;
-  }
+  
 });
 
 const ranked = Object.entries(helpCounts).sort((a, b) => b[1] - a[1]);
