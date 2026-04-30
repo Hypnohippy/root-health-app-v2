@@ -147,15 +147,9 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     padding: "24px",
-    confidenceSmall: {
-  display: "block",
-  marginTop: "4px",
-  color: "#777",
-  fontSize: "12px",
-},
-
-card: {
-  width: "100%",
+  },
+  card: {
+    width: "100%",
     maxWidth: "820px",
     background: "rgba(255,255,255,0.86)",
     borderRadius: "28px",
@@ -200,6 +194,12 @@ card: {
     borderBottom: "1px solid #eee",
     fontSize: "14px",
     lineHeight: "1.5",
+  },
+  confidenceSmall: {
+    display: "block",
+    marginTop: "4px",
+    color: "#777",
+    fontSize: "12px",
   },
   button: {
     display: "inline-block",
