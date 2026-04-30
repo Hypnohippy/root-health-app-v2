@@ -281,25 +281,7 @@ if (ranked.length > 0) {
       return;
     }
 
-    const helpCounts = {};
-
-    data.forEach((entry) => {
-      if (
-        entry.signal === selectedSignal &&
-        entry.what_helped &&
-        entry.what_helped !== "" &&
-        entry.what_helped !== "Nothing yet"
-      ) {
-        helpCounts[entry.what_helped] = (helpCounts[entry.what_helped] || 0) + 1;
-      }
-    });
-
-    const ranked = Object.entries(helpCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
-
-    setRankedHelp(ranked);
-
+    
     if (ranked.length > 0) {
     const [topHelp, count] = ranked[0];
 
