@@ -149,6 +149,7 @@ export default function Home() {
     setWhatHelped("");
     setSavedHelp(false);
     setRankedHelp([]);
+    setSuggestedHelp("");
   };
 
   const buildCoachResponse = () => {
@@ -347,6 +348,7 @@ if (confidence >= 40) {
                       setWhatHelped("");
                       setSavedHelp(false);
                       setRankedHelp([]);
+                      setSuggestedHelp("");
                     }}
                     style={{
                       ...styles.choiceButton,
