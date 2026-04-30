@@ -153,10 +153,9 @@ const styles = {
   color: "#777",
   fontSize: "12px",
 },
-    };
 
-  card: {
-    width: "100%",
+card: {
+  width: "100%",
     maxWidth: "820px",
     background: "rgba(255,255,255,0.86)",
     borderRadius: "28px",
