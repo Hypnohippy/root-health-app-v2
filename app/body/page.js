@@ -6,84 +6,19 @@ import GlassBody from "../../components/GlassBody";
 import Nav from "../../components/Nav";
 
 const bodySystems = [
-  {
-    id: "stress_nerves",
-    label: "Stress & nerves",
-    system: "nervous/autonomic",
-    signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"],
-  },
-  {
-    id: "heart_circulation",
-    label: "Heart & circulation",
-    system: "circulatory",
-    signals: ["racing heart", "fluttering", "pressure", "cold hands/feet", "light-headed", "low stamina", "swelling", "colour change"],
-  },
-  {
-    id: "breathing",
-    label: "Breathing",
-    system: "respiratory",
-    signals: ["shallow breathing", "tight chest", "breathlessness", "air hunger", "cough", "wheeze", "sighing", "chest heaviness"],
-  },
-  {
-    id: "digestion",
-    label: "Digestion",
-    system: "digestive",
-    signals: ["bloating", "reflux", "cramps", "constipation", "loose bowels", "nausea", "appetite change", "wind/gas", "food sensitivity"],
-  },
-  {
-    id: "reproductive",
-    label: "Pelvis & reproductive",
-    system: "reproductive/pelvic",
-    signals: ["pelvic discomfort", "groin discomfort", "genital irritation", "burning", "itching", "discharge/change", "swelling", "rash or blistering", "cycle-related change", "sexual discomfort"],
-  },
-  {
-    id: "hormones_balance",
-    label: "Hormones & balance",
-    system: "endocrine",
-    signals: ["cravings", "energy dips", "mood swings", "temperature changes", "sweats", "cycle changes", "skin changes", "sleep disruption", "weight change"],
-  },
-  {
-    id: "bladder_hydration",
-    label: "Bladder & hydration",
-    system: "urinary/excretory",
-    signals: ["thirst", "frequent urination", "burning when passing urine", "dark urine", "fluid retention", "lower back discomfort", "urgency", "reduced urination"],
-  },
-  {
-    id: "muscles_joints",
-    label: "Muscles & joints",
-    system: "musculoskeletal",
-    signals: ["aching", "stiffness", "sharp pain", "deep ache", "weakness", "cramps", "reduced movement", "swelling", "clicking/grinding"],
-  },
-  {
-    id: "skin",
-    label: "Skin",
-    system: "skin/barrier",
-    signals: ["rash", "blistering", "redness", "itching", "dryness", "spots", "sensitivity", "swelling", "colour change", "visible change but no feeling", "slow healing"],
-  },
-  {
-    id: "senses",
-    label: "Senses",
-    system: "sensory",
-    signals: ["eye strain", "blurred vision", "light sensitivity", "noise sensitivity", "dizziness", "tingling", "numbness", "ringing ears", "altered smell/taste"],
-  },
-  {
-    id: "energy_recovery",
-    label: "Energy & recovery",
-    system: "whole-body recovery",
-    signals: ["fatigue", "burnout feeling", "heavy body", "low motivation", "poor recovery", "weakness", "brain fog", "flu-like feeling", "generally depleted"],
-  },
-  {
-    id: "sleep_rhythm",
-    label: "Sleep rhythm",
-    system: "circadian/sleep",
-    signals: ["poor sleep", "waking often", "early waking", "tired on waking", "sleepy daytime", "wired at night", "restless sleep", "night sweats"],
-  },
-  {
-    id: "whole_body",
-    label: "Whole body",
-    system: "multi-system",
-    signals: ["generally off", "run down", "inflamed feeling", "unsettled", "heavy", "shaky", "hard to describe", "visible change", "recurring pattern"],
-  },
+  { id: "stress_nerves", label: "Stress & nerves", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
+  { id: "heart_circulation", label: "Heart & circulation", system: "circulatory", signals: ["racing heart", "fluttering", "pressure", "cold hands/feet", "light-headed", "low stamina", "swelling", "colour change"] },
+  { id: "breathing", label: "Breathing", system: "respiratory", signals: ["shallow breathing", "tight chest", "breathlessness", "air hunger", "cough", "wheeze", "sighing", "chest heaviness"] },
+  { id: "digestion", label: "Digestion", system: "digestive", signals: ["bloating", "reflux", "cramps", "constipation", "loose bowels", "nausea", "appetite change", "wind/gas", "food sensitivity"] },
+  { id: "reproductive", label: "Pelvis & reproductive", system: "reproductive/pelvic", signals: ["pelvic discomfort", "groin discomfort", "genital irritation", "burning", "itching", "discharge/change", "swelling", "rash or blistering", "cycle-related change", "sexual discomfort"] },
+  { id: "hormones_balance", label: "Hormones & balance", system: "endocrine", signals: ["cravings", "energy dips", "mood swings", "temperature changes", "sweats", "cycle changes", "skin changes", "sleep disruption", "weight change"] },
+  { id: "bladder_hydration", label: "Bladder & hydration", system: "urinary/excretory", signals: ["thirst", "frequent urination", "burning when passing urine", "dark urine", "fluid retention", "lower back discomfort", "urgency", "reduced urination"] },
+  { id: "muscles_joints", label: "Muscles & joints", system: "musculoskeletal", signals: ["aching", "stiffness", "sharp pain", "deep ache", "weakness", "cramps", "reduced movement", "swelling", "clicking/grinding"] },
+  { id: "skin", label: "Skin", system: "skin/barrier", signals: ["rash", "blistering", "redness", "itching", "dryness", "spots", "sensitivity", "swelling", "colour change", "visible change but no feeling", "slow healing"] },
+  { id: "senses", label: "Senses", system: "sensory", signals: ["eye strain", "blurred vision", "light sensitivity", "noise sensitivity", "dizziness", "tingling", "numbness", "ringing ears", "altered smell/taste"] },
+  { id: "energy_recovery", label: "Energy & recovery", system: "whole-body recovery", signals: ["fatigue", "burnout feeling", "heavy body", "low motivation", "poor recovery", "weakness", "brain fog", "flu-like feeling", "generally depleted"] },
+  { id: "sleep_rhythm", label: "Sleep rhythm", system: "circadian/sleep", signals: ["poor sleep", "waking often", "early waking", "tired on waking", "sleepy daytime", "wired at night", "restless sleep", "night sweats"] },
+  { id: "whole_body", label: "Whole body", system: "multi-system", signals: ["generally off", "run down", "inflamed feeling", "unsettled", "heavy", "shaky", "hard to describe", "visible change", "recurring pattern"] },
 ];
 
 const contextOptions = [
@@ -157,6 +92,7 @@ export default function BodyPage() {
   const [suggestedHelp, setSuggestedHelp] = useState("");
   const [confidenceScore, setConfidenceScore] = useState(null);
   const [rankedHelp, setRankedHelp] = useState([]);
+  const [trendInsight, setTrendInsight] = useState("");
   const [saving, setSaving] = useState(false);
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
@@ -167,6 +103,7 @@ export default function BodyPage() {
     setSuggestedHelp("");
     setConfidenceScore(null);
     setRankedHelp([]);
+    setTrendInsight("");
   };
 
   const selectSystem = (id) => {
@@ -206,7 +143,6 @@ export default function BodyPage() {
     }
 
     const specific = signalGuidance[normalise(selectedSignal)];
-
     message += `\n\nA practical next step could be:`;
 
     if (specific) {
@@ -255,18 +191,56 @@ export default function BodyPage() {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    const helpCounts = {};
     const usefulHistory = Array.isArray(history) ? history : [];
 
-    usefulHistory.forEach((entry) => {
-      if (
-        normalise(entry.signal) === normalise(selectedSignal) &&
-        entry.what_helped &&
-        normalise(entry.what_helped) !== "nothing yet"
-      ) {
+    const sameSignalHistory = usefulHistory.filter(
+      (entry) => normalise(entry.signal) === normalise(selectedSignal)
+    );
+
+    const lastEntry = sameSignalHistory[0];
+    const lastIntensity = lastEntry ? Number(lastEntry.intensity || 0) : null;
+
+    let trendText = "";
+
+    if (!lastEntry) {
+      trendText = "This is the first time this signal has appeared in your recent history.";
+    } else if (intensity <= lastIntensity - 2) {
+      trendText = `This looks like it has eased since last time (${lastIntensity}/10 → ${intensity}/10).`;
+    } else if (intensity >= lastIntensity + 2) {
+      trendText = `This looks stronger than last time (${lastIntensity}/10 → ${intensity}/10). It may be worth slowing down and watching it more closely.`;
+    } else {
+      trendText = `This is roughly similar to last time (${lastIntensity}/10 → ${intensity}/10).`;
+    }
+
+    const triedHelps = new Set(
+      sameSignalHistory
+        .map((entry) => entry.what_helped)
+        .filter((item) => item && normalise(item) !== "nothing yet")
+    );
+
+    const recentThree = sameSignalHistory.slice(0, 3);
+    const recentAverage =
+      recentThree.length > 0
+        ? recentThree.reduce((sum, entry) => sum + Number(entry.intensity || 0), 0) / recentThree.length
+        : 0;
+
+    if (triedHelps.size >= 3 && recentAverage >= 5 && intensity >= 5) {
+      trendText =
+        "You’ve tried a few different supports and this signal still seems to be hanging around. That may mean it is time to simplify variables rather than keep guessing.";
+    }
+
+    setTrendInsight(trendText);
+
+    const helpCounts = {};
+    sameSignalHistory.forEach((entry) => {
+      if (entry.what_helped && normalise(entry.what_helped) !== "nothing yet") {
         helpCounts[entry.what_helped] = (helpCounts[entry.what_helped] || 0) + 1;
       }
     });
+
+    if (whatHelped && whatHelped !== "Nothing yet") {
+      helpCounts[whatHelped] = (helpCounts[whatHelped] || 0) + 1;
+    }
 
     const ranked = Object.entries(helpCounts)
       .sort((a, b) => b[1] - a[1])
@@ -276,20 +250,20 @@ export default function BodyPage() {
     let predictedHelp = "";
     let confidence = null;
 
-   if (whatHelped && whatHelped !== "Nothing yet") {
-  // 🧠 PRIORITISE USER'S LATEST INPUT
-  setSuggestedHelp(whatHelped);
-  setConfidenceScore(null);
-} else if (top) {
-  const total = ranked.reduce((sum, [, count]) => sum + count, 0);
-  confidence = Math.round((top[1] / total) * 100);
-  predictedHelp = top[0];
+    if (whatHelped && whatHelped !== "Nothing yet") {
+      predictedHelp = whatHelped;
+      setSuggestedHelp(whatHelped);
+      setConfidenceScore(null);
+    } else if (top) {
+      const total = ranked.reduce((sum, [, count]) => sum + count, 0);
+      confidence = Math.round((top[1] / total) * 100);
+      predictedHelp = top[0];
+      setSuggestedHelp(predictedHelp);
+      setConfidenceScore(confidence);
+    }
 
-  setSuggestedHelp(predictedHelp);
-  setConfidenceScore(confidence);
-}
+    setRankedHelp(ranked);
 
-setRankedHelp(ranked);
     const entryToSave = {
       areas: selectedItems.map((item) => item.label),
       system: selectedItems.map((item) => item.system).join(", "),
@@ -299,9 +273,7 @@ setRankedHelp(ranked);
       what_helped: whatHelped || "",
     };
 
-    const { error: saveError } = await supabase
-      .from("body_signals")
-      .insert([entryToSave]);
+    const { error: saveError } = await supabase.from("body_signals").insert([entryToSave]);
 
     if (saveError) {
       setResponse("Something went wrong saving this entry. Please try again.");
@@ -311,14 +283,19 @@ setRankedHelp(ranked);
 
     let message = buildBaseResponse();
 
+    if (trendText) {
+      message = `${trendText}\n\n` + message;
+    }
+
     if (predictedHelp) {
       message =
-        `Based on your previous entries, "${predictedHelp}" has helped this before${confidence !== null ? ` (${confidence}%)` : ""}.\n\n` +
+        `Suggested focus: "${predictedHelp}".\n\n` +
         message;
     }
 
     if (whatHelped && whatHelped !== "Nothing yet") {
-      message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;    }
+      message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;
+    }
 
     setResponse(message);
     setSaving(false);
@@ -449,6 +426,13 @@ setRankedHelp(ranked);
                     {saving ? "Saving..." : "Save & reflect"}
                   </button>
                 </>
+              )}
+
+              {trendInsight && (
+                <div style={styles.trendCard}>
+                  <p style={styles.suggestionLabel}>Trend insight</p>
+                  <p style={styles.trendText}>{trendInsight}</p>
+                </div>
               )}
 
               {suggestedHelp && (
@@ -593,11 +577,24 @@ const styles = {
     cursor: "pointer",
     fontSize: "15px",
   },
+  trendCard: {
+    background: "linear-gradient(135deg, #EEF4FF 0%, #E8EEFA 100%)",
+    borderRadius: "18px",
+    padding: "18px",
+    marginTop: "22px",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+  },
+  trendText: {
+    fontSize: "15px",
+    color: "#333",
+    lineHeight: "1.5",
+    margin: 0,
+  },
   suggestionCard: {
     background: "linear-gradient(135deg, #E8F5E9 0%, #DFF1E3 100%)",
     borderRadius: "18px",
     padding: "18px",
-    marginTop: "22px",
+    marginTop: "14px",
     boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
   },
   suggestionLabel: {
