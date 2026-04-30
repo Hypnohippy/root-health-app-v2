@@ -158,6 +158,7 @@ export default function BodyPage() {
   const [confidenceScore, setConfidenceScore] = useState(null);
   const [rankedHelp, setRankedHelp] = useState([]);
   const [saving, setSaving] = useState(false);
+  
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
@@ -302,6 +303,39 @@ export default function BodyPage() {
     }
 
     let message = buildBaseResponse();
+    // 🔮 SUGGESTED STEP (based on your history)
+const helpCounts = {};
+
+data.forEach((entry) => {
+  if (
+    entry.signal === selectedSignal &&
+    entry.what_helped &&
+    entry.what_helped !== "" &&
+    entry.what_helped !== "Nothing yet"
+  ) {
+    helpCounts[entry.what_helped] =
+      (helpCounts[entry.what_helped] || 0) + 1;
+  }
+});
+
+const ranked = Object.entries(helpCounts).sort((a, b) => b[1] - a[1]);
+
+if (ranked.length > 0) {
+  const [topHelp, count] = ranked[0];
+  const total = ranked.reduce((sum, [, c]) => sum + c, 0);
+  const confidence = Math.round((count / total) * 100);
+
+  if (confidence >= 40) {
+    setSuggestedHelp(topHelp);
+    setConfidenceScore(confidence);
+  } else {
+    setSuggestedHelp("");
+    setConfidenceScore(null);
+  }
+} else {
+  setSuggestedHelp("");
+  setConfidenceScore(null);
+}
 
     if (predictedHelp) {
       message =
