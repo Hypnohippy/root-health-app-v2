@@ -253,7 +253,7 @@ const helpCounts = {};
 
 data.forEach((entry) => {
   if (
-    entry.signal === selectedSignal &&
+    entry.signal?.toLowerCase().trim() === selectedSignal?.toLowerCase().trim() &&
     entry.what_helped &&
     entry.what_helped !== "Nothing yet"
   ) {
