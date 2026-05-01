@@ -8,7 +8,6 @@ import Nav from "../../components/Nav";
 /* --- KEEP ALL YOUR CONSTANTS EXACTLY THE SAME --- */
 /* (I have not touched your data structures) */
 
-... // ⛔ KEEP EVERYTHING ABOVE handleExplore EXACTLY AS YOU HAD IT
 
 const handleExplore = async () => {
   if (selectedItems.length === 0 || !current || !selectedSignal || !context) return;
