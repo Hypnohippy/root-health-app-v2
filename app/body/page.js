@@ -302,11 +302,18 @@ const untriedOptions = helpOptions.filter(
     (e) => !e.what_helped || e.what_helped === "Nothing yet"
   ).length >= 2;
 
-const needsEscalation =
-  context === "getting worse" &&
+const isHighAndStuck =
   intensity >= 7 &&
-  nothingWorked;
+  sameSignalHistory.length >= 2 &&
+  Math.abs(
+    intensity -
+      (sameSignalHistory.reduce((sum, e) => sum + (Number(e.intensity) || 0), 0) /
+        sameSignalHistory.length)
+  ) <= 1;
 
+const needsEscalation =
+  (context === "getting worse" && intensity >= 7 && nothingWorked) ||
+  isHighAndStuck;
 if (needsEscalation) {
   setSuggestedHelp("");
   setConfidenceScore(null);
@@ -326,7 +333,7 @@ if (untriedOptions.length > 0) {
   newIdeasText +
   `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
   message;
-} else if (!nothingWorked && predictedHelp) {
+} else if (!needsEscalation && !nothingWorked && predictedHelp) {
   message =
     `Suggested focus: "${predictedHelp}".\n\n` +
     message;
