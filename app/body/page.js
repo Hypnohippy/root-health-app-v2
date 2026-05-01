@@ -282,6 +282,45 @@ export default function BodyPage() {
     }
 
     let message = buildBaseResponse();
+    // 🧠 PATTERN INTELLIGENCE
+
+const sameSignalHistory = usefulHistory.filter(
+  (entry) => normalise(entry.signal) === normalise(selectedSignal)
+);
+
+// 1. Pattern break (worse than usual)
+let patternBreak = false;
+
+if (sameSignalHistory.length >= 3) {
+  const avgIntensity =
+    sameSignalHistory.reduce((sum, e) => sum + (Number(e.intensity) || 0), 0) /
+    sameSignalHistory.length;
+
+  if (intensity >= avgIntensity + 2) {
+    patternBreak = true;
+  }
+}
+
+// 2. Repeated failure (nothing helped multiple times)
+const failedAttempts = sameSignalHistory.filter(
+  (e) => !e.what_helped || e.what_helped === "Nothing yet"
+).length;
+
+const repeatedFailure = failedAttempts >= 3;
+
+
+// 🧠 APPLY TO MESSAGE
+
+if (patternBreak) {
+  message =
+    `This is stronger than your usual pattern for this signal.\n\n` +
+    message;
+}
+
+if (repeatedFailure) {
+  message +=
+    `\n\nIt looks like what you've tried hasn't helped so far. Rather than repeating the same things, this may need a different approach.`;
+}
 
     if (trendText) {
       message = `${trendText}\n\n` + message;
