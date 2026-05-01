@@ -290,15 +290,10 @@ const untriedOptions = helpOptions.filter(
       return;
     }
 
-   let message = "";
+   let message = buildBaseResponse();
 
    if (!needsEscalation && trendText) {
   message = `${trendText}\n\n` + message;
-}
-if (needsEscalation) {
-  // message already built → STOP here
-} else {
-  message += buildBaseResponse();
 }
  const nothingWorked =
   (!whatHelped || whatHelped === "Nothing yet") &&
@@ -321,26 +316,18 @@ const needsEscalation =
 if (needsEscalation) {
   setSuggestedHelp("");
   setConfidenceScore(null);
-let newIdeasText = "";
 
-if (untriedOptions.length > 0) {
-  newIdeasText =
-    "\n\nYou haven’t tried:\n" +
-    untriedOptions.slice(0, 3).map((opt) => `• ${opt}`).join("\n");
-}
   message =
-  `This looks like a pattern where things are not improving.\n\n` +
-  `Rather than repeating the same approaches, shift strategy:\n` +
-  `• Stop testing fixes for now\n` +
-  `• Reduce load on this area\n` +
-  `• Observe what changes without interference` +
-  newIdeasText +
-  `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
-  message;
-} else if (!needsEscalation && !nothingWorked && predictedHelp) {
-  message =
-    `Suggested focus: "${predictedHelp}".\n\n` +
-    message;
+    `This looks like a pattern where things are not improving.\n\n` +
+    `Rather than repeating the same approaches, shift strategy:\n` +
+    `• Stop testing fixes for now\n` +
+    `• Reduce load on this area\n` +
+    `• Observe what changes without interference` +
+    (untriedOptions.length > 0
+      ? "\n\nYou haven’t tried:\n" +
+        untriedOptions.slice(0, 3).map((opt) => `• ${opt}`).join("\n")
+      : "") +
+    `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.`;
 }
     if (whatHelped && whatHelped !== "Nothing yet") {
       message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;
