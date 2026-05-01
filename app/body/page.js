@@ -290,44 +290,46 @@ const untriedOptions = helpOptions.filter(
       return;
     }
 
-   let message = buildBaseResponse();
+    let message = buildBaseResponse();
 
-   if (!needsEscalation && trendText) {
-  message = `${trendText}\n\n` + message;
-}
+    if (trendText) {
+      message = `${trendText}\n\n` + message;
+    }
+
  const nothingWorked =
   (!whatHelped || whatHelped === "Nothing yet") &&
   sameSignalHistory.filter(
     (e) => !e.what_helped || e.what_helped === "Nothing yet"
   ).length >= 2;
 
-const isHighAndStuck =
-  intensity >= 7 &&
-  sameSignalHistory.length >= 2 &&
-  Math.abs(
-    intensity -
-      (sameSignalHistory.reduce((sum, e) => sum + (Number(e.intensity) || 0), 0) /
-        sameSignalHistory.length)
-  ) <= 1;
-
 const needsEscalation =
-  (context === "getting worse" && intensity >= 7 && nothingWorked) ||
-  isHighAndStuck;
+  context === "getting worse" &&
+  intensity >= 7 &&
+  nothingWorked;
+
 if (needsEscalation) {
   setSuggestedHelp("");
   setConfidenceScore(null);
+let newIdeasText = "";
 
+if (untriedOptions.length > 0) {
+  newIdeasText =
+    "\n\nYou haven’t tried:\n" +
+    untriedOptions.slice(0, 3).map((opt) => `• ${opt}`).join("\n");
+}
   message =
-    `This looks like a pattern where things are not improving.\n\n` +
-    `Rather than repeating the same approaches, shift strategy:\n` +
-    `• Stop testing fixes for now\n` +
-    `• Reduce load on this area\n` +
-    `• Observe what changes without interference` +
-    (untriedOptions.length > 0
-      ? "\n\nYou haven’t tried:\n" +
-        untriedOptions.slice(0, 3).map((opt) => `• ${opt}`).join("\n")
-      : "") +
-    `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.`;
+  `This looks like a pattern where things are not improving.\n\n` +
+  `Rather than repeating the same approaches, shift strategy:\n` +
+  `• Stop testing fixes for now\n` +
+  `• Reduce load on this area\n` +
+  `• Observe what changes without interference` +
+  newIdeasText +
+  `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
+  message;
+} else if (!nothingWorked && predictedHelp) {
+  message =
+    `Suggested focus: "${predictedHelp}".\n\n` +
+    message;
 }
     if (whatHelped && whatHelped !== "Nothing yet") {
       message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;
