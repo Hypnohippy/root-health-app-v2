@@ -287,20 +287,30 @@ export default function BodyPage() {
       message = `${trendText}\n\n` + message;
     }
 
-  const needsEscalation =
+ const nothingWorked =
+  (!whatHelped || whatHelped === "Nothing yet") &&
+  sameSignalHistory.filter(
+    (e) => !e.what_helped || e.what_helped === "Nothing yet"
+  ).length >= 2;
+
+const needsEscalation =
   context === "getting worse" &&
   intensity >= 7 &&
-  (!whatHelped || whatHelped === "Nothing yet");
+  nothingWorked;
 
 if (needsEscalation) {
   setSuggestedHelp("");
   setConfidenceScore(null);
 
   message =
-    `This looks different from a normal tracking entry.\n\n` +
-    `Because it is getting worse and sitting at ${intensity}/10, don’t push through it today. Reduce load, avoid testing it, and watch for changes like swelling, heat, spreading pain, weakness, or loss of movement.\n\n` +
+    `This looks like a pattern where things are not improving.\n\n` +
+    `Rather than repeating the same approaches, shift strategy:\n` +
+    `• Stop testing fixes for now\n` +
+    `• Reduce load on this area (rest, simplify inputs)\n` +
+    `• Observe what changes without interference\n\n` +
+    `If this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
     message;
-} else if (predictedHelp) {
+} else if (!nothingWorked && predictedHelp) {
   message =
     `Suggested focus: "${predictedHelp}".\n\n` +
     message;
