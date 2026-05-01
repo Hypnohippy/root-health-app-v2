@@ -263,7 +263,16 @@ export default function BodyPage() {
     }
 
     setRankedHelp(ranked);
+// 🧠 FIND UNTRIED OPTIONS
+const triedSet = new Set(
+  sameSignalHistory
+    .map((e) => e.what_helped)
+    .filter((v) => v && normalise(v) !== "nothing yet")
+);
 
+const untriedOptions = helpOptions.filter(
+  (opt) => opt !== "Nothing yet" && !triedSet.has(opt)
+);
     const entryToSave = {
       areas: selectedItems.map((item) => item.label),
       system: selectedItems.map((item) => item.system).join(", "),
@@ -301,15 +310,22 @@ const needsEscalation =
 if (needsEscalation) {
   setSuggestedHelp("");
   setConfidenceScore(null);
+let newIdeasText = "";
 
+if (untriedOptions.length > 0) {
+  newIdeasText =
+    "\n\nYou haven’t tried:\n" +
+    untriedOptions.slice(0, 3).map((opt) => `• ${opt}`).join("\n");
+}
   message =
-    `This looks like a pattern where things are not improving.\n\n` +
-    `Rather than repeating the same approaches, shift strategy:\n` +
-    `• Stop testing fixes for now\n` +
-    `• Reduce load on this area (rest, simplify inputs)\n` +
-    `• Observe what changes without interference\n\n` +
-    `If this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
-    message;
+  `This looks like a pattern where things are not improving.\n\n` +
+  `Rather than repeating the same approaches, shift strategy:\n` +
+  `• Stop testing fixes for now\n` +
+  `• Reduce load on this area\n` +
+  `• Observe what changes without interference` +
+  newIdeasText +
+  `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
+  message;
 } else if (!nothingWorked && predictedHelp) {
   message =
     `Suggested focus: "${predictedHelp}".\n\n` +
