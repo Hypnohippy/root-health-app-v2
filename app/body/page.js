@@ -290,12 +290,16 @@ const untriedOptions = helpOptions.filter(
       return;
     }
 
-    let message = buildBaseResponse();
+   let message = "";
 
-    if (trendText) {
-      message = `${trendText}\n\n` + message;
-    }
-
+   if (!needsEscalation && trendText) {
+  message = `${trendText}\n\n` + message;
+}
+if (needsEscalation) {
+  // message already built → STOP here
+} else {
+  message += buildBaseResponse();
+}
  const nothingWorked =
   (!whatHelped || whatHelped === "Nothing yet") &&
   sameSignalHistory.filter(
