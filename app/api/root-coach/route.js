@@ -26,60 +26,168 @@ function summariseHistory(history = []) {
 function detectQuestionType(message) {
   const text = normalise(message);
 
-  if (text.includes("food") || text.includes("eat") || text.includes("diet") || text.includes("nutrition") || text.includes("reflux") || text.includes("bloating") || text.includes("indigestion")) {
+  if (
+    text.includes("weight loss") ||
+    text.includes("lose weight") ||
+    text.includes("fat loss") ||
+    text.includes("nutrition plan") ||
+    text.includes("meal plan") ||
+    text.includes("diet plan") ||
+    text.includes("food") ||
+    text.includes("eat") ||
+    text.includes("diet") ||
+    text.includes("nutrition") ||
+    text.includes("reflux") ||
+    text.includes("bloating") ||
+    text.includes("indigestion")
+  ) {
     return "nutrition_digestive";
   }
 
-  if (text.includes("stress") || text.includes("anxiety") || text.includes("panic") || text.includes("overwhelm") || text.includes("thoughts")) {
+  if (
+    text.includes("stress") ||
+    text.includes("anxiety") ||
+    text.includes("panic") ||
+    text.includes("overwhelm") ||
+    text.includes("thoughts")
+  ) {
     return "psychological";
   }
 
-  if (text.includes("trauma") || text.includes("ptsd") || text.includes("trigger") || text.includes("unsafe") || text.includes("flashback")) {
+  if (
+    text.includes("trauma") ||
+    text.includes("ptsd") ||
+    text.includes("trigger") ||
+    text.includes("unsafe") ||
+    text.includes("flashback")
+  ) {
     return "trauma_nervous_system";
   }
 
-  if (text.includes("exercise") || text.includes("movement") || text.includes("pain") || text.includes("aching") || text.includes("stiff") || text.includes("recovery")) {
+  if (
+    text.includes("exercise") ||
+    text.includes("movement") ||
+    text.includes("pain") ||
+    text.includes("aching") ||
+    text.includes("stiff") ||
+    text.includes("recovery") ||
+    text.includes("fitness") ||
+    text.includes("strength")
+  ) {
     return "physical_recovery";
   }
 
-  if (text.includes("plan") || text.includes("routine") || text.includes("what should i do") || text.includes("today")) {
+  if (
+    text.includes("plan") ||
+    text.includes("routine") ||
+    text.includes("what should i do") ||
+    text.includes("today")
+  ) {
     return "plan";
   }
 
   return "whole_person";
 }
 
-function fallbackReply(message, history = []) {
-  const latest = Array.isArray(history) ? history[0] : null;
-  const signal = latest?.signal || "your current signal";
-  const intensity = Number(latest?.intensity || 0);
-  const type = detectQuestionType(message);
+function hasUrgentSafetyLanguage(message) {
+  const text = normalise(message);
 
-  if (intensity >= 8) {
-    return `I’m noticing ${signal} has been logged at a high level.\n\nFor now, keep this simple: reduce load, avoid repeatedly testing it, and notice whether it settles, spreads, worsens, or changes.\n\nIf it feels severe, unusual, persistent, or worrying, it’s worth getting proper medical support.`;
+  return (
+    text.includes("chest pain") ||
+    text.includes("can't breathe") ||
+    text.includes("cannot breathe") ||
+    text.includes("severe pain") ||
+    text.includes("fainting") ||
+    text.includes("blood") ||
+    text.includes("suicidal") ||
+    text.includes("kill myself") ||
+    text.includes("emergency")
+  );
+}
+
+function fallbackReply(message, history = []) {
+  const type = detectQuestionType(message);
+  const latest = Array.isArray(history) ? history[0] : null;
+  const latestSignal = latest?.signal || null;
+
+  if (hasUrgentSafetyLanguage(message)) {
+    return `This sounds like something that may need urgent support. Please seek appropriate medical or emergency help now if you feel unsafe, severely unwell, or at risk.`;
   }
 
   if (type === "nutrition_digestive") {
-    return `Looking at this through the nutrition and digestion lens, I’d keep the next step simple.\n\nTry not to change everything at once. Notice meal timing, portion size, stress around eating, and whether certain foods seem to trigger the signal.\n\nOne useful question: did this show up before eating, after eating, or during a stressful period?`;
+    return `Yes — let’s make this practical and gentle.
+
+For weight loss, I’d start with a simple structure rather than a harsh diet:
+
+1. Build each meal around protein first.
+2. Add vegetables or fibre to help fullness.
+3. Keep carbohydrates steady rather than cutting them aggressively.
+4. Reduce grazing by creating clear meal times.
+5. Track how your body responds, especially if reflux or digestion has been showing up.
+
+A simple day could look like:
+
+Breakfast: Greek yoghurt or eggs with fruit  
+Lunch: chicken, fish, tofu or beans with salad/veg  
+Dinner: protein + vegetables + a moderate portion of carbs  
+Snack if needed: fruit, yoghurt, nuts, or something protein-based
+
+Because ${latestSignal || "digestion"} has shown up recently, I’d avoid making the plan too aggressive. Weight loss works better when your system feels safe enough to stay consistent.
+
+Would you like this as a 7-day plan, or a simple daily template?`;
   }
 
   if (type === "psychological") {
-    return `Looking at this through the stress and emotional load lens, your system may be asking for less pressure rather than more effort.\n\nA useful first step is to pause and ask: “What is loading me right now?”\n\nThen choose one small reduction — less stimulation, slower breathing, or stepping away for a few minutes.`;
+    return `Yes. Let’s look at this through stress and emotional load.
+
+Start with one question: what is asking the most from you right now?
+
+A useful first step is not to fix everything, but to reduce pressure slightly:
+1. Pause for a few slow breaths.
+2. Remove one unnecessary demand.
+3. Choose one small action that makes today easier.
+
+What feels heaviest at the moment?`;
   }
 
   if (type === "trauma_nervous_system") {
-    return `Let’s treat this gently. If this feels connected to trauma or old threat patterns, the first aim is not to force insight — it is to help your system feel safer.\n\nStart with orientation: look around the room, feel your feet, soften your breathing, and remind yourself that this is now, not then.`;
+    return `Let’s approach this gently.
+
+If this feels trauma-linked, the aim is not to force insight. The first step is helping your system feel safer.
+
+Try this:
+1. Look around the room and name five neutral things you can see.
+2. Feel your feet or hands against something solid.
+3. Remind yourself: “This is now, not then.”
+
+What are you noticing in your body right now?`;
   }
 
   if (type === "physical_recovery") {
-    return `Looking at this through the movement and recovery lens, I’d avoid pushing through today.\n\nReduce load, use gentle movement only if it feels safe, and notice whether rest, warmth, posture, or avoiding certain movement changes the signal.`;
+    return `Yes. Let’s treat this as a recovery question.
+
+For today:
+1. Reduce load rather than pushing through.
+2. Use gentle movement only if it feels safe.
+3. Notice whether rest, warmth, posture, or movement changes the signal.
+
+If pain is sharp, worsening, limiting movement, or unusual, it’s worth getting it checked.`;
   }
 
   if (type === "plan") {
-    return `Let’s make this simple for today:\n\n1. Pick one signal to focus on.\n2. Choose one supportive action.\n3. Avoid changing too many things at once.\n4. Check back later: better, worse, or the same?\n\nWhat feels like the main signal today?`;
+    return `Yes. Let’s keep the plan simple:
+
+1. Pick one main focus.
+2. Choose one supportive action.
+3. Avoid changing too many things at once.
+4. Check back later: better, worse, or the same?
+
+What would you like the plan to focus on — food, stress, movement, sleep, or recovery?`;
   }
 
-  return `I hear you. Let’s look at this as a whole-person pattern rather than one isolated symptom.\n\nThe useful question is: is your system asking for food support, emotional space, nervous system settling, movement, rest, or a simpler routine today?`;
+  return `Yes. Let’s look at this as a whole-person pattern.
+
+The useful question is: is your system asking for food support, emotional space, nervous system settling, movement, rest, or a simpler routine today?`;
 }
 
 export async function POST(req) {
@@ -99,39 +207,43 @@ export async function POST(req) {
     const systemPrompt = `
 You are Root Coach, one calm unified health guide.
 
-You are not five separate coaches. You are ONE voice that can draw on five internal lenses:
-
+You are ONE voice drawing from five internal lenses:
 1. Nutrition and digestion
 2. Psychology and emotional wellbeing
 3. Trauma-informed nervous system support
 4. Movement, strength, recovery and physical wellbeing
 5. General lifestyle medicine and self-care
 
-The user should feel guided, not assessed.
-
-Current question type detected: ${questionType}
-
 User name: ${userName || "the user"}
+
+Detected question type: ${questionType}
 
 Recent body signal history:
 ${summariseHistory(history)}
 
-Response rules:
-- Answer the user's actual question directly.
-- Use their recent body signal history if relevant.
-- Do not give generic wellness advice unless the question is general.
-- Keep answers calm, human and practical.
-- Give 1 to 3 clear next steps maximum.
-- Ask one useful follow-up question only if it helps.
-- Do not diagnose.
-- Do not over-medicalise.
-- If symptoms are severe, worsening, unusual, persistent, or worrying, advise appropriate medical support.
-- If the user asks about food, digestion, reflux or bloating, use the nutrition/digestion lens.
-- If the user asks about anxiety, stress, mood or overwhelm, use the psychological lens.
-- If the user asks about trauma, PTSD, triggers or feeling unsafe, use the trauma-informed nervous system lens.
-- If the user asks about pain, movement, exercise, strength or recovery, use the physical recovery lens.
-- If the user asks for a plan, create a small practical plan.
-- Never sound like a form, tracker, or generic chatbot.
+Most important rule:
+Answer the user's actual question first.
+
+Use body signal history as context, not as a reason to ignore the question.
+
+If the user asks for a weight loss plan, nutrition plan, meal plan, or diet plan:
+- Give a practical nutrition response.
+- Mention reflux/digestion only as a design consideration if relevant.
+- Do not switch into symptom warning mode unless the user describes urgent symptoms.
+- Keep it supportive, realistic, and non-extreme.
+
+Safety:
+Only prioritise urgent medical advice if the user describes severe, urgent, dangerous, or alarming symptoms.
+
+Style:
+- calm
+- intelligent
+- practical
+- human
+- no generic chatbot tone
+- no diagnosis
+- no long essays
+- 1 to 3 clear next steps unless the user asks for a plan
 `;
 
     const openAIResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -163,9 +275,7 @@ Response rules:
     }
 
     const data = await openAIResponse.json();
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      fallbackReply(message, history);
+    const reply = data?.choices?.[0]?.message?.content || fallbackReply(message, history);
 
     return Response.json({ reply });
   } catch (error) {
