@@ -42,36 +42,25 @@ function isPersonalPlanRequest(message) {
 
 function intakeReply(userName, history = []) {
   const latest = Array.isArray(history) ? history[0] : null;
+
   const signalNote = latest?.signal
-    ? `I can also see ${latest.signal} has shown up recently, so I’ll take that into account.`
+    ? `I can also see ${latest.signal} has shown up recently, so I’ll factor that in.`
     : "";
 
-  return `Yes, I can build that for you — but I need a few details first so it is safe and actually tailored to you.
+  return `Yes, I can build that for you — I just need a few basics first so it’s actually tailored to you.
 
 ${signalNote}
 
-Please reply with as much of this as you can:
+Start with this:
 
-1. Age
-2. Height
-3. Current weight
-4. Target weight or goal
-5. Sex
-6. Activity level
-7. Medical conditions
-8. Medication
-9. Allergies or intolerances
-10. Dietary style: omnivore, vegetarian, vegan, etc
-11. Foods you dislike or avoid
-12. Digestion issues, reflux, bloating, IBS, etc
-13. Cooking time and ability
-14. Budget: low, medium, flexible
-15. Goal speed: gentle, moderate, or more aggressive
-16. Any history of disordered eating or unsafe dieting
+• Age  
+• Height  
+• Current weight  
+• Any allergies or intolerances?  
+• Any medical conditions or medication?
 
-Once you answer, I’ll build the plan around you — not assumptions.`;
+You can answer in one line if you like 👍`;
 }
-
 function fallbackReply(message, history = [], userName = "") {
   if (isPersonalPlanRequest(message)) {
     return intakeReply(userName, history);
