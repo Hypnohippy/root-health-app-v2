@@ -24,6 +24,28 @@ function summariseHistory(history = []) {
 }
 
 function isPersonalPlanRequest(message) {
+  function hasEssentialData(message) {
+  const text = normalise(message);
+
+  const hasHeight =
+    text.includes("ft") ||
+    text.includes("cm") ||
+    text.includes("height");
+
+  const hasWeight =
+    text.includes("kg") ||
+    text.includes("st") ||
+    text.includes("lbs") ||
+    text.includes("weight");
+
+  const hasMedical =
+    text.includes("diabetic") ||
+    text.includes("diabetes") ||
+    text.includes("medication") ||
+    text.includes("condition");
+
+  return hasHeight && hasWeight && hasMedical;
+}
   const text = normalise(message);
 
   return (
@@ -39,6 +61,7 @@ function isPersonalPlanRequest(message) {
     text.includes("plan")
   );
 }
+
 
 function intakeReply(userName, history = []) {
   const latest = Array.isArray(history) ? history[0] : null;
