@@ -85,9 +85,11 @@ Start with this:
 You can answer in one line if you like 👍`;
 }
 function fallbackReply(message, history = [], userName = "") {
-  if (isPersonalPlanRequest(message)) {
+ if (isPersonalPlanRequest(message)) {
+  if (!hasEssentialData(message)) {
     return intakeReply(userName, history);
   }
+}
 
   return `I’m here with you. Tell me what you want support with — food, stress, trauma patterns, movement, recovery, or understanding your body signals — and I’ll guide you from there.`;
 }
