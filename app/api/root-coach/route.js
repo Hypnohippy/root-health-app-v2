@@ -101,12 +101,11 @@ export async function POST(req) {
 
     const apiKey = process.env.OPENAI_API_KEY;
 
-    if (!apiKey) {
-      return Response.json({
-        reply: fallbackReply(message, history, userName),
-      });
-    }
-
+   if (!apiKey) {
+  return Response.json({
+    reply: "OpenAI key missing — cannot generate personalised plan.",
+  });
+}
     const systemPrompt = `
 You are Root Coach, one calm unified health guide.
 
@@ -191,11 +190,13 @@ Safety:
       }),
     });
 
-    if (!openAIResponse.ok) {
-      return Response.json({
-        reply: fallbackReply(message, history, userName),
-      });
-    }
+   if (!openAIResponse.ok) {
+  const errorText = await openAIResponse.text();
+
+  return Response.json({
+    reply: "AI error: " + errorText,
+  });
+}
 
     const data = await openAIResponse.json();
     const reply =
