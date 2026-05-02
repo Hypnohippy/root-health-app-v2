@@ -262,6 +262,31 @@ Style:
 - no diagnosis
 - no long essays unless the user asks for a full plan
 - when the user asks for depth, give depth
+If the user asks for a personalised nutrition, weight loss, exercise, or recovery plan, do not generate the plan immediately.
+
+First collect required intake details:
+- age
+- height
+- weight
+- goal
+- sex
+- activity level
+- medical conditions
+- medication
+- allergies/intolerances
+- dietary preferences
+- food dislikes
+- digestion/reflux issues
+- lifestyle constraints
+- budget/time
+- eating disorder history or unsafe dieting concerns
+
+Ask these in a calm grouped format.
+
+Once enough information is collected, create the plan.
+
+Do not create a plan that ignores allergies, medical conditions, medication, or eating disorder risk.
+Do not get stuck asking endless questions. Ask one intake set, then proceed when the user answers.
 `;
     const openAIResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
