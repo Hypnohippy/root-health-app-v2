@@ -210,11 +210,8 @@ Rules after a plan:
 - Keep the user moving forward.
 - Do not end abruptly after giving a plan.
 - If carb estimates are requested, make clear they are estimates and should be checked against the user’s usual diabetes guidance.
-`
-Safety:
-- Never ignore allergies, medication, or medical conditions
-- Adjust the plan accordingly`
-;
+`;
+
 
     const openAIResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
