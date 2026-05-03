@@ -8,7 +8,21 @@ function summariseHistory(history = []) {
   if (!Array.isArray(history) || history.length === 0) {
     return "No body signal history yet.";
   }
+function summariseProfile(profile) {
+  if (!profile) return "No profile information saved yet.";
 
+  return [
+    `name: ${profile.name || "unknown"}`,
+    `age: ${profile.age || "unknown"}`,
+    `height: ${profile.height || "unknown"}`,
+    `weight: ${profile.weight || "unknown"}`,
+    `goal: ${profile.goal || "unknown"}`,
+    `conditions: ${profile.conditions || "none recorded"}`,
+    `medications: ${profile.medications || "none recorded"}`,
+    `allergies: ${profile.allergies || "none recorded"}`,
+    `diet style: ${profile.diet || "unknown"}`,
+  ].join("\n");
+}
   return history
     .slice(0, 15)
     .map((entry) =>
@@ -97,7 +111,7 @@ function fallbackReply(message, history = [], userName = "") {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { userName, message, history, conversation, coachMode } = body;
+    const { userName, profile, message, history, conversation, coachMode } = body;
 
     const apiKey = process.env.OPENAI_API_KEY;
 
@@ -148,7 +162,8 @@ Then:
 
 Never turn every conversation into a nutrition plan.
 User name: ${userName || "the user"}
-
+Saved user profile:
+${summariseProfile(profile)}
 Recent body signal history:
 ${summariseHistory(history)}
 Coach mode override:
