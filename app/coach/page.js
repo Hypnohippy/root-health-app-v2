@@ -111,8 +111,9 @@ function buildWelcome(name, history) {
 Do you want to explore that, or focus on something else?`;
 }
 export default function CoachPage() {
-  const [name, setName] = useState("");
-  const [history, setHistory] = useState([]);
+const [name, setName] = useState("");
+const [profile, setProfile] = useState(null);
+const [history, setHistory] = useState([]);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [coachMode, setCoachMode] = useState("");
@@ -124,12 +125,27 @@ export default function CoachPage() {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
-      const displayName =
-        user?.user_metadata?.full_name ||
-        user?.user_metadata?.name ||
-        user?.email?.split("@")[0] ||
-        "";
+     let displayName =
+  user?.user_metadata?.full_name ||
+  user?.user_metadata?.name ||
+  user?.email?.split("@")[0] ||
+  "";
 
+const { data: profileData } = await supabase
+  .from("profiles")
+  .select("*")
+  .eq("profile_key", "main")
+  .maybeSingle();
+
+if (profileData) {
+  setProfile(profileData);
+
+  if (profileData.name) {
+    displayName = profileData.name;
+  }
+}
+
+setName(displayName);
       setName(displayName);
 
       const { data } = await supabase
@@ -184,12 +200,13 @@ export default function CoachPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userName: name,
-          message: clean,
-          history,
-          conversation: nextMessages.slice(-10),
-          coachMode,
-        }),
+  userName: name,
+  profile,
+  message: clean,
+  history,
+  conversation: nextMessages.slice(-10),
+  coachMode,
+}),
       });
 
       const json = await res.json();
