@@ -9,7 +9,20 @@ function summariseHistory(history = []) {
     return "No body signal history yet.";
   }
 function summariseProfile(profile) {
-  if (!profile) return "No profile information saved yet.";
+  if (!profile) return "No saved profile.";
+
+  return [
+    `name: ${profile.name || "unknown"}`,
+    `age: ${profile.age || "unknown"}`,
+    `height: ${profile.height || "unknown"}`,
+    `weight: ${profile.weight || "unknown"}`,
+    `goal: ${profile.goal || "unknown"}`,
+    `conditions: ${profile.conditions || "none recorded"}`,
+    `medications: ${profile.medications || "none recorded"}`,
+    `allergies: ${profile.allergies || "none recorded"}`,
+    `diet style: ${profile.diet || "unknown"}`,
+  ].join("\n");
+}
 
   return [
     `name: ${profile.name || "unknown"}`,
