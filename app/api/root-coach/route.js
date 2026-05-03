@@ -8,6 +8,21 @@ function summariseHistory(history = []) {
   if (!Array.isArray(history) || history.length === 0) {
     return "No body signal history yet.";
   }
+
+  return history
+    .slice(0, 15)
+    .map((entry) =>
+      [
+        `signal: ${entry.signal || "unknown"}`,
+        `context: ${entry.context || "unknown"}`,
+        `intensity: ${entry.intensity || "unknown"}/10`,
+        `helped: ${entry.what_helped || "not recorded"}`,
+        `created: ${entry.created_at || "unknown"}`,
+      ].join(", ")
+    )
+    .join("\n");
+}
+
 function summariseProfile(profile) {
   if (!profile) return "No saved profile.";
 
@@ -24,34 +39,30 @@ function summariseProfile(profile) {
   ].join("\n");
 }
 
-  return [
-    `name: ${profile.name || "unknown"}`,
-    `age: ${profile.age || "unknown"}`,
-    `height: ${profile.height || "unknown"}`,
-    `weight: ${profile.weight || "unknown"}`,
-    `goal: ${profile.goal || "unknown"}`,
-    `conditions: ${profile.conditions || "none recorded"}`,
-    `medications: ${profile.medications || "none recorded"}`,
-    `allergies: ${profile.allergies || "none recorded"}`,
-    `diet style: ${profile.diet || "unknown"}`,
-  ].join("\n");
-}
-  return history
-    .slice(0, 15)
-    .map((entry) =>
-      [
-        `signal: ${entry.signal || "unknown"}`,
-        `context: ${entry.context || "unknown"}`,
-        `intensity: ${entry.intensity || "unknown"}/10`,
-        `helped: ${entry.what_helped || "not recorded"}`,
-        `created: ${entry.created_at || "unknown"}`,
-      ].join(", ")
-    )
-    .join("\n");
+function isPersonalPlanRequest(message) {
+  const text = normalise(message);
+
+  return (
+    text.includes("meal plan") ||
+    text.includes("weight loss plan") ||
+    text.includes("fat loss plan") ||
+    text.includes("diet plan") ||
+    text.includes("nutrition plan") ||
+    text.includes("workout plan") ||
+    text.includes("exercise plan") ||
+    text.includes("recovery plan") ||
+    text.includes("7 day") ||
+    text.includes("7-day") ||
+    text.includes("8 week") ||
+    text.includes("8-week") ||
+    text.includes("weekly plan") ||
+    text.includes("create me a plan") ||
+    text.includes("build me a plan") ||
+    text.includes("design me a plan")
+  );
 }
 
-function isPersonalPlanRequest(message) {
-  function hasEssentialData(message) {
+function hasEssentialData(message) {
   const text = normalise(message);
 
   const hasHeight =
@@ -73,22 +84,6 @@ function isPersonalPlanRequest(message) {
 
   return hasHeight && hasWeight && hasMedical;
 }
-  const text = normalise(message);
-
-  return (
-    text.includes("meal plan") ||
-    text.includes("weight loss plan") ||
-    text.includes("fat loss plan") ||
-    text.includes("diet plan") ||
-    text.includes("workout plan") ||
-    text.includes("exercise plan") ||
-    text.includes("recovery plan") ||
-    text.includes("7 day") ||
-    text.includes("8 week") ||
-    text.includes("plan")
-  );
-}
-
 
 function intakeReply(userName, history = []) {
   const latest = Array.isArray(history) ? history[0] : null;
