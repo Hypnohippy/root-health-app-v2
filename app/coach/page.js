@@ -9,31 +9,66 @@ const coachModes = [
     id: "nutrition",
     label: "Nutrition",
     icon: "🥗",
-    intro: "Let’s focus on food, digestion, weight, energy and how your body responds.",
+   intro: `Let’s focus on food and how your body is responding.
+
+We can look at things like:
+• improving digestion or reflux
+• building a simple meal structure
+• adjusting food for energy or weight
+
+What feels most relevant right now?`,
   },
   {
     id: "mind",
     label: "Mind & mood",
     icon: "🧠",
-    intro: "Let’s look at stress, thoughts, emotions, motivation and daily pressure.",
+    intro: `Let’s look at what’s going on mentally and emotionally.
+
+We can explore:
+• stress or overwhelm
+• thought patterns that are looping
+• motivation or feeling stuck
+
+Where do you want to start?`,
   },
   {
     id: "trauma",
     label: "Trauma & nervous system",
     icon: "🧩",
-    intro: "We’ll go gently here — focusing on safety, regulation and what your system is holding.",
+   intro: `We’ll go gently here.
+
+We can look at:
+• what your system is holding
+• patterns that feel stuck or reactive
+• ways to settle and feel safer in your body
+
+You don’t need to explain everything — just start where it feels easiest.`,
   },
   {
     id: "movement",
     label: "Movement & body",
     icon: "🏃",
-    intro: "Let’s focus on movement, pain, strength, recovery and getting your body working with you.",
+    intro: `Let’s focus on your body and how it’s moving or recovering.
+
+We can look at:
+• pain or restriction
+• building strength safely
+• getting your body working with you again
+
+What’s the main thing you’re noticing?`,
   },
   {
     id: "lifestyle",
     label: "Lifestyle",
     icon: "🌿",
-    intro: "Let’s look at sleep, habits, energy, self-care and the bigger pattern of your health.",
+    intro: `Let’s step back and look at the bigger picture.
+
+We can work on:
+• sleep and energy
+• daily habits and routines
+• feeling more balanced overall
+
+What’s been most out of sync lately?`,
   },
 ];
 
