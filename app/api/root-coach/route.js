@@ -449,11 +449,12 @@ you must adapt the plan accordingly without asking again.
       data?.choices?.[0]?.message?.content ||
       fallbackReply(message, history, userName, profile);
 
-    return Response.json({ reply });
-catch (err) {
-  console.error("ROOT COACH ERROR:", err);
+   return Response.json({ reply });
+  } catch (err) {
+    console.error("ROOT COACH ERROR:", err);
 
-  return Response.json({
-    reply: "Error: " + (err.message || "Unknown error"),
-  });
-}}
+    return Response.json({
+      reply: "Error: " + (err.message || "Unknown error"),
+    });
+  }
+}
