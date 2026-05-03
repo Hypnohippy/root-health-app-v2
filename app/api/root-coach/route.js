@@ -98,16 +98,30 @@ Start with this:
 
 You can answer in one line if you like 👍`;
 }
-function fallbackReply(message, history = [], userName = "") {
- if (isPersonalPlanRequest(message)) {
-  if (!hasEssentialData(message)) {
+function fallbackReply(message, history = [], userName = "", profile = null) {
+  if (isPersonalPlanRequest(message)) {
+    if (profile) {
+      return `I can create that plan using your saved profile, but the AI response was interrupted.
+
+I have:
+- Name: ${profile.name || "not saved"}
+- Age: ${profile.age || "not saved"}
+- Height: ${profile.height || "not saved"}
+- Weight: ${profile.weight || "not saved"}
+- Goal: ${profile.goal || "not saved"}
+- Conditions: ${profile.conditions || "not saved"}
+- Medications: ${profile.medications || "not saved"}
+- Allergies: ${profile.allergies || "not saved"}
+- Diet style: ${profile.diet || "not saved"}
+
+Try sending the request again.`;
+    }
+
     return intakeReply(userName, history);
   }
-}
 
   return `I’m here with you. Tell me what you want support with — food, stress, trauma patterns, movement, recovery, or understanding your body signals — and I’ll guide you from there.`;
 }
-
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -433,12 +447,12 @@ you must adapt the plan accordingly without asking again.
     const data = await openAIResponse.json();
     const reply =
       data?.choices?.[0]?.message?.content ||
-      fallbackReply(message, history, userName);
+      fallbackReply(message, history, userName, profile);
 
     return Response.json({ reply });
   } catch (error) {
     return Response.json({
-      reply: fallbackReply("", [], ""),
+      reply: fallbackReply("", [], "", profile),
     });
   }
 }
