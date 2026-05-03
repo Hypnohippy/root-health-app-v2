@@ -4,28 +4,50 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 
-function normalise(value) {
-  return String(value || "").toLowerCase().trim();
-}
+const coachModes = [
+  {
+    id: "nutrition",
+    label: "Nutrition",
+    icon: "🥗",
+    intro: "Let’s focus on food, digestion, weight, energy and how your body responds.",
+  },
+  {
+    id: "mind",
+    label: "Mind & mood",
+    icon: "🧠",
+    intro: "Let’s look at stress, thoughts, emotions, motivation and daily pressure.",
+  },
+  {
+    id: "trauma",
+    label: "Trauma & nervous system",
+    icon: "🧩",
+    intro: "We’ll go gently here — focusing on safety, regulation and what your system is holding.",
+  },
+  {
+    id: "movement",
+    label: "Movement & body",
+    icon: "🏃",
+    intro: "Let’s focus on movement, pain, strength, recovery and getting your body working with you.",
+  },
+  {
+    id: "lifestyle",
+    label: "Lifestyle",
+    icon: "🌿",
+    intro: "Let’s look at sleep, habits, energy, self-care and the bigger pattern of your health.",
+  },
+];
 
 function buildWelcome(name, history) {
   const firstName = name || "there";
 
   if (!history || history.length === 0) {
-    return `Welcome back, ${firstName}. I’m Root Coach. We’ll take this gently — tell me what feels most important today, and I’ll help you make sense of it.`;
+    return `Welcome back, ${firstName}. I’m Root Coach. Choose what you want help with today, or just start typing.`;
   }
 
   const latest = history[0];
   const signal = latest.signal || "your body signals";
-  const helped = latest.what_helped && latest.what_helped !== "Nothing yet"
-    ? latest.what_helped
-    : null;
 
-  if (helped) {
-    return `Welcome back, ${firstName}. Last time we were looking at ${signal}, and you noted that "${helped}" helped. How did that feel afterwards?`;
-  }
-
-  return `Welcome back, ${firstName}. Last time we were looking at ${signal}. Where are we at with that today — better, worse, or still asking for attention?`;
+  return `Welcome back, ${firstName}. Last time we were looking at ${signal}. Choose a focus below, or tell me what you want help with today.`;
 }
 
 export default function CoachPage() {
@@ -33,6 +55,7 @@ export default function CoachPage() {
   const [history, setHistory] = useState([]);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [coachMode, setCoachMode] = useState("");
   const [thinking, setThinking] = useState(false);
   const bottomRef = useRef(null);
 
@@ -40,6 +63,7 @@ export default function CoachPage() {
     const load = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
+
       const displayName =
         user?.user_metadata?.full_name ||
         user?.user_metadata?.name ||
@@ -72,6 +96,18 @@ export default function CoachPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking]);
 
+  const chooseMode = (mode) => {
+    setCoachMode(mode.id);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "coach",
+        content: `${mode.icon} ${mode.label} mode selected.\n\n${mode.intro}\n\nWhat would you like to work on?`,
+      },
+    ]);
+  };
+
   const sendMessage = async (text) => {
     const clean = text.trim();
     if (!clean || thinking) return;
@@ -91,7 +127,8 @@ export default function CoachPage() {
           userName: name,
           message: clean,
           history,
-          conversation: nextMessages.slice(-8),
+          conversation: nextMessages.slice(-10),
+          coachMode,
         }),
       });
 
@@ -121,15 +158,6 @@ export default function CoachPage() {
   };
 
   const latestSignal = history[0]?.signal || "No recent signal yet";
-  const repeatedSignal =
-    history.length > 0
-      ? Object.entries(
-          history.reduce((acc, item) => {
-            if (item.signal) acc[item.signal] = (acc[item.signal] || 0) + 1;
-            return acc;
-          }, {})
-        ).sort((a, b) => b[1] - a[1])[0]
-      : null;
 
   return (
     <>
@@ -141,21 +169,30 @@ export default function CoachPage() {
 
           <h1 style={styles.title}>Root Coach</h1>
           <p style={styles.subtitle}>
-            One calm guide for body signals, food, stress, movement, recovery and self-care.
+            One calm guide for nutrition, mind, trauma patterns, movement, recovery and whole-person self-care.
           </p>
 
-          <div style={styles.contextGrid}>
-            <div style={styles.contextCard}>
-              <p style={styles.contextLabel}>Latest signal</p>
-              <p style={styles.contextValue}>{latestSignal}</p>
-            </div>
+          <div style={styles.contextCard}>
+            <p style={styles.contextLabel}>Latest body signal</p>
+            <p style={styles.contextValue}>{latestSignal}</p>
+          </div>
 
-            <div style={styles.contextCard}>
-              <p style={styles.contextLabel}>Pattern focus</p>
-              <p style={styles.contextValue}>
-                {repeatedSignal ? `${repeatedSignal[0]} (${repeatedSignal[1]})` : "Still learning"}
-              </p>
-            </div>
+          <p style={styles.modeTitle}>What do you want help with today?</p>
+
+          <div style={styles.modeGrid}>
+            {coachModes.map((mode) => (
+              <button
+                key={mode.id}
+                onClick={() => chooseMode(mode)}
+                style={{
+                  ...styles.modeButton,
+                  ...(coachMode === mode.id ? styles.modeButtonActive : {}),
+                }}
+              >
+                <span style={styles.modeIcon}>{mode.icon}</span>
+                <span>{mode.label}</span>
+              </button>
+            ))}
           </div>
 
           <div style={styles.chatPanel}>
@@ -183,8 +220,8 @@ export default function CoachPage() {
           <div style={styles.quickRow}>
             {[
               "What should I focus on today?",
-              "Why might this be repeating?",
               "Help me make a simple plan",
+              "What patterns do you notice?",
             ].map((prompt) => (
               <button key={prompt} style={styles.quickButton} onClick={() => sendMessage(prompt)}>
                 {prompt}
@@ -196,7 +233,7 @@ export default function CoachPage() {
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Root Coach anything about your signals, self-care, food, stress, movement or recovery..."
+              placeholder="Ask Root Coach anything..."
               style={styles.input}
             />
 
@@ -220,9 +257,9 @@ const styles = {
   },
   shell: {
     width: "100%",
-    maxWidth: "920px",
-    background: "rgba(255,255,255,0.82)",
-    borderRadius: "32px",
+    maxWidth: "960px",
+    background: "rgba(255,255,255,0.86)",
+    borderRadius: "34px",
     padding: "34px",
     boxShadow: "0 24px 70px rgba(0,0,0,0.08)",
     textAlign: "center",
@@ -240,20 +277,15 @@ const styles = {
     color: "#555",
     fontSize: "16px",
     lineHeight: "1.6",
-    maxWidth: "620px",
-    margin: "0 auto 26px",
-  },
-  contextGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "14px",
-    marginBottom: "20px",
+    maxWidth: "680px",
+    margin: "0 auto 22px",
   },
   contextCard: {
     background: "#F7F5F2",
     borderRadius: "22px",
-    padding: "18px",
+    padding: "16px",
     textAlign: "left",
+    marginBottom: "18px",
   },
   contextLabel: {
     margin: "0 0 6px",
@@ -268,11 +300,45 @@ const styles = {
     fontWeight: "700",
     color: "#1A1A1A",
   },
+  modeTitle: {
+    margin: "8px 0 12px",
+    color: "#555",
+    fontSize: "14px",
+    fontWeight: "600",
+  },
+  modeGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "12px",
+    marginBottom: "20px",
+  },
+  modeButton: {
+    border: "1px solid #E6E2DA",
+    borderRadius: "20px",
+    padding: "14px",
+    background: "#FFFFFF",
+    cursor: "pointer",
+    fontSize: "14px",
+    color: "#333",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "6px",
+    boxShadow: "0 8px 22px rgba(0,0,0,0.04)",
+  },
+  modeButtonActive: {
+    background: "#1A1A1A",
+    color: "#FFFFFF",
+    border: "1px solid #1A1A1A",
+  },
+  modeIcon: {
+    fontSize: "24px",
+  },
   chatPanel: {
     background: "#FFFFFF",
     borderRadius: "26px",
     padding: "22px",
-    minHeight: "360px",
+    minHeight: "340px",
     maxHeight: "520px",
     overflowY: "auto",
     boxShadow: "0 12px 32px rgba(0,0,0,0.06)",
@@ -322,21 +388,21 @@ const styles = {
     marginTop: "18px",
     alignItems: "stretch",
   },
- input: {
-  minHeight: "72px",
-  border: "1px solid #E6E2DA",
-  borderRadius: "18px",
-  padding: "16px",
-  fontSize: "15px",
-  resize: "vertical",
-  outline: "none",
-  background: "#FFFFFF",
-  color: "#1A1A1A",
-  boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-  position: "relative",
-  zIndex: 5,
-  pointerEvents: "auto",
-},
+  input: {
+    minHeight: "72px",
+    border: "1px solid #E6E2DA",
+    borderRadius: "18px",
+    padding: "16px",
+    fontSize: "15px",
+    resize: "vertical",
+    outline: "none",
+    background: "#FFFFFF",
+    color: "#1A1A1A",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+    position: "relative",
+    zIndex: 5,
+    pointerEvents: "auto",
+  },
   sendButton: {
     border: "none",
     borderRadius: "18px",
