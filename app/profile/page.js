@@ -46,28 +46,50 @@ export default function ProfilePage() {
     setLoading(false);
   };
 
-  const saveProfile = async () => {
-    setSaving(true);
+ const saveProfile = async () => {
+  setSaving(true);
 
-    const { data: userData } = await supabase.auth.getUser();
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error("User error:", userError);
+      alert("User not found");
+      setSaving(false);
+      return;
+    }
+
     const user = userData?.user;
 
-    if (!user) return;
+    if (!user) {
+      alert("No user session found");
+      setSaving(false);
+      return;
+    }
 
-    const { error } = await supabase.from("profiles").upsert({
-      user_id: user.id,
-      ...profile,
-    });
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert({
+        user_id: user.id,
+        ...profile,
+      })
+      .select();
 
-    setSaving(false);
+    console.log("SAVE RESULT:", data);
 
     if (error) {
-      alert("Error saving profile");
+      console.error("Save error:", error);
+      alert(error.message);
     } else {
       alert("Profile saved");
     }
-  };
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    alert("Unexpected error saving profile");
+  }
 
+  setSaving(false);
+};
   const update = (key, value) => {
     setProfile((prev) => ({
       ...prev,
