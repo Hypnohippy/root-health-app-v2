@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 
+const PROFILE_KEY = "main";
+
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [profile, setProfile] = useState({
+    profile_key: PROFILE_KEY,
     name: "",
     age: "",
     height: "",
@@ -25,71 +28,66 @@ export default function ProfilePage() {
   }, []);
 
   const loadProfile = async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
-
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("user_id", user.id)
-      .single();
+      .eq("profile_key", PROFILE_KEY)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Load profile error:", error);
+    }
 
     if (data) {
-      setProfile(data);
+      setProfile({
+        profile_key: PROFILE_KEY,
+        name: data.name || "",
+        age: data.age || "",
+        height: data.height || "",
+        weight: data.weight || "",
+        goal: data.goal || "",
+        conditions: data.conditions || "",
+        medications: data.medications || "",
+        allergies: data.allergies || "",
+        diet: data.diet || "",
+      });
     }
 
     setLoading(false);
   };
 
- const saveProfile = async () => {
-  setSaving(true);
+  const saveProfile = async () => {
+    setSaving(true);
 
-  try {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-
-    if (userError) {
-      console.error("User error:", userError);
-      alert("User not found");
-      setSaving(false);
-      return;
-    }
-
-    const user = userData?.user;
-
-    if (!user) {
-      alert("No user session found");
-      setSaving(false);
-      return;
-    }
-
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("profiles")
-      .upsert({
-        user_id: user.id,
-        ...profile,
-      })
-      .select();
+      .upsert(
+        {
+          profile_key: PROFILE_KEY,
+          name: profile.name,
+          age: profile.age,
+          height: profile.height,
+          weight: profile.weight,
+          goal: profile.goal,
+          conditions: profile.conditions,
+          medications: profile.medications,
+          allergies: profile.allergies,
+          diet: profile.diet,
+        },
+        { onConflict: "profile_key" }
+      );
 
-    console.log("SAVE RESULT:", data);
+    setSaving(false);
 
     if (error) {
-      console.error("Save error:", error);
+      console.error("Save profile error:", error);
       alert(error.message);
-    } else {
-      alert("Profile saved");
+      return;
     }
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    alert("Unexpected error saving profile");
-  }
 
-  setSaving(false);
-};
+    alert("Profile saved");
+  };
+
   const update = (key, value) => {
     setProfile((prev) => ({
       ...prev,
@@ -107,21 +105,23 @@ export default function ProfilePage() {
 
       <main style={styles.page}>
         <section style={styles.shell}>
+          <div style={styles.brandMark}>◯</div>
+
           <h1 style={styles.title}>Your Profile</h1>
           <p style={styles.subtitle}>
             This helps Root Coach tailor everything to you.
           </p>
 
           <div style={styles.grid}>
-            <input placeholder="Name" value={profile.name} onChange={(e) => update("name", e.target.value)} />
-            <input placeholder="Age" value={profile.age} onChange={(e) => update("age", e.target.value)} />
-            <input placeholder="Height (e.g. 5ft7)" value={profile.height} onChange={(e) => update("height", e.target.value)} />
-            <input placeholder="Weight" value={profile.weight} onChange={(e) => update("weight", e.target.value)} />
-            <input placeholder="Goal (e.g. weight loss, energy, recovery)" value={profile.goal} onChange={(e) => update("goal", e.target.value)} />
-            <input placeholder="Conditions (e.g. diabetes)" value={profile.conditions} onChange={(e) => update("conditions", e.target.value)} />
-            <input placeholder="Medications" value={profile.medications} onChange={(e) => update("medications", e.target.value)} />
-            <input placeholder="Allergies / intolerances" value={profile.allergies} onChange={(e) => update("allergies", e.target.value)} />
-            <input placeholder="Diet style (e.g. low carb, Mediterranean)" value={profile.diet} onChange={(e) => update("diet", e.target.value)} />
+            <input style={styles.input} placeholder="Name" value={profile.name} onChange={(e) => update("name", e.target.value)} />
+            <input style={styles.input} placeholder="Age" value={profile.age} onChange={(e) => update("age", e.target.value)} />
+            <input style={styles.input} placeholder="Height" value={profile.height} onChange={(e) => update("height", e.target.value)} />
+            <input style={styles.input} placeholder="Weight" value={profile.weight} onChange={(e) => update("weight", e.target.value)} />
+            <input style={styles.input} placeholder="Goal" value={profile.goal} onChange={(e) => update("goal", e.target.value)} />
+            <input style={styles.input} placeholder="Conditions" value={profile.conditions} onChange={(e) => update("conditions", e.target.value)} />
+            <input style={styles.input} placeholder="Medications" value={profile.medications} onChange={(e) => update("medications", e.target.value)} />
+            <input style={styles.input} placeholder="Allergies / intolerances" value={profile.allergies} onChange={(e) => update("allergies", e.target.value)} />
+            <input style={styles.input} placeholder="Diet style" value={profile.diet} onChange={(e) => update("diet", e.target.value)} />
           </div>
 
           <button style={styles.button} onClick={saveProfile}>
@@ -143,31 +143,47 @@ const styles = {
   },
   shell: {
     width: "100%",
-    maxWidth: "700px",
-    background: "#fff",
-    borderRadius: "28px",
-    padding: "30px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
+    maxWidth: "760px",
+    background: "rgba(255,255,255,0.86)",
+    borderRadius: "32px",
+    padding: "34px",
+    boxShadow: "0 24px 70px rgba(0,0,0,0.08)",
+    textAlign: "center",
+  },
+  brandMark: {
+    fontSize: "40px",
+    marginBottom: "8px",
   },
   title: {
-    fontSize: "28px",
-    marginBottom: "10px",
+    fontSize: "34px",
+    margin: "0 0 8px",
+    color: "#1A1A1A",
   },
   subtitle: {
-    color: "#666",
-    marginBottom: "20px",
+    color: "#555",
+    fontSize: "16px",
+    marginBottom: "24px",
   },
   grid: {
     display: "grid",
     gap: "12px",
   },
+  input: {
+    border: "1px solid #E6E2DA",
+    borderRadius: "16px",
+    padding: "14px 16px",
+    fontSize: "15px",
+    outline: "none",
+    background: "#FFFFFF",
+  },
   button: {
-    marginTop: "20px",
-    padding: "14px",
-    borderRadius: "12px",
+    marginTop: "22px",
+    padding: "14px 22px",
+    borderRadius: "16px",
     border: "none",
     background: "#1A1A1A",
-    color: "#fff",
+    color: "#FFFFFF",
     cursor: "pointer",
+    fontSize: "15px",
   },
 };
