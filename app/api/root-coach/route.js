@@ -450,9 +450,10 @@ you must adapt the plan accordingly without asking again.
       fallbackReply(message, history, userName, profile);
 
     return Response.json({ reply });
-  } catch (error) {
-    return Response.json({
-      reply: fallbackReply("", [], "", profile),
-    });
-  }
-}
+catch (err) {
+  console.error("ROOT COACH ERROR:", err);
+
+  return Response.json({
+    reply: "Error: " + (err.message || "Unknown error"),
+  });
+}}
