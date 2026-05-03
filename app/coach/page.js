@@ -97,16 +97,16 @@ What’s been most out of sync lately?`,
 ];
 
 function buildWelcome(name, history) {
-  const firstName = name || "there";
+  const greeting = name ? `Welcome back, ${name}.` : "Welcome back.";
 
   if (!history || history.length === 0) {
-    return `Welcome back, ${firstName}. I’m Root Coach. Choose what you want help with today, or just start typing.`;
+    return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
   }
 
   const latest = history[0];
   const signal = latest.signal || "your body signals";
 
-  return `Welcome back, ${firstName}. Last time we were looking at ${signal}.
+  return `${greeting} Last time we were looking at ${signal}.
 
 Do you want to explore that, or focus on something else?`;
 }
