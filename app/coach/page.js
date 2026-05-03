@@ -3,7 +3,31 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
+const signalToCoach = {
+  "racing thoughts": "mind",
+  "panic feeling": "mind",
+  overwhelm: "mind",
+  "wired but tired": "mind",
 
+  tension: "trauma",
+  "numb or detached": "trauma",
+  "hard to settle": "trauma",
+
+  aching: "movement",
+  stiffness: "movement",
+  "sharp pain": "movement",
+  weakness: "movement",
+
+  reflux: "nutrition",
+  bloating: "nutrition",
+  nausea: "nutrition",
+  cravings: "nutrition",
+
+  fatigue: "lifestyle",
+  "poor sleep": "lifestyle",
+  "sleep disruption": "lifestyle",
+  "brain fog": "lifestyle",
+};
 const coachModes = [
   {
     id: "nutrition",
@@ -82,9 +106,10 @@ function buildWelcome(name, history) {
   const latest = history[0];
   const signal = latest.signal || "your body signals";
 
-  return `Welcome back, ${firstName}. Last time we were looking at ${signal}. Choose a focus below, or tell me what you want help with today.`;
-}
+  return `Welcome back, ${firstName}. Last time we were looking at ${signal}.
 
+Do you want to explore that, or focus on something else?`;
+}
 export default function CoachPage() {
   const [name, setName] = useState("");
   const [history, setHistory] = useState([]);
@@ -193,7 +218,8 @@ export default function CoachPage() {
   };
 
   const latestSignal = history[0]?.signal || "No recent signal yet";
-
+const suggestedModeId = signalToCoach[latestSignal];
+const suggestedMode = coachModes.find((mode) => mode.id === suggestedModeId);
   return (
     <>
       <Nav />
@@ -211,7 +237,11 @@ export default function CoachPage() {
             <p style={styles.contextLabel}>Latest body signal</p>
             <p style={styles.contextValue}>{latestSignal}</p>
           </div>
-
+{suggestedMode && (
+  <p style={styles.suggestionText}>
+    Suggested focus for “{latestSignal}”: {suggestedMode.icon} {suggestedMode.label}
+  </p>
+)}
           <p style={styles.modeTitle}>What do you want help with today?</p>
 
           <div style={styles.modeGrid}>
@@ -447,4 +477,10 @@ const styles = {
     cursor: "pointer",
     fontSize: "15px",
   },
+  suggestionText: {
+  margin: "-8px 0 18px",
+  color: "#555",
+  fontSize: "14px",
+  fontWeight: "600",
+},
 };
