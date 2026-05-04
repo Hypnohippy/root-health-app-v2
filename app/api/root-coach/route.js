@@ -134,7 +134,11 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { userName, profile, message, history, conversation, coachMode } = body;
-
+const { data: mindEntries } = await supabase
+  .from("mind_entries")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(5);
     const apiKey = process.env.OPENAI_API_KEY;
 
    if (!apiKey) {
@@ -188,8 +192,25 @@ Saved user profile:
 ${summariseProfile(profile)}
 Recent body signal history:
 ${summariseHistory(history)}
+Recent mind work:
+${summariseMind(mindEntries)}
 Coach mode override:
+function summariseMind(entries = []) {
+  if (!entries || entries.length === 0) {
+    return "No recent mind work recorded.";
+  }
 
+  return entries
+    .map((e) => {
+      return [
+        `tool: ${e.tool || "unknown"}`,
+        `emotion: ${e.emotion || "unknown"}`,
+        `thought: ${e.automatic_thought || "unknown"}`,
+        `reframe: ${e.reframe || "not recorded"}`,
+      ].join(", ");
+    })
+    .join("\n");
+}
 If a coach mode is selected, prioritise that lens first.
 
 - Nutrition → food, digestion, weight, metabolism
