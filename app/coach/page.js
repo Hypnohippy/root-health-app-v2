@@ -114,6 +114,7 @@ export default function CoachPage() {
 const [name, setName] = useState("");
 const [profile, setProfile] = useState(null);
 const [history, setHistory] = useState([]);
+  const [mindEntries, setMindEntries] = useState([]);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [coachMode, setCoachMode] = useState("");
@@ -156,7 +157,13 @@ setName(displayName);
 
       const rows = Array.isArray(data) ? data : [];
       setHistory(rows);
+const { data: mindData } = await supabase
+  .from("mind_entries")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(5);
 
+setMindEntries(Array.isArray(mindData) ? mindData : []);
       setMessages([
         {
           role: "coach",
@@ -199,11 +206,12 @@ setName(displayName);
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+     body: JSON.stringify({
   userName: name,
   profile,
   message: clean,
   history,
+  mindEntries,
   conversation: nextMessages.slice(-10),
   coachMode,
 }),
