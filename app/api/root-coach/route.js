@@ -133,12 +133,7 @@ Try sending the request again.`;
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { userName, profile, message, history, conversation, coachMode } = body;
-const { data: mindEntries } = await supabase
-  .from("mind_entries")
-  .select("*")
-  .order("created_at", { ascending: false })
-  .limit(5);
+    const { userName, profile, message, history, mindEntries, conversation, coachMode } = body;
     const apiKey = process.env.OPENAI_API_KEY;
 
    if (!apiKey) {
