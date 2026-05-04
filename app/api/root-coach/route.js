@@ -38,7 +38,26 @@ function summariseProfile(profile) {
     `diet style: ${profile.diet || "unknown"}`,
   ].join("\n");
 }
+function summariseMind(entries = []) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return "No recent mind work recorded.";
+  }
 
+  return entries
+    .slice(0, 5)
+    .map((entry) => {
+      return [
+        "tool: " + (entry.tool || "unknown"),
+        "situation: " + (entry.situation || "unknown"),
+        "thought: " + (entry.automatic_thought || "unknown"),
+        "emotion: " + (entry.emotion || "unknown"),
+        "intensity: " + (entry.intensity || "unknown"),
+        "reframe: " + (entry.reframe || "not recorded"),
+        "next step: " + (entry.next_step || "not recorded"),
+      ].join(", ");
+    })
+    .join("\n");
+}
 function isPersonalPlanRequest(message) {
   const text = normalise(message);
 
