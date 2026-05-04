@@ -1,242 +1,136 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-const signalToCoach = {
-  "racing thoughts": "mind",
-  "panic feeling": "mind",
-  overwhelm: "mind",
-  "wired but tired": "mind",
 
-  tension: "trauma",
-  "numb or detached": "trauma",
-  "hard to settle": "trauma",
-
-  aching: "movement",
-  stiffness: "movement",
-  "sharp pain": "movement",
-  weakness: "movement",
-
-  reflux: "nutrition",
-  bloating: "nutrition",
-  nausea: "nutrition",
-  cravings: "nutrition",
-
-  fatigue: "lifestyle",
-  "poor sleep": "lifestyle",
-  "sleep disruption": "lifestyle",
-  "brain fog": "lifestyle",
-};
-const coachModes = [
+const tools = [
   {
-    id: "nutrition",
-    label: "Nutrition",
-    icon: "🥗",
-   intro: `Let’s focus on food and how your body is responding.
-
-We can look at things like:
-• improving digestion or reflux
-• building a simple meal structure
-• adjusting food for energy or weight
-
-What feels most relevant right now?`,
-  },
-  {
-    id: "mind",
-    label: "Mind & mood",
+    id: "cbt",
+    title: "CBT-style reframing",
+    subtitle: "Catch the thought, soften the meaning, choose a steadier next step.",
     icon: "🧠",
-    intro: `Let’s look at what’s going on mentally and emotionally.
-
-We can explore:
-• stress or overwhelm
-• thought patterns that are looping
-• motivation or feeling stuck
-
-Where do you want to start?`,
   },
   {
-    id: "trauma",
-    label: "Trauma & nervous system",
+    id: "calming",
+    title: "Hypnotherapy-style calming",
+    subtitle: "A gentle reset for the body and mind.",
+    icon: "🌙",
+  },
+  {
+    id: "grounding",
+    title: "EMDR-informed grounding",
+    subtitle: "Orient back to safety and the present moment.",
     icon: "🧩",
-   intro: `We’ll go gently here.
-
-We can look at:
-• what your system is holding
-• patterns that feel stuck or reactive
-• ways to settle and feel safer in your body
-
-You don’t need to explain everything — just start where it feels easiest.`,
   },
   {
-    id: "movement",
-    label: "Movement & body",
-    icon: "🏃",
-    intro: `Let’s focus on your body and how it’s moving or recovering.
-
-We can look at:
-• pain or restriction
-• building strength safely
-• getting your body working with you again
-
-What’s the main thing you’re noticing?`,
+    id: "breathwork",
+    title: "Breathwork",
+    subtitle: "Use the breath to settle the nervous system.",
+    icon: "🌬️",
   },
   {
-    id: "lifestyle",
-    label: "Lifestyle",
+    id: "journal",
+    title: "Journaling prompts",
+    subtitle: "Reflect without spiralling.",
+    icon: "✍️",
+  },
+  {
+    id: "values",
+    title: "Values & behaviour change",
+    subtitle: "Reconnect with what matters and choose one action.",
     icon: "🌿",
-    intro: `Let’s step back and look at the bigger picture.
-
-We can work on:
-• sleep and energy
-• daily habits and routines
-• feeling more balanced overall
-
-What’s been most out of sync lately?`,
   },
 ];
 
-function buildWelcome(name, history) {
-  const greeting = name ? `Welcome back, ${name}.` : "Welcome back.";
+function buildReframe({ situation, automaticThought, emotion, intensity }) {
+  const feeling = emotion || "this feeling";
+  const thought = automaticThought || "the thought that showed up";
 
-  if (!history || history.length === 0) {
-    return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
-  }
+  return `A steadier way to hold this might be:
 
-  const latest = history[0];
-  const signal = latest.signal || "your body signals";
+“I notice ${thought}. That may be my mind trying to protect me, but it may not be the whole truth. I can pause, look for more evidence, and choose one small helpful action instead of reacting from ${feeling}.”
 
-  return `${greeting} Last time we were looking at ${signal}.
-
-Do you want to explore that, or focus on something else?`;
-}
-export default function CoachPage() {
-const [name, setName] = useState("");
-const [profile, setProfile] = useState(null);
-const [history, setHistory] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [coachMode, setCoachMode] = useState("");
-  const [thinking, setThinking] = useState(false);
-  const bottomRef = useRef(null);
-
-  useEffect(() => {
-    const load = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-     let displayName =
-  user?.user_metadata?.full_name ||
-  user?.user_metadata?.name ||
-  user?.email?.split("@")[0] ||
-  "";
-
-const { data: profileData } = await supabase
-  .from("profiles")
-  .select("*")
-  .eq("profile_key", "main")
-  .maybeSingle();
-
-if (profileData) {
-  setProfile(profileData);
-
-  if (profileData.name) {
-    displayName = profileData.name;
-  }
+This does not mean dismissing what you feel. It means creating a little space around it.`;
 }
 
-setName(displayName);
-      setName(displayName);
+function buildNextStep({ emotion }) {
+  if (!emotion) {
+    return "Take one slower breath, then choose one small action that supports you rather than pressures you.";
+  }
 
-      const { data } = await supabase
-        .from("body_signals")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
+  return `For the next few minutes, treat ${emotion.toLowerCase()} as information rather than instruction. Slow down, reduce pressure, and choose one small grounded action.`;
+}
 
-      const rows = Array.isArray(data) ? data : [];
-      setHistory(rows);
+export default function MindPage() {
+  const [activeTool, setActiveTool] = useState(null);
+  const [situation, setSituation] = useState("");
+  const [automaticThought, setAutomaticThought] = useState("");
+  const [emotion, setEmotion] = useState("");
+  const [intensity, setIntensity] = useState("5");
+  const [reframe, setReframe] = useState("");
+  const [nextStep, setNextStep] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-      setMessages([
-        {
-          role: "coach",
-          content: buildWelcome(displayName, rows),
-        },
-      ]);
-    };
+  const resetTool = () => {
+    setSituation("");
+    setAutomaticThought("");
+    setEmotion("");
+    setIntensity("5");
+    setReframe("");
+    setNextStep("");
+    setSaved(false);
+  };
 
-    load();
-  }, []);
+  const openTool = (toolId) => {
+    setActiveTool(toolId);
+    resetTool();
+  };
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, thinking]);
+  const generateReframe = () => {
+    const generatedReframe = buildReframe({
+      situation,
+      automaticThought,
+      emotion,
+      intensity,
+    });
 
-  const chooseMode = (mode) => {
-    setCoachMode(mode.id);
+    const generatedNextStep = buildNextStep({ emotion });
 
-    setMessages((prev) => [
-      ...prev,
+    setReframe(generatedReframe);
+    setNextStep(generatedNextStep);
+    setSaved(false);
+  };
+
+  const saveEntry = async () => {
+    if (!reframe) return;
+
+    setSaving(true);
+
+    const { error } = await supabase.from("mind_entries").insert([
       {
-        role: "coach",
-        content: `${mode.icon} ${mode.label} mode selected.\n\n${mode.intro}\n\nWhat would you like to work on?`,
+        profile_key: "main",
+        tool: "CBT-style reframing",
+        situation,
+        automatic_thought: automaticThought,
+        emotion,
+        intensity,
+        reframe,
+        next_step: nextStep,
       },
     ]);
-  };
 
-  const sendMessage = async (text) => {
-    const clean = text.trim();
-    if (!clean || thinking) return;
+    setSaving(false);
 
-    const nextMessages = [...messages, { role: "user", content: clean }];
-    setMessages(nextMessages);
-    setInput("");
-    setThinking(true);
-
-    try {
-      const res = await fetch("/api/root-coach", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-  userName: name,
-  profile,
-  message: clean,
-  history,
-  conversation: nextMessages.slice(-10),
-  coachMode,
-}),
-      });
-
-      const json = await res.json();
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "coach",
-          content:
-            json.reply ||
-            "I’m here with you. Let’s slow this down and look at one thing at a time.",
-        },
-      ]);
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "coach",
-          content:
-            "Something interrupted my response, but I’m still here. Tell me the main thing you want help with right now.",
-        },
-      ]);
+    if (error) {
+      alert(error.message);
+      return;
     }
 
-    setThinking(false);
+    setSaved(true);
   };
 
-  const latestSignal = history[0]?.signal || "No recent signal yet";
-const suggestedModeId = signalToCoach[latestSignal];
-const suggestedMode = coachModes.find((mode) => mode.id === suggestedModeId);
   return (
     <>
       <Nav />
@@ -245,84 +139,121 @@ const suggestedMode = coachModes.find((mode) => mode.id === suggestedModeId);
         <section style={styles.shell}>
           <div style={styles.brandMark}>◯</div>
 
-          <h1 style={styles.title}>Root Coach</h1>
+          <h1 style={styles.title}>Mind & Emotions</h1>
           <p style={styles.subtitle}>
-            One calm guide for nutrition, mind, trauma patterns, movement, recovery and whole-person self-care.
+            Practical support for calming the nervous system, reframing thoughts,
+            and understanding emotional patterns.
           </p>
 
-          <div style={styles.contextCard}>
-            <p style={styles.contextLabel}>Latest body signal</p>
-            <p style={styles.contextValue}>{latestSignal}</p>
-          </div>
-{suggestedMode && (
-  <p style={styles.suggestionText}>
-    Suggested focus for “{latestSignal}”: {suggestedMode.icon} {suggestedMode.label}
-  </p>
-)}
-          <p style={styles.modeTitle}>What do you want help with today?</p>
-
-          <div style={styles.modeGrid}>
-            {coachModes.map((mode) => (
-              <button
-                key={mode.id}
-                onClick={() => chooseMode(mode)}
-                style={{
-                  ...styles.modeButton,
-                  ...(coachMode === mode.id ? styles.modeButtonActive : {}),
-                }}
-              >
-                <span style={styles.modeIcon}>{mode.icon}</span>
-                <span>{mode.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <div style={styles.chatPanel}>
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                style={{
-                  ...styles.message,
-                  ...(message.role === "user" ? styles.userMessage : styles.coachMessage),
-                }}
-              >
-                <p style={styles.messageText}>{message.content}</p>
+          {!activeTool && (
+            <>
+              <div style={styles.grid}>
+                {tools.map((tool) => (
+                  <button
+                    key={tool.id}
+                    style={styles.toolCard}
+                    onClick={() => openTool(tool.id)}
+                  >
+                    <span style={styles.icon}>{tool.icon}</span>
+                    <strong style={styles.toolTitle}>{tool.title}</strong>
+                    <span style={styles.toolSubtitle}>{tool.subtitle}</span>
+                  </button>
+                ))}
               </div>
-            ))}
 
-            {thinking && (
-              <div style={{ ...styles.message, ...styles.coachMessage }}>
-                <p style={styles.messageText}>Root Coach is thinking gently…</p>
-              </div>
-            )}
+              <p style={styles.disclaimer}>
+                Root Health offers lifestyle and emotional support. It is not a replacement
+                for medical care or therapy.
+              </p>
+            </>
+          )}
 
-            <div ref={bottomRef} />
-          </div>
-
-          <div style={styles.quickRow}>
-            {[
-              "What should I focus on today?",
-              "Help me make a simple plan",
-              "What patterns do you notice?",
-            ].map((prompt) => (
-              <button key={prompt} style={styles.quickButton} onClick={() => sendMessage(prompt)}>
-                {prompt}
+          {activeTool === "cbt" && (
+            <div style={styles.panel}>
+              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+                ← Back to tools
               </button>
-            ))}
-          </div>
 
-          <div style={styles.inputRow}>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Root Coach anything..."
-              style={styles.input}
-            />
+              <h2 style={styles.panelTitle}>CBT-style reframing</h2>
+              <p style={styles.panelSubtitle}>
+                This tool helps you notice the thought underneath the emotion and
+                create a steadier response.
+              </p>
 
-            <button style={styles.sendButton} onClick={() => sendMessage(input)}>
-              Send
-            </button>
-          </div>
+              <label style={styles.label}>1. What happened?</label>
+              <textarea
+                style={styles.textarea}
+                value={situation}
+                onChange={(e) => setSituation(e.target.value)}
+                placeholder="Example: I saw an email and immediately felt pressure..."
+              />
+
+              <label style={styles.label}>2. What thought showed up?</label>
+              <textarea
+                style={styles.textarea}
+                value={automaticThought}
+                onChange={(e) => setAutomaticThought(e.target.value)}
+                placeholder="Example: I’m going to mess this up..."
+              />
+
+              <label style={styles.label}>3. What emotion was loudest?</label>
+              <input
+                style={styles.input}
+                value={emotion}
+                onChange={(e) => setEmotion(e.target.value)}
+                placeholder="Example: anxiety, shame, frustration, sadness..."
+              />
+
+              <label style={styles.label}>4. How strong was it?</label>
+              <div style={styles.scoreRow}>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                  <button
+                    key={score}
+                    onClick={() => setIntensity(String(score))}
+                    style={{
+                      ...styles.scoreButton,
+                      background: intensity === String(score) ? "#1A1A1A" : "#F0EDE7",
+                      color: intensity === String(score) ? "#FFFFFF" : "#333333",
+                    }}
+                  >
+                    {score}
+                  </button>
+                ))}
+              </div>
+
+              <button style={styles.mainButton} onClick={generateReframe}>
+                Create reframe
+              </button>
+
+              {reframe && (
+                <div style={styles.resultCard}>
+                  <p style={styles.resultLabel}>Root reframe</p>
+                  <p style={styles.resultText}>{reframe}</p>
+
+                  <p style={styles.resultLabel}>Next grounded step</p>
+                  <p style={styles.resultText}>{nextStep}</p>
+
+                  <button style={styles.saveButton} onClick={saveEntry}>
+                    {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTool && activeTool !== "cbt" && (
+            <div style={styles.panel}>
+              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+                ← Back to tools
+              </button>
+
+              <h2 style={styles.panelTitle}>Coming next</h2>
+              <p style={styles.panelSubtitle}>
+                This tool is ready as a placeholder. We’ll build it next so it saves
+                into Coach memory just like CBT reframing.
+              </p>
+            </div>
+          )}
         </section>
       </main>
     </>
@@ -333,9 +264,9 @@ const styles = {
   page: {
     minHeight: "100vh",
     background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
-    padding: "24px",
     display: "flex",
     justifyContent: "center",
+    padding: "24px",
   },
   shell: {
     width: "100%",
@@ -360,144 +291,146 @@ const styles = {
     fontSize: "16px",
     lineHeight: "1.6",
     maxWidth: "680px",
-    margin: "0 auto 22px",
+    margin: "0 auto 26px",
   },
-  contextCard: {
-    background: "#F7F5F2",
-    borderRadius: "22px",
-    padding: "16px",
-    textAlign: "left",
-    marginBottom: "18px",
-  },
-  contextLabel: {
-    margin: "0 0 6px",
-    fontSize: "12px",
-    color: "#777",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-  },
-  contextValue: {
-    margin: 0,
-    fontSize: "18px",
-    fontWeight: "700",
-    color: "#1A1A1A",
-  },
-  modeTitle: {
-    margin: "8px 0 12px",
-    color: "#555",
-    fontSize: "14px",
-    fontWeight: "600",
-  },
-  modeGrid: {
+  grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    gap: "12px",
-    marginBottom: "20px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+    gap: "14px",
+    marginTop: "20px",
   },
-  modeButton: {
+  toolCard: {
     border: "1px solid #E6E2DA",
-    borderRadius: "20px",
-    padding: "14px",
+    borderRadius: "24px",
+    padding: "22px",
     background: "#FFFFFF",
     cursor: "pointer",
-    fontSize: "14px",
-    color: "#333",
+    textAlign: "left",
+    boxShadow: "0 10px 28px rgba(0,0,0,0.05)",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    gap: "6px",
-    boxShadow: "0 8px 22px rgba(0,0,0,0.04)",
+    gap: "8px",
   },
-  modeButtonActive: {
-    background: "#1A1A1A",
-    color: "#FFFFFF",
-    border: "1px solid #1A1A1A",
+  icon: {
+    fontSize: "28px",
   },
-  modeIcon: {
-    fontSize: "24px",
+  toolTitle: {
+    fontSize: "17px",
+    color: "#1A1A1A",
   },
-  chatPanel: {
-    background: "#FFFFFF",
-    borderRadius: "26px",
-    padding: "22px",
-    minHeight: "340px",
-    maxHeight: "520px",
-    overflowY: "auto",
-    boxShadow: "0 12px 32px rgba(0,0,0,0.06)",
-    textAlign: "left",
-  },
-  message: {
-    padding: "14px 16px",
-    borderRadius: "18px",
-    marginBottom: "12px",
-    maxWidth: "82%",
-  },
-  coachMessage: {
-    background: "#F3EFE8",
-    color: "#222",
-  },
-  userMessage: {
-    background: "#1A1A1A",
-    color: "#FFFFFF",
-    marginLeft: "auto",
-  },
-  messageText: {
-    margin: 0,
-    fontSize: "15px",
-    lineHeight: "1.6",
-    whiteSpace: "pre-line",
-  },
-  quickRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    justifyContent: "center",
-    marginTop: "18px",
-  },
-  quickButton: {
-    border: "none",
-    borderRadius: "999px",
-    padding: "10px 14px",
-    background: "#E6E2DA",
-    color: "#333",
-    cursor: "pointer",
+  toolSubtitle: {
     fontSize: "14px",
+    color: "#666",
+    lineHeight: "1.5",
   },
-  inputRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr auto",
-    gap: "12px",
-    marginTop: "18px",
-    alignItems: "stretch",
+  disclaimer: {
+    marginTop: "24px",
+    color: "#777",
+    fontSize: "13px",
+    lineHeight: "1.5",
   },
-  input: {
-    minHeight: "72px",
+  panel: {
+    marginTop: "22px",
+    background: "#FFFFFF",
+    borderRadius: "28px",
+    padding: "26px",
+    textAlign: "left",
+    boxShadow: "0 14px 36px rgba(0,0,0,0.06)",
+  },
+  backButton: {
+    border: "none",
+    background: "#F0EDE7",
+    borderRadius: "999px",
+    padding: "9px 14px",
+    cursor: "pointer",
+    marginBottom: "18px",
+  },
+  panelTitle: {
+    margin: "0 0 8px",
+    fontSize: "26px",
+    color: "#1A1A1A",
+  },
+  panelSubtitle: {
+    color: "#666",
+    lineHeight: "1.6",
+    marginBottom: "22px",
+  },
+  label: {
+    display: "block",
+    margin: "18px 0 8px",
+    fontSize: "14px",
+    fontWeight: "700",
+    color: "#333",
+  },
+  textarea: {
+    width: "100%",
+    minHeight: "90px",
     border: "1px solid #E6E2DA",
     borderRadius: "18px",
-    padding: "16px",
+    padding: "14px",
     fontSize: "15px",
     resize: "vertical",
     outline: "none",
-    background: "#FFFFFF",
-    color: "#1A1A1A",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-    position: "relative",
-    zIndex: 5,
-    pointerEvents: "auto",
+    boxSizing: "border-box",
   },
-  sendButton: {
-    border: "none",
+  input: {
+    width: "100%",
+    border: "1px solid #E6E2DA",
     borderRadius: "18px",
-    padding: "0 24px",
+    padding: "14px",
+    fontSize: "15px",
+    outline: "none",
+    boxSizing: "border-box",
+  },
+  scoreRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+  },
+  scoreButton: {
+    width: "38px",
+    height: "38px",
+    borderRadius: "50%",
+    border: "none",
+    cursor: "pointer",
+  },
+  mainButton: {
+    marginTop: "22px",
+    border: "none",
+    borderRadius: "16px",
+    padding: "14px 22px",
     background: "#1A1A1A",
     color: "#FFFFFF",
     cursor: "pointer",
     fontSize: "15px",
   },
-  suggestionText: {
-  margin: "-8px 0 18px",
-  color: "#555",
-  fontSize: "14px",
-  fontWeight: "600",
-},
+  resultCard: {
+    marginTop: "24px",
+    background: "#F7F5F2",
+    borderRadius: "22px",
+    padding: "22px",
+  },
+  resultLabel: {
+    margin: "0 0 8px",
+    fontSize: "13px",
+    color: "#777",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    fontWeight: "700",
+  },
+  resultText: {
+    whiteSpace: "pre-line",
+    lineHeight: "1.65",
+    color: "#333",
+    marginBottom: "18px",
+  },
+  saveButton: {
+    border: "none",
+    borderRadius: "16px",
+    padding: "12px 18px",
+    background: "#1A1A1A",
+    color: "#FFFFFF",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
 };
