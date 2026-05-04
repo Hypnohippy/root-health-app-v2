@@ -196,17 +196,17 @@ Recent mind work:
 ${summariseMind(mindEntries)}
 Coach mode override:
 function summariseMind(entries = []) {
-  if (!entries || entries.length === 0) {
+  if (!Array.isArray(entries) || entries.length === 0) {
     return "No recent mind work recorded.";
   }
 
   return entries
     .map((e) => {
       return [
-        `tool: ${e.tool || "unknown"}`,
-        `emotion: ${e.emotion || "unknown"}`,
-        `thought: ${e.automatic_thought || "unknown"}`,
-        `reframe: ${e.reframe || "not recorded"}`,
+        "tool: " + (e.tool || "unknown"),
+        "emotion: " + (e.emotion || "unknown"),
+        "thought: " + (e.automatic_thought || "unknown"),
+        "reframe: " + (e.reframe || "not recorded"),
       ].join(", ");
     })
     .join("\n");
