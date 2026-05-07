@@ -241,20 +241,130 @@ export default function MindPage() {
             </div>
           )}
 
-          {activeTool && activeTool !== "cbt" && (
-            <div style={styles.panel}>
-              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-                ← Back to tools
-              </button>
+         {activeTool === "breathwork" && (
+  <div style={styles.panel}>
+    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+      ← Back to tools
+    </button>
 
-              <h2 style={styles.panelTitle}>Coming next</h2>
-              <p style={styles.panelSubtitle}>
-                This tool is ready as a placeholder. We’ll build it next so it saves
-                into Coach memory just like CBT reframing.
-              </p>
-            </div>
-          )}
-        </section>
+    <h2 style={styles.panelTitle}>Breathwork</h2>
+    <p style={styles.panelSubtitle}>
+      Let’s settle the system first. Follow this simple pattern:
+    </p>
+
+    <div style={styles.resultCard}>
+      <p style={styles.resultText}>
+        Inhale slowly for 4 seconds  
+        Hold for 2 seconds  
+        Exhale gently for 6 seconds  
+
+        Repeat for 2–3 minutes.
+
+        Let the exhale be longer than the inhale — that’s what helps the body settle.
+      </p>
+    </div>
+  </div>
+)}
+
+{activeTool === "grounding" && (
+  <div style={styles.panel}>
+    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+      ← Back to tools
+    </button>
+
+    <h2 style={styles.panelTitle}>Grounding</h2>
+    <p style={styles.panelSubtitle}>
+      Let’s orient back to the present moment.
+    </p>
+
+    <div style={styles.resultCard}>
+      <p style={styles.resultText}>
+        Look around and name:
+        5 things you can see  
+        4 things you can feel  
+        3 things you can hear  
+        2 things you can smell  
+        1 thing you can taste  
+
+        There’s no rush — just let your attention land.
+      </p>
+    </div>
+  </div>
+)}
+
+{activeTool === "calming" && (
+  <div style={styles.panel}>
+    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+      ← Back to tools
+    </button>
+
+    <h2 style={styles.panelTitle}>Hypnotherapy-style calming</h2>
+    <p style={styles.panelSubtitle}>
+      A gentle reset for the body and mind.
+    </p>
+
+    <div style={styles.resultCard}>
+      <p style={styles.resultText}>
+        Close your eyes if comfortable.
+
+        Take a slow breath in… and out.
+
+        Imagine a place where your body feels safe and at ease.
+        It doesn’t have to be real.
+
+        Stay there for a moment.
+
+        Let your shoulders drop.
+        Let your jaw soften.
+        Let your breathing slow.
+
+        There’s nothing to do here — just allow your system to settle.
+      </p>
+    </div>
+  </div>
+)}
+
+{activeTool === "journal" && (
+  <div style={styles.panel}>
+    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+      ← Back to tools
+    </button>
+
+    <h2 style={styles.panelTitle}>Journaling</h2>
+    <p style={styles.panelSubtitle}>
+      Write without overthinking — just let it out.
+    </p>
+
+    <textarea
+      style={styles.textarea}
+      placeholder="Start writing whatever is on your mind..."
+    />
+  </div>
+)}
+
+{activeTool === "values" && (
+  <div style={styles.panel}>
+    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+      ← Back to tools
+    </button>
+
+    <h2 style={styles.panelTitle}>Values & behaviour</h2>
+    <p style={styles.panelSubtitle}>
+      Let’s reconnect with what matters and take one step.
+    </p>
+
+    <div style={styles.resultCard}>
+      <p style={styles.resultText}>
+        What actually matters to you in this situation?
+
+        Not what you “should” do — what matters.
+
+        Now choose one small action that moves you 1% closer to that.
+      </p>
+    </div>
+  </div>
+)}       
+</section>
       </main>
     </>
   );
