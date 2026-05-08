@@ -43,7 +43,7 @@ const tools = [
   },
 ];
 
-function buildReframe({ situation, automaticThought, emotion, intensity }) {
+function buildReframe({ automaticThought, emotion }) {
   const feeling = emotion || "this feeling";
   const thought = automaticThought || "the thought that showed up";
 
@@ -64,12 +64,18 @@ function buildNextStep({ emotion }) {
 
 export default function MindPage() {
   const [activeTool, setActiveTool] = useState(null);
+
   const [situation, setSituation] = useState("");
   const [automaticThought, setAutomaticThought] = useState("");
   const [emotion, setEmotion] = useState("");
   const [intensity, setIntensity] = useState("5");
   const [reframe, setReframe] = useState("");
   const [nextStep, setNextStep] = useState("");
+
+  const [journalText, setJournalText] = useState("");
+  const [valueFocus, setValueFocus] = useState("");
+  const [valueAction, setValueAction] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -80,6 +86,9 @@ export default function MindPage() {
     setIntensity("5");
     setReframe("");
     setNextStep("");
+    setJournalText("");
+    setValueFocus("");
+    setValueAction("");
     setSaved(false);
   };
 
@@ -103,21 +112,13 @@ export default function MindPage() {
     setSaved(false);
   };
 
-  const saveEntry = async () => {
-    if (!reframe) return;
-
+  const saveEntry = async (entry) => {
     setSaving(true);
 
     const { error } = await supabase.from("mind_entries").insert([
       {
         profile_key: "main",
-        tool: "CBT-style reframing",
-        situation,
-        automatic_thought: automaticThought,
-        emotion,
-        intensity,
-        reframe,
-        next_step: nextStep,
+        ...entry,
       },
     ]);
 
@@ -129,6 +130,32 @@ export default function MindPage() {
     }
 
     setSaved(true);
+  };
+
+  const saveCbt = async () => {
+    if (!reframe) return;
+
+    await saveEntry({
+      tool: "CBT-style reframing",
+      situation,
+      automatic_thought: automaticThought,
+      emotion,
+      intensity,
+      reframe,
+      next_step: nextStep,
+    });
+  };
+
+  const saveSimpleTool = async (toolName, summary, nextStepText) => {
+    await saveEntry({
+      tool: toolName,
+      situation: summary,
+      automatic_thought: "",
+      emotion: "",
+      intensity: "",
+      reframe: summary,
+      next_step: nextStepText,
+    });
   };
 
   return (
@@ -233,7 +260,7 @@ export default function MindPage() {
                   <p style={styles.resultLabel}>Next grounded step</p>
                   <p style={styles.resultText}>{nextStep}</p>
 
-                  <button style={styles.saveButton} onClick={saveEntry}>
+                  <button style={styles.saveButton} onClick={saveCbt}>
                     {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
                   </button>
                 </div>
@@ -241,130 +268,193 @@ export default function MindPage() {
             </div>
           )}
 
-         {activeTool === "breathwork" && (
-  <div style={styles.panel}>
-    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-      ← Back to tools
-    </button>
+          {activeTool === "breathwork" && (
+            <div style={styles.panel}>
+              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+                ← Back to tools
+              </button>
 
-    <h2 style={styles.panelTitle}>Breathwork</h2>
-    <p style={styles.panelSubtitle}>
-      Let’s settle the system first. Follow this simple pattern:
-    </p>
+              <h2 style={styles.panelTitle}>Breathwork</h2>
+              <p style={styles.panelSubtitle}>Let’s settle the system first.</p>
 
-    <div style={styles.resultCard}>
-      <p style={styles.resultText}>
-        Inhale slowly for 4 seconds  
-        Hold for 2 seconds  
-        Exhale gently for 6 seconds  
+              <div style={styles.resultCard}>
+                <p style={styles.resultText}>
+                  Inhale slowly for 4 seconds{"\n"}
+                  Hold for 2 seconds{"\n"}
+                  Exhale gently for 6 seconds{"\n\n"}
+                  Repeat for 2–3 minutes. Let the exhale be longer than the inhale.
+                </p>
 
-        Repeat for 2–3 minutes.
+                <button
+                  style={styles.saveButton}
+                  onClick={() =>
+                    saveSimpleTool(
+                      "Breathwork",
+                      "The user completed a 4-2-6 breathing reset.",
+                      "Check whether the body feels slightly calmer, slower, or less activated."
+                    )
+                  }
+                >
+                  {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
+                </button>
+              </div>
+            </div>
+          )}
 
-        Let the exhale be longer than the inhale — that’s what helps the body settle.
-      </p>
-    </div>
-  </div>
-)}
+          {activeTool === "grounding" && (
+            <div style={styles.panel}>
+              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+                ← Back to tools
+              </button>
 
-{activeTool === "grounding" && (
-  <div style={styles.panel}>
-    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-      ← Back to tools
-    </button>
+              <h2 style={styles.panelTitle}>EMDR-informed grounding</h2>
+              <p style={styles.panelSubtitle}>Let’s orient back to the present moment.</p>
 
-    <h2 style={styles.panelTitle}>Grounding</h2>
-    <p style={styles.panelSubtitle}>
-      Let’s orient back to the present moment.
-    </p>
+              <div style={styles.resultCard}>
+                <p style={styles.resultText}>
+                  Look around and name:{"\n"}
+                  5 things you can see{"\n"}
+                  4 things you can feel{"\n"}
+                  3 things you can hear{"\n"}
+                  2 things you can smell{"\n"}
+                  1 thing you can taste{"\n\n"}
+                  There’s no rush — just let your attention land.
+                </p>
 
-    <div style={styles.resultCard}>
-      <p style={styles.resultText}>
-        Look around and name:
-        5 things you can see  
-        4 things you can feel  
-        3 things you can hear  
-        2 things you can smell  
-        1 thing you can taste  
+                <button
+                  style={styles.saveButton}
+                  onClick={() =>
+                    saveSimpleTool(
+                      "EMDR-informed grounding",
+                      "The user completed a 5-4-3-2-1 grounding exercise.",
+                      "Check whether the user feels more present, safer, or less overwhelmed."
+                    )
+                  }
+                >
+                  {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
+                </button>
+              </div>
+            </div>
+          )}
 
-        There’s no rush — just let your attention land.
-      </p>
-    </div>
-  </div>
-)}
+          {activeTool === "calming" && (
+            <div style={styles.panel}>
+              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+                ← Back to tools
+              </button>
 
-{activeTool === "calming" && (
-  <div style={styles.panel}>
-    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-      ← Back to tools
-    </button>
+              <h2 style={styles.panelTitle}>Hypnotherapy-style calming</h2>
+              <p style={styles.panelSubtitle}>A gentle reset for the body and mind.</p>
 
-    <h2 style={styles.panelTitle}>Hypnotherapy-style calming</h2>
-    <p style={styles.panelSubtitle}>
-      A gentle reset for the body and mind.
-    </p>
+              <div style={styles.resultCard}>
+                <p style={styles.resultText}>
+                  Close your eyes if comfortable.{"\n\n"}
+                  Take a slow breath in… and out.{"\n\n"}
+                  Imagine a place where your body feels safe and at ease.{"\n"}
+                  Let your shoulders drop. Let your jaw soften. Let your breathing slow.{"\n\n"}
+                  There’s nothing to force here — just allow your system to settle.
+                </p>
 
-    <div style={styles.resultCard}>
-      <p style={styles.resultText}>
-        Close your eyes if comfortable.
+                <button
+                  style={styles.saveButton}
+                  onClick={() =>
+                    saveSimpleTool(
+                      "Hypnotherapy-style calming",
+                      "The user completed a gentle calming visualisation.",
+                      "Check whether the user feels softer, calmer, safer, or more settled."
+                    )
+                  }
+                >
+                  {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
+                </button>
+              </div>
+            </div>
+          )}
 
-        Take a slow breath in… and out.
+          {activeTool === "journal" && (
+            <div style={styles.panel}>
+              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+                ← Back to tools
+              </button>
 
-        Imagine a place where your body feels safe and at ease.
-        It doesn’t have to be real.
+              <h2 style={styles.panelTitle}>Journaling prompts</h2>
+              <p style={styles.panelSubtitle}>
+                Reflect without spiralling. Just write what is here.
+              </p>
 
-        Stay there for a moment.
+              <label style={styles.label}>What is on your mind?</label>
+              <textarea
+                style={styles.textarea}
+                value={journalText}
+                onChange={(e) => setJournalText(e.target.value)}
+                placeholder="Start writing whatever is on your mind..."
+              />
 
-        Let your shoulders drop.
-        Let your jaw soften.
-        Let your breathing slow.
+              <button
+                style={styles.mainButton}
+                onClick={() =>
+                  saveEntry({
+                    tool: "Journaling prompts",
+                    situation: journalText,
+                    automatic_thought: "",
+                    emotion: "",
+                    intensity: "",
+                    reframe: journalText,
+                    next_step: "Reflect on what repeated, what softened, and what needs attention next.",
+                  })
+                }
+              >
+                {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
+              </button>
+            </div>
+          )}
 
-        There’s nothing to do here — just allow your system to settle.
-      </p>
-    </div>
-  </div>
-)}
+          {activeTool === "values" && (
+            <div style={styles.panel}>
+              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+                ← Back to tools
+              </button>
 
-{activeTool === "journal" && (
-  <div style={styles.panel}>
-    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-      ← Back to tools
-    </button>
+              <h2 style={styles.panelTitle}>Values & behaviour change</h2>
+              <p style={styles.panelSubtitle}>
+                Reconnect with what matters and choose one small action.
+              </p>
 
-    <h2 style={styles.panelTitle}>Journaling</h2>
-    <p style={styles.panelSubtitle}>
-      Write without overthinking — just let it out.
-    </p>
+              <label style={styles.label}>What matters to you in this situation?</label>
+              <textarea
+                style={styles.textarea}
+                value={valueFocus}
+                onChange={(e) => setValueFocus(e.target.value)}
+                placeholder="Example: being honest, staying calm, protecting my health..."
+              />
 
-    <textarea
-      style={styles.textarea}
-      placeholder="Start writing whatever is on your mind..."
-    />
-  </div>
-)}
+              <label style={styles.label}>What is one small action you can take?</label>
+              <textarea
+                style={styles.textarea}
+                value={valueAction}
+                onChange={(e) => setValueAction(e.target.value)}
+                placeholder="Example: send the message, take a walk, prepare one healthy meal..."
+              />
 
-{activeTool === "values" && (
-  <div style={styles.panel}>
-    <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-      ← Back to tools
-    </button>
-
-    <h2 style={styles.panelTitle}>Values & behaviour</h2>
-    <p style={styles.panelSubtitle}>
-      Let’s reconnect with what matters and take one step.
-    </p>
-
-    <div style={styles.resultCard}>
-      <p style={styles.resultText}>
-        What actually matters to you in this situation?
-
-        Not what you “should” do — what matters.
-
-        Now choose one small action that moves you 1% closer to that.
-      </p>
-    </div>
-  </div>
-)}       
-</section>
+              <button
+                style={styles.mainButton}
+                onClick={() =>
+                  saveEntry({
+                    tool: "Values & behaviour change",
+                    situation: valueFocus,
+                    automatic_thought: "",
+                    emotion: "",
+                    intensity: "",
+                    reframe: "The user identified this value: " + valueFocus,
+                    next_step: valueAction,
+                  })
+                }
+              >
+                {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
+              </button>
+            </div>
+          )}
+        </section>
       </main>
     </>
   );
