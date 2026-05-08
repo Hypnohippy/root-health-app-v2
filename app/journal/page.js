@@ -36,7 +36,58 @@ const prompts = [
     icon: "🌿",
   },
 ];
+function detectPattern(text = "") {
+  const lower = text.toLowerCase();
 
+  if (
+    lower.includes("anxious") ||
+    lower.includes("anxiety") ||
+    lower.includes("panic") ||
+    lower.includes("overwhelm")
+  ) {
+    return {
+      emotional_theme: "anxiety",
+      dominant_feeling: "anxious",
+      recommended_coach_mode: "Mind & mood",
+      recommended_prompt: "Breathwork or CBT-style reframing",
+    };
+  }
+
+  if (
+    lower.includes("guilt") ||
+    lower.includes("shame") ||
+    lower.includes("pressure") ||
+    lower.includes("self critical")
+  ) {
+    return {
+      emotional_theme: "guilt & pressure",
+      dominant_feeling: "guilt",
+      recommended_coach_mode: "Mind & mood",
+      recommended_prompt: "CBT-style reframing",
+    };
+  }
+
+  if (
+    lower.includes("grief") ||
+    lower.includes("loss") ||
+    lower.includes("sad") ||
+    lower.includes("heavy")
+  ) {
+    return {
+      emotional_theme: "grief",
+      dominant_feeling: "sadness",
+      recommended_coach_mode: "Mind & mood",
+      recommended_prompt: "Journaling reflection",
+    };
+  }
+
+  return {
+    emotional_theme: "general reflection",
+    dominant_feeling: "reflection",
+    recommended_coach_mode: "Lifestyle",
+    recommended_prompt: "Guided journaling",
+  };
+}
 function getPromptStructure(type) {
   switch (type) {
     case "guilt":
@@ -107,7 +158,7 @@ export default function JournalPage() {
   const [freeText, setFreeText] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
+const [patternResult, setPatternResult] = useState(null);
   const config = getPromptStructure(activePrompt);
 
   const updateResponse = (index, value) => {
@@ -131,18 +182,22 @@ export default function JournalPage() {
 
   const saveJournal = async () => {
     const content = buildEntry();
-
+const pattern = detectPattern(content);
     if (!content.trim()) return;
 
     setSaving(true);
 
     const { error } = await supabase.from("journal_entries").insert([
-      {
-        profile_key: "main",
-        prompt_type: activePrompt,
-        title: config.heading,
-        content,
-      },
+     {
+  profile_key: "main",
+  prompt_type: activePrompt,
+  title: config.heading,
+  content,
+  emotional_theme: pattern.emotional_theme,
+  dominant_feeling: pattern.dominant_feeling,
+  recommended_coach_mode: pattern.recommended_coach_mode,
+  recommended_prompt: pattern.recommended_prompt,
+},
     ]);
 
     setSaving(false);
@@ -153,6 +208,7 @@ export default function JournalPage() {
     }
 
     setSaved(true);
+    setPatternResult(pattern);
   };
 
   return (
@@ -242,7 +298,25 @@ export default function JournalPage() {
                 : "Save reflection"}
             </button>
           </div>
+{patternResult && (
+  <div style={styles.insightCard}>
+    <p style={styles.insightLabel}>Pattern noticed</p>
 
+    <p style={styles.insightText}>
+      This reflection seems connected to{" "}
+      <strong>{patternResult.emotional_theme}</strong>.
+    </p>
+
+    <p style={styles.insightText}>
+      Suggested next step:
+      <strong>
+        {" "}
+        {patternResult.recommended_coach_mode}
+      </strong>{" "}
+      — {patternResult.recommended_prompt}
+    </p>
+  </div>
+)}
           <p style={styles.disclaimer}>
             Root Health offers emotional and lifestyle support. It is not a
             replacement for therapy, crisis support, or medical care.
@@ -394,4 +468,26 @@ const styles = {
     fontSize: "13px",
     lineHeight: "1.6",
   },
+  insightCard: {
+  marginTop: "24px",
+  background: "#F7F5F2",
+  borderRadius: "22px",
+  padding: "22px",
+  border: "1px solid #E6E2DA",
+},
+
+insightLabel: {
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "#777",
+  marginBottom: "10px",
+  fontWeight: "700",
+},
+
+insightText: {
+  color: "#333",
+  lineHeight: "1.7",
+  marginBottom: "10px",
+},
 };
