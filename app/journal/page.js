@@ -36,6 +36,7 @@ const prompts = [
     icon: "🌿",
   },
 ];
+
 function detectPattern(text = "") {
   const lower = text.toLowerCase();
 
@@ -47,7 +48,6 @@ function detectPattern(text = "") {
   ) {
     return {
       emotional_theme: "anxiety",
-      dominant_feeling: "anxious",
       recommended_coach_mode: "Mind & mood",
       recommended_prompt: "Breathwork or CBT-style reframing",
     };
@@ -56,12 +56,10 @@ function detectPattern(text = "") {
   if (
     lower.includes("guilt") ||
     lower.includes("shame") ||
-    lower.includes("pressure") ||
-    lower.includes("self critical")
+    lower.includes("pressure")
   ) {
     return {
       emotional_theme: "guilt & pressure",
-      dominant_feeling: "guilt",
       recommended_coach_mode: "Mind & mood",
       recommended_prompt: "CBT-style reframing",
     };
@@ -70,35 +68,33 @@ function detectPattern(text = "") {
   if (
     lower.includes("grief") ||
     lower.includes("loss") ||
-    lower.includes("sad") ||
     lower.includes("heavy")
   ) {
     return {
       emotional_theme: "grief",
-      dominant_feeling: "sadness",
       recommended_coach_mode: "Mind & mood",
-      recommended_prompt: "Journaling reflection",
+      recommended_prompt: "Guided journaling",
     };
   }
 
   return {
     emotional_theme: "general reflection",
-    dominant_feeling: "reflection",
     recommended_coach_mode: "Lifestyle",
     recommended_prompt: "Guided journaling",
   };
 }
+
 function getPromptStructure(type) {
   switch (type) {
     case "guilt":
       return {
         heading: "Guilt & self-pressure",
         intro:
-          "This is not about attacking yourself. Let’s slow the situation down and separate feeling from fact.",
+          "Let’s slow this down gently and separate feeling from self-attack.",
         prompts: [
           "What happened?",
           "What part feels genuinely important?",
-          "What part may be self-pressure or fear?",
+          "What part may be pressure or fear?",
           "What would you say to someone else in this position?",
         ],
       };
@@ -107,12 +103,12 @@ function getPromptStructure(type) {
       return {
         heading: "Anxiety & overwhelm",
         intro:
-          "You do not need to solve everything right now. Let’s reduce the noise first.",
+          "You do not need to solve everything right now. Just reduce the noise a little.",
         prompts: [
           "What feels loudest right now?",
           "What is your mind predicting?",
-          "What is actually happening in this moment?",
-          "What would help your nervous system feel 5% safer?",
+          "What is actually happening right now?",
+          "What would help your nervous system feel safer?",
         ],
       };
 
@@ -120,7 +116,7 @@ function getPromptStructure(type) {
       return {
         heading: "Grief & emotional heaviness",
         intro:
-          "Some feelings don’t need fixing immediately. This space is for letting them exist safely.",
+          "Some feelings need space more than solutions.",
         prompts: [
           "What feels heavy right now?",
           "What are you carrying emotionally?",
@@ -133,12 +129,12 @@ function getPromptStructure(type) {
       return {
         heading: "Clarity & direction",
         intro:
-          "Let’s reduce the mental fog and reconnect with what matters.",
+          "Let’s reconnect with what matters and reduce the mental fog.",
         prompts: [
           "What situation are you trying to understand?",
           "What matters most here?",
-          "What is draining your energy?",
-          "What is one small next step that feels honest?",
+          "What feels draining?",
+          "What is one honest next step?",
         ],
       };
 
@@ -146,33 +142,46 @@ function getPromptStructure(type) {
       return {
         heading: "Free reflection",
         intro:
-          "Write freely. No structure required. Just let your thoughts land somewhere.",
-        prompts: [],
+          "Write freely. No structure required.",
+        prompts: [
+          "What feels important today?",
+        ],
       };
   }
 }
 
 export default function JournalPage() {
   const [activePrompt, setActivePrompt] = useState("free");
+  const [step, setStep] = useState(0);
   const [responses, setResponses] = useState({});
-  const [freeText, setFreeText] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-const [patternResult, setPatternResult] = useState(null);
+  const [patternResult, setPatternResult] = useState(null);
+
   const config = getPromptStructure(activePrompt);
 
-  const updateResponse = (index, value) => {
+  const currentPrompt = config.prompts[step];
+
+  const updateResponse = (value) => {
     setResponses((prev) => ({
       ...prev,
-      [index]: value,
+      [step]: value,
     }));
   };
 
-  const buildEntry = () => {
-    if (activePrompt === "free") {
-      return freeText;
+  const nextStep = () => {
+    if (step < config.prompts.length - 1) {
+      setStep(step + 1);
     }
+  };
 
+  const previousStep = () => {
+    if (step > 0) {
+      setStep(step - 1);
+    }
+  };
+
+  const buildEntry = () => {
     return config.prompts
       .map((prompt, index) => {
         return `${prompt}\n${responses[index] || ""}`;
@@ -182,22 +191,21 @@ const [patternResult, setPatternResult] = useState(null);
 
   const saveJournal = async () => {
     const content = buildEntry();
-const pattern = detectPattern(content);
-    if (!content.trim()) return;
+
+    const pattern = detectPattern(content);
 
     setSaving(true);
 
     const { error } = await supabase.from("journal_entries").insert([
-     {
-  profile_key: "main",
-  prompt_type: activePrompt,
-  title: config.heading,
-  content,
-  emotional_theme: pattern.emotional_theme,
-  dominant_feeling: pattern.dominant_feeling,
-  recommended_coach_mode: pattern.recommended_coach_mode,
-  recommended_prompt: pattern.recommended_prompt,
-},
+      {
+        profile_key: "main",
+        prompt_type: activePrompt,
+        title: config.heading,
+        content,
+        emotional_theme: pattern.emotional_theme,
+        recommended_coach_mode: pattern.recommended_coach_mode,
+        recommended_prompt: pattern.recommended_prompt,
+      },
     ]);
 
     setSaving(false);
@@ -222,8 +230,7 @@ const pattern = detectPattern(content);
           <h1 style={styles.title}>Journal</h1>
 
           <p style={styles.subtitle}>
-            A space to reflect, process, slow things down, and understand what
-            your mind and body are carrying.
+            Slow things down. Reflect gently. Notice what your mind and body may be carrying.
           </p>
 
           <div style={styles.promptGrid}>
@@ -232,7 +239,10 @@ const pattern = detectPattern(content);
                 key={prompt.id}
                 onClick={() => {
                   setActivePrompt(prompt.id);
+                  setStep(0);
+                  setResponses({});
                   setSaved(false);
+                  setPatternResult(null);
                 }}
                 style={{
                   ...styles.promptCard,
@@ -260,67 +270,73 @@ const pattern = detectPattern(content);
           </div>
 
           <div style={styles.panel}>
+            <div style={styles.progressRow}>
+              {config.prompts.map((_, index) => (
+                <div
+                  key={index}
+                  style={{
+                    ...styles.progressDot,
+                    opacity: index <= step ? 1 : 0.25,
+                  }}
+                />
+              ))}
+            </div>
+
             <h2 style={styles.panelTitle}>{config.heading}</h2>
 
             <p style={styles.panelIntro}>{config.intro}</p>
 
-            {activePrompt === "free" ? (
-              <textarea
-                style={styles.bigTextarea}
-                value={freeText}
-                onChange={(e) => setFreeText(e.target.value)}
-                placeholder="Write whatever feels important..."
-              />
-            ) : (
-              <>
-                {config.prompts.map((prompt, index) => (
-                  <div key={index} style={styles.questionBlock}>
-                    <label style={styles.label}>{prompt}</label>
+            <label style={styles.label}>{currentPrompt}</label>
 
-                    <textarea
-                      style={styles.textarea}
-                      value={responses[index] || ""}
-                      onChange={(e) =>
-                        updateResponse(index, e.target.value)
-                      }
-                      placeholder="Write whatever comes up..."
-                    />
-                  </div>
-                ))}
-              </>
-            )}
+            <textarea
+              style={styles.textarea}
+              value={responses[step] || ""}
+              onChange={(e) => updateResponse(e.target.value)}
+              placeholder="Write whatever comes up..."
+            />
 
-            <button style={styles.saveButton} onClick={saveJournal}>
-              {saving
-                ? "Saving..."
-                : saved
-                ? "Saved to Coach memory ✓"
-                : "Save reflection"}
-            </button>
+            <div style={styles.buttonRow}>
+              {step > 0 && (
+                <button style={styles.secondaryButton} onClick={previousStep}>
+                  Back
+                </button>
+              )}
+
+              {step < config.prompts.length - 1 ? (
+                <button style={styles.mainButton} onClick={nextStep}>
+                  Continue
+                </button>
+              ) : (
+                <button style={styles.mainButton} onClick={saveJournal}>
+                  {saving
+                    ? "Saving..."
+                    : saved
+                    ? "Saved ✓"
+                    : "Save reflection"}
+                </button>
+              )}
+            </div>
           </div>
-{patternResult && (
-  <div style={styles.insightCard}>
-    <p style={styles.insightLabel}>Pattern noticed</p>
 
-    <p style={styles.insightText}>
-      This reflection seems connected to{" "}
-      <strong>{patternResult.emotional_theme}</strong>.
-    </p>
+          {patternResult && (
+            <div style={styles.insightCard}>
+              <p style={styles.insightLabel}>Pattern noticed</p>
 
-    <p style={styles.insightText}>
-      Suggested next step:
-      <strong>
-        {" "}
-        {patternResult.recommended_coach_mode}
-      </strong>{" "}
-      — {patternResult.recommended_prompt}
-    </p>
-  </div>
-)}
-          <p style={styles.disclaimer}>
-            Root Health offers emotional and lifestyle support. It is not a
-            replacement for therapy, crisis support, or medical care.
-          </p>
+              <p style={styles.insightText}>
+                This reflection seems connected to{" "}
+                <strong>{patternResult.emotional_theme}</strong>.
+              </p>
+
+              <p style={styles.insightText}>
+                Suggested next step:
+                <strong>
+                  {" "}
+                  {patternResult.recommended_coach_mode}
+                </strong>{" "}
+                — {patternResult.recommended_prompt}
+              </p>
+            </div>
+          )}
         </section>
       </main>
     </>
@@ -338,7 +354,7 @@ const styles = {
 
   shell: {
     width: "100%",
-    maxWidth: "1000px",
+    maxWidth: "920px",
     background: "rgba(255,255,255,0.88)",
     borderRadius: "34px",
     padding: "34px",
@@ -360,11 +376,10 @@ const styles = {
 
   subtitle: {
     textAlign: "center",
-    maxWidth: "720px",
+    maxWidth: "700px",
     margin: "0 auto 30px",
     color: "#666",
     lineHeight: "1.7",
-    fontSize: "16px",
   },
 
   promptGrid: {
@@ -397,97 +412,103 @@ const styles = {
   panel: {
     background: "#FFFFFF",
     borderRadius: "28px",
-    padding: "28px",
+    padding: "34px",
     boxShadow: "0 12px 34px rgba(0,0,0,0.05)",
   },
 
+  progressRow: {
+    display: "flex",
+    gap: "8px",
+    marginBottom: "26px",
+  },
+
+  progressDot: {
+    width: "12px",
+    height: "12px",
+    borderRadius: "999px",
+    background: "#1A1A1A",
+    transition: "0.3s ease",
+  },
+
   panelTitle: {
-    marginBottom: "8px",
-    fontSize: "28px",
+    fontSize: "30px",
+    marginBottom: "10px",
     color: "#1A1A1A",
   },
 
   panelIntro: {
     color: "#666",
-    lineHeight: "1.7",
-    marginBottom: "24px",
-  },
-
-  questionBlock: {
-    marginBottom: "22px",
+    lineHeight: "1.8",
+    marginBottom: "28px",
   },
 
   label: {
     display: "block",
-    marginBottom: "10px",
+    marginBottom: "14px",
     fontWeight: "700",
     color: "#333",
+    fontSize: "18px",
   },
 
   textarea: {
     width: "100%",
-    minHeight: "110px",
-    border: "1px solid #E6E2DA",
-    borderRadius: "18px",
-    padding: "16px",
-    fontSize: "15px",
-    resize: "vertical",
-    outline: "none",
-    boxSizing: "border-box",
-    lineHeight: "1.6",
-  },
-
-  bigTextarea: {
-    width: "100%",
-    minHeight: "320px",
+    minHeight: "220px",
     border: "1px solid #E6E2DA",
     borderRadius: "22px",
     padding: "18px",
-    fontSize: "15px",
+    fontSize: "16px",
     resize: "vertical",
     outline: "none",
     boxSizing: "border-box",
-    lineHeight: "1.7",
+    lineHeight: "1.8",
   },
 
-  saveButton: {
-    marginTop: "10px",
+  buttonRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: "24px",
+  },
+
+  mainButton: {
     border: "none",
     borderRadius: "18px",
-    padding: "14px 22px",
+    padding: "14px 24px",
     background: "#1A1A1A",
     color: "#FFFFFF",
     cursor: "pointer",
     fontSize: "15px",
   },
 
-  disclaimer: {
-    marginTop: "28px",
-    textAlign: "center",
-    color: "#777",
-    fontSize: "13px",
-    lineHeight: "1.6",
+  secondaryButton: {
+    border: "none",
+    borderRadius: "18px",
+    padding: "14px 24px",
+    background: "#EDE9E1",
+    color: "#333",
+    cursor: "pointer",
+    fontSize: "15px",
   },
+
   insightCard: {
-  marginTop: "24px",
-  background: "#F7F5F2",
-  borderRadius: "22px",
-  padding: "22px",
-  border: "1px solid #E6E2DA",
-},
+    marginTop: "26px",
+    background: "#F7F5F2",
+    borderRadius: "24px",
+    padding: "24px",
+    border: "1px solid #E6E2DA",
+  },
 
-insightLabel: {
-  fontSize: "12px",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "#777",
-  marginBottom: "10px",
-  fontWeight: "700",
-},
+  insightLabel: {
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    color: "#777",
+    marginBottom: "12px",
+    fontWeight: "700",
+  },
 
-insightText: {
-  color: "#333",
-  lineHeight: "1.7",
-  marginBottom: "10px",
-},
+  insightText: {
+    color: "#333",
+    lineHeight: "1.8",
+    marginBottom: "10px",
+  },
 };
