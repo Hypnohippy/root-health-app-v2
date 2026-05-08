@@ -97,7 +97,8 @@ What’s been most out of sync lately?`,
 ];
 
 function buildWelcome(name, history) {
-  const greeting = name ? `Welcome back, ${name}.` : "Welcome back.";
+  const cleanName = String(name || "").trim();
+const greeting = cleanName ? `Welcome back, ${cleanName}.` : "Welcome back.";
 
   if (!history || history.length === 0) {
     return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
