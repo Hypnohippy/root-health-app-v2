@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-
+const quickCheckIns = [
+  { emoji: "😔", label: "Heavy" },
+  { emoji: "⚡", label: "Wired" },
+  { emoji: "🌫", label: "Foggy" },
+  { emoji: "😤", label: "Pressured" },
+  { emoji: "🧠", label: "Racing thoughts" },
+  { emoji: "😞", label: "Flat" },
+  { emoji: "😌", label: "Calm" },
+];
 const prompts = [
   { id: "free", title: "Free reflection", subtitle: "Write freely without structure.", icon: "✍️" },
   { id: "guilt", title: "Guilt & self-pressure", subtitle: "Separate responsibility from self-attack.", icon: "🧠" },
@@ -93,6 +101,32 @@ export default function JournalPage() {
   const [saved, setSaved] = useState(false);
   const [patternResult, setPatternResult] = useState(null);
   const [entries, setEntries] = useState([]);
+  const saveQuickCheckIn = async (checkIn) => {
+  setSelectedCheckIn(checkIn);
+
+  const pattern = detectPattern(checkIn.label);
+
+  const { error } = await supabase.from("journal_entries").insert([
+    {
+      profile_key: "main",
+      prompt_type: "quick_check_in",
+      title: "Quick emotional check-in",
+      content: checkIn.label,
+      emotional_theme: pattern.emotional_theme,
+      recommended_coach_mode: pattern.recommended_coach_mode,
+      recommended_prompt: pattern.recommended_prompt,
+    },
+  ]);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  setPatternResult(pattern);
+
+  await loadEntries();
+};
   const [openEntry, setOpenEntry] = useState(null);
 
   const config = getPromptStructure(activePrompt);
@@ -166,7 +200,34 @@ export default function JournalPage() {
           <p style={styles.subtitle}>
             Slow things down. Reflect gently. Notice what your mind and body may be carrying.
           </p>
+<div style={styles.checkInPanel}>
+  <p style={styles.checkInTitle}>
+    Quick check-in
+  </p>
 
+  <div style={styles.checkInRow}>
+    {quickCheckIns.map((item) => (
+      <button
+        key={item.label}
+        style={{
+          ...styles.checkInButton,
+          background:
+            selectedCheckIn?.label === item.label
+              ? "#1A1A1A"
+              : "#FFFFFF",
+          color:
+            selectedCheckIn?.label === item.label
+              ? "#FFFFFF"
+              : "#1A1A1A",
+        }}
+        onClick={() => saveQuickCheckIn(item)}
+      >
+        <span style={styles.checkInEmoji}>{item.emoji}</span>
+        <span>{item.label}</span>
+      </button>
+    ))}
+  </div>
+</div>
           <div style={styles.promptGrid}>
             {prompts.map((prompt) => (
               <button
@@ -320,4 +381,41 @@ const styles = {
   entryMeta: { color: "#777", fontSize: "13px", margin: "6px 0" },
   entryNext: { color: "#333", fontSize: "14px", margin: "8px 0 0" },
   openEntry: { marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #E6E2DA", color: "#333", whiteSpace: "pre-line", lineHeight: "1.7" },
+  checkInPanel: {
+  background: "#FFFFFF",
+  borderRadius: "24px",
+  padding: "22px",
+  marginBottom: "26px",
+  boxShadow: "0 10px 28px rgba(0,0,0,0.05)",
+},
+
+checkInTitle: {
+  fontSize: "14px",
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "#777",
+  marginBottom: "16px",
+  fontWeight: "700",
+},
+
+checkInRow: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "10px",
+},
+
+checkInButton: {
+  border: "1px solid #E6E2DA",
+  borderRadius: "999px",
+  padding: "12px 16px",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  transition: "0.2s ease",
+},
+
+checkInEmoji: {
+  fontSize: "18px",
+},
 };
