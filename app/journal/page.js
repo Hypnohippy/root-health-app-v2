@@ -101,6 +101,8 @@ export default function JournalPage() {
   const [saved, setSaved] = useState(false);
   const [patternResult, setPatternResult] = useState(null);
   const [entries, setEntries] = useState([]);
+  const [openEntry, setOpenEntry] = useState(null);
+const [selectedCheckIn, setSelectedCheckIn] = useState(null);
   const saveQuickCheckIn = async (checkIn) => {
   setSelectedCheckIn(checkIn);
 
@@ -128,7 +130,8 @@ export default function JournalPage() {
   await loadEntries();
 };
   const [openEntry, setOpenEntry] = useState(null);
-
+const [selectedCheckIn, setSelectedCheckIn] = useState(null);
+  
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
 
