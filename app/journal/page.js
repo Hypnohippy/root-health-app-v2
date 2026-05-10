@@ -129,9 +129,7 @@ const [selectedCheckIn, setSelectedCheckIn] = useState(null);
 
   await loadEntries();
 };
-  const [openEntry, setOpenEntry] = useState(null);
-const [selectedCheckIn, setSelectedCheckIn] = useState(null);
-  
+
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
 
