@@ -104,13 +104,19 @@ function buildWelcome(name, history = [], mindEntries = [], journalEntries = [])
   const latestMind = Array.isArray(mindEntries) ? mindEntries[0] : null;
   const latestBody = Array.isArray(history) ? history[0] : null;
 
-  if (latestJournal) {
-    const theme = latestJournal.emotional_theme || latestJournal.title || "a recent reflection";
+ if (latestJournal) {
+  const theme = latestJournal.emotional_theme || "";
 
+  if (theme && theme !== "general reflection") {
     return `${greeting} Your recent reflection seemed connected to ${theme}.
 
 Do you want to explore that, use a Mind & Mood tool, or focus somewhere else?`;
   }
+
+  return `${greeting} I can see you added a recent reflection.
+
+Do you want to explore it, use a Mind & Mood tool, or focus somewhere else?`;
+}
 
   if (latestMind) {
     const emotion = latestMind.emotion || "something emotional";
