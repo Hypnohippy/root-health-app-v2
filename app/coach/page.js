@@ -96,26 +96,47 @@ What’s been most out of sync lately?`,
   },
 ];
 
-function buildWelcome(name, history) {
+function buildWelcome(name, history = [], mindEntries = [], journalEntries = []) {
   const cleanName = String(name || "").trim();
-const greeting = cleanName ? `Welcome back, ${cleanName}.` : "Welcome back.";
+  const greeting = cleanName ? `Welcome back, ${cleanName}.` : "Welcome back.";
 
-  if (!history || history.length === 0) {
-    return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
+  const latestJournal = Array.isArray(journalEntries) ? journalEntries[0] : null;
+  const latestMind = Array.isArray(mindEntries) ? mindEntries[0] : null;
+  const latestBody = Array.isArray(history) ? history[0] : null;
+
+  if (latestJournal) {
+    const theme = latestJournal.emotional_theme || latestJournal.title || "a recent reflection";
+
+    return `${greeting} Your recent reflection seemed connected to ${theme}.
+
+Do you want to explore that, use a Mind & Mood tool, or focus somewhere else?`;
   }
 
-  const latest = history[0];
-  const signal = latest.signal || "your body signals";
+  if (latestMind) {
+    const emotion = latestMind.emotion || "something emotional";
+    const thought = latestMind.automatic_thought || "a recent pattern";
 
-  return `${greeting} Last time we were looking at ${signal}.
+    return `${greeting} Last time, you were working with ${emotion.toLowerCase()} and “${thought}”.
+
+Do you want to continue with that, or focus somewhere else?`;
+  }
+
+  if (latestBody) {
+    const signal = latestBody.signal || "your body signals";
+
+    return `${greeting} Last time we were looking at ${signal}.
 
 Do you want to explore that, or focus on something else?`;
+  }
+
+  return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
 }
 export default function CoachPage() {
 const [name, setName] = useState("");
 const [profile, setProfile] = useState(null);
 const [history, setHistory] = useState([]);
   const [mindEntries, setMindEntries] = useState([]);
+  const [journalEntries, setJournalEntries] = useState([]);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [coachMode, setCoachMode] = useState("");
@@ -163,12 +184,24 @@ const { data: mindData } = await supabase
   .select("*")
   .order("created_at", { ascending: false })
   .limit(5);
+const { data: journalData } = await supabase
+  .from("journal_entries")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(5);
 
+const journalRows = Array.isArray(journalData) ? journalData : [];
+setJournalEntries(journalRows);
 setMindEntries(Array.isArray(mindData) ? mindData : []);
       setMessages([
         {
           role: "coach",
-          content: buildWelcome(displayName, rows),
+          content: buildWelcome(
+  displayName,
+  rows,
+  Array.isArray(mindData) ? mindData : [],
+  journalRows
+),
         },
       ]);
     };
