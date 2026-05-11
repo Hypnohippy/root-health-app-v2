@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
+
 const quickCheckIns = [
   { emoji: "😔", label: "Heavy" },
   { emoji: "⚡", label: "Wired" },
@@ -12,6 +13,7 @@ const quickCheckIns = [
   { emoji: "😞", label: "Flat" },
   { emoji: "😌", label: "Calm" },
 ];
+
 const prompts = [
   { id: "free", title: "Free reflection", subtitle: "Write freely without structure.", icon: "✍️" },
   { id: "guilt", title: "Guilt & self-pressure", subtitle: "Separate responsibility from self-attack.", icon: "🧠" },
@@ -23,16 +25,20 @@ const prompts = [
 function detectPattern(text = "") {
   const lower = text.toLowerCase();
 
-  if (lower.includes("anxious") || lower.includes("anxiety") || lower.includes("panic") || lower.includes("overwhelm")) {
+  if (lower.includes("anxious") || lower.includes("anxiety") || lower.includes("panic") || lower.includes("overwhelm") || lower.includes("racing")) {
     return { emotional_theme: "anxiety", recommended_coach_mode: "Mind & mood", recommended_prompt: "Breathwork or CBT-style reframing" };
   }
 
-  if (lower.includes("guilt") || lower.includes("shame") || lower.includes("pressure")) {
+  if (lower.includes("guilt") || lower.includes("shame") || lower.includes("pressure") || lower.includes("pressured")) {
     return { emotional_theme: "guilt & pressure", recommended_coach_mode: "Mind & mood", recommended_prompt: "CBT-style reframing" };
   }
 
   if (lower.includes("grief") || lower.includes("loss") || lower.includes("heavy")) {
     return { emotional_theme: "grief", recommended_coach_mode: "Mind & mood", recommended_prompt: "Guided journaling" };
+  }
+
+  if (lower.includes("flat") || lower.includes("foggy") || lower.includes("tired")) {
+    return { emotional_theme: "low energy", recommended_coach_mode: "Lifestyle", recommended_prompt: "Energy and routine review" };
   }
 
   return { emotional_theme: "general reflection", recommended_coach_mode: "Lifestyle", recommended_prompt: "Guided journaling" };
@@ -51,6 +57,7 @@ function getPromptStructure(type) {
           "What would you say to someone else in this position?",
         ],
       };
+
     case "anxiety":
       return {
         heading: "Anxiety & overwhelm",
@@ -62,6 +69,7 @@ function getPromptStructure(type) {
           "What would help your nervous system feel safer?",
         ],
       };
+
     case "grief":
       return {
         heading: "Grief & emotional heaviness",
@@ -73,6 +81,7 @@ function getPromptStructure(type) {
           "What do you need more of at the moment?",
         ],
       };
+
     case "clarity":
       return {
         heading: "Clarity & direction",
@@ -84,6 +93,7 @@ function getPromptStructure(type) {
           "What is one honest next step?",
         ],
       };
+
     default:
       return {
         heading: "Free reflection",
@@ -102,33 +112,7 @@ export default function JournalPage() {
   const [patternResult, setPatternResult] = useState(null);
   const [entries, setEntries] = useState([]);
   const [openEntry, setOpenEntry] = useState(null);
-const [selectedCheckIn, setSelectedCheckIn] = useState(null);
-  const saveQuickCheckIn = async (checkIn) => {
-  setSelectedCheckIn(checkIn);
-
-  const pattern = detectPattern(checkIn.label);
-
-  const { error } = await supabase.from("journal_entries").insert([
-    {
-      profile_key: "main",
-      prompt_type: "quick_check_in",
-      title: "Quick emotional check-in",
-      content: checkIn.label,
-      emotional_theme: pattern.emotional_theme,
-      recommended_coach_mode: pattern.recommended_coach_mode,
-      recommended_prompt: pattern.recommended_prompt,
-    },
-  ]);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  setPatternResult(pattern);
-
-  await loadEntries();
-};
+  const [selectedCheckIn, setSelectedCheckIn] = useState(null);
 
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
@@ -145,6 +129,32 @@ const [selectedCheckIn, setSelectedCheckIn] = useState(null);
       .limit(8);
 
     setEntries(Array.isArray(data) ? data : []);
+  };
+
+  const saveQuickCheckIn = async (checkIn) => {
+    setSelectedCheckIn(checkIn);
+
+    const pattern = detectPattern(checkIn.label);
+
+    const { error } = await supabase.from("journal_entries").insert([
+      {
+        profile_key: "main",
+        prompt_type: "quick_check_in",
+        title: "Quick emotional check-in",
+        content: checkIn.label,
+        emotional_theme: pattern.emotional_theme,
+        recommended_coach_mode: pattern.recommended_coach_mode,
+        recommended_prompt: pattern.recommended_prompt,
+      },
+    ]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setPatternResult(pattern);
+    await loadEntries();
   };
 
   const updateResponse = (value) => {
@@ -196,39 +206,40 @@ const [selectedCheckIn, setSelectedCheckIn] = useState(null);
 
       <main style={styles.page}>
         <section style={styles.shell}>
-          <div style={styles.brandMark}>◯</div>
-          <h1 style={styles.title}>Journal</h1>
-          <p style={styles.subtitle}>
-            Slow things down. Reflect gently. Notice what your mind and body may be carrying.
-          </p>
-<div style={styles.checkInPanel}>
-  <p style={styles.checkInTitle}>
-    Quick check-in
-  </p>
+          <div style={styles.glow} />
 
-  <div style={styles.checkInRow}>
-    {quickCheckIns.map((item) => (
-      <button
-        key={item.label}
-        style={{
-          ...styles.checkInButton,
-          background:
-            selectedCheckIn?.label === item.label
-              ? "#1A1A1A"
-              : "#FFFFFF",
-          color:
-            selectedCheckIn?.label === item.label
-              ? "#FFFFFF"
-              : "#1A1A1A",
-        }}
-        onClick={() => saveQuickCheckIn(item)}
-      >
-        <span style={styles.checkInEmoji}>{item.emoji}</span>
-        <span>{item.label}</span>
-      </button>
-    ))}
-  </div>
-</div>
+          <div style={styles.header}>
+            <div style={styles.brandMark}>◯</div>
+            <p style={styles.kicker}>Root Reflection</p>
+            <h1 style={styles.title}>Journal</h1>
+            <p style={styles.subtitle}>
+              A softer way to unload, notice patterns, and give your mind somewhere safe to land.
+            </p>
+          </div>
+
+          <div style={styles.checkInPanel}>
+            <div>
+              <p style={styles.kicker}>Quick check-in</p>
+              <h2 style={styles.checkInHeading}>How are you arriving right now?</h2>
+            </div>
+
+            <div style={styles.checkInRow}>
+              {quickCheckIns.map((item) => (
+                <button
+                  key={item.label}
+                  style={{
+                    ...styles.checkInButton,
+                    ...(selectedCheckIn?.label === item.label ? styles.checkInButtonActive : {}),
+                  }}
+                  onClick={() => saveQuickCheckIn(item)}
+                >
+                  <span style={styles.checkInEmoji}>{item.emoji}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div style={styles.promptGrid}>
             {prompts.map((prompt) => (
               <button
@@ -242,42 +253,49 @@ const [selectedCheckIn, setSelectedCheckIn] = useState(null);
                 }}
                 style={{
                   ...styles.promptCard,
-                  background: activePrompt === prompt.id ? "#1A1A1A" : "#FFFFFF",
-                  color: activePrompt === prompt.id ? "#FFFFFF" : "#1A1A1A",
+                  ...(activePrompt === prompt.id ? styles.promptCardActive : {}),
                 }}
               >
                 <span style={styles.promptIcon}>{prompt.icon}</span>
                 <strong>{prompt.title}</strong>
-                <span style={{ ...styles.promptSubtitle, color: activePrompt === prompt.id ? "#E5E5E5" : "#666" }}>
-                  {prompt.subtitle}
-                </span>
+                <span style={styles.promptSubtitle}>{prompt.subtitle}</span>
               </button>
             ))}
           </div>
 
-          <div style={styles.panel}>
+          <div style={styles.journeyPanel}>
             <div style={styles.progressRow}>
               {config.prompts.map((_, index) => (
-                <div key={index} style={{ ...styles.progressDot, opacity: index <= step ? 1 : 0.25 }} />
+                <div
+                  key={index}
+                  style={{
+                    ...styles.progressDot,
+                    opacity: index <= step ? 1 : 0.25,
+                  }}
+                />
               ))}
             </div>
 
+            <p style={styles.kicker}>Guided reflection</p>
             <h2 style={styles.panelTitle}>{config.heading}</h2>
             <p style={styles.panelIntro}>{config.intro}</p>
 
             <label style={styles.label}>{currentPrompt}</label>
+
             <textarea
               style={styles.textarea}
               value={responses[step] || ""}
               onChange={(e) => updateResponse(e.target.value)}
-              placeholder="Write whatever comes up..."
+              placeholder="Write a little, or just a few words..."
             />
 
             <div style={styles.buttonRow}>
-              {step > 0 && (
+              {step > 0 ? (
                 <button style={styles.secondaryButton} onClick={() => setStep(step - 1)}>
                   Back
                 </button>
+              ) : (
+                <span />
               )}
 
               {step < config.prompts.length - 1 ? (
@@ -294,35 +312,44 @@ const [selectedCheckIn, setSelectedCheckIn] = useState(null);
 
           {patternResult && (
             <div style={styles.insightCard}>
-              <p style={styles.insightLabel}>Pattern noticed</p>
+              <p style={styles.kicker}>Pattern noticed</p>
+              <h2 style={styles.insightTitle}>{patternResult.emotional_theme}</h2>
               <p style={styles.insightText}>
-                This reflection seems connected to <strong>{patternResult.emotional_theme}</strong>.
-              </p>
-              <p style={styles.insightText}>
-                Suggested next step: <strong>{patternResult.recommended_coach_mode}</strong> — {patternResult.recommended_prompt}
+                Suggested next step: <strong>{patternResult.recommended_coach_mode}</strong> —{" "}
+                {patternResult.recommended_prompt}
               </p>
             </div>
           )}
 
           <div style={styles.historyPanel}>
-            <h2 style={styles.historyTitle}>Recent reflections</h2>
+            <div style={styles.historyHeader}>
+              <div>
+                <p style={styles.kicker}>Memory</p>
+                <h2 style={styles.historyTitle}>Recent reflections</h2>
+              </div>
+            </div>
 
             {entries.length === 0 ? (
               <p style={styles.emptyText}>No reflections saved yet.</p>
             ) : (
               entries.map((entry) => (
-                <button key={entry.id} style={styles.entryCard} onClick={() => setOpenEntry(openEntry?.id === entry.id ? null : entry)}>
-                  <div>
-                    <strong>{entry.title || "Reflection"}</strong>
-                    <p style={styles.entryMeta}>
-                      {entry.emotional_theme || "general reflection"} ·{" "}
-                      {entry.created_at ? new Date(entry.created_at).toLocaleDateString("en-GB") : ""}
-                    </p>
+                <button
+                  key={entry.id}
+                  style={styles.entryCard}
+                  onClick={() => setOpenEntry(openEntry?.id === entry.id ? null : entry)}
+                >
+                  <div style={styles.entryTop}>
+                    <div>
+                      <strong>{entry.title || "Reflection"}</strong>
+                      <p style={styles.entryMeta}>
+                        {entry.emotional_theme || "general reflection"} ·{" "}
+                        {entry.created_at ? new Date(entry.created_at).toLocaleDateString("en-GB") : ""}
+                      </p>
+                    </div>
+                    <span style={styles.entryBadge}>{entry.recommended_coach_mode || "Coach"}</span>
                   </div>
 
-                  <p style={styles.entryNext}>
-                    {entry.recommended_coach_mode} — {entry.recommended_prompt}
-                  </p>
+                  <p style={styles.entryNext}>{entry.recommended_prompt}</p>
 
                   {openEntry?.id === entry.id && (
                     <div style={styles.openEntry}>
@@ -342,81 +369,324 @@ const [selectedCheckIn, setSelectedCheckIn] = useState(null);
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
+    background:
+      "radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 32%), linear-gradient(135deg, #D8CDBB 0%, #F6F1E9 38%, #B9C5BD 100%)",
     display: "flex",
     justifyContent: "center",
-    padding: "24px",
+    padding: "28px",
   },
+
   shell: {
+    position: "relative",
+    overflow: "hidden",
     width: "100%",
-    maxWidth: "920px",
-    background: "rgba(255,255,255,0.88)",
+    maxWidth: "1120px",
+    background: "rgba(255,255,255,0.56)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    backdropFilter: "blur(22px)",
+    borderRadius: "42px",
+    padding: "38px",
+    boxShadow: "0 34px 100px rgba(38,33,25,0.16)",
+  },
+
+  glow: {
+    position: "absolute",
+    top: "-110px",
+    right: "-70px",
+    width: "280px",
+    height: "280px",
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(0,0,0,0.14), rgba(0,0,0,0.02) 70%)",
+  },
+
+  header: {
+    textAlign: "center",
+    position: "relative",
+    zIndex: 2,
+    marginBottom: "28px",
+  },
+
+  brandMark: {
+    fontSize: "46px",
+    marginBottom: "6px",
+  },
+
+  kicker: {
+    margin: "0 0 10px",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    color: "#6F675B",
+    fontWeight: "800",
+  },
+
+  title: {
+    margin: "0 0 12px",
+    fontSize: "48px",
+    color: "#181818",
+    letterSpacing: "-0.04em",
+  },
+
+  subtitle: {
+    maxWidth: "720px",
+    margin: "0 auto",
+    color: "#5A554D",
+    lineHeight: "1.75",
+    fontSize: "17px",
+  },
+
+  checkInPanel: {
+    position: "relative",
+    zIndex: 2,
+    background: "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
+    borderRadius: "34px",
+    padding: "30px",
+    color: "#FFFFFF",
+    marginBottom: "22px",
+    boxShadow: "0 24px 70px rgba(0,0,0,0.18)",
+  },
+
+  checkInHeading: {
+    margin: "0 0 20px",
+    fontSize: "28px",
+  },
+
+  checkInRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+  },
+
+  checkInButton: {
+    border: "1px solid rgba(255,255,255,0.24)",
+    borderRadius: "999px",
+    padding: "12px 16px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    background: "rgba(255,255,255,0.12)",
+    color: "#FFFFFF",
+    backdropFilter: "blur(8px)",
+  },
+
+  checkInButtonActive: {
+    background: "#FFFFFF",
+    color: "#181818",
+  },
+
+  checkInEmoji: {
+    fontSize: "18px",
+  },
+
+  promptGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+    gap: "14px",
+    marginBottom: "22px",
+  },
+
+  promptCard: {
+    border: "1px solid rgba(255,255,255,0.72)",
+    borderRadius: "26px",
+    padding: "22px",
+    cursor: "pointer",
+    background: "rgba(255,255,255,0.66)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    textAlign: "left",
+    boxShadow: "0 14px 34px rgba(0,0,0,0.06)",
+  },
+
+  promptCardActive: {
+    background: "#181818",
+    color: "#FFFFFF",
+  },
+
+  promptIcon: {
+    fontSize: "28px",
+  },
+
+  promptSubtitle: {
+    fontSize: "14px",
+    lineHeight: "1.5",
+    opacity: 0.78,
+  },
+
+  journeyPanel: {
+    background: "rgba(255,255,255,0.78)",
+    border: "1px solid rgba(255,255,255,0.72)",
     borderRadius: "34px",
     padding: "34px",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.08)",
+    backdropFilter: "blur(12px)",
+    boxShadow: "0 18px 48px rgba(43,38,30,0.08)",
   },
-  brandMark: { textAlign: "center", fontSize: "42px", marginBottom: "8px" },
-  title: { textAlign: "center", fontSize: "38px", marginBottom: "10px", color: "#1A1A1A" },
-  subtitle: { textAlign: "center", maxWidth: "700px", margin: "0 auto 30px", color: "#666", lineHeight: "1.7" },
-  promptGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px", marginBottom: "28px" },
-  promptCard: { border: "1px solid #E7E2D9", borderRadius: "24px", padding: "20px", cursor: "pointer", display: "flex", flexDirection: "column", gap: "8px", textAlign: "left" },
-  promptIcon: { fontSize: "28px" },
-  promptSubtitle: { fontSize: "14px", lineHeight: "1.5" },
-  panel: { background: "#FFFFFF", borderRadius: "28px", padding: "34px", boxShadow: "0 12px 34px rgba(0,0,0,0.05)" },
-  progressRow: { display: "flex", gap: "8px", marginBottom: "26px" },
-  progressDot: { width: "12px", height: "12px", borderRadius: "999px", background: "#1A1A1A", transition: "0.3s ease" },
-  panelTitle: { fontSize: "30px", marginBottom: "10px", color: "#1A1A1A" },
-  panelIntro: { color: "#666", lineHeight: "1.8", marginBottom: "28px" },
-  label: { display: "block", marginBottom: "14px", fontWeight: "700", color: "#333", fontSize: "18px" },
-  textarea: { width: "100%", minHeight: "220px", border: "1px solid #E6E2DA", borderRadius: "22px", padding: "18px", fontSize: "16px", resize: "vertical", outline: "none", boxSizing: "border-box", lineHeight: "1.8" },
-  buttonRow: { display: "flex", justifyContent: "space-between", marginTop: "24px" },
-  mainButton: { border: "none", borderRadius: "18px", padding: "14px 24px", background: "#1A1A1A", color: "#FFFFFF", cursor: "pointer", fontSize: "15px" },
-  secondaryButton: { border: "none", borderRadius: "18px", padding: "14px 24px", background: "#EDE9E1", color: "#333", cursor: "pointer", fontSize: "15px" },
-  insightCard: { marginTop: "26px", background: "#F7F5F2", borderRadius: "24px", padding: "24px", border: "1px solid #E6E2DA" },
-  insightLabel: { fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#777", marginBottom: "12px", fontWeight: "700" },
-  insightText: { color: "#333", lineHeight: "1.8", marginBottom: "10px" },
-  historyPanel: { marginTop: "28px", background: "#FFFFFF", borderRadius: "28px", padding: "26px", boxShadow: "0 12px 34px rgba(0,0,0,0.05)" },
-  historyTitle: { fontSize: "24px", marginBottom: "16px", color: "#1A1A1A" },
-  emptyText: { color: "#777" },
-  entryCard: { width: "100%", border: "1px solid #E6E2DA", background: "#FDFCFB", borderRadius: "20px", padding: "18px", marginBottom: "12px", textAlign: "left", cursor: "pointer" },
-  entryMeta: { color: "#777", fontSize: "13px", margin: "6px 0" },
-  entryNext: { color: "#333", fontSize: "14px", margin: "8px 0 0" },
-  openEntry: { marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #E6E2DA", color: "#333", whiteSpace: "pre-line", lineHeight: "1.7" },
-  checkInPanel: {
-  background: "#FFFFFF",
-  borderRadius: "24px",
-  padding: "22px",
-  marginBottom: "26px",
-  boxShadow: "0 10px 28px rgba(0,0,0,0.05)",
-},
 
-checkInTitle: {
-  fontSize: "14px",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "#777",
-  marginBottom: "16px",
-  fontWeight: "700",
-},
+  progressRow: {
+    display: "flex",
+    gap: "8px",
+    marginBottom: "26px",
+  },
 
-checkInRow: {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "10px",
-},
+  progressDot: {
+    width: "12px",
+    height: "12px",
+    borderRadius: "999px",
+    background: "#181818",
+  },
 
-checkInButton: {
-  border: "1px solid #E6E2DA",
-  borderRadius: "999px",
-  padding: "12px 16px",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  transition: "0.2s ease",
-},
+  panelTitle: {
+    fontSize: "32px",
+    margin: "0 0 10px",
+    color: "#181818",
+  },
 
-checkInEmoji: {
-  fontSize: "18px",
-},
+  panelIntro: {
+    color: "#5A554D",
+    lineHeight: "1.8",
+    marginBottom: "28px",
+  },
+
+  label: {
+    display: "block",
+    marginBottom: "14px",
+    fontWeight: "800",
+    color: "#2A2722",
+    fontSize: "18px",
+  },
+
+  textarea: {
+    width: "100%",
+    minHeight: "220px",
+    border: "1px solid rgba(255,255,255,0.8)",
+    borderRadius: "26px",
+    padding: "20px",
+    fontSize: "16px",
+    resize: "vertical",
+    outline: "none",
+    boxSizing: "border-box",
+    lineHeight: "1.8",
+    background: "rgba(255,255,255,0.76)",
+  },
+
+  buttonRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: "24px",
+  },
+
+  mainButton: {
+    border: "none",
+    borderRadius: "20px",
+    padding: "14px 24px",
+    background: "#181818",
+    color: "#FFFFFF",
+    cursor: "pointer",
+    fontSize: "15px",
+  },
+
+  secondaryButton: {
+    border: "none",
+    borderRadius: "20px",
+    padding: "14px 24px",
+    background: "rgba(255,255,255,0.72)",
+    color: "#333",
+    cursor: "pointer",
+    fontSize: "15px",
+  },
+
+  insightCard: {
+    marginTop: "24px",
+    background: "rgba(24,24,24,0.08)",
+    borderRadius: "30px",
+    padding: "26px",
+    border: "1px solid rgba(24,24,24,0.08)",
+  },
+
+  insightTitle: {
+    margin: "0 0 10px",
+    fontSize: "26px",
+    color: "#181818",
+    textTransform: "capitalize",
+  },
+
+  insightText: {
+    margin: 0,
+    color: "#4F4A43",
+    lineHeight: "1.75",
+  },
+
+  historyPanel: {
+    marginTop: "26px",
+    background: "rgba(255,255,255,0.74)",
+    borderRadius: "34px",
+    padding: "30px",
+    boxShadow: "0 18px 48px rgba(43,38,30,0.08)",
+    border: "1px solid rgba(255,255,255,0.72)",
+  },
+
+  historyHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "18px",
+  },
+
+  historyTitle: {
+    margin: 0,
+    fontSize: "26px",
+    color: "#181818",
+  },
+
+  emptyText: {
+    color: "#777",
+  },
+
+  entryCard: {
+    width: "100%",
+    border: "1px solid rgba(255,255,255,0.72)",
+    background: "rgba(255,255,255,0.68)",
+    borderRadius: "24px",
+    padding: "20px",
+    marginBottom: "12px",
+    textAlign: "left",
+    cursor: "pointer",
+  },
+
+  entryTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "16px",
+  },
+
+  entryMeta: {
+    color: "#777",
+    fontSize: "13px",
+    margin: "6px 0",
+  },
+
+  entryBadge: {
+    background: "#181818",
+    color: "#FFFFFF",
+    borderRadius: "999px",
+    padding: "7px 10px",
+    fontSize: "12px",
+    height: "fit-content",
+  },
+
+  entryNext: {
+    color: "#333",
+    fontSize: "14px",
+    margin: "8px 0 0",
+  },
+
+  openEntry: {
+    marginTop: "14px",
+    paddingTop: "14px",
+    borderTop: "1px solid rgba(0,0,0,0.08)",
+    color: "#333",
+    whiteSpace: "pre-line",
+    lineHeight: "1.75",
+  },
 };
