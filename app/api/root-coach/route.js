@@ -55,21 +55,39 @@ function summariseMind(entries = []) {
     )
     .join("\n");
 }
+function summariseJournal(entries = []) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return "No recent journal reflections recorded.";
+  }
 
+  return entries
+    .slice(0, 5)
+    .map((entry) =>
+      [
+        "title: " + (entry.title || "Reflection"),
+        "theme: " + (entry.emotional_theme || "unknown"),
+        "recommended coach mode: " + (entry.recommended_coach_mode || "unknown"),
+        "recommended prompt: " + (entry.recommended_prompt || "unknown"),
+        "content: " + (entry.content || "not recorded"),
+        "created: " + (entry.created_at || "unknown"),
+      ].join(", ")
+    )
+    .join("\n");
+}
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    const {
-      userName,
-      profile,
-      message,
-      history,
-      mindEntries,
-      conversation,
-      coachMode,
-    } = body;
-
+   const {
+  userName,
+  profile,
+  message,
+  history,
+  mindEntries,
+  journalEntries,
+  conversation,
+  coachMode,
+} = body;
     const clean = String(message || "").trim();
 
     if (!clean) {
@@ -155,7 +173,8 @@ ${summariseHistory(history)}
 
 Recent mind work:
 ${summariseMind(mindEntries)}
-
+Recent journal reflections:
+${summariseJournal(journalEntries)}
 Core principle:
 The user should feel guided, understood, and safely supported — not processed through a form.
 
@@ -261,6 +280,10 @@ Example:
 Never turn every conversation into nutrition. Nutrition is one lens, not the whole product.
 
 General response rules:
+- Use recent journal reflections when relevant.
+- If journal reflections show repeated themes like guilt, pressure, anxiety, grief, confusion, or low motivation, gently reference the pattern.
+- Do not overstate certainty. Say "seems connected to" or "has shown up recently".
+- Use journal history to suggest the most relevant coach mode or tool.
 - Answer the user's actual message.
 - Use saved profile, body signals, and mind work as context.
 - Do not diagnose.
