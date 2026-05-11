@@ -240,12 +240,13 @@ setMindEntries(Array.isArray(mindData) ? mindData : []);
         headers: {
           "Content-Type": "application/json",
         },
-     body: JSON.stringify({
+   body: JSON.stringify({
   userName: name,
   profile,
   message: clean,
   history,
   mindEntries,
+  journalEntries,
   conversation: nextMessages.slice(-10),
   coachMode,
 }),
