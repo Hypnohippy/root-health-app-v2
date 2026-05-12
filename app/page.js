@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Nav from "../components/Nav";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
+
 export default function Home() {
   const [latestInsight, setLatestInsight] = useState("");
   const [balanceScore, setBalanceScore] = useState(null);
@@ -19,9 +20,9 @@ export default function Home() {
         .limit(20);
 
       if (!data || data.length === 0) {
-        setLatestInsight("No recent signals yet");
+        setLatestInsight("No recent signals yet.");
         setPatternNote("Start a body check to begin building your pattern.");
-        setTrendNote("");
+        setTrendNote("Root Coach will become more useful as your map grows.");
         setBalanceScore(null);
         return;
       }
@@ -73,28 +74,29 @@ export default function Home() {
 
       const latestAreas = data[0].areas || [];
       setLatestInsight(
-        "Your body has recently been signalling around " +
-          latestAreas.join(", ")
+        latestAreas.length > 0
+          ? "Your body has recently been signalling around " + latestAreas.join(", ") + "."
+          : "Your body has logged a recent signal."
       );
 
       if (top && top[1] >= 3) {
         setPatternNote(
-          `${top[0]} has appeared ${top[1]} times recently, so this may be a developing pattern.`
+          `${top[0]} has appeared ${top[1]} times recently. That may be a developing pattern.`
         );
       } else {
         setPatternNote(
-          "No strong repeated pattern yet. Keep tracking and patterns will emerge."
+          "No strong repeated pattern yet. Keep tracking and the map will sharpen."
         );
       }
 
       if (last24h.length >= 2) {
         if (avg24 > avg7 + 0.5) {
           setTrendNote(
-            "Signals have been stronger in the last 24 hours, suggesting an increase in system load."
+            "Signals have been stronger in the last 24 hours, suggesting increased system load."
           );
         } else if (avg24 < avg7 - 0.5) {
           setTrendNote(
-            "Signals appear to be easing compared to earlier in the week."
+            "Signals appear to be easing compared with earlier in the week."
           );
         } else {
           setTrendNote(
@@ -102,7 +104,7 @@ export default function Home() {
           );
         }
       } else {
-        setTrendNote("Not enough recent data to assess short-term trend.");
+        setTrendNote("Not enough recent data yet to assess short-term trend.");
       }
     };
 
@@ -114,38 +116,74 @@ export default function Home() {
       <Nav />
 
       <main style={styles.page}>
+        <div style={styles.backgroundOrbOne} />
+        <div style={styles.backgroundOrbTwo} />
+
         <section style={styles.shell}>
-         <div style={styles.logoWrap}>
-  <RootEnso size={86} />
-</div>
+          <div style={styles.leftPanel}>
+            <div style={styles.logoWrap}>
+              <RootEnso size={92} />
+            </div>
 
-          <h1 style={styles.title}>Root Health</h1>
-          <p style={styles.subtitle}>How are you feeling today?</p>
+            <p style={styles.kicker}>Root Health</p>
 
-          <div style={styles.grid}>
-            <a href="/body" style={styles.systemButton}>
-              Start Body Check
-            </a>
+            <h1 style={styles.title}>
+              Notice the pattern.
+              <br />
+              Return to yourself.
+            </h1>
 
-            <a href="/coach" style={styles.systemButton}>
-              Open Root Coach
-            </a>
-          </div>
-
-          <div style={styles.panel}>
-            <p style={styles.panelTitle}>Today’s Insight</p>
-
-            <p style={styles.score}>
-              {balanceScore !== null ? `${balanceScore}%` : "—"}
+            <p style={styles.subtitle}>
+              A calm intelligence layer for body signals, emotional reflection,
+              guided coaching and whole-person self-care.
             </p>
 
-            <p style={styles.microText}>System balance</p>
+            <div style={styles.actionGrid}>
+              <a href="/body" style={styles.primaryButton}>
+                Start Body Check
+              </a>
 
-            <p style={styles.response}>{latestInsight}</p>
+              <a href="/coach" style={styles.secondaryButton}>
+                Open Root Coach
+              </a>
+            </div>
 
-            <p style={styles.pattern}>{patternNote}</p>
+            <div style={styles.pathRow}>
+              <a href="/mind" style={styles.pathPill}>Mind</a>
+              <a href="/journal" style={styles.pathPill}>Journal</a>
+              <a href="/insights" style={styles.pathPill}>Insights</a>
+              <a href="/profile" style={styles.pathPill}>Profile</a>
+            </div>
+          </div>
 
-            <p style={styles.trend}>{trendNote}</p>
+          <div style={styles.rightPanel}>
+            <div style={styles.imageCard}>
+              <div style={styles.sunGlow} />
+              <div style={styles.mountainOne} />
+              <div style={styles.mountainTwo} />
+              <div style={styles.ground} />
+              <div style={styles.treeTrunk} />
+              <div style={styles.treeCanopy} />
+              <div style={styles.treeCanopySmall} />
+              <div style={styles.humanFigure} />
+            </div>
+
+            <div style={styles.insightCard}>
+              <div style={styles.insightTop}>
+                <div>
+                  <p style={styles.panelTitle}>Today’s insight</p>
+                  <p style={styles.microText}>System balance</p>
+                </div>
+
+                <p style={styles.score}>
+                  {balanceScore !== null ? `${balanceScore}%` : "—"}
+                </p>
+              </div>
+
+              <p style={styles.response}>{latestInsight}</p>
+              <p style={styles.pattern}>{patternNote}</p>
+              <p style={styles.trend}>{trendNote}</p>
+            </div>
           </div>
         </section>
       </main>
@@ -156,97 +194,305 @@ export default function Home() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
+    position: "relative",
+    overflow: "hidden",
+    background:
+      "radial-gradient(circle at top left, rgba(255,255,255,0.96), transparent 30%), linear-gradient(135deg, #D8CDBB 0%, #F6F1E9 38%, #B9C5BD 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "24px",
+    padding: "32px",
   },
-  logoWrap: {
-  display: "flex",
-  justifyContent: "center",
-  marginBottom: "10px",
-},
+
+  backgroundOrbOne: {
+    position: "absolute",
+    top: "-160px",
+    right: "-120px",
+    width: "420px",
+    height: "420px",
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(255,255,255,0.55), rgba(255,255,255,0.04) 68%)",
+  },
+
+  backgroundOrbTwo: {
+    position: "absolute",
+    bottom: "-180px",
+    left: "-130px",
+    width: "420px",
+    height: "420px",
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(68,84,72,0.18), rgba(68,84,72,0.02) 70%)",
+  },
+
   shell: {
+    position: "relative",
+    zIndex: 2,
     width: "100%",
-    maxWidth: "820px",
-    background: "rgba(255,255,255,0.82)",
-    borderRadius: "28px",
-    padding: "34px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
-    textAlign: "center",
+    maxWidth: "1180px",
+    minHeight: "680px",
+    display: "grid",
+    gridTemplateColumns: "1.02fr 0.98fr",
+    gap: "24px",
+    background: "rgba(255,255,255,0.54)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    backdropFilter: "blur(24px)",
+    borderRadius: "46px",
+    padding: "28px",
+    boxShadow: "0 38px 110px rgba(38,33,25,0.18)",
   },
-  brandMark: {
-    fontSize: "38px",
-    color: "#1A1A1A",
-    marginBottom: "6px",
+
+  leftPanel: {
+    borderRadius: "38px",
+    padding: "48px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    background:
+      "linear-gradient(135deg, rgba(255,255,255,0.70), rgba(255,255,255,0.36))",
+    border: "1px solid rgba(255,255,255,0.72)",
   },
+
+  logoWrap: {
+    display: "flex",
+    marginBottom: "18px",
+  },
+
+  kicker: {
+    margin: "0 0 14px",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.16em",
+    color: "#6F675B",
+    fontWeight: "800",
+  },
+
   title: {
-    fontSize: "34px",
-    margin: "0 0 8px",
-    color: "#1A1A1A",
+    margin: "0 0 20px",
+    fontSize: "58px",
+    lineHeight: "1.02",
+    letterSpacing: "-0.06em",
+    color: "#171717",
   },
+
   subtitle: {
-    color: "#555",
-    fontSize: "17px",
-    marginBottom: "28px",
+    margin: "0 0 32px",
+    maxWidth: "560px",
+    color: "#514C44",
+    fontSize: "18px",
+    lineHeight: "1.75",
   },
-  grid: {
+
+  actionGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "14px",
-    marginBottom: "24px",
+    maxWidth: "470px",
   },
-  systemButton: {
+
+  primaryButton: {
     display: "block",
     textAlign: "center",
-    border: "none",
-    borderRadius: "16px",
-    padding: "18px 12px",
-    cursor: "pointer",
-    fontSize: "15px",
-    background: "#1A1A1A",
+    borderRadius: "999px",
+    padding: "16px 18px",
+    background: "#181818",
     color: "#FFFFFF",
     textDecoration: "none",
+    fontSize: "15px",
+    boxShadow: "0 14px 34px rgba(0,0,0,0.18)",
   },
-  panel: {
-    marginTop: "18px",
-    background: "#FFFFFF",
-    borderRadius: "22px",
-    padding: "24px",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.06)",
+
+  secondaryButton: {
+    display: "block",
+    textAlign: "center",
+    borderRadius: "999px",
+    padding: "16px 18px",
+    background: "rgba(255,255,255,0.72)",
+    color: "#181818",
+    textDecoration: "none",
+    fontSize: "15px",
+    border: "1px solid rgba(255,255,255,0.86)",
   },
-  panelTitle: {
-    fontSize: "20px",
-    fontWeight: "600",
-    margin: "0 0 10px",
+
+  pathRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginTop: "24px",
   },
-  score: {
-    fontSize: "48px",
-    fontWeight: "700",
-    margin: "8px 0 0",
-    color: "#1A1A1A",
-  },
-  microText: {
-    color: "#777",
+
+  pathPill: {
+    borderRadius: "999px",
+    padding: "10px 13px",
+    background: "rgba(255,255,255,0.52)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    color: "#4D473F",
+    textDecoration: "none",
     fontSize: "13px",
-    marginTop: "4px",
   },
+
+  rightPanel: {
+    display: "grid",
+    gridTemplateRows: "1fr auto",
+    gap: "18px",
+  },
+
+  imageCard: {
+    position: "relative",
+    overflow: "hidden",
+    minHeight: "420px",
+    borderRadius: "38px",
+    background:
+      "linear-gradient(180deg, #EED7B1 0%, #C8D2C3 48%, #6D7D68 100%)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    boxShadow: "inset 0 0 80px rgba(255,255,255,0.22)",
+  },
+
+  sunGlow: {
+    position: "absolute",
+    top: "44px",
+    right: "70px",
+    width: "126px",
+    height: "126px",
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(255,243,204,0.96), rgba(255,209,128,0.28) 55%, transparent 72%)",
+  },
+
+  mountainOne: {
+    position: "absolute",
+    left: "-40px",
+    bottom: "108px",
+    width: "70%",
+    height: "220px",
+    background: "rgba(77,92,75,0.54)",
+    clipPath: "polygon(0 100%, 45% 18%, 100% 100%)",
+  },
+
+  mountainTwo: {
+    position: "absolute",
+    right: "-80px",
+    bottom: "94px",
+    width: "78%",
+    height: "250px",
+    background: "rgba(45,65,55,0.44)",
+    clipPath: "polygon(0 100%, 55% 8%, 100% 100%)",
+  },
+
+  ground: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: "150px",
+    background:
+      "linear-gradient(180deg, rgba(81,93,68,0.18), rgba(33,47,38,0.84))",
+  },
+
+  treeTrunk: {
+    position: "absolute",
+    left: "50%",
+    bottom: "82px",
+    width: "18px",
+    height: "132px",
+    background: "#3B2D22",
+    borderRadius: "999px",
+    transform: "translateX(-50%)",
+  },
+
+  treeCanopy: {
+    position: "absolute",
+    left: "50%",
+    bottom: "174px",
+    width: "220px",
+    height: "180px",
+    borderRadius: "48% 52% 50% 50%",
+    background:
+      "radial-gradient(circle at 35% 35%, #7D8B64, #344936 72%)",
+    transform: "translateX(-50%)",
+    boxShadow: "0 18px 60px rgba(0,0,0,0.18)",
+  },
+
+  treeCanopySmall: {
+    position: "absolute",
+    left: "43%",
+    bottom: "236px",
+    width: "130px",
+    height: "100px",
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle at 35% 35%, #A0A977, #485A3D 76%)",
+  },
+
+  humanFigure: {
+    position: "absolute",
+    left: "50%",
+    bottom: "54px",
+    width: "38px",
+    height: "72px",
+    borderRadius: "999px 999px 12px 12px",
+    background: "rgba(20,20,20,0.82)",
+    transform: "translateX(-50%)",
+    boxShadow: "0 18px 40px rgba(0,0,0,0.25)",
+  },
+
+  insightCard: {
+    borderRadius: "34px",
+    padding: "28px",
+    background: "rgba(24,24,24,0.92)",
+    color: "#FFFFFF",
+    boxShadow: "0 24px 70px rgba(0,0,0,0.18)",
+  },
+
+  insightTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "18px",
+    alignItems: "flex-start",
+  },
+
+  panelTitle: {
+    margin: "0 0 6px",
+    color: "#D8CDBB",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    fontWeight: "800",
+  },
+
+  score: {
+    fontSize: "54px",
+    fontWeight: "800",
+    margin: 0,
+    lineHeight: "1",
+  },
+
+  microText: {
+    color: "#E7E0D6",
+    fontSize: "13px",
+    margin: 0,
+  },
+
   response: {
-    color: "#333",
-    lineHeight: "1.6",
+    color: "#FFFFFF",
+    lineHeight: "1.7",
     fontSize: "15px",
     marginTop: "18px",
   },
+
   pattern: {
     marginTop: "12px",
-    color: "#555",
+    color: "#E7E0D6",
     fontSize: "14px",
+    lineHeight: "1.65",
   },
+
   trend: {
     marginTop: "12px",
-    color: "#444",
+    color: "#D8CDBB",
     fontSize: "14px",
+    lineHeight: "1.65",
     fontStyle: "italic",
   },
 };
