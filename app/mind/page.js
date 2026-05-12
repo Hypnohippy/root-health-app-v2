@@ -99,10 +99,8 @@ export default function MindPage() {
 
   const generateReframe = () => {
     const generatedReframe = buildReframe({
-      situation,
       automaticThought,
       emotion,
-      intensity,
     });
 
     const generatedNextStep = buildNextStep({ emotion });
@@ -164,16 +162,29 @@ export default function MindPage() {
 
       <main style={styles.page}>
         <section style={styles.shell}>
-          <div style={styles.brandMark}>◯</div>
+          <div style={styles.glow} />
 
-          <h1 style={styles.title}>Mind & Emotions</h1>
-          <p style={styles.subtitle}>
-            Practical support for calming the nervous system, reframing thoughts,
-            and understanding emotional patterns.
-          </p>
+          <div style={styles.header}>
+            <div style={styles.brandMark}>◯</div>
+            <p style={styles.kicker}>Root Mind Library</p>
+            <h1 style={styles.title}>Mind & Emotions</h1>
+            <p style={styles.subtitle}>
+              Guided emotional tools for calming the nervous system, reframing
+              thoughts, grounding the body, and choosing steadier action.
+            </p>
+          </div>
 
           {!activeTool && (
             <>
+              <div style={styles.heroCard}>
+                <p style={styles.heroLabel}>Intervention library</p>
+                <h2 style={styles.heroTitle}>Choose the support your system needs.</h2>
+                <p style={styles.heroText}>
+                  Start small. Use one tool. Save what helped so Root Coach can
+                  understand the pattern over time.
+                </p>
+              </div>
+
               <div style={styles.grid}>
                 {tools.map((tool) => (
                   <button
@@ -189,22 +200,25 @@ export default function MindPage() {
               </div>
 
               <p style={styles.disclaimer}>
-                Root Health offers lifestyle and emotional support. It is not a replacement
-                for medical care or therapy.
+                Root Health offers lifestyle and emotional support. It is not a
+                replacement for medical care, therapy, or crisis support.
               </p>
             </>
           )}
 
+          {activeTool && (
+            <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+              ← Back to tools
+            </button>
+          )}
+
           {activeTool === "cbt" && (
             <div style={styles.panel}>
-              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-                ← Back to tools
-              </button>
-
+              <p style={styles.kicker}>Thought work</p>
               <h2 style={styles.panelTitle}>CBT-style reframing</h2>
               <p style={styles.panelSubtitle}>
-                This tool helps you notice the thought underneath the emotion and
-                create a steadier response.
+                Notice the thought underneath the emotion, then create a little
+                space around it.
               </p>
 
               <label style={styles.label}>1. What happened?</label>
@@ -228,7 +242,7 @@ export default function MindPage() {
                 style={styles.input}
                 value={emotion}
                 onChange={(e) => setEmotion(e.target.value)}
-                placeholder="Example: anxiety, shame, frustration, sadness..."
+                placeholder="Example: anxiety, shame, frustration..."
               />
 
               <label style={styles.label}>4. How strong was it?</label>
@@ -239,7 +253,7 @@ export default function MindPage() {
                     onClick={() => setIntensity(String(score))}
                     style={{
                       ...styles.scoreButton,
-                      background: intensity === String(score) ? "#1A1A1A" : "#F0EDE7",
+                      background: intensity === String(score) ? "#181818" : "rgba(255,255,255,0.7)",
                       color: intensity === String(score) ? "#FFFFFF" : "#333333",
                     }}
                   >
@@ -269,117 +283,92 @@ export default function MindPage() {
           )}
 
           {activeTool === "breathwork" && (
-            <div style={styles.panel}>
-              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-                ← Back to tools
-              </button>
+            <ToolExperience
+              kicker="Body regulation"
+              title="Breathwork"
+              subtitle="A short breath pattern to settle activation."
+              body={`Inhale slowly for 4 seconds
+Hold for 2 seconds
+Exhale gently for 6 seconds
 
-              <h2 style={styles.panelTitle}>Breathwork</h2>
-              <p style={styles.panelSubtitle}>Let’s settle the system first.</p>
+Repeat for 2–3 minutes.
 
-              <div style={styles.resultCard}>
-                <p style={styles.resultText}>
-                  Inhale slowly for 4 seconds{"\n"}
-                  Hold for 2 seconds{"\n"}
-                  Exhale gently for 6 seconds{"\n\n"}
-                  Repeat for 2–3 minutes. Let the exhale be longer than the inhale.
-                </p>
-
-                <button
-                  style={styles.saveButton}
-                  onClick={() =>
-                    saveSimpleTool(
-                      "Breathwork",
-                      "The user completed a 4-2-6 breathing reset.",
-                      "Check whether the body feels slightly calmer, slower, or less activated."
-                    )
-                  }
-                >
-                  {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
-                </button>
-              </div>
-            </div>
+Let the exhale be longer than the inhale. That is the signal to the body that it can begin to settle.`}
+              saving={saving}
+              saved={saved}
+              onSave={() =>
+                saveSimpleTool(
+                  "Breathwork",
+                  "The user completed a 4-2-6 breathing reset.",
+                  "Check whether the body feels slightly calmer, slower, or less activated."
+                )
+              }
+            />
           )}
 
           {activeTool === "grounding" && (
-            <div style={styles.panel}>
-              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-                ← Back to tools
-              </button>
+            <ToolExperience
+              kicker="Present moment"
+              title="EMDR-informed grounding"
+              subtitle="A simple orientation exercise for safety and presence."
+              body={`Look around and name:
 
-              <h2 style={styles.panelTitle}>EMDR-informed grounding</h2>
-              <p style={styles.panelSubtitle}>Let’s orient back to the present moment.</p>
+5 things you can see
+4 things you can feel
+3 things you can hear
+2 things you can smell
+1 thing you can taste
 
-              <div style={styles.resultCard}>
-                <p style={styles.resultText}>
-                  Look around and name:{"\n"}
-                  5 things you can see{"\n"}
-                  4 things you can feel{"\n"}
-                  3 things you can hear{"\n"}
-                  2 things you can smell{"\n"}
-                  1 thing you can taste{"\n\n"}
-                  There’s no rush — just let your attention land.
-                </p>
-
-                <button
-                  style={styles.saveButton}
-                  onClick={() =>
-                    saveSimpleTool(
-                      "EMDR-informed grounding",
-                      "The user completed a 5-4-3-2-1 grounding exercise.",
-                      "Check whether the user feels more present, safer, or less overwhelmed."
-                    )
-                  }
-                >
-                  {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
-                </button>
-              </div>
-            </div>
+There is no rush. Let your attention land on what is here now.`}
+              saving={saving}
+              saved={saved}
+              onSave={() =>
+                saveSimpleTool(
+                  "EMDR-informed grounding",
+                  "The user completed a 5-4-3-2-1 grounding exercise.",
+                  "Check whether the user feels more present, safer, or less overwhelmed."
+                )
+              }
+            />
           )}
 
           {activeTool === "calming" && (
-            <div style={styles.panel}>
-              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-                ← Back to tools
-              </button>
+            <ToolExperience
+              kicker="Calming journey"
+              title="Hypnotherapy-style calming"
+              subtitle="A gentle inner reset for the body and mind."
+              body={`Close your eyes if comfortable.
 
-              <h2 style={styles.panelTitle}>Hypnotherapy-style calming</h2>
-              <p style={styles.panelSubtitle}>A gentle reset for the body and mind.</p>
+Take a slow breath in… and out.
 
-              <div style={styles.resultCard}>
-                <p style={styles.resultText}>
-                  Close your eyes if comfortable.{"\n\n"}
-                  Take a slow breath in… and out.{"\n\n"}
-                  Imagine a place where your body feels safe and at ease.{"\n"}
-                  Let your shoulders drop. Let your jaw soften. Let your breathing slow.{"\n\n"}
-                  There’s nothing to force here — just allow your system to settle.
-                </p>
+Imagine a place where your body feels safe and at ease. It does not have to be real.
 
-                <button
-                  style={styles.saveButton}
-                  onClick={() =>
-                    saveSimpleTool(
-                      "Hypnotherapy-style calming",
-                      "The user completed a gentle calming visualisation.",
-                      "Check whether the user feels softer, calmer, safer, or more settled."
-                    )
-                  }
-                >
-                  {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
-                </button>
-              </div>
-            </div>
+Let the image arrive slowly.
+
+Let your shoulders drop.
+Let your jaw soften.
+Let your breathing slow.
+
+There is nothing to force here. Just allow your system to settle a little more with each out-breath.`}
+              saving={saving}
+              saved={saved}
+              onSave={() =>
+                saveSimpleTool(
+                  "Hypnotherapy-style calming",
+                  "The user completed a gentle calming visualisation.",
+                  "Check whether the user feels softer, calmer, safer, or more settled."
+                )
+              }
+            />
           )}
 
           {activeTool === "journal" && (
             <div style={styles.panel}>
-              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-                ← Back to tools
-              </button>
-
+              <p style={styles.kicker}>Reflection</p>
               <h2 style={styles.panelTitle}>Journaling prompts</h2>
               <p style={styles.panelSubtitle}>
-                Reflect without spiralling. Just write what is here.
+                This is a light bridge into reflection. The full Journal page
+                holds the deeper history and patterns.
               </p>
 
               <label style={styles.label}>What is on your mind?</label>
@@ -387,7 +376,7 @@ export default function MindPage() {
                 style={styles.textarea}
                 value={journalText}
                 onChange={(e) => setJournalText(e.target.value)}
-                placeholder="Start writing whatever is on your mind..."
+                placeholder="Write a little, or just a few words..."
               />
 
               <button
@@ -400,7 +389,8 @@ export default function MindPage() {
                     emotion: "",
                     intensity: "",
                     reframe: journalText,
-                    next_step: "Reflect on what repeated, what softened, and what needs attention next.",
+                    next_step:
+                      "Reflect on what repeated, what softened, and what needs attention next.",
                   })
                 }
               >
@@ -411,29 +401,27 @@ export default function MindPage() {
 
           {activeTool === "values" && (
             <div style={styles.panel}>
-              <button style={styles.backButton} onClick={() => setActiveTool(null)}>
-                ← Back to tools
-              </button>
-
+              <p style={styles.kicker}>Aligned action</p>
               <h2 style={styles.panelTitle}>Values & behaviour change</h2>
               <p style={styles.panelSubtitle}>
-                Reconnect with what matters and choose one small action.
+                Reconnect with what matters, then choose one small action that
+                moves you towards it.
               </p>
 
-              <label style={styles.label}>What matters to you in this situation?</label>
+              <label style={styles.label}>What matters here?</label>
               <textarea
                 style={styles.textarea}
                 value={valueFocus}
                 onChange={(e) => setValueFocus(e.target.value)}
-                placeholder="Example: being honest, staying calm, protecting my health..."
+                placeholder="Example: honesty, calm, health, family, courage..."
               />
 
-              <label style={styles.label}>What is one small action you can take?</label>
+              <label style={styles.label}>What is one small action?</label>
               <textarea
                 style={styles.textarea}
                 value={valueAction}
                 onChange={(e) => setValueAction(e.target.value)}
-                placeholder="Example: send the message, take a walk, prepare one healthy meal..."
+                placeholder="Example: send the message, take a walk, prepare one meal..."
               />
 
               <button
@@ -460,175 +448,307 @@ export default function MindPage() {
   );
 }
 
+function ToolExperience({ kicker, title, subtitle, body, saving, saved, onSave }) {
+  return (
+    <div style={styles.panel}>
+      <p style={styles.kicker}>{kicker}</p>
+      <h2 style={styles.panelTitle}>{title}</h2>
+      <p style={styles.panelSubtitle}>{subtitle}</p>
+
+      <div style={styles.experienceCard}>
+        <p style={styles.experienceText}>{body}</p>
+      </div>
+
+      <button style={styles.saveButton} onClick={onSave}>
+        {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
+      </button>
+    </div>
+  );
+}
+
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
+    background:
+      "radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 32%), linear-gradient(135deg, #D8CDBB 0%, #F6F1E9 38%, #B9C5BD 100%)",
     display: "flex",
     justifyContent: "center",
-    padding: "24px",
+    padding: "28px",
   },
+
   shell: {
+    position: "relative",
+    overflow: "hidden",
     width: "100%",
-    maxWidth: "960px",
-    background: "rgba(255,255,255,0.86)",
-    borderRadius: "34px",
-    padding: "34px",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.08)",
+    maxWidth: "1120px",
+    background: "rgba(255,255,255,0.56)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    backdropFilter: "blur(22px)",
+    borderRadius: "42px",
+    padding: "38px",
+    boxShadow: "0 34px 100px rgba(38,33,25,0.16)",
+  },
+
+  glow: {
+    position: "absolute",
+    top: "-110px",
+    right: "-70px",
+    width: "280px",
+    height: "280px",
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(0,0,0,0.14), rgba(0,0,0,0.02) 70%)",
+  },
+
+  header: {
     textAlign: "center",
+    position: "relative",
+    zIndex: 2,
+    marginBottom: "28px",
   },
+
   brandMark: {
-    fontSize: "40px",
-    marginBottom: "8px",
+    fontSize: "46px",
+    marginBottom: "6px",
   },
+
+  kicker: {
+    margin: "0 0 10px",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    color: "#6F675B",
+    fontWeight: "800",
+  },
+
   title: {
-    fontSize: "36px",
-    margin: "0 0 8px",
-    color: "#1A1A1A",
+    margin: "0 0 12px",
+    fontSize: "48px",
+    color: "#181818",
+    letterSpacing: "-0.04em",
   },
+
   subtitle: {
-    color: "#555",
-    fontSize: "16px",
-    lineHeight: "1.6",
-    maxWidth: "680px",
-    margin: "0 auto 26px",
+    maxWidth: "760px",
+    margin: "0 auto",
+    color: "#5A554D",
+    lineHeight: "1.75",
+    fontSize: "17px",
   },
+
+  heroCard: {
+    background:
+      "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
+    borderRadius: "34px",
+    padding: "30px",
+    color: "#FFFFFF",
+    marginBottom: "22px",
+    boxShadow: "0 24px 70px rgba(0,0,0,0.18)",
+  },
+
+  heroLabel: {
+    margin: "0 0 12px",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    color: "#D8CDBB",
+    fontWeight: "800",
+  },
+
+  heroTitle: {
+    margin: "0 0 12px",
+    fontSize: "30px",
+  },
+
+  heroText: {
+    margin: 0,
+    lineHeight: "1.75",
+    color: "#E7E0D6",
+  },
+
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-    gap: "14px",
-    marginTop: "20px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "16px",
+    marginBottom: "24px",
   },
+
   toolCard: {
-    border: "1px solid #E6E2DA",
-    borderRadius: "24px",
-    padding: "22px",
-    background: "#FFFFFF",
+    border: "1px solid rgba(255,255,255,0.72)",
+    borderRadius: "28px",
+    padding: "24px",
+    background: "rgba(255,255,255,0.68)",
     cursor: "pointer",
     textAlign: "left",
-    boxShadow: "0 10px 28px rgba(0,0,0,0.05)",
+    boxShadow: "0 14px 34px rgba(0,0,0,0.06)",
     display: "flex",
     flexDirection: "column",
     gap: "8px",
+    backdropFilter: "blur(10px)",
   },
+
   icon: {
-    fontSize: "28px",
+    fontSize: "30px",
   },
+
   toolTitle: {
-    fontSize: "17px",
-    color: "#1A1A1A",
+    fontSize: "18px",
+    color: "#181818",
   },
+
   toolSubtitle: {
     fontSize: "14px",
-    color: "#666",
-    lineHeight: "1.5",
+    color: "#5A554D",
+    lineHeight: "1.55",
   },
+
   disclaimer: {
     marginTop: "24px",
-    color: "#777",
+    color: "#6F675B",
     fontSize: "13px",
-    lineHeight: "1.5",
+    lineHeight: "1.6",
+    textAlign: "center",
   },
-  panel: {
-    marginTop: "22px",
-    background: "#FFFFFF",
-    borderRadius: "28px",
-    padding: "26px",
-    textAlign: "left",
-    boxShadow: "0 14px 36px rgba(0,0,0,0.06)",
-  },
+
   backButton: {
-    border: "none",
-    background: "#F0EDE7",
+    border: "1px solid rgba(255,255,255,0.72)",
+    background: "rgba(255,255,255,0.68)",
     borderRadius: "999px",
-    padding: "9px 14px",
+    padding: "11px 16px",
     cursor: "pointer",
     marginBottom: "18px",
+    color: "#333",
+    backdropFilter: "blur(8px)",
   },
+
+  panel: {
+    background: "rgba(255,255,255,0.78)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    borderRadius: "34px",
+    padding: "34px",
+    textAlign: "left",
+    boxShadow: "0 18px 48px rgba(43,38,30,0.08)",
+    backdropFilter: "blur(12px)",
+  },
+
   panelTitle: {
-    margin: "0 0 8px",
-    fontSize: "26px",
-    color: "#1A1A1A",
+    margin: "0 0 10px",
+    fontSize: "32px",
+    color: "#181818",
   },
+
   panelSubtitle: {
-    color: "#666",
-    lineHeight: "1.6",
-    marginBottom: "22px",
+    color: "#5A554D",
+    lineHeight: "1.75",
+    marginBottom: "24px",
   },
+
   label: {
     display: "block",
-    margin: "18px 0 8px",
-    fontSize: "14px",
-    fontWeight: "700",
-    color: "#333",
+    margin: "20px 0 10px",
+    fontSize: "15px",
+    fontWeight: "800",
+    color: "#2A2722",
   },
+
   textarea: {
     width: "100%",
-    minHeight: "90px",
-    border: "1px solid #E6E2DA",
-    borderRadius: "18px",
-    padding: "14px",
+    minHeight: "110px",
+    border: "1px solid rgba(255,255,255,0.8)",
+    borderRadius: "24px",
+    padding: "18px",
     fontSize: "15px",
     resize: "vertical",
     outline: "none",
     boxSizing: "border-box",
+    lineHeight: "1.75",
+    background: "rgba(255,255,255,0.76)",
   },
+
   input: {
     width: "100%",
-    border: "1px solid #E6E2DA",
-    borderRadius: "18px",
-    padding: "14px",
+    border: "1px solid rgba(255,255,255,0.8)",
+    borderRadius: "24px",
+    padding: "16px",
     fontSize: "15px",
     outline: "none",
     boxSizing: "border-box",
+    background: "rgba(255,255,255,0.76)",
   },
+
   scoreRow: {
     display: "flex",
     flexWrap: "wrap",
     gap: "8px",
   },
+
   scoreButton: {
-    width: "38px",
-    height: "38px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
-    border: "none",
+    border: "1px solid rgba(255,255,255,0.75)",
     cursor: "pointer",
   },
+
   mainButton: {
     marginTop: "22px",
     border: "none",
-    borderRadius: "16px",
-    padding: "14px 22px",
-    background: "#1A1A1A",
+    borderRadius: "20px",
+    padding: "14px 24px",
+    background: "#181818",
     color: "#FFFFFF",
     cursor: "pointer",
     fontSize: "15px",
   },
+
   resultCard: {
     marginTop: "24px",
-    background: "#F7F5F2",
-    borderRadius: "22px",
-    padding: "22px",
+    background: "rgba(24,24,24,0.08)",
+    borderRadius: "28px",
+    padding: "24px",
+    border: "1px solid rgba(24,24,24,0.08)",
   },
+
   resultLabel: {
     margin: "0 0 8px",
-    fontSize: "13px",
-    color: "#777",
+    fontSize: "12px",
+    color: "#6F675B",
     textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    fontWeight: "700",
+    letterSpacing: "0.1em",
+    fontWeight: "800",
   },
+
   resultText: {
     whiteSpace: "pre-line",
-    lineHeight: "1.65",
+    lineHeight: "1.75",
     color: "#333",
     marginBottom: "18px",
   },
+
+  experienceCard: {
+    background:
+      "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
+    color: "#FFFFFF",
+    borderRadius: "30px",
+    padding: "30px",
+    marginTop: "22px",
+    marginBottom: "20px",
+    boxShadow: "0 20px 56px rgba(0,0,0,0.16)",
+  },
+
+  experienceText: {
+    whiteSpace: "pre-line",
+    lineHeight: "1.9",
+    fontSize: "16px",
+    color: "#F2EDE6",
+    margin: 0,
+  },
+
   saveButton: {
     border: "none",
-    borderRadius: "16px",
-    padding: "12px 18px",
-    background: "#1A1A1A",
+    borderRadius: "20px",
+    padding: "14px 22px",
+    background: "#181818",
     color: "#FFFFFF",
     cursor: "pointer",
     fontSize: "14px",
