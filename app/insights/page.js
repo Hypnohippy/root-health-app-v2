@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-
+import RootEnso from "../../components/RootEnso";
 function countBy(items, key) {
   const counts = {};
 
@@ -122,7 +122,9 @@ export default function InsightsPage() {
 
       <main style={styles.page}>
         <section style={styles.shell}>
-          <div style={styles.brandMark}>◯</div>
+          <div style={styles.logoWrap}>
+  <RootEnso size={86} />
+</div>
 
           <h1 style={styles.title}>Insights</h1>
 
@@ -249,7 +251,11 @@ const styles = {
     justifyContent: "center",
     padding: "24px",
   },
-
+logoWrap: {
+  display: "flex",
+  justifyContent: "center",
+  marginBottom: "10px",
+},
   shell: {
     width: "100%",
     maxWidth: "1080px",
