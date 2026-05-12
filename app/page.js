@@ -158,15 +158,13 @@ export default function Home() {
 
           <div style={styles.rightPanel}>
             <div style={styles.imageCard}>
-              <div style={styles.sunGlow} />
-              <div style={styles.mountainOne} />
-              <div style={styles.mountainTwo} />
-              <div style={styles.ground} />
-              <div style={styles.treeTrunk} />
-              <div style={styles.treeCanopy} />
-              <div style={styles.treeCanopySmall} />
-              <div style={styles.humanFigure} />
-            </div>
+  <img
+    src="/visuals/root-home-hero.png"
+    alt="Root Health calm landscape"
+    style={styles.heroImage}
+  />
+  <div style={styles.imageOverlay} />
+</div>
 
             <div style={styles.insightCard}>
               <div style={styles.insightTop}>
@@ -203,7 +201,19 @@ const styles = {
     justifyContent: "center",
     padding: "32px",
   },
+heroImage: {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
+},
 
+imageOverlay: {
+  position: "absolute",
+  inset: 0,
+  background:
+    "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(24,24,24,0.18))",
+},
   backgroundOrbOne: {
     position: "absolute",
     top: "-160px",
