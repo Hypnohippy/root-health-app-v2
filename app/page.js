@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Nav from "../components/Nav";
 import { supabase } from "../lib/supabase";
-
+import RootEnso from "../components/RootEnso";
 export default function Home() {
   const [latestInsight, setLatestInsight] = useState("");
   const [balanceScore, setBalanceScore] = useState(null);
@@ -115,7 +115,9 @@ export default function Home() {
 
       <main style={styles.page}>
         <section style={styles.shell}>
-          <div style={styles.brandMark}>◯</div>
+         <div style={styles.logoWrap}>
+  <RootEnso size={86} />
+</div>
 
           <h1 style={styles.title}>Root Health</h1>
           <p style={styles.subtitle}>How are you feeling today?</p>
@@ -160,6 +162,11 @@ const styles = {
     justifyContent: "center",
     padding: "24px",
   },
+  logoWrap: {
+  display: "flex",
+  justifyContent: "center",
+  marginBottom: "10px",
+},
   shell: {
     width: "100%",
     maxWidth: "820px",
