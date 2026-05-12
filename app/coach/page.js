@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-
+import RootEnso from "../../components/RootEnso";
 const signalToCoach = {
   "racing thoughts": "mind",
   "panic feeling": "mind",
@@ -271,7 +271,7 @@ What would you like to work on today?`,
           <div style={styles.glow} />
 
           <div style={styles.header}>
-            <div style={styles.brandMark}>◯</div>
+            <RootEnso size={72} />
 
             <p style={styles.kicker}>Root Health Intelligence</p>
 
