@@ -1,0 +1,9 @@
+<img
+  src="/root-logo.png"
+  alt="Root Health"
+  style={{
+    width: 84,
+    height: 84,
+    objectFit: "contain",
+  }}
+/>
