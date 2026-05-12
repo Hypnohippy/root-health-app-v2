@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-
+import RootEnso from "../components/RootEnso";
 const quickCheckIns = [
   { emoji: "😔", label: "Heavy" },
   { emoji: "⚡", label: "Wired" },
@@ -209,7 +209,9 @@ export default function JournalPage() {
           <div style={styles.glow} />
 
           <div style={styles.header}>
-            <div style={styles.brandMark}>◯</div>
+           <div style={styles.logoWrap}>
+  <RootEnso size={86} />
+</div>
             <p style={styles.kicker}>Root Reflection</p>
             <h1 style={styles.title}>Journal</h1>
             <p style={styles.subtitle}>
@@ -375,7 +377,11 @@ const styles = {
     justifyContent: "center",
     padding: "28px",
   },
-
+logoWrap: {
+  display: "flex",
+  justifyContent: "center",
+  marginBottom: "10px",
+},
   shell: {
     position: "relative",
     overflow: "hidden",
