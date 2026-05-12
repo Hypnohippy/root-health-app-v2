@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-
+import RootEnso from "../../components/RootEnso";
 const tools = [
   {
     id: "cbt",
@@ -165,7 +165,7 @@ export default function MindPage() {
           <div style={styles.glow} />
 
           <div style={styles.header}>
-            <div style={styles.brandMark}>◯</div>
+           <RootEnso size={72} />
             <p style={styles.kicker}>Root Mind Library</p>
             <h1 style={styles.title}>Mind & Emotions</h1>
             <p style={styles.subtitle}>
