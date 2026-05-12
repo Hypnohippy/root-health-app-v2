@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-import RootEnso from "../components/RootEnso";
+import RootEnso from "../../components/RootEnso";
 const quickCheckIns = [
   { emoji: "😔", label: "Heavy" },
   { emoji: "⚡", label: "Wired" },
