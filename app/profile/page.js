@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
-
+import RootEnso from "../components/RootEnso";
 const PROFILE_KEY = "main";
 
 export default function ProfilePage() {
@@ -105,7 +105,9 @@ export default function ProfilePage() {
 
       <main style={styles.page}>
         <section style={styles.shell}>
-          <div style={styles.brandMark}>◯</div>
+          <div style={styles.logoWrap}>
+  <RootEnso size={86} />
+</div>
 
           <h1 style={styles.title}>Your Profile</h1>
           <p style={styles.subtitle}>
@@ -141,6 +143,11 @@ const styles = {
     justifyContent: "center",
     padding: "24px",
   },
+  logoWrap: {
+  display: "flex",
+  justifyContent: "center",
+  marginBottom: "10px",
+},
   shell: {
     width: "100%",
     maxWidth: "760px",
