@@ -4,7 +4,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import GlassBody from "../../components/GlassBody";
 import Nav from "../../components/Nav";
-
+import RootEnso from "../../components/RootEnso";
 const bodySystems = [
   { id: "stress_nerves", label: "Stress & nerves", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
   { id: "heart_circulation", label: "Heart & circulation", system: "circulatory", signals: ["racing heart", "fluttering", "pressure", "cold hands/feet", "light-headed", "low stamina", "swelling", "colour change"] },
@@ -345,7 +345,7 @@ if (untriedOptions.length > 0) {
 
       <main style={styles.page}>
         <section style={styles.shell}>
-          <div style={styles.brandMark}>◯</div>
+          <RootEnso size={72} />
 
           <h1 style={styles.title}>Body Signals</h1>
           <p style={styles.subtitle}>Tap where your body is asking for attention, then build the picture.</p>
