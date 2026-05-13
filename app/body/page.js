@@ -30,9 +30,9 @@ const bodyZones = [
   { id: "hormones_balance", top: "45%", left: "37%", width: "26%", height: "16%" },
   { id: "bladder_hydration", top: "54%", left: "40%", width: "20%", height: "9%" },
   { id: "reproductive", top: "59%", left: "38%", width: "24%", height: "9%" },
-  { id: "muscles_joints", top: "24%", left: "18%", width: "64%", height: "68%" },
-  { id: "skin", top: "20%", left: "24%", width: "52%", height: "72%" },
-  { id: "energy_recovery", top: "18%", left: "28%", width: "44%", height: "74%" },
+ { id: "skin", top: "22%", left: "20%", width: "12%", height: "62%" },
+{ id: "muscles_joints", top: "26%", left: "68%", width: "14%", height: "62%" },
+  { id: "energy_recovery", top: "72%", left: "34%", width: "32%", height: "18%" },
 ];
 
 const contextOptions = [
