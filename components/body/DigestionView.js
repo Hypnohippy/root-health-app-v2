@@ -24,12 +24,15 @@ export default function DigestionView({
       </button>
 
       <div style={styles.visualPanel}>
-        <img
-          src="/visuals/digestive-system.png"
-          alt="Digestive system"
-          style={styles.image}
-        />
-      </div>
+        <div style={styles.imageWrap}>
+  <img
+    src="/visuals/digestive-system.png"
+    alt="Digestive system"
+    style={styles.image}
+  />
+
+  <div style={styles.imageGlow} />
+</div>      </div>
 
       <div style={styles.content}>
         <p style={styles.kicker}>Signal exploration</p>
@@ -73,7 +76,17 @@ const styles = {
     maxWidth: "460px",
     margin: "0 auto",
   },
+imageWrap: {
+  position: "relative",
+},
 
+imageGlow: {
+  position: "absolute",
+  inset: 0,
+  background:
+    "radial-gradient(circle at center, rgba(255,210,140,0.28), transparent 60%)",
+  pointerEvents: "none",
+},
   backButton: {
     border: "none",
     background: "rgba(255,255,255,0.6)",
@@ -95,10 +108,13 @@ const styles = {
     boxShadow: "0 24px 60px rgba(0,0,0,0.12)",
   },
 
-  image: {
-    width: "100%",
-    display: "block",
-  },
+ image: {
+  width: "100%",
+  display: "block",
+  position: "relative",
+  zIndex: 2,
+  filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.18))",
+},
 
   content: {
     background: "rgba(255,255,255,0.72)",
