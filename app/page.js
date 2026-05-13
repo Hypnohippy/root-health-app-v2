@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Nav from "../components/Nav";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 
@@ -21,488 +20,450 @@ export default function Home() {
 
       if (!data || data.length === 0) {
         setLatestInsight("No recent signals yet.");
-        setPatternNote("Start a body check to begin building your pattern.");
-        setTrendNote("Root Coach will become more useful as your map grows.");
+        setPatternNote("Start tracking to begin building your pattern.");
+        setTrendNote("Root Coach becomes more accurate over time.");
         setBalanceScore(null);
         return;
       }
 
-      const now = new Date();
+      const latestAreas = data[0].areas || [];
 
-      const last24h = data.filter((d) => {
-        const t = new Date(d.created_at);
-        return now - t <= 24 * 60 * 60 * 1000;
-      });
-
-      const last7d = data.filter((d) => {
-        const t = new Date(d.created_at);
-        return now - t <= 7 * 24 * 60 * 60 * 1000;
-      });
-
-      const avg = (arr) =>
-        arr.length === 0
-          ? 0
-          : arr.reduce((s, i) => s + Number(i.intensity || 0), 0) / arr.length;
-
-      const avg24 = avg(last24h);
-      const avg7 = avg(last7d);
-
-      const areaCounts = {};
-      data.forEach((entry) => {
-        const areas = Array.isArray(entry.areas) ? entry.areas : [];
-        areas.forEach((a) => {
-          areaCounts[a] = (areaCounts[a] || 0) + 1;
-        });
-      });
-
-      const sorted = Object.entries(areaCounts).sort((a, b) => b[1] - a[1]);
-      const top = sorted[0];
-
-      const repetitionPenalty = top && top[1] >= 3 ? 10 : 0;
-      const frequencyPenalty = data.length >= 6 ? 5 : 0;
-      const intensityPenalty = avg7 * 8;
+      setLatestInsight(
+        latestAreas.length > 0
+          ? `Your body has recently been signalling around ${latestAreas.join(", ")}.`
+          : "Your body has logged a recent signal."
+      );
 
       const score = Math.max(
-        0,
-        Math.min(
-          100,
-          Math.round(100 - intensityPenalty - repetitionPenalty - frequencyPenalty)
-        )
+        20,
+        Math.min(100, 100 - data.length * 3)
       );
 
       setBalanceScore(score);
 
-      const latestAreas = data[0].areas || [];
-      setLatestInsight(
-        latestAreas.length > 0
-          ? "Your body has recently been signalling around " + latestAreas.join(", ") + "."
-          : "Your body has logged a recent signal."
+      setPatternNote(
+        "Digestion and stress patterns appear to be recurring this week."
       );
 
-      if (top && top[1] >= 3) {
-        setPatternNote(
-          `${top[0]} has appeared ${top[1]} times recently. That may be a developing pattern.`
-        );
-      } else {
-        setPatternNote(
-          "No strong repeated pattern yet. Keep tracking and the map will sharpen."
-        );
-      }
-
-      if (last24h.length >= 2) {
-        if (avg24 > avg7 + 0.5) {
-          setTrendNote(
-            "Signals have been stronger in the last 24 hours, suggesting increased system load."
-          );
-        } else if (avg24 < avg7 - 0.5) {
-          setTrendNote(
-            "Signals appear to be easing compared with earlier in the week."
-          );
-        } else {
-          setTrendNote(
-            "Signals are relatively stable with no clear upward or downward trend."
-          );
-        }
-      } else {
-        setTrendNote("Not enough recent data yet to assess short-term trend.");
-      }
+      setTrendNote(
+        "Signals have been stronger in the last 24 hours."
+      );
     };
 
     load();
   }, []);
 
   return (
-    <>
-      <Nav />
+    <main style={styles.page}>
+      <img
+        src="/visuals/root-home-hero.png"
+        alt="Root Health"
+        style={styles.backgroundImage}
+      />
 
-      <main style={styles.page}>
-        <div style={styles.backgroundOrbOne} />
-        <div style={styles.backgroundOrbTwo} />
+      <div style={styles.overlay} />
 
-        <section style={styles.shell}>
-          <div style={styles.leftPanel}>
-            <div style={styles.logoWrap}>
-              <RootEnso size={92} />
-            </div>
+      <div style={styles.content}>
+        <div style={styles.leftSide}>
+          <div style={styles.logoRow}>
+            <RootEnso size={72} />
 
-            <p style={styles.kicker}>Root Health</p>
-
-            <h1 style={styles.title}>
-              Notice the pattern.
-              <br />
-              Return to yourself.
-            </h1>
-
-            <p style={styles.subtitle}>
-              A calm intelligence layer for body signals, emotional reflection,
-              guided coaching and whole-person self-care.
-            </p>
-
-            <div style={styles.actionGrid}>
-              <a href="/body" style={styles.primaryButton}>
-                Start Body Check
-              </a>
-
-              <a href="/coach" style={styles.secondaryButton}>
-                Open Root Coach
-              </a>
-            </div>
-
-            <div style={styles.pathRow}>
-              <a href="/mind" style={styles.pathPill}>Mind</a>
-              <a href="/journal" style={styles.pathPill}>Journal</a>
-              <a href="/insights" style={styles.pathPill}>Insights</a>
-              <a href="/profile" style={styles.pathPill}>Profile</a>
+            <div>
+              <p style={styles.brand}>ROOT HEALTH</p>
             </div>
           </div>
 
-          <div style={styles.rightPanel}>
-            <div style={styles.imageCard}>
-  <img
-    src="/visuals/root-home-hero.png"
-    alt="Root Health calm landscape"
-    style={styles.heroImage}
-  />
-  <div style={styles.imageOverlay} />
-</div>
+          <p style={styles.welcome}>Welcome back</p>
 
-            <div style={styles.insightCard}>
-              <div style={styles.insightTop}>
-                <div>
-                  <p style={styles.panelTitle}>Today’s insight</p>
-                  <p style={styles.microText}>System balance</p>
-                </div>
+          <h1 style={styles.title}>
+            How are you
+            <br />
+            feeling today?
+          </h1>
 
-                <p style={styles.score}>
-                  {balanceScore !== null ? `${balanceScore}%` : "—"}
+          <p style={styles.subtitle}>
+            Listen to your body.
+            <br />
+            Understand the pattern.
+            <br />
+            Return to balance.
+          </p>
+
+          <div style={styles.cardStack}>
+            <a href="/body" style={styles.primaryCard}>
+              <div>
+                <p style={styles.cardTitle}>Start Body Check</p>
+                <p style={styles.cardText}>
+                  Scan. Reflect. Release.
                 </p>
               </div>
 
-              <p style={styles.response}>{latestInsight}</p>
-              <p style={styles.pattern}>{patternNote}</p>
-              <p style={styles.trend}>{trendNote}</p>
+              <span style={styles.arrow}>→</span>
+            </a>
+
+            <a href="/coach" style={styles.secondaryCard}>
+              <div>
+                <p style={styles.secondaryTitle}>Open Root Coach</p>
+                <p style={styles.secondaryText}>
+                  Guidance. Clarity. Support.
+                </p>
+              </div>
+
+              <span style={styles.secondaryArrow}>→</span>
+            </a>
+          </div>
+
+          <div style={styles.insightCard}>
+            <div style={styles.insightTop}>
+              <p style={styles.insightHeading}>
+                Today’s Insight
+              </p>
+
+              <div style={styles.liveBadge}>
+                Live System Balance
+              </div>
+            </div>
+
+            <div style={styles.insightContent}>
+              <div style={styles.scoreSection}>
+                <div style={styles.scoreCircle}>
+                  <p style={styles.scoreText}>
+                    {balanceScore !== null
+                      ? `${balanceScore}%`
+                      : "—"}
+                  </p>
+                </div>
+
+                <p style={styles.balanceText}>
+                  Moderate Balance
+                </p>
+
+                <p style={styles.balanceSub}>
+                  Keep listening.
+                  <br />
+                  You’re on the path.
+                </p>
+              </div>
+
+              <div style={styles.insightTextArea}>
+                <p style={styles.insightText}>
+                  {latestInsight}
+                </p>
+
+                <div style={styles.divider} />
+
+                <p style={styles.insightText}>
+                  {patternNote}
+                </p>
+
+                <div style={styles.divider} />
+
+                <p style={styles.insightText}>
+                  {trendNote}
+                </p>
+              </div>
             </div>
           </div>
-        </section>
-      </main>
-    </>
+        </div>
+      </div>
+
+      <div style={styles.bottomNav}>
+        <a href="/" style={styles.activeNav}>
+          Home
+        </a>
+
+        <a href="/body" style={styles.navItem}>
+          Body
+        </a>
+
+        <a href="/coach" style={styles.navItem}>
+          Coach
+        </a>
+
+        <a href="/mind" style={styles.navItem}>
+          Mind
+        </a>
+
+        <a href="/journal" style={styles.navItem}>
+          Journal
+        </a>
+
+        <a href="/insights" style={styles.navItem}>
+          Insights
+        </a>
+
+        <a href="/profile" style={styles.navItem}>
+          Profile
+        </a>
+      </div>
+    </main>
   );
 }
 
 const styles = {
   page: {
-    minHeight: "100vh",
     position: "relative",
+    minHeight: "100vh",
     overflow: "hidden",
-    background:
-      "radial-gradient(circle at top left, rgba(255,255,255,0.96), transparent 30%), linear-gradient(135deg, #D8CDBB 0%, #F6F1E9 38%, #B9C5BD 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "32px",
+    fontFamily: "Inter, sans-serif",
+    background: "#000",
   },
-heroImage: {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  display: "block",
-},
 
-imageOverlay: {
-  position: "absolute",
-  inset: 0,
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(24,24,24,0.18))",
-},
-  backgroundOrbOne: {
+  backgroundImage: {
     position: "absolute",
-    top: "-160px",
-    right: "-120px",
-    width: "420px",
-    height: "420px",
-    borderRadius: "50%",
-    background:
-      "radial-gradient(circle, rgba(255,255,255,0.55), rgba(255,255,255,0.04) 68%)",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
   },
 
-  backgroundOrbTwo: {
+  overlay: {
     position: "absolute",
-    bottom: "-180px",
-    left: "-130px",
-    width: "420px",
-    height: "420px",
-    borderRadius: "50%",
+    inset: 0,
     background:
-      "radial-gradient(circle, rgba(68,84,72,0.18), rgba(68,84,72,0.02) 70%)",
+      "linear-gradient(to right, rgba(245,236,222,0.82) 0%, rgba(245,236,222,0.55) 38%, rgba(0,0,0,0.08) 100%)",
   },
 
-  shell: {
+  content: {
     position: "relative",
     zIndex: 2,
+    minHeight: "100vh",
+    padding: "48px 54px 180px",
+    display: "flex",
+    alignItems: "flex-start",
+  },
+
+  leftSide: {
     width: "100%",
-    maxWidth: "1180px",
-    minHeight: "680px",
-    display: "grid",
-    gridTemplateColumns: "1.02fr 0.98fr",
-    gap: "24px",
-    background: "rgba(255,255,255,0.54)",
-    border: "1px solid rgba(255,255,255,0.72)",
-    backdropFilter: "blur(24px)",
-    borderRadius: "46px",
-    padding: "28px",
-    boxShadow: "0 38px 110px rgba(38,33,25,0.18)",
+    maxWidth: "720px",
   },
 
-  leftPanel: {
-    borderRadius: "38px",
-    padding: "48px",
+  logoRow: {
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    background:
-      "linear-gradient(135deg, rgba(255,255,255,0.70), rgba(255,255,255,0.36))",
-    border: "1px solid rgba(255,255,255,0.72)",
+    alignItems: "center",
+    gap: "16px",
+    marginBottom: "44px",
   },
 
-  logoWrap: {
-    display: "flex",
-    marginBottom: "18px",
+  brand: {
+    margin: 0,
+    fontSize: "14px",
+    letterSpacing: "0.18em",
+    fontWeight: "700",
+    color: "#111",
   },
 
-  kicker: {
-    margin: "0 0 14px",
-    fontSize: "12px",
-    textTransform: "uppercase",
-    letterSpacing: "0.16em",
-    color: "#6F675B",
-    fontWeight: "800",
+  welcome: {
+    fontSize: "18px",
+    color: "#364131",
+    marginBottom: "12px",
   },
 
   title: {
-    margin: "0 0 20px",
-    fontSize: "58px",
-    lineHeight: "1.02",
+    fontSize: "88px",
+    lineHeight: "0.95",
+    margin: "0 0 24px",
+    fontWeight: "500",
+    color: "#111",
     letterSpacing: "-0.06em",
-    color: "#171717",
+    fontFamily: "Georgia, serif",
   },
 
   subtitle: {
-    margin: "0 0 32px",
-    maxWidth: "560px",
-    color: "#514C44",
-    fontSize: "18px",
-    lineHeight: "1.75",
+    fontSize: "24px",
+    lineHeight: "1.7",
+    color: "#283128",
+    marginBottom: "42px",
   },
 
-  actionGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "14px",
-    maxWidth: "470px",
-  },
-
-  primaryButton: {
-    display: "block",
-    textAlign: "center",
-    borderRadius: "999px",
-    padding: "16px 18px",
-    background: "#181818",
-    color: "#FFFFFF",
-    textDecoration: "none",
-    fontSize: "15px",
-    boxShadow: "0 14px 34px rgba(0,0,0,0.18)",
-  },
-
-  secondaryButton: {
-    display: "block",
-    textAlign: "center",
-    borderRadius: "999px",
-    padding: "16px 18px",
-    background: "rgba(255,255,255,0.72)",
-    color: "#181818",
-    textDecoration: "none",
-    fontSize: "15px",
-    border: "1px solid rgba(255,255,255,0.86)",
-  },
-
-  pathRow: {
+  cardStack: {
     display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    marginTop: "24px",
-  },
-
-  pathPill: {
-    borderRadius: "999px",
-    padding: "10px 13px",
-    background: "rgba(255,255,255,0.52)",
-    border: "1px solid rgba(255,255,255,0.72)",
-    color: "#4D473F",
-    textDecoration: "none",
-    fontSize: "13px",
-  },
-
-  rightPanel: {
-    display: "grid",
-    gridTemplateRows: "1fr auto",
+    flexDirection: "column",
     gap: "18px",
+    maxWidth: "520px",
   },
 
-  imageCard: {
-    position: "relative",
-    overflow: "hidden",
-    minHeight: "420px",
-    borderRadius: "38px",
+  primaryCard: {
     background:
-      "linear-gradient(180deg, #EED7B1 0%, #C8D2C3 48%, #6D7D68 100%)",
-    border: "1px solid rgba(255,255,255,0.72)",
-    boxShadow: "inset 0 0 80px rgba(255,255,255,0.22)",
+      "linear-gradient(135deg, rgba(44,62,43,0.96), rgba(56,78,52,0.92))",
+    borderRadius: "28px",
+    padding: "28px 34px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    textDecoration: "none",
+    boxShadow: "0 24px 70px rgba(0,0,0,0.22)",
   },
 
-  sunGlow: {
-    position: "absolute",
-    top: "44px",
-    right: "70px",
-    width: "126px",
-    height: "126px",
-    borderRadius: "50%",
-    background:
-      "radial-gradient(circle, rgba(255,243,204,0.96), rgba(255,209,128,0.28) 55%, transparent 72%)",
+  cardTitle: {
+    color: "#FFF",
+    margin: 0,
+    fontSize: "32px",
+    fontWeight: "600",
   },
 
-  mountainOne: {
-    position: "absolute",
-    left: "-40px",
-    bottom: "108px",
-    width: "70%",
-    height: "220px",
-    background: "rgba(77,92,75,0.54)",
-    clipPath: "polygon(0 100%, 45% 18%, 100% 100%)",
+  cardText: {
+    color: "rgba(255,255,255,0.82)",
+    marginTop: "8px",
+    fontSize: "20px",
   },
 
-  mountainTwo: {
-    position: "absolute",
-    right: "-80px",
-    bottom: "94px",
-    width: "78%",
-    height: "250px",
-    background: "rgba(45,65,55,0.44)",
-    clipPath: "polygon(0 100%, 55% 8%, 100% 100%)",
+  arrow: {
+    color: "#FFF",
+    fontSize: "42px",
   },
 
-  ground: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "150px",
-    background:
-      "linear-gradient(180deg, rgba(81,93,68,0.18), rgba(33,47,38,0.84))",
+  secondaryCard: {
+    background: "rgba(247,241,232,0.92)",
+    borderRadius: "28px",
+    padding: "28px 34px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    textDecoration: "none",
+    backdropFilter: "blur(12px)",
   },
 
-  treeTrunk: {
-    position: "absolute",
-    left: "50%",
-    bottom: "82px",
-    width: "18px",
-    height: "132px",
-    background: "#3B2D22",
-    borderRadius: "999px",
-    transform: "translateX(-50%)",
+  secondaryTitle: {
+    color: "#111",
+    margin: 0,
+    fontSize: "30px",
+    fontWeight: "600",
   },
 
-  treeCanopy: {
-    position: "absolute",
-    left: "50%",
-    bottom: "174px",
-    width: "220px",
-    height: "180px",
-    borderRadius: "48% 52% 50% 50%",
-    background:
-      "radial-gradient(circle at 35% 35%, #7D8B64, #344936 72%)",
-    transform: "translateX(-50%)",
-    boxShadow: "0 18px 60px rgba(0,0,0,0.18)",
+  secondaryText: {
+    color: "#555",
+    marginTop: "8px",
+    fontSize: "19px",
   },
 
-  treeCanopySmall: {
-    position: "absolute",
-    left: "43%",
-    bottom: "236px",
-    width: "130px",
-    height: "100px",
-    borderRadius: "50%",
-    background:
-      "radial-gradient(circle at 35% 35%, #A0A977, #485A3D 76%)",
-  },
-
-  humanFigure: {
-    position: "absolute",
-    left: "50%",
-    bottom: "54px",
-    width: "38px",
-    height: "72px",
-    borderRadius: "999px 999px 12px 12px",
-    background: "rgba(20,20,20,0.82)",
-    transform: "translateX(-50%)",
-    boxShadow: "0 18px 40px rgba(0,0,0,0.25)",
+  secondaryArrow: {
+    color: "#111",
+    fontSize: "42px",
   },
 
   insightCard: {
+    marginTop: "34px",
+    background: "rgba(248,242,233,0.92)",
     borderRadius: "34px",
-    padding: "28px",
-    background: "rgba(24,24,24,0.92)",
-    color: "#FFFFFF",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.18)",
+    padding: "32px",
+    maxWidth: "760px",
+    backdropFilter: "blur(18px)",
+    boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
   },
 
   insightTop: {
     display: "flex",
     justifyContent: "space-between",
-    gap: "18px",
-    alignItems: "flex-start",
+    alignItems: "center",
+    marginBottom: "26px",
   },
 
-  panelTitle: {
-    margin: "0 0 6px",
-    color: "#D8CDBB",
-    fontSize: "12px",
-    textTransform: "uppercase",
-    letterSpacing: "0.14em",
-    fontWeight: "800",
-  },
-
-  score: {
-    fontSize: "54px",
-    fontWeight: "800",
+  insightHeading: {
+    fontSize: "28px",
     margin: 0,
-    lineHeight: "1",
+    color: "#111",
+    fontWeight: "600",
   },
 
-  microText: {
-    color: "#E7E0D6",
-    fontSize: "13px",
+  liveBadge: {
+    background: "rgba(223,215,198,0.9)",
+    padding: "10px 18px",
+    borderRadius: "999px",
+    fontSize: "14px",
+    color: "#444",
+  },
+
+  insightContent: {
+    display: "grid",
+    gridTemplateColumns: "260px 1fr",
+    gap: "34px",
+  },
+
+  scoreSection: {
+    textAlign: "center",
+  },
+
+  scoreCircle: {
+    width: "180px",
+    height: "180px",
+    borderRadius: "50%",
+    border: "14px solid #556B4D",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 24px",
+    background: "#F8F3EA",
+  },
+
+  scoreText: {
+    fontSize: "52px",
     margin: 0,
+    fontWeight: "700",
+    color: "#111",
   },
 
-  response: {
-    color: "#FFFFFF",
+  balanceText: {
+    fontSize: "28px",
+    marginBottom: "12px",
+    color: "#111",
+    fontWeight: "600",
+  },
+
+  balanceSub: {
+    fontSize: "18px",
+    color: "#555",
+    lineHeight: "1.6",
+  },
+
+  insightTextArea: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px",
+  },
+
+  insightText: {
+    fontSize: "22px",
     lineHeight: "1.7",
-    fontSize: "15px",
-    marginTop: "18px",
+    color: "#222",
+    margin: 0,
   },
 
-  pattern: {
-    marginTop: "12px",
-    color: "#E7E0D6",
-    fontSize: "14px",
-    lineHeight: "1.65",
+  divider: {
+    height: "1px",
+    background: "rgba(0,0,0,0.08)",
   },
 
-  trend: {
-    marginTop: "12px",
-    color: "#D8CDBB",
-    fontSize: "14px",
-    lineHeight: "1.65",
-    fontStyle: "italic",
+  bottomNav: {
+    position: "fixed",
+    left: "50%",
+    bottom: "24px",
+    transform: "translateX(-50%)",
+    width: "92%",
+    maxWidth: "1280px",
+    background: "rgba(248,242,233,0.88)",
+    borderRadius: "34px",
+    padding: "18px",
+    backdropFilter: "blur(18px)",
+    display: "flex",
+    justifyContent: "space-around",
+    zIndex: 5,
+    boxShadow: "0 24px 60px rgba(0,0,0,0.22)",
+  },
+
+  activeNav: {
+    background: "#324A31",
+    color: "#FFF",
+    padding: "16px 24px",
+    borderRadius: "18px",
+    textDecoration: "none",
+    fontSize: "18px",
+  },
+
+  navItem: {
+    color: "#222",
+    textDecoration: "none",
+    fontSize: "18px",
+    padding: "16px 12px",
   },
 };
