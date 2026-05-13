@@ -319,7 +319,7 @@ export default function BodyPage() {
           )}
         </div>
 )}
-        {current && (
+     
          {current && journeyStep !== "digestion" && (
   <div style={styles.explorePanel}>
             <p style={styles.panelKicker}>Signal exploration</p>
