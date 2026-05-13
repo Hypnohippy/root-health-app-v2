@@ -320,9 +320,11 @@ export default function BodyPage() {
         </div>
 )}
      
-         {current && journeyStep !== "digestion" && (
+        {current &&
+ journeyStep !== "digestion" &&
+ current.id !== "digestion" && (
   <div style={styles.explorePanel}>
-            <p style={styles.panelKicker}>Signal exploration</p>
+          <p style={styles.panelKicker}>Signal exploration</p>
             <h2 style={styles.panelTitle}>{current.label}</h2>
 
             <p style={styles.question}>What are you noticing?</p>
