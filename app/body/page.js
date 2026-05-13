@@ -1,10 +1,12 @@
 "use client";
+
 export const dynamic = "force-dynamic";
+
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import GlassBody from "../../components/GlassBody";
-import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+
 const bodySystems = [
   { id: "stress_nerves", label: "Stress & nerves", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
   { id: "heart_circulation", label: "Heart & circulation", system: "circulatory", signals: ["racing heart", "fluttering", "pressure", "cold hands/feet", "light-headed", "low stamina", "swelling", "colour change"] },
@@ -263,16 +265,17 @@ export default function BodyPage() {
     }
 
     setRankedHelp(ranked);
-// 🧠 FIND UNTRIED OPTIONS
-const triedSet = new Set(
-  sameSignalHistory
-    .map((e) => e.what_helped)
-    .filter((v) => v && normalise(v) !== "nothing yet")
-);
 
-const untriedOptions = helpOptions.filter(
-  (opt) => opt !== "Nothing yet" && !triedSet.has(opt)
-);
+    const triedSet = new Set(
+      sameSignalHistory
+        .map((e) => e.what_helped)
+        .filter((v) => v && normalise(v) !== "nothing yet")
+    );
+
+    const untriedOptions = helpOptions.filter(
+      (opt) => opt !== "Nothing yet" && !triedSet.has(opt)
+    );
+
     const entryToSave = {
       areas: selectedItems.map((item) => item.label),
       system: selectedItems.map((item) => item.system).join(", "),
@@ -296,41 +299,42 @@ const untriedOptions = helpOptions.filter(
       message = `${trendText}\n\n` + message;
     }
 
- const nothingWorked =
-  (!whatHelped || whatHelped === "Nothing yet") &&
-  sameSignalHistory.filter(
-    (e) => !e.what_helped || e.what_helped === "Nothing yet"
-  ).length >= 2;
+    const nothingWorked =
+      (!whatHelped || whatHelped === "Nothing yet") &&
+      sameSignalHistory.filter(
+        (e) => !e.what_helped || e.what_helped === "Nothing yet"
+      ).length >= 2;
 
-const needsEscalation =
-  context === "getting worse" &&
-  intensity >= 7 &&
-  nothingWorked;
+    const needsEscalation =
+      context === "getting worse" &&
+      intensity >= 7 &&
+      nothingWorked;
 
-if (needsEscalation) {
-  setSuggestedHelp("");
-  setConfidenceScore(null);
-let newIdeasText = "";
+    if (needsEscalation) {
+      setSuggestedHelp("");
+      setConfidenceScore(null);
 
-if (untriedOptions.length > 0) {
-  newIdeasText =
-    "\n\nYou haven’t tried:\n" +
-    untriedOptions.slice(0, 3).map((opt) => `• ${opt}`).join("\n");
-}
-  message =
-  `This looks like a pattern where things are not improving.\n\n` +
-  `Rather than repeating the same approaches, shift strategy:\n` +
-  `• Stop testing fixes for now\n` +
-  `• Reduce load on this area\n` +
-  `• Observe what changes without interference` +
-  newIdeasText +
-  `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
-  message;
-} else if (!nothingWorked && predictedHelp) {
-  message =
-    `Suggested focus: "${predictedHelp}".\n\n` +
-    message;
-}
+      let newIdeasText = "";
+
+      if (untriedOptions.length > 0) {
+        newIdeasText =
+          "\n\nYou haven’t tried:\n" +
+          untriedOptions.slice(0, 3).map((opt) => `• ${opt}`).join("\n");
+      }
+
+      message =
+        `This looks like a pattern where things are not improving.\n\n` +
+        `Rather than repeating the same approaches, shift strategy:\n` +
+        `• Stop testing fixes for now\n` +
+        `• Reduce load on this area\n` +
+        `• Observe what changes without interference` +
+        newIdeasText +
+        `\n\nIf this continues, worsens, or feels unusual, it is worth getting it properly checked.\n\n` +
+        message;
+    } else if (!nothingWorked && predictedHelp) {
+      message = `Suggested focus: "${predictedHelp}".\n\n` + message;
+    }
+
     if (whatHelped && whatHelped !== "Nothing yet") {
       message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;
     }
@@ -339,47 +343,71 @@ if (untriedOptions.length > 0) {
     setSaving(false);
   };
 
+  const activeTitle = current?.label || "Where are you feeling it today?";
+
   return (
-    <>
-      <Nav />
+    <main style={styles.page}>
+      <img
+        src="/visuals/body-signal-bg.png"
+        alt=""
+        style={styles.backgroundImage}
+      />
 
-      <main style={styles.page}>
-        <section style={styles.shell}>
-          <RootEnso size={72} />
+      <div style={styles.overlay} />
 
-          <h1 style={styles.title}>Body Signals</h1>
-          <p style={styles.subtitle}>Tap where your body is asking for attention, then build the picture.</p>
+      <div style={styles.topBar}>
+        <a href="/" style={styles.backButton}>←</a>
+        <RootEnso size={58} />
+        <button style={styles.menuButton}>☰</button>
+      </div>
 
-          <GlassBody
-            selectedSystems={selectedItems.map((item) => item.label)}
-            onSelect={selectSystem}
-            onClear={clearSelections}
-          />
+      <section style={styles.stage}>
+        <div style={styles.bodyArea}>
+          <h1 style={styles.title}>{activeTitle}</h1>
+          <p style={styles.subtitle}>
+            Tap an area, then choose what your body is asking you to notice.
+          </p>
 
-          <div style={styles.grid}>
-            {bodySystems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => selectSystem(item.id)}
-                style={{
-                  ...styles.systemButton,
-                  background: selectedSystems.includes(item.id) ? "#1A1A1A" : "#F0EDE7",
-                  color: selectedSystems.includes(item.id) ? "#FFFFFF" : "#2F2F2F",
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
+          <div style={styles.figureWrap}>
+            <GlassBody
+              selectedSystems={selectedItems.map((item) => item.label)}
+              onSelect={selectSystem}
+              onClear={clearSelections}
+            />
           </div>
 
+          <p style={styles.tapHint}>
+            Tap the area that feels out of balance
+          </p>
+        </div>
+
+        <div style={styles.sidePanel}>
+          {!current && (
+            <>
+              <p style={styles.panelKicker}>Body map</p>
+              <h2 style={styles.panelTitle}>Choose an area</h2>
+
+              <div style={styles.systemGrid}>
+                {bodySystems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => selectSystem(item.id)}
+                    style={styles.systemButton}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
           {current && (
-            <div style={styles.panel}>
-              <p style={styles.panelTitle}>{selectedItems.length > 1 ? "Connected body pattern" : current.label}</p>
+            <>
+              <p style={styles.panelKicker}>Signal exploration</p>
+              <h2 style={styles.panelTitle}>{current.label}</h2>
 
-              <p style={styles.microText}>Selected: {selectedItems.map((item) => item.label).join(", ")}</p>
-
-              <p style={styles.label}>1. What are you noticing?</p>
-              <div style={styles.choiceRow}>
+              <p style={styles.question}>What are you noticing?</p>
+              <div style={styles.choiceColumn}>
                 {current.signals.map((sig) => (
                   <button
                     key={sig}
@@ -391,8 +419,7 @@ if (untriedOptions.length > 0) {
                     }}
                     style={{
                       ...styles.choiceButton,
-                      background: selectedSignal === sig ? "#1A1A1A" : "#E6E2DA",
-                      color: selectedSignal === sig ? "#FFFFFF" : "#333333",
+                      ...(selectedSignal === sig ? styles.choiceButtonActive : {}),
                     }}
                   >
                     {sig}
@@ -402,8 +429,8 @@ if (untriedOptions.length > 0) {
 
               {selectedSignal && (
                 <>
-                  <p style={styles.label}>2. When does this show up?</p>
-                  <div style={styles.choiceRow}>
+                  <p style={styles.question}>When does this show up?</p>
+                  <div style={styles.choiceColumn}>
                     {contextOptions.map((item) => (
                       <button
                         key={item}
@@ -413,8 +440,7 @@ if (untriedOptions.length > 0) {
                         }}
                         style={{
                           ...styles.choiceButton,
-                          background: context === item ? "#1A1A1A" : "#E6E2DA",
-                          color: context === item ? "#FFFFFF" : "#333333",
+                          ...(context === item ? styles.choiceButtonActive : {}),
                         }}
                       >
                         {item}
@@ -426,7 +452,7 @@ if (untriedOptions.length > 0) {
 
               {context && (
                 <>
-                  <p style={styles.label}>3. How strong is it today?</p>
+                  <p style={styles.question}>How strong is it today?</p>
                   <div style={styles.scoreRow}>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
                       <button
@@ -434,8 +460,7 @@ if (untriedOptions.length > 0) {
                         onClick={() => setIntensity(score)}
                         style={{
                           ...styles.scoreButton,
-                          background: intensity === score ? "#C23B30" : "#F0EDE7",
-                          color: intensity === score ? "#FFFFFF" : "#333333",
+                          ...(intensity === score ? styles.scoreButtonActive : {}),
                         }}
                       >
                         {score}
@@ -443,16 +468,15 @@ if (untriedOptions.length > 0) {
                     ))}
                   </div>
 
-                  <p style={styles.label}>4. What helped, if anything?</p>
-                  <div style={styles.choiceRow}>
+                  <p style={styles.question}>What helped, if anything?</p>
+                  <div style={styles.choiceColumn}>
                     {helpOptions.map((opt) => (
                       <button
                         key={opt}
                         onClick={() => setWhatHelped(opt)}
                         style={{
                           ...styles.choiceButton,
-                          background: whatHelped === opt ? "#1A1A1A" : "#E6E2DA",
-                          color: whatHelped === opt ? "#FFFFFF" : "#333333",
+                          ...(whatHelped === opt ? styles.choiceButtonActive : {}),
                         }}
                       >
                         {opt}
@@ -460,223 +484,339 @@ if (untriedOptions.length > 0) {
                     ))}
                   </div>
 
-                  <button style={styles.mainButton} onClick={handleExplore}>
+                  <button style={styles.continueButton} onClick={handleExplore}>
                     {saving ? "Saving..." : "Save & reflect"}
                   </button>
                 </>
               )}
-
-              {trendInsight && (
-                <div style={styles.trendCard}>
-                  <p style={styles.suggestionLabel}>Trend insight</p>
-                  <p style={styles.trendText}>{trendInsight}</p>
-                </div>
-              )}
-
-              {suggestedHelp && (
-                <div style={styles.suggestionCard}>
-                  <p style={styles.suggestionLabel}>Suggested first step</p>
-                  <p style={styles.suggestionMain}>
-                    {suggestedHelp}
-                    {confidenceScore !== null && (
-                      <span style={styles.confidenceBadge}>{confidenceScore}%</span>
-                    )}
-                  </p>
-                  <p style={styles.suggestionSub}>Based on what has helped you before</p>
-                </div>
-              )}
-
-              {response && <p style={styles.response}>{response}</p>}
-
-              {rankedHelp.length > 0 && (
-                <div style={styles.memoryCard}>
-                  <p style={styles.panelTitle}>What tends to help this signal</p>
-                  {rankedHelp.map(([item, count], index) => (
-                    <p key={item} style={styles.memoryLine}>
-                      {index + 1}. {item} ({count} {count === 1 ? "time" : "times"})
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
+            </>
           )}
-        </section>
-      </main>
-    </>
+        </div>
+
+        {(response || trendInsight || suggestedHelp || rankedHelp.length > 0) && (
+          <div style={styles.responsePanel}>
+            <p style={styles.panelKicker}>Root response</p>
+
+            {trendInsight && (
+              <p style={styles.responseText}>{trendInsight}</p>
+            )}
+
+            {suggestedHelp && (
+              <div style={styles.suggestionCard}>
+                <strong>{suggestedHelp}</strong>
+                {confidenceScore !== null && (
+                  <span style={styles.confidenceBadge}>{confidenceScore}%</span>
+                )}
+              </div>
+            )}
+
+            {response && <p style={styles.responseText}>{response}</p>}
+
+            {rankedHelp.length > 0 && (
+              <div style={styles.memoryCard}>
+                <strong>What tends to help</strong>
+                {rankedHelp.map(([item, count], index) => (
+                  <p key={item}>
+                    {index + 1}. {item} ({count} {count === 1 ? "time" : "times"})
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      <nav style={styles.bottomNav}>
+        <a href="/" style={styles.navItem}>Home</a>
+        <a href="/coach" style={styles.navItem}>Coach</a>
+        <a href="/body" style={styles.activeNav}>Body</a>
+        <a href="/journal" style={styles.navItem}>Journal</a>
+        <a href="/profile" style={styles.navItem}>You</a>
+      </nav>
+    </main>
   );
 }
 
 const styles = {
   page: {
+    position: "relative",
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
+    overflow: "hidden",
+    background: "#F4EBDD",
+    fontFamily: "Inter, sans-serif",
+  },
+
+  backgroundImage: {
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    opacity: 0.9,
+  },
+
+  overlay: {
+    position: "absolute",
+    inset: 0,
+    background:
+      "linear-gradient(180deg, rgba(250,244,234,0.86), rgba(250,244,234,0.58) 45%, rgba(45,55,42,0.22))",
+  },
+
+  topBar: {
+    position: "relative",
+    zIndex: 4,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "28px 34px 0",
+  },
+
+  backButton: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.55)",
+    color: "#111",
+    textDecoration: "none",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "24px",
+    fontSize: "24px",
+    backdropFilter: "blur(12px)",
   },
-  shell: {
-    width: "100%",
-    maxWidth: "860px",
-    background: "rgba(255,255,255,0.82)",
-    borderRadius: "28px",
-    padding: "34px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
-    textAlign: "center",
+
+  menuButton: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "50%",
+    border: "none",
+    background: "rgba(255,255,255,0.55)",
+    fontSize: "20px",
+    cursor: "pointer",
+    backdropFilter: "blur(12px)",
   },
-  brandMark: {
-    fontSize: "38px",
-    color: "#1A1A1A",
-    marginBottom: "6px",
-  },
-  title: {
-    fontSize: "34px",
-    margin: "0 0 8px",
-    color: "#1A1A1A",
-  },
-  subtitle: {
-    color: "#555",
-    fontSize: "17px",
-    marginBottom: "28px",
-  },
-  grid: {
+
+  stage: {
+    position: "relative",
+    zIndex: 2,
+    minHeight: "calc(100vh - 130px)",
+    padding: "22px 34px 120px",
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    gap: "12px",
-    marginBottom: "24px",
+    gridTemplateColumns: "1fr 390px",
+    gap: "28px",
+    alignItems: "center",
   },
+
+  bodyArea: {
+    textAlign: "center",
+    minHeight: "640px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+
+  title: {
+    margin: "0 0 12px",
+    fontFamily: "Georgia, serif",
+    fontWeight: "500",
+    fontSize: "46px",
+    color: "#2A261F",
+  },
+
+  subtitle: {
+    margin: "0 auto 18px",
+    maxWidth: "520px",
+    fontSize: "17px",
+    lineHeight: "1.7",
+    color: "#5B5448",
+  },
+
+  figureWrap: {
+    margin: "0 auto",
+    width: "min(520px, 80vw)",
+    filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.16))",
+  },
+
+  tapHint: {
+    color: "#F8F1E7",
+    marginTop: "-36px",
+    textShadow: "0 2px 12px rgba(0,0,0,0.45)",
+  },
+
+  sidePanel: {
+    maxHeight: "72vh",
+    overflowY: "auto",
+    background: "rgba(250,244,234,0.82)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    borderRadius: "34px",
+    padding: "28px",
+    backdropFilter: "blur(20px)",
+    boxShadow: "0 26px 70px rgba(40,34,25,0.18)",
+  },
+
+  panelKicker: {
+    margin: "0 0 8px",
+    fontSize: "12px",
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "#776C5B",
+    fontWeight: "800",
+  },
+
+  panelTitle: {
+    margin: "0 0 22px",
+    fontFamily: "Georgia, serif",
+    fontSize: "32px",
+    fontWeight: "500",
+    color: "#2A261F",
+  },
+
+  systemGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "10px",
+  },
+
   systemButton: {
     border: "none",
     borderRadius: "16px",
-    padding: "16px 12px",
+    padding: "15px 16px",
+    textAlign: "left",
+    background: "rgba(255,255,255,0.72)",
+    color: "#2F2A22",
     cursor: "pointer",
     fontSize: "15px",
-    boxShadow: "0 8px 18px rgba(0,0,0,0.04)",
   },
-  panel: {
-    marginTop: "18px",
-    background: "#FFFFFF",
-    borderRadius: "22px",
-    padding: "24px",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.06)",
-  },
-  panelTitle: {
-    fontSize: "20px",
+
+  question: {
+    margin: "22px 0 12px",
+    color: "#4D463B",
     fontWeight: "700",
-    margin: "0 0 10px",
-    color: "#1A1A1A",
   },
-  microText: {
-    color: "#777",
-    fontSize: "13px",
-    marginBottom: "20px",
-  },
-  label: {
-    marginTop: "22px",
-    marginBottom: "10px",
-    fontSize: "14px",
-    color: "#555",
-    fontWeight: "600",
-  },
-  choiceRow: {
-    display: "flex",
-    flexWrap: "wrap",
+
+  choiceColumn: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
     gap: "10px",
-    justifyContent: "center",
   },
+
   choiceButton: {
     border: "none",
-    borderRadius: "999px",
-    padding: "10px 14px",
+    borderRadius: "16px",
+    padding: "13px 14px",
+    textAlign: "left",
+    background: "rgba(255,255,255,0.75)",
+    color: "#2F2A22",
     cursor: "pointer",
     fontSize: "14px",
   },
-  scoreRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-    justifyContent: "center",
-    marginBottom: "18px",
-  },
-  scoreButton: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "50%",
-    border: "none",
-    cursor: "pointer",
-  },
-  mainButton: {
-    marginTop: "22px",
-    background: "#1A1A1A",
+
+  choiceButtonActive: {
+    background: "#181818",
     color: "#FFFFFF",
+  },
+
+  scoreRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(5, 1fr)",
+    gap: "8px",
+  },
+
+  scoreButton: {
+    height: "38px",
+    borderRadius: "999px",
     border: "none",
-    borderRadius: "14px",
-    padding: "14px 22px",
+    background: "rgba(255,255,255,0.75)",
+    cursor: "pointer",
+  },
+
+  scoreButtonActive: {
+    background: "#C23B30",
+    color: "#FFFFFF",
+  },
+
+  continueButton: {
+    width: "100%",
+    marginTop: "24px",
+    border: "none",
+    borderRadius: "18px",
+    padding: "16px",
+    background: "#181818",
+    color: "#FFFFFF",
     cursor: "pointer",
     fontSize: "15px",
   },
-  trendCard: {
-    background: "linear-gradient(135deg, #EEF4FF 0%, #E8EEFA 100%)",
-    borderRadius: "18px",
-    padding: "18px",
-    marginTop: "22px",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+
+  responsePanel: {
+    gridColumn: "1 / -1",
+    background: "rgba(250,244,234,0.9)",
+    borderRadius: "34px",
+    padding: "30px",
+    backdropFilter: "blur(20px)",
+    boxShadow: "0 24px 70px rgba(40,34,25,0.18)",
+    maxWidth: "1000px",
+    margin: "0 auto",
   },
-  trendText: {
-    fontSize: "15px",
-    color: "#333",
-    lineHeight: "1.5",
-    margin: 0,
-  },
-  suggestionCard: {
-    background: "linear-gradient(135deg, #E8F5E9 0%, #DFF1E3 100%)",
-    borderRadius: "18px",
-    padding: "18px",
-    marginTop: "14px",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-  },
-  suggestionLabel: {
-    fontSize: "13px",
-    color: "#2e7d32",
-    margin: "0 0 6px",
-  },
-  suggestionMain: {
-    fontSize: "22px",
-    fontWeight: "700",
-    color: "#1A1A1A",
-    margin: 0,
-  },
-  suggestionSub: {
-    fontSize: "13px",
-    color: "#555",
-    marginTop: "6px",
-  },
-  confidenceBadge: {
-    marginLeft: "10px",
-    fontSize: "12px",
-    background: "#D4EDDA",
-    padding: "4px 8px",
-    borderRadius: "999px",
-    color: "#333",
-  },
-  response: {
-    marginTop: "22px",
-    color: "#333",
-    lineHeight: "1.65",
-    fontSize: "15px",
+
+  responseText: {
     whiteSpace: "pre-line",
-    textAlign: "left",
+    lineHeight: "1.75",
+    color: "#2F2A22",
+    fontSize: "16px",
   },
+
+  suggestionCard: {
+    display: "inline-flex",
+    gap: "12px",
+    alignItems: "center",
+    background: "rgba(48,70,45,0.12)",
+    borderRadius: "999px",
+    padding: "12px 16px",
+    color: "#273C25",
+    marginBottom: "12px",
+  },
+
+  confidenceBadge: {
+    background: "#FFFFFF",
+    borderRadius: "999px",
+    padding: "4px 8px",
+    fontSize: "12px",
+  },
+
   memoryCard: {
-    marginTop: "20px",
-    background: "#FAFAFA",
-    borderRadius: "18px",
-    padding: "18px",
-    textAlign: "left",
+    marginTop: "18px",
+    paddingTop: "18px",
+    borderTop: "1px solid rgba(0,0,0,0.1)",
   },
-  memoryLine: {
-    margin: "6px 0",
-    fontSize: "14px",
-    color: "#333",
+
+  bottomNav: {
+    position: "fixed",
+    left: "50%",
+    bottom: "24px",
+    transform: "translateX(-50%)",
+    zIndex: 8,
+    width: "92%",
+    maxWidth: "920px",
+    background: "rgba(250,244,234,0.86)",
+    borderRadius: "30px",
+    padding: "12px",
+    backdropFilter: "blur(18px)",
+    display: "flex",
+    justifyContent: "space-around",
+    boxShadow: "0 24px 60px rgba(0,0,0,0.20)",
+  },
+
+  activeNav: {
+    background: "#181818",
+    color: "#FFFFFF",
+    borderRadius: "18px",
+    padding: "12px 18px",
+    textDecoration: "none",
+  },
+
+  navItem: {
+    color: "#2A261F",
+    textDecoration: "none",
+    padding: "12px 12px",
   },
 };
