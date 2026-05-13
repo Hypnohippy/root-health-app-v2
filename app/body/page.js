@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import RootEnso from "../../components/RootEnso";
-
+import DigestionView from "../../components/body/DigestionView";
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
   { id: "heart_circulation", label: "Heart & circulation", system: "circulatory", signals: ["racing heart", "fluttering", "pressure", "cold hands/feet", "light-headed", "low stamina", "swelling", "colour change"] },
@@ -84,6 +84,7 @@ export default function BodyPage() {
   const [rankedHelp, setRankedHelp] = useState([]);
   const [trendInsight, setTrendInsight] = useState("");
   const [saving, setSaving] = useState(false);
+  const [journeyStep, setJourneyStep] = useState("body");
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
@@ -96,16 +97,21 @@ export default function BodyPage() {
     setTrendInsight("");
   };
 
-  const selectSystem = (id) => {
-    setSelectedSystems((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    setActiveSystemId(id);
-    setSelectedSignal("");
-    setContext("");
-    setIntensity(5);
-    setWhatHelped("");
-    resetLearningUI();
-  };
+ const selectSystem = (id) => {
+  setSelectedSystems((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  setActiveSystemId(id);
+  setSelectedSignal("");
+  setContext("");
+  setIntensity(5);
+  setWhatHelped("");
+  resetLearningUI();
 
+  if (id === "digestion") {
+    setJourneyStep("digestion");
+  } else {
+    setJourneyStep("signals");
+  }
+};
   const clearSelections = () => {
     setSelectedSystems([]);
     setActiveSystemId(null);
@@ -113,6 +119,7 @@ export default function BodyPage() {
     setContext("");
     setIntensity(5);
     setWhatHelped("");
+    setJourneyStep("body");
     resetLearningUI();
   };
 
@@ -253,7 +260,21 @@ export default function BodyPage() {
       </header>
 
       <section style={styles.stage}>
-        <div style={styles.bodyPanel}>
+    {journeyStep === "digestion" && current?.id === "digestion" && (
+  <div style={styles.journeyPanel}>
+    <DigestionView
+      selectedSignal={selectedSignal}
+      setSelectedSignal={setSelectedSignal}
+      onBack={() => {
+        setJourneyStep("body");
+        clearSelections();
+      }}
+      onContinue={() => setJourneyStep("signals")}
+    />
+  </div>
+)}
+       {journeyStep !== "digestion" && (
+  <div style={styles.bodyPanel}>
           <h1 style={styles.title}>
             {current ? current.label : "Where are you feeling it today?"}
           </h1>
@@ -297,9 +318,10 @@ export default function BodyPage() {
             </button>
           )}
         </div>
-
+)}
         {current && (
-          <div style={styles.explorePanel}>
+         {current && journeyStep !== "digestion" && (
+  <div style={styles.explorePanel}>
             <p style={styles.panelKicker}>Signal exploration</p>
             <h2 style={styles.panelTitle}>{current.label}</h2>
 
@@ -705,4 +727,11 @@ const styles = {
     textDecoration: "none",
     padding: "12px 12px",
   },
+  journeyPanel: {
+  gridColumn: "1 / -1",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  minHeight: "70vh",
+},
 };
