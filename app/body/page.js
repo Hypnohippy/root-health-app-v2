@@ -247,8 +247,9 @@ export default function BodyPage() {
       message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;
     }
 
-    setResponse(message);
-    setSaving(false);
+   setResponse(message);
+setJourneyStep("body");
+setSaving(false);
   };
 
   return (
@@ -560,14 +561,14 @@ const styles = {
     zIndex: 6,
   },
 
-  digestiveCallout: {
-    position: "absolute",
-    left: "78%",
-    top: "22%",
-    width: "420px",
-    zIndex: 20,
-    animation: "none",
-  },
+ digestiveCallout: {
+  position: "absolute",
+  left: "72%",
+  top: "10%",
+  width: "520px",
+  maxHeight: "78vh",
+  zIndex: 20,
+},
 
   connectorLine: {
     position: "absolute",
