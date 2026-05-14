@@ -1,12 +1,57 @@
 "use client";
 
+import { useState } from "react";
+
 export default function DigestionView({
   selectedSignal,
   setSelectedSignal,
   onBack,
   onContinue,
 }) {
+  const [selectedZone, setSelectedZone] = useState(null);
+
   const digestionSignals = [
+    {
+    id: "upper_abdomen",
+    label: "Upper abdomen",
+    top: "18%",
+    left: "34%",
+    width: "32%",
+    height: "18%",
+  },
+  {
+    id: "centre_gut",
+    label: "Centre gut",
+    top: "38%",
+    left: "30%",
+    width: "40%",
+    height: "20%",
+  },
+  {
+    id: "lower_bowel",
+    label: "Lower bowel",
+    top: "62%",
+    left: "32%",
+    width: "36%",
+    height: "16%",
+  },
+  {
+    id: "left_side",
+    label: "Left side",
+    top: "36%",
+    left: "16%",
+    width: "18%",
+    height: "28%",
+  },
+  {
+    id: "right_side",
+    label: "Right side",
+    top: "36%",
+    left: "66%",
+    width: "18%",
+    height: "28%",
+  },
+];
     "Bloating",
     "Discomfort",
     "Nausea",
@@ -24,7 +69,7 @@ export default function DigestionView({
       </button>
 
       <div style={styles.visualPanel}>
-        <div style={styles.imageWrap}>
+       <div style={styles.imageWrap}>
   <img
     src="/visuals/digestive-system.png"
     alt="Digestive system"
@@ -32,7 +77,30 @@ export default function DigestionView({
   />
 
   <div style={styles.imageGlow} />
-</div>      </div>
+
+  {gutZones.map((zone) => (
+    <button
+      key={zone.id}
+      onClick={() => setSelectedZone(zone.label)}
+      style={{
+        ...styles.zoneButton,
+        top: zone.top,
+        left: zone.left,
+        width: zone.width,
+        height: zone.height,
+        ...(selectedZone === zone.label
+          ? styles.zoneButtonActive
+          : {}),
+      }}
+    />
+  ))}
+
+  {selectedZone && (
+    <div style={styles.zoneLabel}>
+      {selectedZone}
+    </div>
+  )}
+</div>
 
       <div style={styles.content}>
         <p style={styles.kicker}>Signal exploration</p>
