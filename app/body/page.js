@@ -6,6 +6,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import RootEnso from "../../components/RootEnso";
 import DigestionView from "../../components/body/DigestionView";
+import HeartView from "../../components/body/HeartView";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -109,6 +110,8 @@ export default function BodyPage() {
 
     if (id === "digestion") {
       setJourneyStep("digestion");
+    } else if (id === "heart_circulation") {
+      setJourneyStep("heart");
     } else {
       setJourneyStep("signals");
     }
@@ -157,9 +160,12 @@ export default function BodyPage() {
       intensity >= 8 ||
       selectedSignal.includes("blister") ||
       selectedSignal.includes("discharge") ||
-      selectedSignal.includes("burning when passing urine")
+      selectedSignal.includes("burning when passing urine") ||
+      selectedSignal.includes("racing heart") ||
+      selectedSignal.includes("pressure") ||
+      selectedSignal.includes("tight chest")
     ) {
-      message += `\n\nBecause this is strong, sensitive, unusual, or potentially visible, it is worth getting checked if it persists, worsens, or worries you.`;
+      message += `\n\nBecause this is strong, chest-related, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, comes with severe pain, fainting, breathlessness, or feels unusual for you.`;
     }
 
     return message;
@@ -247,25 +253,25 @@ export default function BodyPage() {
       message += `\n\nYou just found something useful: "${whatHelped}". Stay with that today if it feels right — this is the kind of feedback Root Health can learn from.`;
     }
 
-   setResponse(message);
-setJourneyStep("body");
-setSaving(false);
+    setResponse(message);
+    setJourneyStep("body");
+    setSaving(false);
   };
 
   return (
     <main style={styles.page}>
-  <style>{`
-    @keyframes digestivePop {
-      0% {
-        opacity: 0;
-        transform: scale(0.88) translateX(-28px);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1) translateX(0);
-      }
-    }
-  `}</style>
+      <style>{`
+        @keyframes digestivePop {
+          0% { opacity: 0; transform: scale(0.88) translateX(-28px); }
+          100% { opacity: 1; transform: scale(1) translateX(0); }
+        }
+
+        @keyframes heartPop {
+          0% { opacity: 0; transform: scale(0.88) translateX(-24px); }
+          100% { opacity: 1; transform: scale(1) translateX(0); }
+        }
+      `}</style>
+
       <div style={styles.backgroundWash} />
 
       <header style={styles.topBar}>
@@ -310,9 +316,29 @@ setSaving(false);
 
             {journeyStep === "digestion" && current?.id === "digestion" && (
               <div style={styles.digestiveCallout}>
-                <div style={styles.connectorLine} />
+                <div style={styles.digestiveConnectorLine} />
 
                 <DigestionView
+                  selectedSignal={selectedSignal}
+                  setSelectedSignal={setSelectedSignal}
+                  context={context}
+                  setContext={setContext}
+                  intensity={intensity}
+                  setIntensity={setIntensity}
+                  whatHelped={whatHelped}
+                  setWhatHelped={setWhatHelped}
+                  saving={saving}
+                  onBack={clearSelections}
+                  onSave={handleExplore}
+                />
+              </div>
+            )}
+
+            {journeyStep === "heart" && current?.id === "heart_circulation" && (
+              <div style={styles.heartCallout}>
+                <div style={styles.heartConnectorLine} />
+
+                <HeartView
                   selectedSignal={selectedSignal}
                   setSelectedSignal={setSelectedSignal}
                   context={context}
@@ -340,99 +366,103 @@ setSaving(false);
           )}
         </div>
 
-        {current && journeyStep !== "digestion" && current.id !== "digestion" && (
-          <div style={styles.explorePanel}>
-            <p style={styles.panelKicker}>Signal exploration</p>
-            <h2 style={styles.panelTitle}>{current.label}</h2>
+        {current &&
+          journeyStep !== "digestion" &&
+          journeyStep !== "heart" &&
+          current.id !== "digestion" &&
+          current.id !== "heart_circulation" && (
+            <div style={styles.explorePanel}>
+              <p style={styles.panelKicker}>Signal exploration</p>
+              <h2 style={styles.panelTitle}>{current.label}</h2>
 
-            <p style={styles.question}>What are you noticing?</p>
+              <p style={styles.question}>What are you noticing?</p>
 
-            <div style={styles.choiceGrid}>
-              {current.signals.map((sig) => (
-                <button
-                  key={sig}
-                  onClick={() => {
-                    setSelectedSignal(sig);
-                    setContext("");
-                    setWhatHelped("");
-                    resetLearningUI();
-                  }}
-                  style={{
-                    ...styles.choiceButton,
-                    ...(selectedSignal === sig ? styles.choiceActive : {}),
-                  }}
-                >
-                  {sig}
-                </button>
-              ))}
+              <div style={styles.choiceGrid}>
+                {current.signals.map((sig) => (
+                  <button
+                    key={sig}
+                    onClick={() => {
+                      setSelectedSignal(sig);
+                      setContext("");
+                      setWhatHelped("");
+                      resetLearningUI();
+                    }}
+                    style={{
+                      ...styles.choiceButton,
+                      ...(selectedSignal === sig ? styles.choiceActive : {}),
+                    }}
+                  >
+                    {sig}
+                  </button>
+                ))}
+              </div>
+
+              {selectedSignal && (
+                <>
+                  <p style={styles.question}>When does this show up?</p>
+                  <div style={styles.choiceGrid}>
+                    {contextOptions.map((item) => (
+                      <button
+                        key={item}
+                        onClick={() => {
+                          setContext(item);
+                          resetLearningUI();
+                        }}
+                        style={{
+                          ...styles.choiceButton,
+                          ...(context === item ? styles.choiceActive : {}),
+                        }}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {context && (
+                <>
+                  <p style={styles.question}>How strong is it today?</p>
+
+                  <div style={styles.scoreRow}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                      <button
+                        key={score}
+                        onClick={() => setIntensity(score)}
+                        style={{
+                          ...styles.scoreButton,
+                          ...(intensity === score ? styles.scoreActive : {}),
+                        }}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p style={styles.question}>What helped, if anything?</p>
+
+                  <div style={styles.choiceGrid}>
+                    {helpOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => setWhatHelped(opt)}
+                        style={{
+                          ...styles.choiceButton,
+                          ...(whatHelped === opt ? styles.choiceActive : {}),
+                        }}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button style={styles.continueButton} onClick={handleExplore}>
+                    {saving ? "Saving..." : "Save & reflect"}
+                  </button>
+                </>
+              )}
             </div>
-
-            {selectedSignal && (
-              <>
-                <p style={styles.question}>When does this show up?</p>
-                <div style={styles.choiceGrid}>
-                  {contextOptions.map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => {
-                        setContext(item);
-                        resetLearningUI();
-                      }}
-                      style={{
-                        ...styles.choiceButton,
-                        ...(context === item ? styles.choiceActive : {}),
-                      }}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {context && (
-              <>
-                <p style={styles.question}>How strong is it today?</p>
-
-                <div style={styles.scoreRow}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
-                    <button
-                      key={score}
-                      onClick={() => setIntensity(score)}
-                      style={{
-                        ...styles.scoreButton,
-                        ...(intensity === score ? styles.scoreActive : {}),
-                      }}
-                    >
-                      {score}
-                    </button>
-                  ))}
-                </div>
-
-                <p style={styles.question}>What helped, if anything?</p>
-
-                <div style={styles.choiceGrid}>
-                  {helpOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => setWhatHelped(opt)}
-                      style={{
-                        ...styles.choiceButton,
-                        ...(whatHelped === opt ? styles.choiceActive : {}),
-                      }}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-
-                <button style={styles.continueButton} onClick={handleExplore}>
-                  {saving ? "Saving..." : "Save & reflect"}
-                </button>
-              </>
-            )}
-          </div>
-        )}
+          )}
 
         {(response || trendInsight || suggestedHelp || rankedHelp.length > 0) && (
           <div style={styles.responsePanel}>
@@ -573,27 +603,51 @@ const styles = {
     zIndex: 6,
   },
 
-digestiveCallout: {
-  position: "absolute",
-  left: "68%",
-  top: "34%",
-  width: "420px",
-  zIndex: 20,
-  transformOrigin: "left center",
-  animation: "digestivePop 0.38s ease-out",
-},
- connectorLine: {
-  position: "absolute",
-  left: "-95px",
-  top: "96px",
-  width: "110px",
-  height: "2px",
-  background:
-    "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
-  boxShadow: "0 0 18px rgba(255,210,120,0.8)",
-  transform: "rotate(-6deg)",
-  zIndex: 1,
-},
+  digestiveCallout: {
+    position: "absolute",
+    left: "68%",
+    top: "34%",
+    width: "420px",
+    zIndex: 20,
+    transformOrigin: "left center",
+    animation: "digestivePop 0.38s ease-out",
+  },
+
+  digestiveConnectorLine: {
+    position: "absolute",
+    left: "-95px",
+    top: "96px",
+    width: "110px",
+    height: "2px",
+    background:
+      "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+    boxShadow: "0 0 18px rgba(255,210,120,0.8)",
+    transform: "rotate(-6deg)",
+    zIndex: 1,
+  },
+
+  heartCallout: {
+    position: "absolute",
+    left: "70%",
+    top: "12%",
+    width: "430px",
+    zIndex: 22,
+    transformOrigin: "left center",
+    animation: "heartPop 0.38s ease-out",
+  },
+
+  heartConnectorLine: {
+    position: "absolute",
+    left: "-88px",
+    top: "92px",
+    width: "105px",
+    height: "2px",
+    background:
+      "linear-gradient(90deg, rgba(255,120,90,0), rgba(255,120,90,0.95))",
+    boxShadow: "0 0 18px rgba(255,120,90,0.8)",
+    transform: "rotate(-12deg)",
+    zIndex: 1,
+  },
 
   tapHint: {
     marginTop: "-34px",
