@@ -242,6 +242,7 @@ const styles = {
     padding: "16px",
     maxHeight: "270px",
     overflowY: "auto",
+    paddingBottom: "80px",
   },
 
   kicker: {
