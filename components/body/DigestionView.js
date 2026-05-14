@@ -240,7 +240,7 @@ const styles = {
     background: "rgba(255,255,255,0.72)",
     borderRadius: "24px",
     padding: "16px",
-    maxHeight: "330px",
+    maxHeight: "270px",
     overflowY: "auto",
   },
 
