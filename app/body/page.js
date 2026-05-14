@@ -263,14 +263,21 @@ export default function BodyPage() {
     {journeyStep === "digestion" && current?.id === "digestion" && (
   <div style={styles.journeyPanel}>
     <DigestionView
-      selectedSignal={selectedSignal}
-      setSelectedSignal={setSelectedSignal}
-      onBack={() => {
-        setJourneyStep("body");
-        clearSelections();
-      }}
-      onContinue={() => setJourneyStep("signals")}
-    />
+  selectedSignal={selectedSignal}
+  setSelectedSignal={setSelectedSignal}
+  context={context}
+  setContext={setContext}
+  intensity={intensity}
+  setIntensity={setIntensity}
+  whatHelped={whatHelped}
+  setWhatHelped={setWhatHelped}
+  saving={saving}
+  onBack={() => {
+    setJourneyStep("body");
+    clearSelections();
+  }}
+  onSave={handleExplore}
+/>
   </div>
 )}
        {journeyStep !== "digestion" && (
