@@ -11,135 +11,231 @@ const gutZones = [
 ];
 
 const digestionSignals = [
-  "Bloating",
-  "Discomfort",
-  "Nausea",
-  "Changes in bowel habits",
-  "Reflux",
-  "Cramping",
-  "Food sensitivity",
-  "Other",
+  "bloating",
+  "reflux",
+  "cramps",
+  "constipation",
+  "loose bowels",
+  "nausea",
+  "appetite change",
+  "wind/gas",
+  "food sensitivity",
+];
+
+const contextOptions = [
+  "just started",
+  "comes and goes",
+  "constant",
+  "after eating",
+  "under stress",
+  "after movement",
+  "at night",
+  "random",
+  "getting worse",
+  "improving",
+];
+
+const helpOptions = [
+  "Drank more water",
+  "Ate differently",
+  "Rested",
+  "Reduced stress",
+  "Moved/exercised",
+  "Improved sleep",
+  "Nothing yet",
 ];
 
 export default function DigestionView({
   selectedSignal,
   setSelectedSignal,
+  context,
+  setContext,
+  intensity,
+  setIntensity,
+  whatHelped,
+  setWhatHelped,
+  saving,
   onBack,
-  onContinue,
+  onSave,
 }) {
   const [selectedZone, setSelectedZone] = useState(null);
 
   return (
-    <div style={styles.wrapper}>
+    <div style={styles.overlayCard}>
       <button onClick={onBack} style={styles.backButton}>
         ← Back to body
       </button>
 
-      <div style={styles.visualPanel}>
-        <div style={styles.imageWrap}>
-          <img
-            src="/visuals/digestive-system.png"
-            alt="Digestive system"
-            style={styles.image}
-          />
-
-          <div style={styles.imageGlow} />
-
-          {gutZones.map((zone) => (
-            <button
-              key={zone.id}
-              onClick={() => {
-                setSelectedZone(zone.label);
-                setSelectedSignal("");
-              }}
-              style={{
-                ...styles.zoneButton,
-                top: zone.top,
-                left: zone.left,
-                width: zone.width,
-                height: zone.height,
-                ...(selectedZone === zone.label
-                  ? styles.zoneButtonActive
-                  : {}),
-              }}
+      <div style={styles.layout}>
+        <div style={styles.visualPanel}>
+          <div style={styles.imageWrap}>
+            <img
+              src="/visuals/digestive-system.png"
+              alt="Digestive system"
+              style={styles.image}
             />
-          ))}
+
+            <div style={styles.imageGlow} />
+
+            {gutZones.map((zone) => (
+              <button
+                key={zone.id}
+                onClick={() => {
+                  setSelectedZone(zone.label);
+                  setSelectedSignal("");
+                  setContext("");
+                  setWhatHelped("");
+                }}
+                style={{
+                  ...styles.zoneButton,
+                  top: zone.top,
+                  left: zone.left,
+                  width: zone.width,
+                  height: zone.height,
+                  ...(selectedZone === zone.label ? styles.zoneButtonActive : {}),
+                }}
+              />
+            ))}
+
+            {selectedZone && <div style={styles.zoneLabel}>{selectedZone}</div>}
+          </div>
+        </div>
+
+        <div style={styles.content}>
+          <p style={styles.kicker}>Digestive map</p>
+          <h2 style={styles.title}>Stomach / Gut</h2>
+
+          <p style={styles.subtitle}>
+            {!selectedZone
+              ? "Tap the digestive area that feels affected."
+              : `Exploring: ${selectedZone}`}
+          </p>
 
           {selectedZone && (
-            <div style={styles.zoneLabel}>
-              {selectedZone}
-            </div>
+            <>
+              <p style={styles.question}>What are you noticing?</p>
+
+              <div style={styles.grid}>
+                {digestionSignals.map((signal) => (
+                  <button
+                    key={signal}
+                    onClick={() => {
+                      setSelectedSignal(signal);
+                      setContext("");
+                      setWhatHelped("");
+                    }}
+                    style={{
+                      ...styles.signalButton,
+                      ...(selectedSignal === signal ? styles.signalButtonActive : {}),
+                    }}
+                  >
+                    {signal}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSignal && (
+            <>
+              <p style={styles.question}>When does this show up?</p>
+
+              <div style={styles.grid}>
+                {contextOptions.map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => setContext(item)}
+                    style={{
+                      ...styles.signalButton,
+                      ...(context === item ? styles.signalButtonActive : {}),
+                    }}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {context && (
+            <>
+              <p style={styles.question}>How strong is it today?</p>
+
+              <div style={styles.scoreRow}>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                  <button
+                    key={score}
+                    onClick={() => setIntensity(score)}
+                    style={{
+                      ...styles.scoreButton,
+                      ...(intensity === score ? styles.scoreButtonActive : {}),
+                    }}
+                  >
+                    {score}
+                  </button>
+                ))}
+              </div>
+
+              <p style={styles.question}>What helped, if anything?</p>
+
+              <div style={styles.grid}>
+                {helpOptions.map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => setWhatHelped(item)}
+                    style={{
+                      ...styles.signalButton,
+                      ...(whatHelped === item ? styles.signalButtonActive : {}),
+                    }}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+
+              <button onClick={onSave} style={styles.continueButton}>
+                {saving ? "Saving..." : "Save & reflect"}
+              </button>
+            </>
           )}
         </div>
-      </div>
-
-      <div style={styles.content}>
-        <p style={styles.kicker}>Digestive map</p>
-
-        <h2 style={styles.title}>Stomach / Gut</h2>
-
-        <p style={styles.subtitle}>
-          {!selectedZone
-            ? "Tap the digestive area that feels affected."
-            : `Exploring: ${selectedZone}`}
-        </p>
-
-        {selectedZone && (
-          <>
-            <div style={styles.grid}>
-              {digestionSignals.map((signal) => (
-                <button
-                  key={signal}
-                  onClick={() => setSelectedSignal(signal)}
-                  style={{
-                    ...styles.signalButton,
-                    ...(selectedSignal === signal
-                      ? styles.signalButtonActive
-                      : {}),
-                  }}
-                >
-                  {signal}
-                </button>
-              ))}
-            </div>
-
-            {selectedSignal && (
-              <button onClick={onContinue} style={styles.continueButton}>
-                Continue
-              </button>
-            )}
-          </>
-        )}
       </div>
     </div>
   );
 }
 
 const styles = {
-  wrapper: {
+  overlayCard: {
     width: "100%",
-    maxWidth: "500px",
+    maxWidth: "1040px",
     margin: "0 auto",
+    background: "rgba(250,244,234,0.9)",
+    borderRadius: "38px",
+    padding: "24px",
+    backdropFilter: "blur(22px)",
+    boxShadow: "0 30px 90px rgba(0,0,0,0.22)",
+  },
+
+  layout: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "24px",
   },
 
   backButton: {
     border: "none",
-    background: "rgba(255,255,255,0.6)",
+    background: "rgba(255,255,255,0.72)",
     borderRadius: "999px",
     padding: "10px 16px",
     marginBottom: "18px",
     cursor: "pointer",
-    backdropFilter: "blur(10px)",
   },
 
   visualPanel: {
-    position: "relative",
-    overflow: "hidden",
     borderRadius: "34px",
     background: "linear-gradient(180deg, #F6EFE5 0%, #E7D5C2 100%)",
     padding: "28px",
-    marginBottom: "20px",
-    boxShadow: "0 24px 60px rgba(0,0,0,0.12)",
+    boxShadow: "inset 0 0 80px rgba(255,255,255,0.4)",
   },
 
   imageWrap: {
@@ -157,8 +253,7 @@ const styles = {
   imageGlow: {
     position: "absolute",
     inset: 0,
-    background:
-      "radial-gradient(circle at center, rgba(255,210,140,0.28), transparent 60%)",
+    background: "radial-gradient(circle at center, rgba(255,210,140,0.28), transparent 60%)",
     pointerEvents: "none",
     zIndex: 3,
   },
@@ -187,15 +282,15 @@ const styles = {
     padding: "10px 16px",
     borderRadius: "999px",
     fontSize: "13px",
-    backdropFilter: "blur(10px)",
     zIndex: 5,
   },
 
   content: {
     background: "rgba(255,255,255,0.72)",
-    borderRadius: "28px",
-    padding: "24px",
-    backdropFilter: "blur(18px)",
+    borderRadius: "30px",
+    padding: "26px",
+    maxHeight: "70vh",
+    overflowY: "auto",
   },
 
   kicker: {
@@ -221,26 +316,50 @@ const styles = {
     lineHeight: "1.6",
   },
 
+  question: {
+    margin: "22px 0 12px",
+    color: "#4D463B",
+    fontWeight: "700",
+  },
+
   grid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "12px",
+    gap: "10px",
   },
 
   signalButton: {
     border: "none",
     borderRadius: "18px",
-    padding: "16px",
+    padding: "14px",
     background: "rgba(255,255,255,0.86)",
     color: "#2A261F",
     cursor: "pointer",
     textAlign: "left",
     fontSize: "14px",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
   },
 
   signalButtonActive: {
     background: "#181818",
+    color: "#FFFFFF",
+  },
+
+  scoreRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(5, 1fr)",
+    gap: "8px",
+  },
+
+  scoreButton: {
+    height: "38px",
+    borderRadius: "999px",
+    border: "none",
+    background: "rgba(255,255,255,0.86)",
+    cursor: "pointer",
+  },
+
+  scoreButtonActive: {
+    background: "#C23B30",
     color: "#FFFFFF",
   },
 
