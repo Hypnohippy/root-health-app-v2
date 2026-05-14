@@ -6,6 +6,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import RootEnso from "../../components/RootEnso";
 import DigestionView from "../../components/body/DigestionView";
+
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
   { id: "heart_circulation", label: "Heart & circulation", system: "circulatory", signals: ["racing heart", "fluttering", "pressure", "cold hands/feet", "light-headed", "low stamina", "swelling", "colour change"] },
@@ -30,8 +31,8 @@ const bodyZones = [
   { id: "hormones_balance", top: "45%", left: "37%", width: "26%", height: "16%" },
   { id: "bladder_hydration", top: "54%", left: "40%", width: "20%", height: "9%" },
   { id: "reproductive", top: "59%", left: "38%", width: "24%", height: "9%" },
- { id: "skin", top: "22%", left: "20%", width: "12%", height: "62%" },
-{ id: "muscles_joints", top: "26%", left: "68%", width: "14%", height: "62%" },
+  { id: "skin", top: "22%", left: "20%", width: "12%", height: "62%" },
+  { id: "muscles_joints", top: "26%", left: "68%", width: "14%", height: "62%" },
   { id: "energy_recovery", top: "72%", left: "34%", width: "32%", height: "18%" },
 ];
 
@@ -97,21 +98,22 @@ export default function BodyPage() {
     setTrendInsight("");
   };
 
- const selectSystem = (id) => {
-  setSelectedSystems((prev) => (prev.includes(id) ? prev : [...prev, id]));
-  setActiveSystemId(id);
-  setSelectedSignal("");
-  setContext("");
-  setIntensity(5);
-  setWhatHelped("");
-  resetLearningUI();
+  const selectSystem = (id) => {
+    setSelectedSystems((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setActiveSystemId(id);
+    setSelectedSignal("");
+    setContext("");
+    setIntensity(5);
+    setWhatHelped("");
+    resetLearningUI();
 
-  if (id === "digestion") {
-    setJourneyStep("digestion");
-  } else {
-    setJourneyStep("signals");
-  }
-};
+    if (id === "digestion") {
+      setJourneyStep("digestion");
+    } else {
+      setJourneyStep("signals");
+    }
+  };
+
   const clearSelections = () => {
     setSelectedSystems([]);
     setActiveSystemId(null);
@@ -260,28 +262,7 @@ export default function BodyPage() {
       </header>
 
       <section style={styles.stage}>
-    {journeyStep === "digestion" && current?.id === "digestion" && (
-  <div style={styles.journeyPanel}>
-    <DigestionView
-  selectedSignal={selectedSignal}
-  setSelectedSignal={setSelectedSignal}
-  context={context}
-  setContext={setContext}
-  intensity={intensity}
-  setIntensity={setIntensity}
-  whatHelped={whatHelped}
-  setWhatHelped={setWhatHelped}
-  saving={saving}
-  onBack={() => {
-    setJourneyStep("body");
-    clearSelections();
-  }}
-  onSave={handleExplore}
-/>
-  </div>
-)}
-       {journeyStep !== "digestion" && (
-  <div style={styles.bodyPanel}>
+        <div style={styles.bodyPanel}>
           <h1 style={styles.title}>
             {current ? current.label : "Where are you feeling it today?"}
           </h1>
@@ -313,6 +294,26 @@ export default function BodyPage() {
                 {current.label}
               </div>
             )}
+
+            {journeyStep === "digestion" && current?.id === "digestion" && (
+              <div style={styles.digestiveCallout}>
+                <div style={styles.connectorLine} />
+
+                <DigestionView
+                  selectedSignal={selectedSignal}
+                  setSelectedSignal={setSelectedSignal}
+                  context={context}
+                  setContext={setContext}
+                  intensity={intensity}
+                  setIntensity={setIntensity}
+                  whatHelped={whatHelped}
+                  setWhatHelped={setWhatHelped}
+                  saving={saving}
+                  onBack={clearSelections}
+                  onSave={handleExplore}
+                />
+              </div>
+            )}
           </div>
 
           {!current && (
@@ -325,13 +326,10 @@ export default function BodyPage() {
             </button>
           )}
         </div>
-)}
-     
-        {current &&
- journeyStep !== "digestion" &&
- current.id !== "digestion" && (
-  <div style={styles.explorePanel}>
-          <p style={styles.panelKicker}>Signal exploration</p>
+
+        {current && journeyStep !== "digestion" && current.id !== "digestion" && (
+          <div style={styles.explorePanel}>
+            <p style={styles.panelKicker}>Signal exploration</p>
             <h2 style={styles.panelTitle}>{current.label}</h2>
 
             <p style={styles.question}>What are you noticing?</p>
@@ -515,6 +513,7 @@ const styles = {
   },
 
   bodyPanel: {
+    position: "relative",
     textAlign: "center",
   },
 
@@ -558,6 +557,28 @@ const styles = {
     padding: "10px 16px",
     backdropFilter: "blur(10px)",
     fontSize: "14px",
+    zIndex: 6,
+  },
+
+  digestiveCallout: {
+    position: "absolute",
+    left: "78%",
+    top: "22%",
+    width: "420px",
+    zIndex: 20,
+    animation: "none",
+  },
+
+  connectorLine: {
+    position: "absolute",
+    left: "-110px",
+    top: "110px",
+    width: "120px",
+    height: "2px",
+    background:
+      "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+    boxShadow: "0 0 18px rgba(255,210,120,0.8)",
+    zIndex: 1,
   },
 
   tapHint: {
@@ -736,11 +757,4 @@ const styles = {
     textDecoration: "none",
     padding: "12px 12px",
   },
-  journeyPanel: {
-  gridColumn: "1 / -1",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  minHeight: "70vh",
-},
 };
