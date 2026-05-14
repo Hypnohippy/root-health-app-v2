@@ -229,8 +229,9 @@ const styles = {
     background: "rgba(255,255,255,0.76)",
     borderRadius: "24px",
     padding: "16px",
-    maxHeight: "340px",
+    maxHeight: "270px",
     overflowY: "auto",
+    paddingBottom: "80px",
   },
 
   kicker: {
