@@ -254,6 +254,18 @@ setSaving(false);
 
   return (
     <main style={styles.page}>
+  <style>{`
+    @keyframes digestivePop {
+      0% {
+        opacity: 0;
+        transform: scale(0.88) translateX(-28px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+      }
+    }
+  `}</style>
       <div style={styles.backgroundWash} />
 
       <header style={styles.topBar}>
@@ -561,26 +573,27 @@ const styles = {
     zIndex: 6,
   },
 
- digestiveCallout: {
+digestiveCallout: {
   position: "absolute",
-  left: "72%",
-  top: "10%",
-  width: "520px",
-  maxHeight: "78vh",
+  left: "68%",
+  top: "34%",
+  width: "420px",
   zIndex: 20,
+  transformOrigin: "left center",
+  animation: "digestivePop 0.38s ease-out",
 },
-
-  connectorLine: {
-    position: "absolute",
-    left: "-110px",
-    top: "110px",
-    width: "120px",
-    height: "2px",
-    background:
-      "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
-    boxShadow: "0 0 18px rgba(255,210,120,0.8)",
-    zIndex: 1,
-  },
+ connectorLine: {
+  position: "absolute",
+  left: "-95px",
+  top: "96px",
+  width: "110px",
+  height: "2px",
+  background:
+    "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+  boxShadow: "0 0 18px rgba(255,210,120,0.8)",
+  transform: "rotate(-6deg)",
+  zIndex: 1,
+},
 
   tapHint: {
     marginTop: "-34px",
