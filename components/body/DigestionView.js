@@ -107,11 +107,13 @@ export default function DigestionView({
 
         <h2 style={styles.title}>Stomach / Gut</h2>
 
-        <p style={styles.subtitle}>
-          What are you noticing right now?
-        </p>
-
-        <div style={styles.grid}>
+       <p style={styles.subtitle}>
+  {!selectedZone
+    ? "Tap the digestive area that feels affected."
+    : `Exploring: ${selectedZone}`}
+</p>
+        {selectedZone && (
+  <div style={styles.grid}>
           {digestionSignals.map((signal) => (
             <button
               key={signal}
@@ -126,6 +128,7 @@ export default function DigestionView({
               {signal}
             </button>
           ))}
+            )}
         </div>
 
         {selectedSignal && (
@@ -236,7 +239,32 @@ imageGlow: {
     background: "#181818",
     color: "#FFFFFF",
   },
+zoneButton: {
+  position: "absolute",
+  border: "none",
+  background: "transparent",
+  borderRadius: "999px",
+  cursor: "pointer",
+  zIndex: 4,
+},
 
+zoneButtonActive: {
+  background: "rgba(255,210,120,0.24)",
+  boxShadow: "0 0 30px rgba(255,210,120,0.7)",
+},
+
+zoneLabel: {
+  position: "absolute",
+  left: "50%",
+  bottom: "12px",
+  transform: "translateX(-50%)",
+  background: "rgba(20,20,20,0.72)",
+  color: "#FFFFFF",
+  padding: "10px 16px",
+  borderRadius: "999px",
+  fontSize: "13px",
+  backdropFilter: "blur(10px)",
+},
   continueButton: {
     width: "100%",
     marginTop: "22px",
@@ -247,5 +275,6 @@ imageGlow: {
     color: "#FFFFFF",
     cursor: "pointer",
     fontSize: "15px",
+    
   },
 };
