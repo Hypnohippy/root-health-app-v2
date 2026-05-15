@@ -11,6 +11,7 @@ import LungsView from "../../components/body/LungsView";
 import SkinView from "../../components/body/SkinView";
 import JointsView from "../../components/body/JointsView";
 import KidneysView from "../../components/body/KidneysView";
+import NervousSystemView from "../../components/body/NervousSystemView";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -80,6 +81,10 @@ const signalGuidance = {
   "dark urine": ["Notice hydration, heat, exercise, and recent fluid intake", "Drink water steadily rather than all at once", "If it persists or worries you, get it checked"],
   "frequent urination": ["Notice caffeine, stress, hydration, and timing", "Track whether it is new, repeated, or worse at night", "If it burns, worsens, or feels unusual, get it checked"],
   "lower back discomfort": ["Notice hydration, posture, lifting, and movement", "Avoid pushing through if it feels unusual", "If pain is severe, persistent, or linked with urinary symptoms, get checked"],
+  overwhelm: ["Reduce stimulation for a few minutes", "Lower the demand on your system", "Notice what your nervous system is reacting to"],
+  "racing thoughts": ["Externalise the thoughts by writing one line down", "Reduce input and stimulation", "Try one slow out-breath before deciding what to do next"],
+  "panic feeling": ["Orient to the room and name what is actually here now", "Lengthen the out-breath gently", "If this feels severe, unsafe, or unusual, seek support"],
+  "wired but tired": ["Reduce stimulation rather than forcing productivity", "Notice caffeine, sleep, stress, and screen load", "Choose recovery over pushing harder"],
 };
 
 function normalise(value) {
@@ -121,7 +126,9 @@ export default function BodyPage() {
     setWhatHelped("");
     resetLearningUI();
 
-    if (id === "digestion") {
+    if (id === "stress_nerves") {
+      setJourneyStep("nervous");
+    } else if (id === "digestion") {
       setJourneyStep("digestion");
     } else if (id === "heart_circulation") {
       setJourneyStep("heart");
@@ -190,7 +197,8 @@ export default function BodyPage() {
       selectedSignal.includes("rash") ||
       selectedSignal.includes("swelling") ||
       selectedSignal.includes("dark urine") ||
-      selectedSignal.includes("reduced urination")
+      selectedSignal.includes("reduced urination") ||
+      selectedSignal.includes("panic")
     ) {
       message += `\n\nBecause this is strong, chest-related, breathing-related, urinary-related, visible, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, spreads, comes with severe pain, fainting, significant breathlessness, fever, or feels unusual for you.`;
     }
@@ -288,35 +296,13 @@ export default function BodyPage() {
   return (
     <main style={styles.page}>
       <style>{`
-        @keyframes digestivePop {
-          0% { opacity: 0; transform: scale(0.88) translateX(-28px); }
-          100% { opacity: 1; transform: scale(1) translateX(0); }
-        }
-
-        @keyframes heartPop {
-          0% { opacity: 0; transform: scale(0.88) translateX(-24px); }
-          100% { opacity: 1; transform: scale(1) translateX(0); }
-        }
-
-        @keyframes lungsPop {
-          0% { opacity: 0; transform: scale(0.88) translateX(-24px); }
-          100% { opacity: 1; transform: scale(1) translateX(0); }
-        }
-
-        @keyframes skinPop {
-          0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
-          100% { opacity: 1; transform: scale(1) translateX(0); }
-        }
-
-        @keyframes jointsPop {
-          0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
-          100% { opacity: 1; transform: scale(1) translateX(0); }
-        }
-
-        @keyframes kidneysPop {
-          0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
-          100% { opacity: 1; transform: scale(1) translateX(0); }
-        }
+        @keyframes digestivePop { 0% { opacity: 0; transform: scale(0.88) translateX(-28px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+        @keyframes heartPop { 0% { opacity: 0; transform: scale(0.88) translateX(-24px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+        @keyframes lungsPop { 0% { opacity: 0; transform: scale(0.88) translateX(-24px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+        @keyframes skinPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+        @keyframes jointsPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+        @keyframes kidneysPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+        @keyframes nervousPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
       `}</style>
 
       <div style={styles.backgroundWash} />
@@ -334,30 +320,23 @@ export default function BodyPage() {
           </h1>
 
           <div style={styles.bodyImageWrap}>
-            <img
-              src="/visuals/body-map-human.png"
-              alt="Root Health body map"
-              style={styles.bodyImage}
-            />
+            <img src="/visuals/body-map-human.png" alt="Root Health body map" style={styles.bodyImage} />
 
             {bodyZones.map((zone) => (
               <button
                 key={zone.id}
                 aria-label={zone.id}
                 onClick={() => selectSystem(zone.id)}
-                style={{
-                  ...styles.hitZone,
-                  top: zone.top,
-                  left: zone.left,
-                  width: zone.width,
-                  height: zone.height,
-                }}
+                style={{ ...styles.hitZone, top: zone.top, left: zone.left, width: zone.width, height: zone.height }}
               />
             ))}
 
-            {current && (
-              <div style={styles.activeGlow}>
-                {current.label}
+            {current && <div style={styles.activeGlow}>{current.label}</div>}
+
+            {journeyStep === "nervous" && current?.id === "stress_nerves" && (
+              <div style={styles.nervousCallout}>
+                <div style={styles.nervousConnectorLine} />
+                <NervousSystemView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
@@ -404,9 +383,7 @@ export default function BodyPage() {
             )}
           </div>
 
-          {!current && (
-            <p style={styles.tapHint}>Tap the area that feels out of balance</p>
-          )}
+          {!current && <p style={styles.tapHint}>Tap the area that feels out of balance</p>}
 
           {current && (
             <button style={styles.clearButton} onClick={clearSelections}>
@@ -416,12 +393,14 @@ export default function BodyPage() {
         </div>
 
         {current &&
+          journeyStep !== "nervous" &&
           journeyStep !== "digestion" &&
           journeyStep !== "heart" &&
           journeyStep !== "lungs" &&
           journeyStep !== "skin" &&
           journeyStep !== "joints" &&
           journeyStep !== "kidneys" &&
+          current.id !== "stress_nerves" &&
           current.id !== "digestion" &&
           current.id !== "heart_circulation" &&
           current.id !== "breathing" &&
@@ -444,10 +423,7 @@ export default function BodyPage() {
                       setWhatHelped("");
                       resetLearningUI();
                     }}
-                    style={{
-                      ...styles.choiceButton,
-                      ...(selectedSignal === sig ? styles.choiceActive : {}),
-                    }}
+                    style={{ ...styles.choiceButton, ...(selectedSignal === sig ? styles.choiceActive : {}) }}
                   >
                     {sig}
                   </button>
@@ -465,10 +441,7 @@ export default function BodyPage() {
                           setContext(item);
                           resetLearningUI();
                         }}
-                        style={{
-                          ...styles.choiceButton,
-                          ...(context === item ? styles.choiceActive : {}),
-                        }}
+                        style={{ ...styles.choiceButton, ...(context === item ? styles.choiceActive : {}) }}
                       >
                         {item}
                       </button>
@@ -485,10 +458,7 @@ export default function BodyPage() {
                       <button
                         key={score}
                         onClick={() => setIntensity(score)}
-                        style={{
-                          ...styles.scoreButton,
-                          ...(intensity === score ? styles.scoreActive : {}),
-                        }}
+                        style={{ ...styles.scoreButton, ...(intensity === score ? styles.scoreActive : {}) }}
                       >
                         {score}
                       </button>
@@ -501,10 +471,7 @@ export default function BodyPage() {
                       <button
                         key={opt}
                         onClick={() => setWhatHelped(opt)}
-                        style={{
-                          ...styles.choiceButton,
-                          ...(whatHelped === opt ? styles.choiceActive : {}),
-                        }}
+                        style={{ ...styles.choiceButton, ...(whatHelped === opt ? styles.choiceActive : {}) }}
                       >
                         {opt}
                       </button>
@@ -526,9 +493,7 @@ export default function BodyPage() {
             {suggestedHelp && (
               <div style={styles.suggestionCard}>
                 Suggested focus: {suggestedHelp}
-                {confidenceScore !== null && (
-                  <span style={styles.confidenceBadge}>{confidenceScore}%</span>
-                )}
+                {confidenceScore !== null && <span style={styles.confidenceBadge}>{confidenceScore}%</span>}
               </div>
             )}
 
@@ -656,6 +621,28 @@ const styles = {
     backdropFilter: "blur(10px)",
     fontSize: "14px",
     zIndex: 6,
+  },
+
+  nervousCallout: {
+    position: "absolute",
+    left: "68%",
+    top: "2%",
+    width: "440px",
+    zIndex: 24,
+    transformOrigin: "left center",
+    animation: "nervousPop 0.38s ease-out",
+  },
+
+  nervousConnectorLine: {
+    position: "absolute",
+    left: "-96px",
+    top: "86px",
+    width: "116px",
+    height: "2px",
+    background: "linear-gradient(90deg, rgba(255,220,120,0), rgba(255,220,120,0.95))",
+    boxShadow: "0 0 18px rgba(255,220,120,0.8)",
+    transform: "rotate(-18deg)",
+    zIndex: 1,
   },
 
   digestiveCallout: {
