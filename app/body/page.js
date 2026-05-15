@@ -666,15 +666,15 @@ const styles = {
     zIndex: 1,
   },
 
-  heartCallout: {
-    position: "absolute",
-    left: "70%",
-    top: "12%",
-    width: "430px",
-    zIndex: 22,
-    transformOrigin: "left center",
-    animation: "heartPop 0.38s ease-out",
-  },
+ heartCallout: {
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1180px, 94vw)",
+  zIndex: 999,
+  transform: "translate(-50%, -50%)",
+  animation: "heartPop 0.38s ease-out",
+},
 
   heartConnectorLine: {
     position: "absolute",
