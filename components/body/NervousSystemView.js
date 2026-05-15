@@ -296,7 +296,7 @@ const styles = {
  image: {
   width: "100%",
   minHeight: "360px",
-  objectFit: "cover",
+  objectFit: "contain",
   objectPosition: "center",
   display: "block",
   borderRadius: "26px",
