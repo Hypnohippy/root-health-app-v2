@@ -294,18 +294,18 @@ layout: {
     position: "relative",
   },
 
- image: {
+image: {
   width: "100%",
-  minHeight: "360px",
+  height: "100%",
+  minHeight: "640px",
   objectFit: "contain",
   objectPosition: "center",
   display: "block",
-  borderRadius: "26px",
+  borderRadius: "24px",
   position: "relative",
   zIndex: 2,
   filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.18))",
-},
-  imageGlow: {
+},  imageGlow: {
     position: "absolute",
     inset: 0,
     background:
@@ -341,14 +341,13 @@ layout: {
     zIndex: 5,
   },
 
-  content: {
-    background: "rgba(255,255,255,0.72)",
-    borderRadius: "30px",
-    padding: "26px",
-    maxHeight: "70vh",
-    overflowY: "auto",
-  },
-
+ content: {
+  background: "rgba(255,255,255,0.72)",
+  borderRadius: "30px",
+  padding: "30px",
+  minHeight: "720px",
+  overflowY: "auto",
+},
   kicker: {
     margin: "0 0 8px",
     fontSize: "12px",
