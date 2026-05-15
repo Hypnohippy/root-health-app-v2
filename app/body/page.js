@@ -8,6 +8,7 @@ import RootEnso from "../../components/RootEnso";
 import DigestionView from "../../components/body/DigestionView";
 import HeartView from "../../components/body/HeartView";
 import LungsView from "../../components/body/LungsView";
+import SkinView from "../../components/body/SkinView";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -71,6 +72,9 @@ const signalGuidance = {
   "shallow breathing": ["Slow the breath gently rather than forcing deep breaths", "Try sitting upright and relaxing the shoulders", "Notice whether stress, posture, or exertion changes it"],
   breathlessness: ["Pause and reduce demand on the body", "Sit upright and allow the breath to settle", "If severe, unusual, or worsening, get medical help urgently"],
   wheeze: ["Notice triggers such as exertion, allergens, cold air, or stress", "Rest and avoid pushing through", "If wheezing is new, severe, or worsening, get it checked"],
+  itching: ["Reduce irritation where possible", "Notice soaps, detergents, clothing, heat, or stress", "Keep the skin barrier supported gently"],
+  dryness: ["Support the skin barrier with gentle moisturising", "Avoid over-washing or harsh products", "Track whether hydration, heat, or stress changes it"],
+  rash: ["Avoid scratching or adding new products for now", "Notice whether it is spreading, hot, painful, or blistering", "If it persists, worsens, or worries you, get it checked"],
 };
 
 function normalise(value) {
@@ -118,6 +122,8 @@ export default function BodyPage() {
       setJourneyStep("heart");
     } else if (id === "breathing") {
       setJourneyStep("lungs");
+    } else if (id === "skin") {
+      setJourneyStep("skin");
     } else {
       setJourneyStep("signals");
     }
@@ -171,9 +177,12 @@ export default function BodyPage() {
       selectedSignal.includes("pressure") ||
       selectedSignal.includes("tight chest") ||
       selectedSignal.includes("breathlessness") ||
-      selectedSignal.includes("wheeze")
+      selectedSignal.includes("wheeze") ||
+      selectedSignal.includes("rash") ||
+      selectedSignal.includes("swelling") ||
+      selectedSignal.includes("burning")
     ) {
-      message += `\n\nBecause this is strong, chest-related, breathing-related, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, comes with severe pain, fainting, significant breathlessness, or feels unusual for you.`;
+      message += `\n\nBecause this is strong, chest-related, breathing-related, visible, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, spreads, comes with severe pain, fainting, significant breathlessness, or feels unusual for you.`;
     }
 
     return message;
@@ -283,6 +292,11 @@ export default function BodyPage() {
           0% { opacity: 0; transform: scale(0.88) translateX(-24px); }
           100% { opacity: 1; transform: scale(1) translateX(0); }
         }
+
+        @keyframes skinPop {
+          0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
+          100% { opacity: 1; transform: scale(1) translateX(0); }
+        }
       `}</style>
 
       <div style={styles.backgroundWash} />
@@ -386,6 +400,26 @@ export default function BodyPage() {
                 />
               </div>
             )}
+
+            {journeyStep === "skin" && current?.id === "skin" && (
+              <div style={styles.skinCallout}>
+                <div style={styles.skinConnectorLine} />
+
+                <SkinView
+                  selectedSignal={selectedSignal}
+                  setSelectedSignal={setSelectedSignal}
+                  context={context}
+                  setContext={setContext}
+                  intensity={intensity}
+                  setIntensity={setIntensity}
+                  whatHelped={whatHelped}
+                  setWhatHelped={setWhatHelped}
+                  saving={saving}
+                  onBack={clearSelections}
+                  onSave={handleExplore}
+                />
+              </div>
+            )}
           </div>
 
           {!current && (
@@ -403,9 +437,11 @@ export default function BodyPage() {
           journeyStep !== "digestion" &&
           journeyStep !== "heart" &&
           journeyStep !== "lungs" &&
+          journeyStep !== "skin" &&
           current.id !== "digestion" &&
           current.id !== "heart_circulation" &&
-          current.id !== "breathing" && (
+          current.id !== "breathing" &&
+          current.id !== "skin" && (
             <div style={styles.explorePanel}>
               <p style={styles.panelKicker}>Signal exploration</p>
               <h2 style={styles.panelTitle}>{current.label}</h2>
@@ -704,6 +740,29 @@ const styles = {
       "linear-gradient(90deg, rgba(255,190,90,0), rgba(255,190,90,0.95))",
     boxShadow: "0 0 18px rgba(255,190,90,0.8)",
     transform: "rotate(-8deg)",
+    zIndex: 1,
+  },
+
+  skinCallout: {
+    position: "absolute",
+    left: "70%",
+    top: "24%",
+    width: "430px",
+    zIndex: 21,
+    transformOrigin: "left center",
+    animation: "skinPop 0.38s ease-out",
+  },
+
+  skinConnectorLine: {
+    position: "absolute",
+    left: "-92px",
+    top: "94px",
+    width: "108px",
+    height: "2px",
+    background:
+      "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+    boxShadow: "0 0 18px rgba(255,210,120,0.8)",
+    transform: "rotate(-10deg)",
     zIndex: 1,
   },
 
