@@ -266,12 +266,12 @@ const styles = {
     backdropFilter: "blur(22px)",
     boxShadow: "0 30px 90px rgba(0,0,0,0.22)",
   },
-
-  layout: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "24px",
-  },
+layout: {
+  display: "grid",
+  gridTemplateColumns: "1.2fr 1fr",
+  gap: "28px",
+  alignItems: "stretch",
+},
 
   backButton: {
     border: "none",
@@ -283,6 +283,7 @@ const styles = {
   },
 
   visualPanel: {
+    minHeight: "720px",
     borderRadius: "34px",
     background: "linear-gradient(180deg, #F5EFE5 0%, #DDD6C8 100%)",
     padding: "28px",
