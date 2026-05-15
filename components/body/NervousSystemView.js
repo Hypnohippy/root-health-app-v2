@@ -211,26 +211,27 @@ export default function NervousSystemView({
 }
 
 const styles = {
-  card: {
-    width: "100%",
-    maxWidth: "92vw",
-    maxHeight: "86vh",
-    display: "grid",
-    gridTemplateColumns: "1fr 1.18fr",
-    overflow: "hidden",
-    background: "rgba(250,244,234,0.96)",
-    borderRadius: "38px",
-    backdropFilter: "blur(24px)",
-    boxShadow: "0 34px 110px rgba(0,0,0,0.28)",
-    border: "1px solid rgba(255,255,255,0.65)",
-  },
+ card: {
+  width: "100%",
+  maxWidth: "92vw",
+  maxHeight: "92vh",
+  overflowY: "auto",
+  paddingBottom: "40px",
+  display: "grid",
+  gridTemplateColumns: "1fr 1.18fr",
+  overflow: "hidden",
+  background: "rgba(250,244,234,0.96)",
+  borderRadius: "38px",
+  backdropFilter: "blur(24px)",
+  boxShadow: "0 34px 110px rgba(0,0,0,0.28)",
+  border: "1px solid rgba(255,255,255,0.65)",
+},
 
   leftPanel: {
     position: "relative",
     padding: "26px 30px 28px",
     background:
       "linear-gradient(180deg, rgba(252,246,236,0.98) 0%, rgba(234,222,204,0.95) 100%)",
-    overflow: "hidden",
   },
 
   rightPanel: {
