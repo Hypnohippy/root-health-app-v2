@@ -236,7 +236,8 @@ const styles = {
 
   rightPanel: {
     background: "rgba(255,252,246,0.86)",
-    overflowY: "auto",
+    overflowY: "scroll",
+maxHeight: "86vh",
     padding: "26px 30px 28px",
   },
 
@@ -275,21 +276,21 @@ const styles = {
     fontSize: "16px",
   },
 
-  imageWrap: {
-    position: "relative",
-    height: "610px",
-    marginTop: "6px",
-    borderRadius: "28px",
-    overflow: "hidden",
-  },
+imageWrap: {
+  position: "relative",
+  height: "520px",
+  marginTop: "6px",
+  borderRadius: "28px",
+  overflow: "hidden",
+},
 
-  image: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    objectPosition: "center",
-    display: "block",
-  },
+ image: {
+  width: "100%",
+  height: "100%",
+  objectFit: "contain",
+  objectPosition: "center",
+  display: "block",
+},
 
   zoneButton: {
     position: "absolute",
