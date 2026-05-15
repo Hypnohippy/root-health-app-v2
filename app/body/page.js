@@ -9,6 +9,7 @@ import DigestionView from "../../components/body/DigestionView";
 import HeartView from "../../components/body/HeartView";
 import LungsView from "../../components/body/LungsView";
 import SkinView from "../../components/body/SkinView";
+import JointsView from "../../components/body/JointsView";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -122,11 +123,13 @@ export default function BodyPage() {
       setJourneyStep("heart");
     } else if (id === "breathing") {
       setJourneyStep("lungs");
-    } else if (id === "skin") {
-      setJourneyStep("skin");
-    } else {
-      setJourneyStep("signals");
-    }
+   } else if (id === "skin") {
+  setJourneyStep("skin");
+} else if (id === "muscles_joints") {
+  setJourneyStep("joints");
+} else {
+  setJourneyStep("signals");
+}
   };
 
   const clearSelections = () => {
@@ -297,6 +300,17 @@ export default function BodyPage() {
           0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
           100% { opacity: 1; transform: scale(1) translateX(0); }
         }
+        @keyframes jointsPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateX(-20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
       `}</style>
 
       <div style={styles.backgroundWash} />
@@ -420,6 +434,25 @@ export default function BodyPage() {
                 />
               </div>
             )}
+{journeyStep === "joints" && current?.id === "muscles_joints" && (
+  <div style={styles.jointsCallout}>
+    <div style={styles.jointsConnectorLine} />
+
+    <JointsView
+      selectedSignal={selectedSignal}
+      setSelectedSignal={setSelectedSignal}
+      context={context}
+      setContext={setContext}
+      intensity={intensity}
+      setIntensity={setIntensity}
+      whatHelped={whatHelped}
+      setWhatHelped={setWhatHelped}
+      saving={saving}
+      onBack={clearSelections}
+      onSave={handleExplore}
+    />
+  </div>
+)}
           </div>
 
           {!current && (
@@ -438,10 +471,12 @@ export default function BodyPage() {
           journeyStep !== "heart" &&
           journeyStep !== "lungs" &&
           journeyStep !== "skin" &&
+          journeyStep !== "joints" &&
           current.id !== "digestion" &&
           current.id !== "heart_circulation" &&
           current.id !== "breathing" &&
           current.id !== "skin" && (
+            current.id !== "muscles_joints" &&
             <div style={styles.explorePanel}>
               <p style={styles.panelKicker}>Signal exploration</p>
               <h2 style={styles.panelTitle}>{current.label}</h2>
@@ -765,7 +800,28 @@ const styles = {
     transform: "rotate(-10deg)",
     zIndex: 1,
   },
+jointsCallout: {
+  position: "absolute",
+  left: "70%",
+  top: "18%",
+  width: "440px",
+  zIndex: 21,
+  transformOrigin: "left center",
+  animation: "jointsPop 0.38s ease-out",
+},
 
+jointsConnectorLine: {
+  position: "absolute",
+  left: "-92px",
+  top: "180px",
+  width: "118px",
+  height: "2px",
+  background:
+    "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+  boxShadow: "0 0 18px rgba(255,210,120,0.8)",
+  transform: "rotate(2deg)",
+  zIndex: 1,
+},
   tapHint: {
     marginTop: "-34px",
     color: "#FFFFFF",
