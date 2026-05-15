@@ -284,14 +284,13 @@ imageWrap: {
   overflow: "hidden",
 },
 
- image: {
+image: {
   width: "100%",
   height: "100%",
   objectFit: "contain",
-  objectPosition: "center",
+  objectPosition: "center top",
   display: "block",
 },
-
   zoneButton: {
     position: "absolute",
     border: "1px solid rgba(255,255,255,0.75)",
