@@ -624,12 +624,12 @@ const styles = {
   },
 
  nervousCallout: {
-  position: "absolute",
-  left: "58%",
-  top: "-2%",
-  width: "1180px",
-  zIndex: 24,
-  transformOrigin: "left center",
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1180px, 94vw)",
+  zIndex: 999,
+  transformOrigin: "translate(-50%, -50%)",
   animation: "nervousPop 0.38s ease-out",
 },
 
