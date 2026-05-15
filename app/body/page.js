@@ -623,15 +623,15 @@ const styles = {
     zIndex: 6,
   },
 
-  nervousCallout: {
-    position: "absolute",
-    left: "68%",
-    top: "2%",
-    width: "760px",
-    zIndex: 24,
-    transformOrigin: "left center",
-    animation: "nervousPop 0.38s ease-out",
-  },
+ nervousCallout: {
+  position: "absolute",
+  left: "58%",
+  top: "-2%",
+  width: "1180px",
+  zIndex: 24,
+  transformOrigin: "left center",
+  animation: "nervousPop 0.38s ease-out",
+},
 
   nervousConnectorLine: {
     position: "absolute",
