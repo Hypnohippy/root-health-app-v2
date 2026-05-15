@@ -212,7 +212,7 @@ export default function NervousSystemView({
 
 const styles = {
   card: {
-    width: "1180px",
+    width: "100%",
     maxWidth: "92vw",
     maxHeight: "86vh",
     display: "grid",
