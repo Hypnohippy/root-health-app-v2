@@ -10,6 +10,7 @@ import HeartView from "../../components/body/HeartView";
 import LungsView from "../../components/body/LungsView";
 import SkinView from "../../components/body/SkinView";
 import JointsView from "../../components/body/JointsView";
+import KidneysView from "../../components/body/KidneysView";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -18,7 +19,7 @@ const bodySystems = [
   { id: "digestion", label: "Stomach / gut", system: "digestive", signals: ["bloating", "reflux", "cramps", "constipation", "loose bowels", "nausea", "appetite change", "wind/gas", "food sensitivity"] },
   { id: "reproductive", label: "Pelvis & reproductive", system: "reproductive/pelvic", signals: ["pelvic discomfort", "groin discomfort", "genital irritation", "burning", "itching", "discharge/change", "swelling", "rash or blistering", "cycle-related change", "sexual discomfort"] },
   { id: "hormones_balance", label: "Hormones & balance", system: "endocrine", signals: ["cravings", "energy dips", "mood swings", "temperature changes", "sweats", "cycle changes", "skin changes", "sleep disruption", "weight change"] },
-  { id: "bladder_hydration", label: "Bladder & hydration", system: "urinary/excretory", signals: ["thirst", "frequent urination", "burning when passing urine", "dark urine", "fluid retention", "lower back discomfort", "urgency", "reduced urination"] },
+  { id: "bladder_hydration", label: "Kidneys / bladder", system: "urinary/excretory", signals: ["thirst", "frequent urination", "burning when passing urine", "dark urine", "fluid retention", "lower back discomfort", "urgency", "reduced urination"] },
   { id: "muscles_joints", label: "Muscles & joints", system: "musculoskeletal", signals: ["aching", "stiffness", "sharp pain", "deep ache", "weakness", "cramps", "reduced movement", "swelling", "clicking/grinding"] },
   { id: "skin", label: "Skin / dermis", system: "skin/barrier", signals: ["rash", "blistering", "redness", "itching", "dryness", "spots", "sensitivity", "swelling", "colour change", "visible change but no feeling", "slow healing"] },
   { id: "senses", label: "Senses", system: "sensory", signals: ["eye strain", "blurred vision", "light sensitivity", "noise sensitivity", "dizziness", "tingling", "numbness", "ringing ears", "altered smell/taste"] },
@@ -76,6 +77,9 @@ const signalGuidance = {
   itching: ["Reduce irritation where possible", "Notice soaps, detergents, clothing, heat, or stress", "Keep the skin barrier supported gently"],
   dryness: ["Support the skin barrier with gentle moisturising", "Avoid over-washing or harsh products", "Track whether hydration, heat, or stress changes it"],
   rash: ["Avoid scratching or adding new products for now", "Notice whether it is spreading, hot, painful, or blistering", "If it persists, worsens, or worries you, get it checked"],
+  "dark urine": ["Notice hydration, heat, exercise, and recent fluid intake", "Drink water steadily rather than all at once", "If it persists or worries you, get it checked"],
+  "frequent urination": ["Notice caffeine, stress, hydration, and timing", "Track whether it is new, repeated, or worse at night", "If it burns, worsens, or feels unusual, get it checked"],
+  "lower back discomfort": ["Notice hydration, posture, lifting, and movement", "Avoid pushing through if it feels unusual", "If pain is severe, persistent, or linked with urinary symptoms, get checked"],
 };
 
 function normalise(value) {
@@ -123,13 +127,15 @@ export default function BodyPage() {
       setJourneyStep("heart");
     } else if (id === "breathing") {
       setJourneyStep("lungs");
-   } else if (id === "skin") {
-  setJourneyStep("skin");
-} else if (id === "muscles_joints") {
-  setJourneyStep("joints");
-} else {
-  setJourneyStep("signals");
-}
+    } else if (id === "skin") {
+      setJourneyStep("skin");
+    } else if (id === "muscles_joints") {
+      setJourneyStep("joints");
+    } else if (id === "bladder_hydration") {
+      setJourneyStep("kidneys");
+    } else {
+      setJourneyStep("signals");
+    }
   };
 
   const clearSelections = () => {
@@ -175,7 +181,7 @@ export default function BodyPage() {
       intensity >= 8 ||
       selectedSignal.includes("blister") ||
       selectedSignal.includes("discharge") ||
-      selectedSignal.includes("burning when passing urine") ||
+      selectedSignal.includes("burning") ||
       selectedSignal.includes("racing heart") ||
       selectedSignal.includes("pressure") ||
       selectedSignal.includes("tight chest") ||
@@ -183,9 +189,10 @@ export default function BodyPage() {
       selectedSignal.includes("wheeze") ||
       selectedSignal.includes("rash") ||
       selectedSignal.includes("swelling") ||
-      selectedSignal.includes("burning")
+      selectedSignal.includes("dark urine") ||
+      selectedSignal.includes("reduced urination")
     ) {
-      message += `\n\nBecause this is strong, chest-related, breathing-related, visible, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, spreads, comes with severe pain, fainting, significant breathlessness, or feels unusual for you.`;
+      message += `\n\nBecause this is strong, chest-related, breathing-related, urinary-related, visible, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, spreads, comes with severe pain, fainting, significant breathlessness, fever, or feels unusual for you.`;
     }
 
     return message;
@@ -300,17 +307,16 @@ export default function BodyPage() {
           0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
           100% { opacity: 1; transform: scale(1) translateX(0); }
         }
-        @keyframes jointsPop {
-  0% {
-    opacity: 0;
-    transform: scale(0.88) translateX(-20px);
-  }
 
-  100% {
-    opacity: 1;
-    transform: scale(1) translateX(0);
-  }
-}
+        @keyframes jointsPop {
+          0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
+          100% { opacity: 1; transform: scale(1) translateX(0); }
+        }
+
+        @keyframes kidneysPop {
+          0% { opacity: 0; transform: scale(0.88) translateX(-20px); }
+          100% { opacity: 1; transform: scale(1) translateX(0); }
+        }
       `}</style>
 
       <div style={styles.backgroundWash} />
@@ -358,101 +364,44 @@ export default function BodyPage() {
             {journeyStep === "digestion" && current?.id === "digestion" && (
               <div style={styles.digestiveCallout}>
                 <div style={styles.digestiveConnectorLine} />
-
-                <DigestionView
-                  selectedSignal={selectedSignal}
-                  setSelectedSignal={setSelectedSignal}
-                  context={context}
-                  setContext={setContext}
-                  intensity={intensity}
-                  setIntensity={setIntensity}
-                  whatHelped={whatHelped}
-                  setWhatHelped={setWhatHelped}
-                  saving={saving}
-                  onBack={clearSelections}
-                  onSave={handleExplore}
-                />
+                <DigestionView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "heart" && current?.id === "heart_circulation" && (
               <div style={styles.heartCallout}>
                 <div style={styles.heartConnectorLine} />
-
-                <HeartView
-                  selectedSignal={selectedSignal}
-                  setSelectedSignal={setSelectedSignal}
-                  context={context}
-                  setContext={setContext}
-                  intensity={intensity}
-                  setIntensity={setIntensity}
-                  whatHelped={whatHelped}
-                  setWhatHelped={setWhatHelped}
-                  saving={saving}
-                  onBack={clearSelections}
-                  onSave={handleExplore}
-                />
+                <HeartView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "lungs" && current?.id === "breathing" && (
               <div style={styles.lungsCallout}>
                 <div style={styles.lungsConnectorLine} />
-
-                <LungsView
-                  selectedSignal={selectedSignal}
-                  setSelectedSignal={setSelectedSignal}
-                  context={context}
-                  setContext={setContext}
-                  intensity={intensity}
-                  setIntensity={setIntensity}
-                  whatHelped={whatHelped}
-                  setWhatHelped={setWhatHelped}
-                  saving={saving}
-                  onBack={clearSelections}
-                  onSave={handleExplore}
-                />
+                <LungsView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "skin" && current?.id === "skin" && (
               <div style={styles.skinCallout}>
                 <div style={styles.skinConnectorLine} />
-
-                <SkinView
-                  selectedSignal={selectedSignal}
-                  setSelectedSignal={setSelectedSignal}
-                  context={context}
-                  setContext={setContext}
-                  intensity={intensity}
-                  setIntensity={setIntensity}
-                  whatHelped={whatHelped}
-                  setWhatHelped={setWhatHelped}
-                  saving={saving}
-                  onBack={clearSelections}
-                  onSave={handleExplore}
-                />
+                <SkinView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
-{journeyStep === "joints" && current?.id === "muscles_joints" && (
-  <div style={styles.jointsCallout}>
-    <div style={styles.jointsConnectorLine} />
 
-    <JointsView
-      selectedSignal={selectedSignal}
-      setSelectedSignal={setSelectedSignal}
-      context={context}
-      setContext={setContext}
-      intensity={intensity}
-      setIntensity={setIntensity}
-      whatHelped={whatHelped}
-      setWhatHelped={setWhatHelped}
-      saving={saving}
-      onBack={clearSelections}
-      onSave={handleExplore}
-    />
-  </div>
-)}
+            {journeyStep === "joints" && current?.id === "muscles_joints" && (
+              <div style={styles.jointsCallout}>
+                <div style={styles.jointsConnectorLine} />
+                <JointsView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
+              </div>
+            )}
+
+            {journeyStep === "kidneys" && current?.id === "bladder_hydration" && (
+              <div style={styles.kidneysCallout}>
+                <div style={styles.kidneysConnectorLine} />
+                <KidneysView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
+              </div>
+            )}
           </div>
 
           {!current && (
@@ -472,11 +421,13 @@ export default function BodyPage() {
           journeyStep !== "lungs" &&
           journeyStep !== "skin" &&
           journeyStep !== "joints" &&
+          journeyStep !== "kidneys" &&
           current.id !== "digestion" &&
           current.id !== "heart_circulation" &&
           current.id !== "breathing" &&
-          current.id !== "skin" && (
-            current.id !== "muscles_joints" &&
+          current.id !== "skin" &&
+          current.id !== "muscles_joints" &&
+          current.id !== "bladder_hydration" && (
             <div style={styles.explorePanel}>
               <p style={styles.panelKicker}>Signal exploration</p>
               <h2 style={styles.panelTitle}>{current.label}</h2>
@@ -529,7 +480,6 @@ export default function BodyPage() {
               {context && (
                 <>
                   <p style={styles.question}>How strong is it today?</p>
-
                   <div style={styles.scoreRow}>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
                       <button
@@ -546,7 +496,6 @@ export default function BodyPage() {
                   </div>
 
                   <p style={styles.question}>What helped, if anything?</p>
-
                   <div style={styles.choiceGrid}>
                     {helpOptions.map((opt) => (
                       <button
@@ -725,8 +674,7 @@ const styles = {
     top: "96px",
     width: "110px",
     height: "2px",
-    background:
-      "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+    background: "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
     boxShadow: "0 0 18px rgba(255,210,120,0.8)",
     transform: "rotate(-6deg)",
     zIndex: 1,
@@ -748,8 +696,7 @@ const styles = {
     top: "92px",
     width: "105px",
     height: "2px",
-    background:
-      "linear-gradient(90deg, rgba(255,120,90,0), rgba(255,120,90,0.95))",
+    background: "linear-gradient(90deg, rgba(255,120,90,0), rgba(255,120,90,0.95))",
     boxShadow: "0 0 18px rgba(255,120,90,0.8)",
     transform: "rotate(-12deg)",
     zIndex: 1,
@@ -771,8 +718,7 @@ const styles = {
     top: "96px",
     width: "105px",
     height: "2px",
-    background:
-      "linear-gradient(90deg, rgba(255,190,90,0), rgba(255,190,90,0.95))",
+    background: "linear-gradient(90deg, rgba(255,190,90,0), rgba(255,190,90,0.95))",
     boxShadow: "0 0 18px rgba(255,190,90,0.8)",
     transform: "rotate(-8deg)",
     zIndex: 1,
@@ -794,34 +740,56 @@ const styles = {
     top: "94px",
     width: "108px",
     height: "2px",
-    background:
-      "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+    background: "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
     boxShadow: "0 0 18px rgba(255,210,120,0.8)",
     transform: "rotate(-10deg)",
     zIndex: 1,
   },
-jointsCallout: {
-  position: "absolute",
-  left: "70%",
-  top: "18%",
-  width: "440px",
-  zIndex: 21,
-  transformOrigin: "left center",
-  animation: "jointsPop 0.38s ease-out",
-},
 
-jointsConnectorLine: {
-  position: "absolute",
-  left: "-92px",
-  top: "180px",
-  width: "118px",
-  height: "2px",
-  background:
-    "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
-  boxShadow: "0 0 18px rgba(255,210,120,0.8)",
-  transform: "rotate(2deg)",
-  zIndex: 1,
-},
+  jointsCallout: {
+    position: "absolute",
+    left: "70%",
+    top: "18%",
+    width: "440px",
+    zIndex: 21,
+    transformOrigin: "left center",
+    animation: "jointsPop 0.38s ease-out",
+  },
+
+  jointsConnectorLine: {
+    position: "absolute",
+    left: "-92px",
+    top: "180px",
+    width: "118px",
+    height: "2px",
+    background: "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
+    boxShadow: "0 0 18px rgba(255,210,120,0.8)",
+    transform: "rotate(2deg)",
+    zIndex: 1,
+  },
+
+  kidneysCallout: {
+    position: "absolute",
+    left: "70%",
+    top: "34%",
+    width: "440px",
+    zIndex: 21,
+    transformOrigin: "left center",
+    animation: "kidneysPop 0.38s ease-out",
+  },
+
+  kidneysConnectorLine: {
+    position: "absolute",
+    left: "-92px",
+    top: "118px",
+    width: "118px",
+    height: "2px",
+    background: "linear-gradient(90deg, rgba(120,190,255,0), rgba(120,190,255,0.95))",
+    boxShadow: "0 0 18px rgba(120,190,255,0.8)",
+    transform: "rotate(-4deg)",
+    zIndex: 1,
+  },
+
   tapHint: {
     marginTop: "-34px",
     color: "#FFFFFF",
