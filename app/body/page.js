@@ -644,15 +644,15 @@ const styles = {
     zIndex: 1,
   },
 
-  digestiveCallout: {
-    position: "absolute",
-    left: "68%",
-    top: "34%",
-    width: "420px",
-    zIndex: 20,
-    transformOrigin: "left center",
-    animation: "digestivePop 0.38s ease-out",
-  },
+ digestiveCallout: {
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1180px, 94vw)",
+  zIndex: 999,
+  transform: "translate(-50%, -50%)",
+  animation: "digestivePop 0.38s ease-out",
+},
 
   digestiveConnectorLine: {
     position: "absolute",
