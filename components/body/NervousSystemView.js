@@ -293,15 +293,17 @@ const styles = {
     position: "relative",
   },
 
-  image: {
-    width: "100%",
-    display: "block",
-    borderRadius: "26px",
-    position: "relative",
-    zIndex: 2,
-    filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.18))",
-  },
-
+ image: {
+  width: "100%",
+  minHeight: "360px",
+  objectFit: "cover",
+  objectPosition: "center",
+  display: "block",
+  borderRadius: "26px",
+  position: "relative",
+  zIndex: 2,
+  filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.18))",
+},
   imageGlow: {
     position: "absolute",
     inset: 0,
