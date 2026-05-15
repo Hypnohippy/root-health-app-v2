@@ -7,6 +7,7 @@ import { supabase } from "../../lib/supabase";
 import RootEnso from "../../components/RootEnso";
 import DigestionView from "../../components/body/DigestionView";
 import HeartView from "../../components/body/HeartView";
+import LungsView from "../../components/body/LungsView";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -67,6 +68,9 @@ const signalGuidance = {
   "racing heart": ["Pause and reduce stimulation for a few minutes", "Notice caffeine, tiredness, stress, or exertion today", "Track whether it settles or keeps returning"],
   "light-headed": ["Sit down and give yourself a moment", "Check food, hydration, heat, and sudden movement", "If it feels unusual, strong, or repeated, get it checked"],
   aching: ["Try gentle movement rather than pushing hard", "Notice whether rest, warmth, or stretching helps", "Track whether it is improving or spreading"],
+  "shallow breathing": ["Slow the breath gently rather than forcing deep breaths", "Try sitting upright and relaxing the shoulders", "Notice whether stress, posture, or exertion changes it"],
+  breathlessness: ["Pause and reduce demand on the body", "Sit upright and allow the breath to settle", "If severe, unusual, or worsening, get medical help urgently"],
+  wheeze: ["Notice triggers such as exertion, allergens, cold air, or stress", "Rest and avoid pushing through", "If wheezing is new, severe, or worsening, get it checked"],
 };
 
 function normalise(value) {
@@ -112,6 +116,8 @@ export default function BodyPage() {
       setJourneyStep("digestion");
     } else if (id === "heart_circulation") {
       setJourneyStep("heart");
+    } else if (id === "breathing") {
+      setJourneyStep("lungs");
     } else {
       setJourneyStep("signals");
     }
@@ -163,9 +169,11 @@ export default function BodyPage() {
       selectedSignal.includes("burning when passing urine") ||
       selectedSignal.includes("racing heart") ||
       selectedSignal.includes("pressure") ||
-      selectedSignal.includes("tight chest")
+      selectedSignal.includes("tight chest") ||
+      selectedSignal.includes("breathlessness") ||
+      selectedSignal.includes("wheeze")
     ) {
-      message += `\n\nBecause this is strong, chest-related, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, comes with severe pain, fainting, breathlessness, or feels unusual for you.`;
+      message += `\n\nBecause this is strong, chest-related, breathing-related, sensitive, unusual, or worrying, it is worth getting checked urgently if it persists, worsens, comes with severe pain, fainting, significant breathlessness, or feels unusual for you.`;
     }
 
     return message;
@@ -270,6 +278,11 @@ export default function BodyPage() {
           0% { opacity: 0; transform: scale(0.88) translateX(-24px); }
           100% { opacity: 1; transform: scale(1) translateX(0); }
         }
+
+        @keyframes lungsPop {
+          0% { opacity: 0; transform: scale(0.88) translateX(-24px); }
+          100% { opacity: 1; transform: scale(1) translateX(0); }
+        }
       `}</style>
 
       <div style={styles.backgroundWash} />
@@ -353,6 +366,26 @@ export default function BodyPage() {
                 />
               </div>
             )}
+
+            {journeyStep === "lungs" && current?.id === "breathing" && (
+              <div style={styles.lungsCallout}>
+                <div style={styles.lungsConnectorLine} />
+
+                <LungsView
+                  selectedSignal={selectedSignal}
+                  setSelectedSignal={setSelectedSignal}
+                  context={context}
+                  setContext={setContext}
+                  intensity={intensity}
+                  setIntensity={setIntensity}
+                  whatHelped={whatHelped}
+                  setWhatHelped={setWhatHelped}
+                  saving={saving}
+                  onBack={clearSelections}
+                  onSave={handleExplore}
+                />
+              </div>
+            )}
           </div>
 
           {!current && (
@@ -369,8 +402,10 @@ export default function BodyPage() {
         {current &&
           journeyStep !== "digestion" &&
           journeyStep !== "heart" &&
+          journeyStep !== "lungs" &&
           current.id !== "digestion" &&
-          current.id !== "heart_circulation" && (
+          current.id !== "heart_circulation" &&
+          current.id !== "breathing" && (
             <div style={styles.explorePanel}>
               <p style={styles.panelKicker}>Signal exploration</p>
               <h2 style={styles.panelTitle}>{current.label}</h2>
@@ -649,6 +684,29 @@ const styles = {
     zIndex: 1,
   },
 
+  lungsCallout: {
+    position: "absolute",
+    left: "70%",
+    top: "20%",
+    width: "430px",
+    zIndex: 21,
+    transformOrigin: "left center",
+    animation: "lungsPop 0.38s ease-out",
+  },
+
+  lungsConnectorLine: {
+    position: "absolute",
+    left: "-88px",
+    top: "96px",
+    width: "105px",
+    height: "2px",
+    background:
+      "linear-gradient(90deg, rgba(255,190,90,0), rgba(255,190,90,0.95))",
+    boxShadow: "0 0 18px rgba(255,190,90,0.8)",
+    transform: "rotate(-8deg)",
+    zIndex: 1,
+  },
+
   tapHint: {
     marginTop: "-34px",
     color: "#FFFFFF",
@@ -795,34 +853,36 @@ const styles = {
     borderTop: "1px solid rgba(0,0,0,0.1)",
   },
 
-bottomNav: {
-  position: "fixed",
-  left: "50%",
-  bottom: "6px",
-  transform: "translateX(-50%)",
-  zIndex: 8,
-  width: "82%",
-  maxWidth: "720px",
-  background: "rgba(250,244,234,0.82)",
-  borderRadius: "24px",
-  padding: "7px",
-  backdropFilter: "blur(18px)",
-  display: "flex",
-  justifyContent: "space-around",
-  boxShadow: "0 14px 38px rgba(0,0,0,0.18)",
-},
+  bottomNav: {
+    position: "fixed",
+    left: "50%",
+    bottom: "6px",
+    transform: "translateX(-50%)",
+    zIndex: 8,
+    width: "82%",
+    maxWidth: "720px",
+    background: "rgba(250,244,234,0.82)",
+    borderRadius: "24px",
+    padding: "7px",
+    backdropFilter: "blur(18px)",
+    display: "flex",
+    justifyContent: "space-around",
+    boxShadow: "0 14px 38px rgba(0,0,0,0.18)",
+  },
+
   activeNav: {
-  background: "#181818",
-  color: "#FFFFFF",
-  borderRadius: "14px",
-  padding: "8px 13px",
-  textDecoration: "none",
-  fontSize: "13px",
-},
- navItem: {
-  color: "#2A261F",
-  textDecoration: "none",
-  padding: "8px 9px",
-  fontSize: "13px",
-},
+    background: "#181818",
+    color: "#FFFFFF",
+    borderRadius: "14px",
+    padding: "8px 13px",
+    textDecoration: "none",
+    fontSize: "13px",
+  },
+
+  navItem: {
+    color: "#2A261F",
+    textDecoration: "none",
+    padding: "8px 9px",
+    fontSize: "13px",
+  },
 };
