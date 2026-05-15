@@ -627,7 +627,7 @@ const styles = {
     position: "absolute",
     left: "68%",
     top: "2%",
-    width: "440px",
+    width: "760px",
     zIndex: 24,
     transformOrigin: "left center",
     animation: "nervousPop 0.38s ease-out",
