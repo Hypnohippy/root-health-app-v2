@@ -689,15 +689,14 @@ const styles = {
   },
 
   lungsCallout: {
-    position: "absolute",
-    left: "70%",
-    top: "20%",
-    width: "430px",
-    zIndex: 21,
-    transformOrigin: "left center",
-    animation: "lungsPop 0.38s ease-out",
-  },
-
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1180px, 94vw)",
+  zIndex: 999,
+  transform: "translate(-50%, -50%)",
+  animation: "lungsPop 0.38s ease-out",
+},
   lungsConnectorLine: {
     position: "absolute",
     left: "-88px",
