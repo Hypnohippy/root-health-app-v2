@@ -26,6 +26,27 @@ const skinSignals = [
   "visible change",
 ];
 
+const contextOptions = [
+  "constant",
+  "comes and goes",
+  "after washing",
+  "under stress",
+  "after shaving",
+  "after food",
+  "at night",
+  "getting worse",
+  "improving",
+];
+
+const helpOptions = [
+  "Moisturised",
+  "Reduced irritation",
+  "Hydrated",
+  "Rested skin",
+  "Reduced stress",
+  "Nothing yet",
+];
+
 export default function SkinView({
   selectedSignal,
   setSelectedSignal,
@@ -39,15 +60,23 @@ export default function SkinView({
   onBack,
   onSave,
 }) {
-  const [selectedZone, setSelectedZone] = useState(null);
+  const [selectedZone, setSelectedZone] = useState("Dermis");
 
   return (
-    <div style={styles.overlayCard}>
-      <button onClick={onBack} style={styles.backButton}>
-        ← Close
-      </button>
+    <div style={styles.card}>
+      <div style={styles.leftPanel}>
+        <button onClick={onBack} style={styles.backButton}>
+          ← Back to body
+        </button>
 
-      <div style={styles.visualPanel}>
+        <p style={styles.kicker}>Skin map</p>
+
+        <h2 style={styles.title}>Skin / dermis</h2>
+
+        <p style={styles.subtitle}>
+          Tap the skin layer or region that feels reactive or irritated.
+        </p>
+
         <div style={styles.imageWrap}>
           <img
             src="/visuals/skin-dermis-system.png"
@@ -58,327 +87,344 @@ export default function SkinView({
           {skinZones.map((zone) => (
             <button
               key={zone.id}
-              onClick={() => {
-                setSelectedZone(zone.label);
-                setSelectedSignal("");
-                setContext("");
-                setWhatHelped("");
-              }}
+              onClick={() => setSelectedZone(zone.label)}
               style={{
                 ...styles.zoneButton,
                 top: zone.top,
                 left: zone.left,
                 width: zone.width,
                 height: zone.height,
-                ...(selectedZone === zone.label ? styles.zoneActive : {}),
+                ...(selectedZone === zone.label ? styles.zoneButtonActive : {}),
               }}
-            />
+            >
+              <span style={styles.zoneButtonLabel}>{zone.label}</span>
+            </button>
           ))}
 
-          {selectedZone && (
-            <div style={styles.zoneLabel}>
-              {selectedZone}
-            </div>
-          )}
+          <div style={styles.exploringPill}>
+            Exploring: <strong>{selectedZone}</strong>
+          </div>
         </div>
       </div>
 
-      <div style={styles.content}>
-        <p style={styles.kicker}>Skin map</p>
+      <div style={styles.rightPanel}>
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <span style={styles.stepBadge}>1</span>
+            <h3 style={styles.sectionTitle}>What are you noticing?</h3>
+          </div>
 
-        <h2 style={styles.title}>Skin / Dermis</h2>
+          <div style={styles.buttonGrid}>
+            {skinSignals.map((signal) => (
+              <button
+                key={signal}
+                onClick={() => setSelectedSignal(signal)}
+                style={{
+                  ...styles.choiceButton,
+                  ...(selectedSignal === signal ? styles.choiceButtonActive : {}),
+                }}
+              >
+                {signal}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {!selectedZone && (
-          <p style={styles.subtitle}>
-            Tap the skin layer or region that feels affected.
-          </p>
-        )}
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <span style={styles.stepBadge}>2</span>
+            <h3 style={styles.sectionTitle}>When does this show up?</h3>
+          </div>
 
-        {selectedZone && (
-          <>
-            <p style={styles.subtitle}>
-              Exploring: {selectedZone}
-            </p>
+          <div style={styles.contextGrid}>
+            {contextOptions.map((item) => (
+              <button
+                key={item}
+                onClick={() => setContext(item)}
+                style={{
+                  ...styles.choiceButton,
+                  ...(context === item ? styles.choiceButtonActive : {}),
+                }}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
 
-            <p style={styles.question}>
-              What are you noticing?
-            </p>
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <span style={styles.stepBadge}>3</span>
+            <h3 style={styles.sectionTitle}>How strong is it today?</h3>
+          </div>
 
-            <div style={styles.grid}>
-              {skinSignals.map((signal) => (
-                <button
-                  key={signal}
-                  onClick={() => {
-                    setSelectedSignal(signal);
-                    setContext("");
-                    setWhatHelped("");
-                  }}
-                  style={{
-                    ...styles.signalButton,
-                    ...(selectedSignal === signal
-                      ? styles.signalButtonActive
-                      : {}),
-                  }}
-                >
-                  {signal}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+          <div style={styles.scoreRow}>
+            {[1,2,3,4,5,6,7,8,9,10].map((score) => (
+              <button
+                key={score}
+                onClick={() => setIntensity(score)}
+                style={{
+                  ...styles.scoreButton,
+                  ...(intensity === score ? styles.scoreButtonActive : {}),
+                }}
+              >
+                {score}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {selectedSignal && (
-          <>
-            <p style={styles.question}>
-              When does this show up?
-            </p>
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <span style={styles.stepBadge}>4</span>
+            <h3 style={styles.sectionTitle}>What helped?</h3>
+          </div>
 
-            <div style={styles.grid}>
-              {[
-                "constant",
-                "comes and goes",
-                "after washing",
-                "under stress",
-                "after shaving",
-                "after food",
-                "at night",
-                "getting worse",
-                "improving",
-              ].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setContext(item)}
-                  style={{
-                    ...styles.signalButton,
-                    ...(context === item
-                      ? styles.signalButtonActive
-                      : {}),
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+          <div style={styles.helpGrid}>
+            {helpOptions.map((item) => (
+              <button
+                key={item}
+                onClick={() => setWhatHelped(item)}
+                style={{
+                  ...styles.choiceButton,
+                  ...(whatHelped === item ? styles.choiceButtonActive : {}),
+                }}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {context && (
-          <>
-            <p style={styles.question}>
-              How strong is it?
-            </p>
-
-            <div style={styles.scoreRow}>
-              {[1,2,3,4,5,6,7,8,9,10].map((score) => (
-                <button
-                  key={score}
-                  onClick={() => setIntensity(score)}
-                  style={{
-                    ...styles.scoreButton,
-                    ...(intensity === score
-                      ? styles.scoreButtonActive
-                      : {}),
-                  }}
-                >
-                  {score}
-                </button>
-              ))}
-            </div>
-
-            <p style={styles.question}>
-              What helped?
-            </p>
-
-            <div style={styles.grid}>
-              {[
-                "Moisturised",
-                "Reduced irritation",
-                "Hydrated",
-                "Rested skin",
-                "Reduced stress",
-                "Nothing yet",
-              ].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setWhatHelped(item)}
-                  style={{
-                    ...styles.signalButton,
-                    ...(whatHelped === item
-                      ? styles.signalButtonActive
-                      : {}),
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={onSave}
-              style={styles.continueButton}
-            >
-              {saving ? "Saving..." : "Save & reflect"}
-            </button>
-          </>
-        )}
+        <button
+          onClick={onSave}
+          disabled={!selectedSignal || !context || saving}
+          style={{
+            ...styles.saveButton,
+            opacity: !selectedSignal || !context || saving ? 0.55 : 1,
+          }}
+        >
+          {saving ? "Saving..." : "Save & reflect"}
+        </button>
       </div>
     </div>
   );
 }
 
 const styles = {
-  overlayCard: {
-    width: "430px",
-    background: "rgba(250,244,234,0.94)",
-    borderRadius: "30px",
-    padding: "14px",
-    backdropFilter: "blur(22px)",
-    boxShadow: "0 30px 90px rgba(0,0,0,0.24)",
+  card: {
+    width: "100%",
+    maxWidth: "92vw",
+    maxHeight: "92vh",
+    display: "grid",
+    gridTemplateColumns: "1fr 1.18fr",
+    overflowY: "auto",
+    background: "rgba(250,244,234,0.96)",
+    borderRadius: "38px",
+    backdropFilter: "blur(24px)",
+    boxShadow: "0 34px 110px rgba(0,0,0,0.28)",
+    border: "1px solid rgba(255,255,255,0.65)",
+  },
+
+  leftPanel: {
+    position: "relative",
+    padding: "26px 30px 28px",
+    background:
+      "linear-gradient(180deg, rgba(252,246,236,0.98) 0%, rgba(236,224,210,0.95) 100%)",
+    overflow: "hidden",
+  },
+
+  rightPanel: {
+    background: "rgba(255,252,246,0.86)",
+    overflowY: "scroll",
+    maxHeight: "86vh",
+    padding: "26px 30px 28px",
   },
 
   backButton: {
     border: "none",
-    background: "rgba(255,255,255,0.72)",
+    background: "rgba(255,255,255,0.78)",
     borderRadius: "999px",
-    padding: "8px 14px",
-    marginBottom: "10px",
+    padding: "10px 18px",
     cursor: "pointer",
-  },
-
-  visualPanel: {
-    borderRadius: "24px",
-    background:
-      "linear-gradient(180deg, #F8EEE7 0%, #E8D8C6 100%)",
-    padding: "12px",
-  },
-
-  imageWrap: {
-    position: "relative",
-  },
-
-  image: {
-    width: "100%",
-    maxHeight: "220px",
-    objectFit: "cover",
-    display: "block",
-    borderRadius: "20px",
-  },
-
-  zoneButton: {
-    position: "absolute",
-    border: "none",
-    background: "transparent",
-    borderRadius: "18px",
-    cursor: "pointer",
-  },
-
-  zoneActive: {
-    background: "rgba(255,210,120,0.18)",
-    boxShadow: "0 0 24px rgba(255,210,120,0.72)",
-  },
-
-  zoneLabel: {
-    position: "absolute",
-    left: "50%",
-    bottom: "8px",
-    transform: "translateX(-50%)",
-    background: "rgba(20,20,20,0.74)",
-    color: "#FFF",
-    borderRadius: "999px",
-    padding: "8px 12px",
-    fontSize: "12px",
-  },
-
-  content: {
-    marginTop: "10px",
-    background: "rgba(255,255,255,0.76)",
-    borderRadius: "24px",
-    padding: "16px",
-    paddingBottom: "80px",
-    maxHeight: "270px",
-    overflowY: "auto",
+    fontSize: "15px",
+    marginBottom: "22px",
   },
 
   kicker: {
-    fontSize: "11px",
+    margin: "0 0 8px",
+    fontSize: "12px",
     textTransform: "uppercase",
-    letterSpacing: "0.12em",
-    color: "#7A6F61",
-    fontWeight: "700",
-    margin: "0 0 5px",
+    letterSpacing: "0.16em",
+    color: "#8B6B4B",
+    fontWeight: "800",
   },
 
   title: {
-    fontSize: "26px",
+    margin: "0",
+    fontSize: "44px",
+    lineHeight: "1.05",
     fontFamily: "Georgia, serif",
-    color: "#2A261F",
-    margin: "0 0 6px",
+    color: "#3C2F25",
     fontWeight: "500",
   },
 
   subtitle: {
-    margin: "0 0 12px",
+    margin: "14px 0 10px",
     color: "#5C554B",
-    lineHeight: "1.5",
-    fontSize: "14px",
+    fontSize: "16px",
   },
 
-  question: {
-    margin: "14px 0 8px",
-    fontWeight: "700",
-    color: "#4D463B",
-    fontSize: "14px",
+  imageWrap: {
+    position: "relative",
+    height: "620px",
+    marginTop: "6px",
+    borderRadius: "28px",
+    overflow: "hidden",
   },
 
-  grid: {
+  image: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
+    objectPosition: "center top",
+    display: "block",
+  },
+
+  zoneButton: {
+    position: "absolute",
+    border: "1px solid rgba(255,255,255,0.75)",
+    background: "rgba(255,255,255,0.16)",
+    borderRadius: "20px",
+    cursor: "pointer",
+    zIndex: 4,
+  },
+
+  zoneButtonActive: {
+    background: "rgba(190,140,70,0.72)",
+  },
+
+  zoneButtonLabel: {
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    transform: "translate(-50%, -50%)",
+    color: "#FFFFFF",
+    background: "rgba(120,80,30,0.88)",
+    padding: "8px 12px",
+    borderRadius: "999px",
+    fontSize: "12px",
+    whiteSpace: "nowrap",
+  },
+
+  exploringPill: {
+    position: "absolute",
+    left: "50%",
+    bottom: "22px",
+    transform: "translateX(-50%)",
+    background: "#8B5E34",
+    color: "#FFFFFF",
+    borderRadius: "999px",
+    padding: "14px 28px",
+    fontSize: "17px",
+    zIndex: 6,
+  },
+
+  section: {
+    padding: "0 0 22px",
+    marginBottom: "22px",
+    borderBottom: "1px solid rgba(60,50,38,0.13)",
+  },
+
+  sectionHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "16px",
+  },
+
+  stepBadge: {
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    background: "#8B5E34",
+    color: "#FFFFFF",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "800",
+  },
+
+  sectionTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontSize: "25px",
+    color: "#2A261F",
+  },
+
+  buttonGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "8px",
+    gap: "12px",
   },
 
-  signalButton: {
-    border: "none",
-    borderRadius: "14px",
-    padding: "10px",
-    background: "rgba(255,255,255,0.86)",
-    textAlign: "left",
+  contextGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3,1fr)",
+    gap: "10px",
+  },
+
+  helpGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3,1fr)",
+    gap: "10px",
+  },
+
+  choiceButton: {
+    border: "1px solid rgba(60,50,38,0.16)",
+    borderRadius: "18px",
+    padding: "14px 16px",
+    background: "rgba(255,255,255,0.72)",
+    color: "#2A261F",
     cursor: "pointer",
-    fontSize: "12.5px",
+    fontSize: "15px",
+    textAlign: "center",
   },
 
-  signalButtonActive: {
-    background: "#181818",
+  choiceButtonActive: {
+    background: "#8B5E34",
     color: "#FFFFFF",
+    borderColor: "#8B5E34",
   },
 
   scoreRow: {
     display: "grid",
-    gridTemplateColumns: "repeat(5,1fr)",
-    gap: "6px",
+    gridTemplateColumns: "repeat(10,1fr)",
+    gap: "8px",
   },
 
   scoreButton: {
-    height: "32px",
+    height: "42px",
     borderRadius: "999px",
-    border: "none",
-    background: "rgba(255,255,255,0.86)",
+    border: "1px solid rgba(60,50,38,0.15)",
+    background: "rgba(255,255,255,0.7)",
     cursor: "pointer",
-    fontSize: "12px",
   },
 
   scoreButtonActive: {
-    background: "#C23B30",
-    color: "#FFF",
+    background: "#8B5E34",
+    color: "#FFFFFF",
   },
 
-  continueButton: {
+  saveButton: {
     width: "100%",
-    marginTop: "14px",
     border: "none",
-    borderRadius: "16px",
-    padding: "13px",
-    background: "#181818",
-    color: "#FFF",
+    borderRadius: "999px",
+    padding: "18px",
+    background: "#8B5E34",
+    color: "#FFFFFF",
     cursor: "pointer",
+    fontSize: "18px",
+    fontWeight: "700",
   },
 };
