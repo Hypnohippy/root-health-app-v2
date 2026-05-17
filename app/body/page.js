@@ -753,16 +753,15 @@ const styles = {
     zIndex: 1,
   },
 
-  kidneysCallout: {
-    position: "absolute",
-    left: "70%",
-    top: "34%",
-    width: "440px",
-    zIndex: 21,
-    transformOrigin: "left center",
-    animation: "kidneysPop 0.38s ease-out",
-  },
-
+kidneysCallout: {
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1180px, 94vw)",
+  zIndex: 999,
+  transform: "translate(-50%, -50%)",
+  animation: "kidneysPop 0.38s ease-out",
+},
   kidneysConnectorLine: {
     position: "absolute",
     left: "-92px",
