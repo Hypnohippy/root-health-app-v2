@@ -709,16 +709,15 @@ const styles = {
     zIndex: 1,
   },
 
-  skinCallout: {
-    position: "absolute",
-    left: "70%",
-    top: "24%",
-    width: "430px",
-    zIndex: 21,
-    transformOrigin: "left center",
-    animation: "skinPop 0.38s ease-out",
-  },
-
+ skinCallout: {
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1180px, 94vw)",
+  zIndex: 999,
+  transform: "translate(-50%, -50%)",
+  animation: "skinPop 0.38s ease-out",
+},
   skinConnectorLine: {
     position: "absolute",
     left: "-92px",
