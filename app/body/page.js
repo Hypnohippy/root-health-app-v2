@@ -730,28 +730,19 @@ const styles = {
     zIndex: 1,
   },
 
-  jointsCallout: {
-    position: "absolute",
-    left: "70%",
-    top: "18%",
-    width: "440px",
-    zIndex: 21,
-    transformOrigin: "left center",
-    animation: "jointsPop 0.38s ease-out",
-  },
+ jointsCallout: {
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1180px, 94vw)",
+  zIndex: 999,
+  transform: "translate(-50%, -50%)",
+  animation: "jointsPop 0.38s ease-out",
+},
 
-  jointsConnectorLine: {
-    position: "absolute",
-    left: "-92px",
-    top: "180px",
-    width: "118px",
-    height: "2px",
-    background: "linear-gradient(90deg, rgba(255,210,120,0), rgba(255,210,120,0.95))",
-    boxShadow: "0 0 18px rgba(255,210,120,0.8)",
-    transform: "rotate(2deg)",
-    zIndex: 1,
-  },
-
+jointsConnectorLine: {
+  display: "none",
+},
 kidneysCallout: {
   position: "fixed",
   left: "50%",
