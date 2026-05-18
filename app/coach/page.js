@@ -280,7 +280,8 @@ const startVoiceSession = async () => {
           type: "response.create",
           response: {
             instructions:
-              "Greet the user briefly and warmly. Keep it calm and natural. Ask what they would like to talk through.",
+            instructions:
+  "Speak only in calm British English. Begin immediately in English. Do not use Spanish, French, Arabic, Chinese, or any other language. Greet the user warmly and naturally in calm British English and ask what they would like to talk through.",
           },
         })
       );
