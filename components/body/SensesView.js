@@ -11,17 +11,61 @@ const senseZones = [
   { id: "sensory", label: "Sensory overload", top: "66%", left: "66%", width: "30%", height: "20%" },
 ];
 
-const senseSignals = [
-  "eye strain",
-  "blurred vision",
-  "light sensitivity",
-  "noise sensitivity",
-  "dizziness",
-  "tingling",
-  "numbness",
-  "ringing ears",
-  "altered smell/taste",
-];
+const signalsByZone = {
+  "Eyes / vision": [
+    "eye strain",
+    "blurred vision",
+    "light sensitivity",
+    "dry eyes",
+    "tired eyes",
+    "visual overwhelm",
+  ],
+
+  "Ears / hearing": [
+    "ringing ears",
+    "noise sensitivity",
+    "muffled hearing",
+    "ear pressure",
+    "sound overload",
+    "pulsing sound",
+  ],
+
+  Smell: [
+    "altered smell",
+    "reduced smell",
+    "heightened smell",
+    "smell sensitivity",
+    "phantom smell",
+    "smell-triggered nausea",
+  ],
+
+  Balance: [
+    "dizziness",
+    "off balance",
+    "spinning sensation",
+    "light-headed",
+    "unsteady",
+    "motion sensitivity",
+  ],
+
+  Taste: [
+    "altered taste",
+    "reduced taste",
+    "metallic taste",
+    "bitter taste",
+    "food tastes different",
+    "taste sensitivity",
+  ],
+
+  "Sensory overload": [
+    "sensory overload",
+    "tingling",
+    "numbness",
+    "noise sensitivity",
+    "light sensitivity",
+    "hard to settle",
+  ],
+};
 
 const contextOptions = [
   "just started",
@@ -60,6 +104,7 @@ export default function SensesView({
   onSave,
 }) {
   const [selectedZone, setSelectedZone] = useState("Sensory overload");
+  const currentSignals = signalsByZone[selectedZone] || signalsByZone["Sensory overload"];
 
   return (
     <div style={styles.card}>
@@ -69,7 +114,6 @@ export default function SensesView({
         </button>
 
         <p style={styles.kicker}>Sensory system map</p>
-
         <h2 style={styles.title}>Senses</h2>
 
         <p style={styles.subtitle}>
@@ -86,7 +130,12 @@ export default function SensesView({
           {senseZones.map((zone) => (
             <button
               key={zone.id}
-              onClick={() => setSelectedZone(zone.label)}
+              onClick={() => {
+                setSelectedZone(zone.label);
+                setSelectedSignal("");
+                setContext("");
+                setWhatHelped("");
+              }}
               style={{
                 ...styles.zoneButton,
                 top: zone.top,
@@ -114,7 +163,7 @@ export default function SensesView({
           </div>
 
           <div style={styles.buttonGrid}>
-            {senseSignals.map((signal) => (
+            {currentSignals.map((signal) => (
               <button
                 key={signal}
                 onClick={() => setSelectedSignal(signal)}
