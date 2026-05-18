@@ -67,27 +67,270 @@ const helpOptions = [
 ];
 
 const signalGuidance = {
-  reflux: ["Stay upright for a while after eating", "Try a smaller, lighter meal next time", "Notice if spicy, fatty, acidic foods or late meals make it worse"],
-  bloating: ["Eat a little slower and notice whether that changes things", "Try one simple fibre source rather than lots at once", "Notice whether certain foods or stress make it worse"],
-  constipation: ["Drink water steadily across the day", "Add one gentle fibre source like oats, fruit, or veg", "A short walk may help movement without forcing anything"],
-  "racing heart": ["Pause and reduce stimulation for a few minutes", "Notice caffeine, tiredness, stress, or exertion today", "Track whether it settles or keeps returning"],
-  "light-headed": ["Sit down and give yourself a moment", "Check food, hydration, heat, and sudden movement", "If it feels unusual, strong, or repeated, get it checked"],
-  aching: ["Try gentle movement rather than pushing hard", "Notice whether rest, warmth, or stretching helps", "Track whether it is improving or spreading"],
-  "shallow breathing": ["Slow the breath gently rather than forcing deep breaths", "Try sitting upright and relaxing the shoulders", "Notice whether stress, posture, or exertion changes it"],
-  breathlessness: ["Pause and reduce demand on the body", "Sit upright and allow the breath to settle", "If severe, unusual, or worsening, get medical help urgently"],
-  wheeze: ["Notice triggers such as exertion, allergens, cold air, or stress", "Rest and avoid pushing through", "If wheezing is new, severe, or worsening, get it checked"],
-  itching: ["Reduce irritation where possible", "Notice soaps, detergents, clothing, heat, or stress", "Keep the skin barrier supported gently"],
-  dryness: ["Support the skin barrier with gentle moisturising", "Avoid over-washing or harsh products", "Track whether hydration, heat, or stress changes it"],
-  rash: ["Avoid scratching or adding new products for now", "Notice whether it is spreading, hot, painful, or blistering", "If it persists, worsens, or worries you, get it checked"],
-  "dark urine": ["Notice hydration, heat, exercise, and recent fluid intake", "Drink water steadily rather than all at once", "If it persists or worries you, get it checked"],
-  "frequent urination": ["Notice caffeine, stress, hydration, and timing", "Track whether it is new, repeated, or worse at night", "If it burns, worsens, or feels unusual, get it checked"],
-  "lower back discomfort": ["Notice hydration, posture, lifting, and movement", "Avoid pushing through if it feels unusual", "If pain is severe, persistent, or linked with urinary symptoms, get checked"],
-  overwhelm: ["Reduce stimulation for a few minutes", "Lower the demand on your system", "Notice what your nervous system is reacting to"],
-  "racing thoughts": ["Externalise the thoughts by writing one line down", "Reduce input and stimulation", "Try one slow out-breath before deciding what to do next"],
-  "panic feeling": ["Orient to the room and name what is actually here now", "Lengthen the out-breath gently", "If this feels severe, unsafe, or unusual, seek support"],
-  "wired but tired": ["Reduce stimulation rather than forcing productivity", "Notice caffeine, sleep, stress, and screen load", "Choose recovery over pushing harder"],
-};
+  reflux: [
+    "Stay upright for 30–60 minutes after eating",
+    "Try smaller meals and slower eating today",
+    "Reduce heavy, spicy, acidic, or very late meals for now",
+  ],
 
+  bloating: [
+    "Slow eating down and avoid rushing meals",
+    "Notice whether stress or certain foods increase symptoms",
+    "Gentle walking after food may help movement and pressure",
+  ],
+
+  constipation: [
+    "Increase water steadily across the day",
+    "Add gentle fibre such as oats, kiwi, fruit, or vegetables",
+    "Movement and walking may help stimulate the bowel naturally",
+  ],
+
+  cramps: [
+    "Use warmth and reduce physical strain for now",
+    "Notice dehydration, stress, or food triggers",
+    "Gentle stretching or walking may reduce tension",
+  ],
+
+  nausea: [
+    "Keep food light and simple for now",
+    "Small sips of water or ginger may help settle things",
+    "Avoid forcing heavy meals if appetite is low",
+  ],
+
+  "food sensitivity": [
+    "Keep meals simple and notice repeat triggers",
+    "Highly processed foods may worsen irritation",
+    "Track patterns rather than reacting to one meal alone",
+  ],
+
+  "racing heart": [
+    "Reduce stimulation and slow things down briefly",
+    "Notice caffeine, stress, dehydration, or exhaustion today",
+    "Gentle slow breathing may help the nervous system settle",
+  ],
+
+  fluttering: [
+    "Pause and reduce stimulation for a few minutes",
+    "Notice stress, caffeine, dehydration, or fatigue",
+    "Track whether it settles or keeps repeating",
+  ],
+
+  pressure: [
+    "Reduce physical strain until it settles",
+    "Notice stress, exertion, or posture today",
+    "If unusual, worsening, or chest-related, get checked urgently",
+  ],
+
+  "tight chest": [
+    "Relax the shoulders and avoid shallow breathing",
+    "Slow the out-breath gently rather than forcing deep breaths",
+    "Reduce stress and stimulation where possible",
+  ],
+
+  breathlessness: [
+    "Pause and reduce demand on the body",
+    "Sit upright and allow breathing to settle naturally",
+    "If severe, worsening, or unusual, seek medical help urgently",
+  ],
+
+  wheeze: [
+    "Notice cold air, exertion, allergens, or stress",
+    "Avoid pushing through symptoms today",
+    "Seek medical advice if wheezing is new or worsening",
+  ],
+
+  "shallow breathing": [
+    "Relax the jaw and shoulders first",
+    "Focus on slower breathing rather than deeper breathing",
+    "Reduce stimulation and stress for a while",
+  ],
+
+  coughing: [
+    "Hydration and warm fluids may help irritation",
+    "Notice air quality, illness, or environmental triggers",
+    "Persistent or worsening coughs should be medically reviewed",
+  ],
+
+  itching: [
+    "Reduce irritation where possible",
+    "Notice soaps, detergents, heat, stress, or fabrics",
+    "Support the skin barrier gently with moisturising",
+  ],
+
+  dryness: [
+    "Use gentle moisturising regularly",
+    "Avoid overwashing or harsh skin products",
+    "Hydration, sleep, and stress may affect skin recovery",
+  ],
+
+  redness: [
+    "Reduce irritation and heat exposure",
+    "Notice stress, friction, or skincare triggers",
+    "Avoid aggressive scrubbing or harsh products",
+  ],
+
+  rash: [
+    "Avoid scratching or adding multiple new products",
+    "Track whether it spreads, heats up, or becomes painful",
+    "Seek medical advice if worsening or persistent",
+  ],
+
+  burning: [
+    "Reduce irritation and avoid harsh products or strain",
+    "Hydration and rest may help reduce irritation",
+    "Persistent burning symptoms should be medically assessed",
+  ],
+
+  swelling: [
+    "Rest the area and reduce strain where possible",
+    "Hydration and movement balance may help circulation",
+    "Rapid or severe swelling should be checked urgently",
+  ],
+
+  aching: [
+    "Gentle movement is often better than complete immobility",
+    "Warmth and stretching may help reduce tension",
+    "Avoid pushing hard through pain today",
+  ],
+
+  stiffness: [
+    "Slow gentle movement may help loosen the area",
+    "Heat, mobility work, and hydration may help",
+    "Long periods sitting still may worsen stiffness",
+  ],
+
+  weakness: [
+    "Reduce physical demand temporarily",
+    "Support recovery with rest, hydration, and nutrition",
+    "Persistent or worsening weakness should be assessed",
+  ],
+
+  cramps: [
+    "Hydration and electrolytes may help",
+    "Reduce overexertion temporarily",
+    "Gentle stretching may reduce tension",
+  ],
+
+  "clicking/grinding": [
+    "Reduce repetitive strain temporarily",
+    "Notice posture, movement pattern, and overuse",
+    "If painful or worsening, get it assessed",
+  ],
+
+  thirst: [
+    "Increase fluids steadily rather than all at once",
+    "Notice heat, stress, blood sugar, exercise, or dehydration",
+    "Persistent excessive thirst should be medically reviewed",
+  ],
+
+  "dark urine": [
+    "Increase hydration steadily through the day",
+    "Notice heat, sweating, supplements, or dehydration",
+    "Persistent dark urine should be checked medically",
+  ],
+
+  "frequent urination": [
+    "Notice caffeine, hydration timing, and stress",
+    "Track whether it worsens overnight",
+    "If painful or persistent, seek medical advice",
+  ],
+
+  urgency: [
+    "Reduce bladder irritants like caffeine temporarily",
+    "Hydration balance matters — avoid both extremes",
+    "Persistent urgency should be medically assessed",
+  ],
+
+  "lower back discomfort": [
+    "Notice posture, lifting, stress, and hydration",
+    "Gentle movement may help more than total rest",
+    "Seek help if severe or linked to urinary symptoms",
+  ],
+
+  "reduced urination": [
+    "Hydrate steadily and monitor changes",
+    "Notice heat, illness, dehydration, or medications",
+    "Seek medical advice if significant or persistent",
+  ],
+
+  overwhelm: [
+    "Reduce stimulation and multitasking temporarily",
+    "Focus on one small thing rather than everything at once",
+    "Allow the nervous system to slow before making decisions",
+  ],
+
+  "racing thoughts": [
+    "Externalise thoughts by writing things down",
+    "Reduce information and screen overload briefly",
+    "Longer out-breaths may help calm nervous system activation",
+  ],
+
+  tension: [
+    "Relax shoulders, jaw, and breathing first",
+    "Movement and stretching may help discharge stress",
+    "Notice what situations increase body tension",
+  ],
+
+  "panic feeling": [
+    "Orient to the environment slowly and gently",
+    "Lengthen the out-breath without forcing it",
+    "Seek support if symptoms feel severe or unsafe",
+  ],
+
+  "wired but tired": [
+    "Reduce stimulation rather than forcing productivity",
+    "Notice caffeine, stress, screen exposure, and sleep",
+    "Prioritise recovery over pushing harder today",
+  ],
+
+  shaky: [
+    "Pause and stabilise food, hydration, and breathing",
+    "Notice caffeine, stress, blood sugar, or exhaustion",
+    "Persistent shaking should be medically reviewed",
+  ],
+
+  dizziness: [
+    "Sit down and slow movement briefly",
+    "Hydration, food intake, and fatigue may contribute",
+    "Severe or repeated dizziness should be assessed",
+  ],
+
+  "blurred vision": [
+    "Reduce eye strain and screen intensity briefly",
+    "Hydration, fatigue, and stress may affect vision",
+    "Persistent or sudden changes should be medically checked",
+  ],
+
+  "light sensitivity": [
+    "Reduce bright light exposure temporarily",
+    "Rest the eyes and reduce stimulation",
+    "Track whether headaches or stress link to symptoms",
+  ],
+
+  "ringing ears": [
+    "Reduce noise exposure and overstimulation",
+    "Stress and fatigue can increase awareness of ringing",
+    "Persistent tinnitus should be medically assessed",
+  ],
+
+  fatigue: [
+    "Reduce non-essential demand temporarily",
+    "Hydration, nutrition, movement, and sleep all matter",
+    "Recovery is often slower when stress remains high",
+  ],
+
+  "brain fog": [
+    "Reduce overload and simplify tasks briefly",
+    "Sleep, hydration, blood sugar, and stress may contribute",
+    "Gentle movement and recovery may help clarity",
+  ],
+
+  "poor recovery": [
+    "Reduce intensity and allow more recovery time",
+    "Hydration, sleep, and nutrition are foundational",
+    "Stress load can slow physical recovery significantly",
+  ],
+};
 function normalise(value) {
   return String(value || "").toLowerCase().trim();
 }
