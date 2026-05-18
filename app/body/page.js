@@ -570,15 +570,15 @@ const specific =
 
 message += `\n\nA practical next step could be:`;
 
-    if (specific) {
-      specific.forEach((item) => {
-        message += `\n• ${item}`;
-      });
-    } else {
-      message += `\n• Notice what changed before this appeared`;
-      message += `\n• Keep today’s response simple and gentle`;
-      message += `\n• Track whether it improves, repeats, or spreads`;
-    }
+   if (specific && Array.isArray(specific) && specific.length > 0) {
+  specific.forEach((item) => {
+    message += `\n• ${item}`;
+  });
+} else {
+  message += `\n• Reduce load on this system temporarily rather than pushing through`;
+  message += `\n• Support hydration, sleep, food, gentle movement, and recovery today`;
+  message += `\n• If symptoms persist, worsen, feel unusual, or worry you, seek medical advice`;
+}
 
     if (
       intensity >= 8 ||
