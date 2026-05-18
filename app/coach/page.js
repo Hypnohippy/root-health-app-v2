@@ -4,26 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+
 const signalToCoach = {
   "racing thoughts": "mind",
   "panic feeling": "mind",
   overwhelm: "mind",
   "wired but tired": "mind",
-
   tension: "trauma",
   "numb or detached": "trauma",
   "hard to settle": "trauma",
-
   aching: "movement",
   stiffness: "movement",
   "sharp pain": "movement",
   weakness: "movement",
-
   reflux: "nutrition",
   bloating: "nutrition",
   nausea: "nutrition",
   cravings: "nutrition",
-
   fatigue: "lifestyle",
   "poor sleep": "lifestyle",
   "sleep disruption": "lifestyle",
@@ -31,69 +28,36 @@ const signalToCoach = {
 };
 
 const coachModes = [
-  {
-    id: "nutrition",
-    label: "Nutrition",
-    icon: "🥗",
-  },
-  {
-    id: "mind",
-    label: "Mind & mood",
-    icon: "🧠",
-  },
-  {
-    id: "trauma",
-    label: "Trauma & nervous system",
-    icon: "🧩",
-  },
-  {
-    id: "movement",
-    label: "Movement & body",
-    icon: "🏃",
-  },
-  {
-    id: "lifestyle",
-    label: "Lifestyle",
-    icon: "🌿",
-  },
+  { id: "nutrition", label: "Nutrition", icon: "🥗" },
+  { id: "mind", label: "Mind & mood", icon: "🧠" },
+  { id: "trauma", label: "Trauma & nervous system", icon: "🧩" },
+  { id: "movement", label: "Movement & body", icon: "🏃" },
+  { id: "lifestyle", label: "Lifestyle", icon: "🌿" },
 ];
 
 function buildWelcome(name, history = [], mindEntries = [], journalEntries = []) {
   const cleanName = String(name || "").trim();
   const greeting = cleanName ? `Welcome back, ${cleanName}.` : "Welcome back.";
-
   const latestJournal = Array.isArray(journalEntries) ? journalEntries[0] : null;
   const latestMind = Array.isArray(mindEntries) ? mindEntries[0] : null;
   const latestBody = Array.isArray(history) ? history[0] : null;
 
   if (latestJournal) {
     const theme = latestJournal.emotional_theme || "";
-
     if (theme && theme !== "general reflection") {
-      return `${greeting} Your recent reflection seemed connected to ${theme}.
-
-Do you want to explore that, use a Mind & Mood tool, or focus somewhere else?`;
+      return `${greeting} Your recent reflection seemed connected to ${theme}.\n\nDo you want to explore that, use a Mind & Mood tool, or focus somewhere else?`;
     }
-
-    return `${greeting} I can see you added a recent reflection.
-
-Do you want to explore it, use a Mind & Mood tool, or focus somewhere else?`;
+    return `${greeting} I can see you added a recent reflection.\n\nDo you want to explore it, use a Mind & Mood tool, or focus somewhere else?`;
   }
 
   if (latestMind) {
     const emotion = latestMind.emotion || "something emotional";
-
-    return `${greeting} Last time, you were working with ${emotion.toLowerCase()}.
-
-Do you want to continue with that, or focus somewhere else?`;
+    return `${greeting} Last time, you were working with ${emotion.toLowerCase()}.\n\nDo you want to continue with that, or focus somewhere else?`;
   }
 
   if (latestBody) {
     const signal = latestBody.signal || "your body signals";
-
-    return `${greeting} Last time we were looking at ${signal}.
-
-Do you want to explore that, or focus on something else?`;
+    return `${greeting} Last time we were looking at ${signal}.\n\nDo you want to explore that, or focus on something else?`;
   }
 
   return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
@@ -109,6 +73,7 @@ export default function CoachPage() {
   const [input, setInput] = useState("");
   const [coachMode, setCoachMode] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [voiceState, setVoiceState] = useState("ready");
 
   const bottomRef = useRef(null);
 
@@ -131,10 +96,7 @@ export default function CoachPage() {
 
       if (profileData) {
         setProfile(profileData);
-
-        if (profileData.name) {
-          displayName = profileData.name;
-        }
+        if (profileData.name) displayName = profileData.name;
       }
 
       setName(displayName);
@@ -187,21 +149,17 @@ export default function CoachPage() {
 
   const chooseMode = (mode) => {
     setCoachMode(mode.id);
-
     setMessages((prev) => [
       ...prev,
       {
         role: "coach",
-        content: `${mode.icon} ${mode.label} mode selected.
-
-What would you like to work on today?`,
+        content: `${mode.icon} ${mode.label} mode selected.\n\nWhat would you like to work on today?`,
       },
     ]);
   };
 
   const sendMessage = async (text) => {
-    const clean = text.trim();
-
+    const clean = String(text || "").trim();
     if (!clean || thinking) return;
 
     const nextMessages = [...messages, { role: "user", content: clean }];
@@ -209,14 +167,12 @@ What would you like to work on today?`,
     setMessages(nextMessages);
     setInput("");
     setThinking(true);
+    setVoiceState("thinking");
 
     try {
       const res = await fetch("/api/root-coach", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userName: name,
           profile,
@@ -243,24 +199,17 @@ What would you like to work on today?`,
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "coach",
-          content:
-            "Something interrupted my response, but I’m still here.",
-        },
+        { role: "coach", content: "Something interrupted my response, but I’m still here." },
       ]);
     }
 
     setThinking(false);
+    setVoiceState("ready");
   };
 
   const latestSignal = history[0]?.signal || "No recent signal yet";
-
   const suggestedModeId = signalToCoach[latestSignal];
-
-  const suggestedMode = coachModes.find(
-    (mode) => mode.id === suggestedModeId
-  );
+  const suggestedMode = coachModes.find((mode) => mode.id === suggestedModeId);
 
   return (
     <>
@@ -269,19 +218,60 @@ What would you like to work on today?`,
       <main style={styles.page}>
         <section style={styles.shell}>
           <div style={styles.glow} />
+          <div style={styles.softOrbGlow} />
 
           <div style={styles.header}>
             <RootEnso size={72} />
-
             <p style={styles.kicker}>Root Health Intelligence</p>
-
             <h1 style={styles.title}>Root Coach</h1>
-
             <p style={styles.subtitle}>
-              One calm guide for nutrition, mind, trauma patterns, movement,
-              recovery and whole-person wellbeing.
+              A calm guide for mind, body, recovery and whole-person wellbeing.
             </p>
           </div>
+
+          <section style={styles.voiceStage}>
+            <div style={styles.voiceText}>
+              <p style={styles.voiceLabel}>Voice space</p>
+              <h2 style={styles.voiceTitle}>Slow down. Speak freely.</h2>
+              <p style={styles.voiceSubtitle}>
+                This is the visual foundation for Root Voice — calm, warm, spacious and ready
+                for live conversation.
+              </p>
+            </div>
+
+            <div style={styles.orbWrap}>
+              <div
+                style={{
+                  ...styles.voiceOrb,
+                  ...(voiceState === "thinking" ? styles.voiceOrbThinking : {}),
+                }}
+              >
+                <div style={styles.innerOrb}>
+                  <RootEnso size={84} />
+                </div>
+              </div>
+
+              <p style={styles.voiceStatus}>
+                {voiceState === "thinking" ? "Root Coach is thinking gently…" : "Ready when you are."}
+              </p>
+
+              <button
+                style={styles.voiceButton}
+                onClick={() =>
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      role: "coach",
+                      content:
+                        "Voice mode will live here next. For now, this space sets the emotional tone: calm, spacious, and steady.",
+                    },
+                  ])
+                }
+              >
+                Voice coming next
+              </button>
+            </div>
+          </section>
 
           <div style={styles.heroCard}>
             <div>
@@ -290,8 +280,7 @@ What would you like to work on today?`,
 
               {suggestedMode && (
                 <p style={styles.heroText}>
-                  Suggested focus: {suggestedMode.icon}{" "}
-                  {suggestedMode.label}
+                  Suggested focus: {suggestedMode.icon} {suggestedMode.label}
                 </p>
               )}
             </div>
@@ -304,9 +293,7 @@ What would you like to work on today?`,
                 onClick={() => chooseMode(mode)}
                 style={{
                   ...styles.modeButton,
-                  ...(coachMode === mode.id
-                    ? styles.modeButtonActive
-                    : {}),
+                  ...(coachMode === mode.id ? styles.modeButtonActive : {}),
                 }}
               >
                 <span style={styles.modeIcon}>{mode.icon}</span>
@@ -321,9 +308,7 @@ What would you like to work on today?`,
                 key={index}
                 style={{
                   ...styles.message,
-                  ...(message.role === "user"
-                    ? styles.userMessage
-                    : styles.coachMessage),
+                  ...(message.role === "user" ? styles.userMessage : styles.coachMessage),
                 }}
               >
                 <p style={styles.messageText}>{message.content}</p>
@@ -332,9 +317,7 @@ What would you like to work on today?`,
 
             {thinking && (
               <div style={{ ...styles.message, ...styles.coachMessage }}>
-                <p style={styles.messageText}>
-                  Root Coach is thinking gently…
-                </p>
+                <p style={styles.messageText}>Root Coach is thinking gently…</p>
               </div>
             )}
 
@@ -347,11 +330,7 @@ What would you like to work on today?`,
               "Help me calm my nervous system",
               "What should I focus on today?",
             ].map((prompt) => (
-              <button
-                key={prompt}
-                style={styles.quickButton}
-                onClick={() => sendMessage(prompt)}
-              >
+              <button key={prompt} style={styles.quickButton} onClick={() => sendMessage(prompt)}>
                 {prompt}
               </button>
             ))}
@@ -365,10 +344,7 @@ What would you like to work on today?`,
               style={styles.input}
             />
 
-            <button
-              style={styles.sendButton}
-              onClick={() => sendMessage(input)}
-            >
+            <button style={styles.sendButton} onClick={() => sendMessage(input)}>
               Send
             </button>
           </div>
@@ -392,7 +368,7 @@ const styles = {
     position: "relative",
     overflow: "hidden",
     width: "100%",
-    maxWidth: "1100px",
+    maxWidth: "1120px",
     background: "rgba(255,255,255,0.56)",
     border: "1px solid rgba(255,255,255,0.72)",
     backdropFilter: "blur(22px)",
@@ -412,16 +388,24 @@ const styles = {
       "radial-gradient(circle, rgba(0,0,0,0.16), rgba(0,0,0,0.02) 70%)",
   },
 
+  softOrbGlow: {
+    position: "absolute",
+    left: "50%",
+    top: "260px",
+    transform: "translateX(-50%)",
+    width: "520px",
+    height: "520px",
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(147,122,78,0.18), rgba(255,255,255,0) 68%)",
+    pointerEvents: "none",
+  },
+
   header: {
     textAlign: "center",
     marginBottom: "26px",
     position: "relative",
     zIndex: 2,
-  },
-
-  brandMark: {
-    fontSize: "46px",
-    marginBottom: "6px",
   },
 
   kicker: {
@@ -446,6 +430,105 @@ const styles = {
     lineHeight: "1.75",
     color: "#5A554D",
     fontSize: "17px",
+  },
+
+  voiceStage: {
+    position: "relative",
+    zIndex: 2,
+    display: "grid",
+    gridTemplateColumns: "1fr 360px",
+    gap: "28px",
+    alignItems: "center",
+    background:
+      "linear-gradient(135deg, rgba(250,244,234,0.82), rgba(255,255,255,0.54))",
+    border: "1px solid rgba(255,255,255,0.74)",
+    borderRadius: "38px",
+    padding: "32px",
+    marginBottom: "22px",
+    boxShadow: "0 26px 80px rgba(42,36,28,0.13)",
+  },
+
+  voiceText: {
+    textAlign: "left",
+  },
+
+  voiceLabel: {
+    margin: "0 0 10px",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.16em",
+    color: "#746B5E",
+    fontWeight: "800",
+  },
+
+  voiceTitle: {
+    margin: "0 0 12px",
+    fontFamily: "Georgia, serif",
+    fontSize: "42px",
+    lineHeight: "1.04",
+    fontWeight: "500",
+    color: "#2A261F",
+  },
+
+  voiceSubtitle: {
+    margin: 0,
+    maxWidth: "560px",
+    lineHeight: "1.7",
+    color: "#5A554D",
+    fontSize: "16px",
+  },
+
+  orbWrap: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  voiceOrb: {
+    width: "230px",
+    height: "230px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background:
+      "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.92), rgba(232,219,195,0.88) 42%, rgba(109,114,95,0.42) 100%)",
+    boxShadow:
+      "0 0 0 18px rgba(255,255,255,0.18), 0 24px 70px rgba(62,53,41,0.22), inset 0 0 60px rgba(255,255,255,0.55)",
+    animation: "none",
+  },
+
+  voiceOrbThinking: {
+    boxShadow:
+      "0 0 0 24px rgba(255,255,255,0.2), 0 0 90px rgba(147,122,78,0.42), 0 24px 70px rgba(62,53,41,0.22), inset 0 0 70px rgba(255,255,255,0.65)",
+  },
+
+  innerOrb: {
+    width: "132px",
+    height: "132px",
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.36)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backdropFilter: "blur(14px)",
+  },
+
+  voiceStatus: {
+    margin: "18px 0 12px",
+    color: "#5C554B",
+    fontSize: "15px",
+  },
+
+  voiceButton: {
+    border: "none",
+    borderRadius: "999px",
+    padding: "13px 18px",
+    background: "#26381F",
+    color: "#FFFFFF",
+    cursor: "pointer",
+    fontSize: "14px",
   },
 
   heroCard: {
