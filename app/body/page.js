@@ -11,6 +11,7 @@ import LungsView from "../../components/body/LungsView";
 import SkinView from "../../components/body/SkinView";
 import JointsView from "../../components/body/JointsView";
 import KidneysView from "../../components/body/KidneysView";
+import SensesView from "../../components/body/SensesView";
 import NervousSystemView from "../../components/body/NervousSystemView";
 
 const bodySystems = [
@@ -139,8 +140,10 @@ export default function BodyPage() {
     } else if (id === "muscles_joints") {
       setJourneyStep("joints");
     } else if (id === "bladder_hydration") {
-      setJourneyStep("kidneys");
-    } else {
+  setJourneyStep("kidneys");
+} else if (id === "senses") {
+  setJourneyStep("senses");
+} else {
       setJourneyStep("signals");
     }
   };
@@ -382,7 +385,25 @@ export default function BodyPage() {
               </div>
             )}
           </div>
+{journeyStep === "senses" && current?.id === "senses" && (
+  <div style={styles.sensesCallout}>
+    <div style={styles.sensesConnectorLine} />
 
+    <SensesView
+      selectedSignal={selectedSignal}
+      setSelectedSignal={setSelectedSignal}
+      context={context}
+      setContext={setContext}
+      intensity={intensity}
+      setIntensity={setIntensity}
+      whatHelped={whatHelped}
+      setWhatHelped={setWhatHelped}
+      saving={saving}
+      onBack={clearSelections}
+      onSave={handleExplore}
+    />
+  </div>
+)}
           {!current && <p style={styles.tapHint}>Tap the area that feels out of balance</p>}
 
           {current && (
@@ -400,13 +421,15 @@ export default function BodyPage() {
           journeyStep !== "skin" &&
           journeyStep !== "joints" &&
           journeyStep !== "kidneys" &&
+          journeyStep !== "senses" &&
           current.id !== "stress_nerves" &&
           current.id !== "digestion" &&
           current.id !== "heart_circulation" &&
           current.id !== "breathing" &&
           current.id !== "skin" &&
           current.id !== "muscles_joints" &&
-          current.id !== "bladder_hydration" && (
+          current.id !== "bladder_hydration" &&
+          current.id !== "senses" && (
             <div style={styles.explorePanel}>
               <p style={styles.panelKicker}>Signal exploration</p>
               <h2 style={styles.panelTitle}>{current.label}</h2>
@@ -763,7 +786,18 @@ kidneysCallout: {
     transform: "rotate(-4deg)",
     zIndex: 1,
   },
-
+sensesCallout: {
+  position: "fixed",
+  left: "50%",
+  top: "50%",
+  width: "min(1220px, 95vw)",
+  zIndex: 999,
+  transform: "translate(-50%, -50%)",
+  animation: "kidneysPop 0.38s ease-out",
+},
+sensesConnectorLine: {
+  display: "none",
+},
   tapHint: {
     marginTop: "-34px",
     color: "#FFFFFF",
