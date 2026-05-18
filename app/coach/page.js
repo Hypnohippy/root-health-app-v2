@@ -74,6 +74,7 @@ export default function CoachPage() {
   const [coachMode, setCoachMode] = useState("");
   const [thinking, setThinking] = useState(false);
   const [voiceState, setVoiceState] = useState("ready");
+  const [voiceEnergy, setVoiceEnergy] = useState(0);
 
   const bottomRef = useRef(null);
 const peerConnectionRef = useRef(null);
