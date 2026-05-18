@@ -212,21 +212,7 @@ const startVoiceSession = async () => {
   try {
     setVoiceState("connecting");
 
-    const tokenResponse = await fetch("/api/realtime-session", {
-      method: "POST",
-    });
-
-    const tokenData = await tokenResponse.json();
-
-    const ephemeralKey =
-      tokenData?.client_secret?.value ||
-      tokenData?.value ||
-      tokenData?.client_secret;
-
-    if (!ephemeralKey) {
-      throw new Error(tokenData?.error || "No realtime client secret returned.");
-    }
-
+  
     const pc = new RTCPeerConnection();
     peerConnectionRef.current = pc;
 
@@ -291,18 +277,13 @@ const startVoiceSession = async () => {
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
-    const sdpResponse = await fetch(
-      "https://api.openai.com/v1/realtime?model=gpt-realtime",
-      {
-        method: "POST",
-        body: offer.sdp,
-        headers: {
-          Authorization: `Bearer ${ephemeralKey}`,
-          "Content-Type": "application/sdp",
-        },
-      }
-    );
-
+   const sdpResponse = await fetch("/api/realtime-session", {
+  method: "POST",
+  body: offer.sdp,
+  headers: {
+    "Content-Type": "application/sdp",
+  },
+});
     if (!sdpResponse.ok) {
       const errorText = await sdpResponse.text();
       throw new Error(errorText);
