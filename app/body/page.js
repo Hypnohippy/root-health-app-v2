@@ -389,6 +389,35 @@ const signalGuidance = {
     "Hydration, sleep, and nutrition are foundational",
     "Stress load can slow physical recovery significantly",
   ],
+    senses: [
+    "Reduce sensory load for 10–20 minutes: lower lights, reduce noise, and pause screens",
+    "Hydrate and give your eyes or nervous system a short recovery window",
+    "If symptoms are sudden, severe, one-sided, linked with weakness, or do not settle, seek medical advice",
+  ],
+
+  sensory: [
+    "Reduce sensory load for 10–20 minutes: lower lights, reduce noise, and pause screens",
+    "Hydrate and give your eyes or nervous system a short recovery window",
+    "If symptoms are sudden, severe, one-sided, linked with weakness, or do not settle, seek medical advice",
+  ],
+
+  "sensory overload": [
+    "Reduce sensory input for 10–20 minutes: lower lights, reduce noise, and pause notifications",
+    "Move to one calm environment rather than trying to push through stimulation",
+    "Try slow breathing, stillness, or a short quiet walk to help the nervous system settle",
+  ],
+
+  "tired eyes": [
+    "Reduce screen intensity and give the eyes short breaks every 20–30 minutes",
+    "Hydration, sleep, stress, and prolonged focus can all contribute to eye fatigue",
+    "Looking into the distance or natural light may help reduce strain",
+  ],
+
+  default: [
+    "Reduce load on the affected system for a short period rather than pushing through",
+    "Support the basics first: hydration, food, rest, gentle movement, and lower stress",
+    "If symptoms persist, worsen, feel unusual, or worry you, seek medical advice",
+  ],
 };
 function normalise(value) {
   return String(value || "").toLowerCase().trim();
@@ -476,8 +505,17 @@ export default function BodyPage() {
       message += `\n\nLet’s read this as information from your body, not something to panic about.`;
     }
 
-    const specific = signalGuidance[normalise(selectedSignal)];
-    message += `\n\nA practical next step could be:`;
+    const signalKey = normalise(selectedSignal);
+
+const specific =
+  signalGuidance[signalKey] ||
+  signalGuidance[signalKey.replace(/\s+/g, " ")] ||
+  signalGuidance[signalKey.replace("/", " / ")] ||
+  signalGuidance[current?.id] ||
+  signalGuidance[current?.system] ||
+  signalGuidance.default;
+
+message += `\n\nA practical next step could be:`;
 
     if (specific) {
       specific.forEach((item) => {
