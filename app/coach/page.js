@@ -400,24 +400,29 @@ const stopVoiceSession = () => {
               </div>
 
               <p style={styles.voiceStatus}>
-                {voiceState === "thinking" ? "Root Coach is thinking gently…" : "Ready when you are."}
+                {voiceState === "connecting"
+  ? "Connecting gently…"
+  : voiceState === "listening"
+  ? "Listening… take your time."
+  : voiceState === "speaking"
+  ? "Root Voice is speaking…"
+  : voiceState === "thinking"
+  ? "Root Coach is thinking gently…"
+  : "Ready when you are."}
               </p>
 
-              <button
-                style={styles.voiceButton}
-                onClick={() =>
-                  setMessages((prev) => [
-                    ...prev,
-                    {
-                      role: "coach",
-                      content:
-                        "Voice mode will live here next. For now, this space sets the emotional tone: calm, spacious, and steady.",
-                    },
-                  ])
-                }
-              >
-                Voice coming next
-              </button>
+             <button
+  style={styles.voiceButton}
+  onClick={() => {
+    if (voiceState === "ready") {
+      startVoiceSession();
+    } else {
+      stopVoiceSession();
+    }
+  }}
+>
+  {voiceState === "ready" ? "Start voice" : "End voice"}
+</button>
             </div>
           </section>
 
