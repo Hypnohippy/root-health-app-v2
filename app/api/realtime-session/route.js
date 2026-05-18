@@ -50,7 +50,7 @@ export async function POST(req) {
         instructions: ROOT_VOICE_PROMPT,
         audio: {
           output: {
-        voice: "sage",
+        voice: "cedar",
           },
         },
       })
