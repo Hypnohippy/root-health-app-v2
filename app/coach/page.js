@@ -345,6 +345,25 @@ const stopVoiceSession = () => {
       <Nav />
 
       <main style={styles.page}>
+    <style>{`
+  @keyframes rootBreath {
+    0% { transform: scale(0.96); opacity: 0.58; }
+    50% { transform: scale(1.06); opacity: 0.95; }
+    100% { transform: scale(0.96); opacity: 0.58; }
+  }
+
+  @keyframes rootPulse {
+    0% { transform: scale(0.92); opacity: 0.35; }
+    50% { transform: scale(1.14); opacity: 0.8; }
+    100% { transform: scale(0.92); opacity: 0.35; }
+  }
+
+  @keyframes rootSpeak {
+    0% { transform: scale(0.98); filter: brightness(1); }
+    50% { transform: scale(1.045); filter: brightness(1.08); }
+    100% { transform: scale(0.98); filter: brightness(1); }
+  }
+`}</style>
         <section style={styles.shell}>
           <div style={styles.glow} />
           <div style={styles.softOrbGlow} />
@@ -368,43 +387,43 @@ const stopVoiceSession = () => {
               </p>
             </div>
 
-            <div style={styles.orbWrap}>
-              <div
-                style={{
-                  ...styles.voiceOrb,
-                  ...(voiceState === "thinking" ? styles.voiceOrbThinking : {}),
-                }}
-              >
-                <div style={styles.innerOrb}>
-                  <RootEnso size={84} />
-                </div>
-              </div>
+           <div style={styles.orbWrap}>
+  <div
+    style={{
+      ...styles.voiceOrb,
+      ...(voiceState === "thinking" ? styles.voiceOrbThinking : {}),
+    }}
+  >
+    <div style={styles.innerOrb}>
+      <RootEnso size={84} />
+    </div>
+  </div>
 
-              <p style={styles.voiceStatus}>
-                {voiceState === "connecting"
-  ? "Connecting gently…"
-  : voiceState === "listening"
-  ? "Listening… take your time."
-  : voiceState === "speaking"
-  ? "Root Voice is speaking…"
-  : voiceState === "thinking"
-  ? "Root Coach is thinking gently…"
-  : "Ready when you are."}
-              </p>
+  <p style={styles.voiceStatus}>
+    {voiceState === "connecting"
+      ? "Connecting gently…"
+      : voiceState === "listening"
+      ? "Listening… take your time."
+      : voiceState === "speaking"
+      ? "Root Voice is speaking…"
+      : voiceState === "thinking"
+      ? "Root Coach is thinking gently…"
+      : "Ready when you are."}
+  </p>
 
-             <button
-  style={styles.voiceButton}
-  onClick={() => {
-    if (voiceState === "ready") {
-      startVoiceSession();
-    } else {
-      stopVoiceSession();
-    }
-  }}
->
-  {voiceState === "ready" ? "Start voice" : "End voice"}
-</button>
-            </div>
+  <button
+    style={styles.voiceButton}
+    onClick={() => {
+      if (voiceState === "ready") {
+        startVoiceSession();
+      } else {
+        stopVoiceSession();
+      }
+    }}
+  >
+    {voiceState === "ready" ? "Start voice" : "End voice"}
+  </button>
+</div>
           </section>
 
           <div style={styles.heroCard}>
@@ -619,52 +638,91 @@ const styles = {
     justifyContent: "center",
   },
 
-  voiceOrb: {
-    width: "230px",
-    height: "230px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background:
-      "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.92), rgba(232,219,195,0.88) 42%, rgba(109,114,95,0.42) 100%)",
-    boxShadow:
-      "0 0 0 18px rgba(255,255,255,0.18), 0 24px 70px rgba(62,53,41,0.22), inset 0 0 60px rgba(255,255,255,0.55)",
-    animation: "none",
-  },
+  ensoVoiceButton: {
+  position: "relative",
+  width: "250px",
+  height: "250px",
+  borderRadius: "50%",
+  border: "none",
+  background:
+    "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(232,219,195,0.9) 44%, rgba(109,114,95,0.48) 100%)",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow:
+    "0 0 0 18px rgba(255,255,255,0.16), 0 26px 76px rgba(62,53,41,0.24), inset 0 0 70px rgba(255,255,255,0.6)",
+  transition: "all 0.35s ease",
+},
 
-  voiceOrbThinking: {
-    boxShadow:
-      "0 0 0 24px rgba(255,255,255,0.2), 0 0 90px rgba(147,122,78,0.42), 0 24px 70px rgba(62,53,41,0.22), inset 0 0 70px rgba(255,255,255,0.65)",
-  },
+ensoOuterRing: {
+  position: "absolute",
+  inset: "-26px",
+  borderRadius: "50%",
+  border: "1px solid rgba(255,255,255,0.42)",
+  background:
+    "radial-gradient(circle, rgba(255,255,255,0.16), rgba(147,122,78,0.06), transparent 70%)",
+  animation: "rootBreath 4.8s ease-in-out infinite",
+},
 
-  innerOrb: {
-    width: "132px",
-    height: "132px",
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.36)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backdropFilter: "blur(14px)",
-  },
+ensoMiddleRing: {
+  position: "absolute",
+  inset: "-10px",
+  borderRadius: "50%",
+  border: "1px solid rgba(111,103,91,0.18)",
+  background:
+    "radial-gradient(circle, rgba(250,244,234,0.34), rgba(255,255,255,0) 72%)",
+  animation: "rootPulse 6.2s ease-in-out infinite",
+},
 
-  voiceStatus: {
-    margin: "18px 0 12px",
-    color: "#5C554B",
-    fontSize: "15px",
-  },
+ensoInner: {
+  position: "relative",
+  zIndex: 3,
+  width: "142px",
+  height: "142px",
+  borderRadius: "50%",
+  background: "rgba(255,255,255,0.36)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  backdropFilter: "blur(14px)",
+  boxShadow: "inset 0 0 32px rgba(255,255,255,0.44)",
+},
 
-  voiceButton: {
-    border: "none",
-    borderRadius: "999px",
-    padding: "13px 18px",
-    background: "#26381F",
-    color: "#FFFFFF",
-    cursor: "pointer",
-    fontSize: "14px",
-  },
+ensoIdle: {
+  animation: "rootBreath 5.6s ease-in-out infinite",
+},
 
+ensoConnecting: {
+  boxShadow:
+    "0 0 0 24px rgba(255,255,255,0.2), 0 0 90px rgba(147,122,78,0.38), 0 26px 76px rgba(62,53,41,0.24), inset 0 0 80px rgba(255,255,255,0.68)",
+},
+
+ensoListening: {
+  boxShadow:
+    "0 0 0 26px rgba(255,255,255,0.22), 0 0 95px rgba(109,114,95,0.42), 0 26px 76px rgba(62,53,41,0.24), inset 0 0 80px rgba(255,255,255,0.72)",
+},
+
+ensoSpeaking: {
+  animation: "rootSpeak 2.4s ease-in-out infinite",
+  boxShadow:
+    "0 0 0 28px rgba(255,255,255,0.24), 0 0 110px rgba(147,122,78,0.48), 0 28px 82px rgba(62,53,41,0.26), inset 0 0 88px rgba(255,255,255,0.74)",
+},
+
+ensoThinking: {
+  animation: "rootBreath 3.8s ease-in-out infinite",
+  boxShadow:
+    "0 0 0 24px rgba(255,255,255,0.2), 0 0 90px rgba(147,122,78,0.42), 0 24px 70px rgba(62,53,41,0.22), inset 0 0 70px rgba(255,255,255,0.65)",
+},
+
+voiceHint: {
+  margin: "0",
+  color: "#746B5E",
+  fontSize: "13px",
+  textAlign: "center",
+  maxWidth: "260px",
+  lineHeight: "1.5",
+},
   heroCard: {
     background:
       "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
