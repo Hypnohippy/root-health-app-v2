@@ -387,57 +387,9 @@ const stopVoiceSession = () => {
               </p>
             </div>
 
-           <div style={styles.orbWrap}>
-                  <button
-  aria-label={voiceState === "ready" ? "Start Root Voice" : "End Root Voice"}
-  onClick={() => {
-    if (voiceState === "ready") {
-      startVoiceSession();
-    } else {
-      stopVoiceSession();
-    }
-  }}
-  style={{
-    ...styles.ensoVoiceButton,
-    ...(voiceState === "ready" ? styles.ensoIdle : {}),
-    ...(voiceState === "connecting" ? styles.ensoConnecting : {}),
-    ...(voiceState === "listening" ? styles.ensoListening : {}),
-    ...(voiceState === "speaking" ? styles.ensoSpeaking : {}),
-    ...(voiceState === "thinking" ? styles.ensoThinking : {}),
-  }}
->
-  <span style={styles.ensoOuterRing} />
-  <span style={styles.ensoMiddleRing} />
-
-  <span style={styles.ensoInner}>
-    <RootEnso size={128} />
-  </span>
-</button>
-  <div
-    style={{
-      ...styles.voiceOrb,
-      ...(voiceState === "thinking" ? styles.voiceOrbThinking : {}),
-    }}
-  >
-    <div style={styles.innerOrb}>
-      <RootEnso size={84} />
-    </div>
-  </div>
-
-  <p style={styles.voiceStatus}>
-    {voiceState === "connecting"
-      ? "Connecting gently…"
-      : voiceState === "listening"
-      ? "Listening… take your time."
-      : voiceState === "speaking"
-      ? "Root Voice is speaking…"
-      : voiceState === "thinking"
-      ? "Root Coach is thinking gently…"
-      : "Ready when you are."}
-  </p>
-
+          <div style={styles.orbWrap}>
   <button
-    style={styles.voiceButton}
+    aria-label={voiceState === "ready" ? "Start Root Voice" : "End Root Voice"}
     onClick={() => {
       if (voiceState === "ready") {
         startVoiceSession();
@@ -445,9 +397,41 @@ const stopVoiceSession = () => {
         stopVoiceSession();
       }
     }}
+    style={{
+      ...styles.ensoVoiceButton,
+      ...(voiceState === "ready" ? styles.ensoIdle : {}),
+      ...(voiceState === "connecting" ? styles.ensoConnecting : {}),
+      ...(voiceState === "listening" ? styles.ensoListening : {}),
+      ...(voiceState === "speaking" ? styles.ensoSpeaking : {}),
+      ...(voiceState === "thinking" ? styles.ensoThinking : {}),
+    }}
   >
-   
-    </div>
+    <span style={styles.ensoOuterRing} />
+    <span style={styles.ensoMiddleRing} />
+
+    <span style={styles.ensoInner}>
+      <RootEnso size={128} />
+    </span>
+  </button>
+
+  <p style={styles.voiceStatus}>
+    {voiceState === "connecting"
+      ? "Opening the voice space…"
+      : voiceState === "listening"
+      ? "Listening… take your time."
+      : voiceState === "speaking"
+      ? "Root Voice is speaking…"
+      : voiceState === "thinking"
+      ? "Root Coach is thinking gently…"
+      : "Tap the enso to begin."}
+  </p>
+
+  <p style={styles.voiceHint}>
+    {voiceState === "ready"
+      ? "A calm spoken conversation with Root Coach."
+      : "Tap the enso again to end voice mode."}
+  </p>
+</div>
           </section>
 
           <div style={styles.heroCard}>
