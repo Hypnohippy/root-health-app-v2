@@ -76,7 +76,9 @@ export default function CoachPage() {
   const [voiceState, setVoiceState] = useState("ready");
 
   const bottomRef = useRef(null);
-
+const peerConnectionRef = useRef(null);
+const dataChannelRef = useRef(null);
+const audioElementRef = useRef(null);
   useEffect(() => {
     const load = async () => {
       const { data: userData } = await supabase.auth.getUser();
@@ -206,7 +208,153 @@ export default function CoachPage() {
     setThinking(false);
     setVoiceState("ready");
   };
+const startVoiceSession = async () => {
+  try {
+    setVoiceState("connecting");
 
+    const tokenResponse = await fetch("/api/realtime-session", {
+      method: "POST",
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    const ephemeralKey =
+      tokenData?.client_secret?.value ||
+      tokenData?.value ||
+      tokenData?.client_secret;
+
+    if (!ephemeralKey) {
+      throw new Error(tokenData?.error || "No realtime client secret returned.");
+    }
+
+    const pc = new RTCPeerConnection();
+    peerConnectionRef.current = pc;
+
+    const audioElement = document.createElement("audio");
+    audioElement.autoplay = true;
+    audioElementRef.current = audioElement;
+
+    pc.ontrack = (event) => {
+      audioElement.srcObject = event.streams[0];
+    };
+
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+
+    mediaStream.getTracks().forEach((track) => {
+      pc.addTrack(track, mediaStream);
+    });
+
+    const dc = pc.createDataChannel("oai-events");
+    dataChannelRef.current = dc;
+
+    dc.onopen = () => {
+      setVoiceState("listening");
+
+      dc.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            instructions:
+              "Greet the user briefly and warmly. Keep it calm and natural. Ask what they would like to talk through.",
+          },
+        })
+      );
+    };
+
+    dc.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+
+        if (message.type === "input_audio_buffer.speech_started") {
+          setVoiceState("listening");
+        }
+
+        if (message.type === "response.audio.delta") {
+          setVoiceState("speaking");
+        }
+
+        if (message.type === "response.done") {
+          setVoiceState("listening");
+        }
+
+        if (message.type === "error") {
+          console.error("Realtime error:", message);
+          setVoiceState("ready");
+        }
+      } catch (error) {
+        console.error("Realtime message parse error:", error);
+      }
+    };
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    const sdpResponse = await fetch(
+      "https://api.openai.com/v1/realtime?model=gpt-realtime",
+      {
+        method: "POST",
+        body: offer.sdp,
+        headers: {
+          Authorization: `Bearer ${ephemeralKey}`,
+          "Content-Type": "application/sdp",
+        },
+      }
+    );
+
+    if (!sdpResponse.ok) {
+      const errorText = await sdpResponse.text();
+      throw new Error(errorText);
+    }
+
+    const answerSdp = await sdpResponse.text();
+
+    await pc.setRemoteDescription({
+      type: "answer",
+      sdp: answerSdp,
+    });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "coach",
+        content:
+          "Voice session started. You can speak naturally — Root Voice is listening.",
+      },
+    ]);
+  } catch (error) {
+    console.error("VOICE SESSION ERROR:", error);
+
+    setVoiceState("ready");
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "coach",
+        content:
+          "I couldn’t start voice mode yet. Check microphone permissions and the realtime session route.",
+      },
+    ]);
+  }
+};
+
+const stopVoiceSession = () => {
+  try {
+    dataChannelRef.current?.close();
+    peerConnectionRef.current?.getSenders()?.forEach((sender) => {
+      sender.track?.stop();
+    });
+    peerConnectionRef.current?.close();
+  } catch (error) {
+    console.error("Stop voice error:", error);
+  }
+
+  dataChannelRef.current = null;
+  peerConnectionRef.current = null;
+  audioElementRef.current = null;
+  setVoiceState("ready");
+};
   const latestSignal = history[0]?.signal || "No recent signal yet";
   const suggestedModeId = signalToCoach[latestSignal];
   const suggestedMode = coachModes.find((mode) => mode.id === suggestedModeId);
