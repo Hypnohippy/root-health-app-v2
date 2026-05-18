@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ROOT_VOICE_PROMPT = `
-You must always speak in English only.
+You must always speak in British English only.
 Use British English wording and a calm British English accent where possible.
 Do not start in Spanish, French, Arabic, Chinese, or any other language unless the user explicitly asks you to change language.
 Your opening greeting must be in English.
@@ -40,7 +40,7 @@ export async function POST(req) {
         instructions: ROOT_VOICE_PROMPT,
         audio: {
           output: {
-         voice: "ash",
+        voice: "echo",
           },
         },
       })
