@@ -418,6 +418,59 @@ const signalGuidance = {
     "Support the basics first: hydration, food, rest, gentle movement, and lower stress",
     "If symptoms persist, worsen, feel unusual, or worry you, seek medical advice",
   ],
+    senses: [
+    "Reduce sensory load for 10–20 minutes: lower lights, reduce noise, and pause screens",
+    "Hydration, sleep, and nervous system overload can all affect sensory symptoms",
+    "If symptoms are sudden, severe, one-sided, or persistent, seek medical advice",
+  ],
+
+  skin: [
+    "Reduce irritation and support the skin barrier gently today",
+    "Hydration, stress, soaps, heat, and food can all influence skin symptoms",
+    "If symptoms worsen, spread, blister, or persist, seek medical advice",
+  ],
+
+  breathing: [
+    "Slow the breathing gently and reduce physical demand temporarily",
+    "Stress, posture, illness, and nervous system activation may affect breathing",
+    "Seek urgent medical help for severe or worsening breathing symptoms",
+  ],
+
+  digestion: [
+    "Keep meals simple and reduce digestive load temporarily",
+    "Hydration, slower eating, stress reduction, and gentle movement may help",
+    "Persistent or worsening digestive symptoms should be medically assessed",
+  ],
+
+  bladder_hydration: [
+    "Support hydration steadily through the day rather than all at once",
+    "Notice caffeine, stress, dehydration, heat, or illness patterns",
+    "Persistent urinary symptoms should be medically assessed",
+  ],
+
+  muscles_joints: [
+    "Gentle movement is often better than total immobility",
+    "Hydration, stretching, warmth, and recovery may help symptoms settle",
+    "Persistent swelling, weakness, or pain should be medically assessed",
+  ],
+
+  stress_nerves: [
+    "Reduce stimulation and slow the nervous system down briefly",
+    "Focus on hydration, breathing, sleep, and lowering overload",
+    "Persistent neurological or panic-like symptoms should be medically assessed",
+  ],
+
+  heart_circulation: [
+    "Reduce physical strain temporarily and allow the body to settle",
+    "Hydration, stress, sleep, and stimulation can affect circulation symptoms",
+    "Chest pain, severe breathlessness, or fainting require urgent medical attention",
+  ],
+
+  default: [
+    "Reduce load on the affected system temporarily rather than pushing through",
+    "Support hydration, sleep, food, movement, and recovery today",
+    "If symptoms persist, worsen, or feel unusual, seek medical advice",
+  ],
 };
 function normalise(value) {
   return String(value || "").toLowerCase().trim();
