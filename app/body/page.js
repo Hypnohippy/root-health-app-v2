@@ -306,6 +306,65 @@ const signalGuidance = {
     "Rest the eyes and reduce stimulation",
     "Track whether headaches or stress link to symptoms",
   ],
+    "tired eyes": [
+    "Reduce screen intensity and give the eyes short breaks every 20–30 minutes",
+    "Hydration, sleep, stress, and prolonged focus can all contribute to eye fatigue",
+    "Looking into the distance or natural light may help reduce strain",
+  ],
+
+  "eye strain": [
+    "Reduce prolonged screen focus temporarily",
+    "Blinking more regularly and adjusting lighting may help",
+    "Poor sleep, stress, and dehydration may worsen strain",
+  ],
+
+  "blurred vision": [
+    "Pause screen use briefly and rest the eyes",
+    "Hydration, fatigue, blood sugar, and stress can affect vision",
+    "Sudden or persistent visual changes should be medically assessed",
+  ],
+
+  "light sensitivity": [
+    "Reduce bright screens and harsh lighting temporarily",
+    "Allow the nervous system and eyes to settle in a calmer environment",
+    "Notice whether headaches, fatigue, or stress link to symptoms",
+  ],
+
+  "ringing": [
+    "Reduce noise exposure and overstimulation temporarily",
+    "Stress and fatigue can increase nervous system sensitivity",
+    "Persistent ringing or hearing changes should be medically assessed",
+  ],
+
+  "sound sensitivity": [
+    "Reduce layered noise and overstimulation for a while",
+    "The nervous system may be overloaded rather than damaged",
+    "Rest and calmer environments may help symptoms settle",
+  ],
+
+  "altered smell": [
+    "Notice illness, congestion, stress, medication, or environmental triggers",
+    "Avoid heavy chemical or perfume exposure temporarily",
+    "Persistent smell changes should be medically reviewed",
+  ],
+
+  "altered taste": [
+    "Hydration, illness, reflux, medication, and stress can affect taste",
+    "Keep meals simple and notice repeat patterns",
+    "Persistent or sudden changes should be medically assessed",
+  ],
+
+  tingling: [
+    "Reduce pressure and tension on the area if possible",
+    "Stress, posture, circulation, or nerve irritation may contribute",
+    "Persistent or worsening tingling should be medically checked",
+  ],
+
+  numbness: [
+    "Notice posture, pressure, circulation, or stress levels",
+    "Avoid prolonged compression or repetitive strain",
+    "Sudden or worsening numbness should be medically assessed",
+  ],
 
   "ringing ears": [
     "Reduce noise exposure and overstimulation",
