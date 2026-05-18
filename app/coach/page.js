@@ -369,7 +369,7 @@ const stopVoiceSession = () => {
           <div style={styles.softOrbGlow} />
 
           <div style={styles.header}>
-            <RootEnso size={72} />
+            <RootEnso size={128} />
             <p style={styles.kicker}>Root Health Intelligence</p>
             <h1 style={styles.title}>Root Coach</h1>
             <p style={styles.subtitle}>
@@ -631,64 +631,75 @@ const styles = {
     fontSize: "16px",
   },
 
-  orbWrap: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  ensoVoiceButton: {
+ orbWrap: {
   position: "relative",
-  width: "250px",
-  height: "250px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: "420px",
+  width: "100%",
+},
+ ensoVoiceButton: {
+  position: "relative",
+  width: "280px",
+  height: "280px",
   borderRadius: "50%",
   border: "none",
   background:
-    "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(232,219,195,0.9) 44%, rgba(109,114,95,0.48) 100%)",
+    "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.98), rgba(232,219,195,0.94) 40%, rgba(109,114,95,0.48) 100%)",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  overflow: "visible",
+  transition: "all 0.45s ease",
   boxShadow:
-    "0 0 0 18px rgba(255,255,255,0.16), 0 26px 76px rgba(62,53,41,0.24), inset 0 0 70px rgba(255,255,255,0.6)",
-  transition: "all 0.35s ease",
+    "0 0 0 18px rgba(255,255,255,0.14), 0 32px 90px rgba(62,53,41,0.28), inset 0 0 80px rgba(255,255,255,0.72)",
 },
-
+  voiceStatus: {
+  marginTop: "34px",
+  marginBottom: "8px",
+  color: "#5C554B",
+  fontSize: "15px",
+  textAlign: "center",
+  lineHeight: "1.6",
+  fontWeight: "500",
+},
 ensoOuterRing: {
   position: "absolute",
-  inset: "-26px",
+  inset: "-36px",
   borderRadius: "50%",
-  border: "1px solid rgba(255,255,255,0.42)",
+  border: "1px solid rgba(255,255,255,0.32)",
   background:
-    "radial-gradient(circle, rgba(255,255,255,0.16), rgba(147,122,78,0.06), transparent 70%)",
-  animation: "rootBreath 4.8s ease-in-out infinite",
+    "radial-gradient(circle, rgba(255,255,255,0.16), rgba(147,122,78,0.08), transparent 72%)",
+  animation: "rootBreath 5.2s ease-in-out infinite",
+  zIndex: 1,
 },
-
 ensoMiddleRing: {
   position: "absolute",
-  inset: "-10px",
+  inset: "-14px",
   borderRadius: "50%",
-  border: "1px solid rgba(111,103,91,0.18)",
+  border: "1px solid rgba(111,103,91,0.12)",
   background:
-    "radial-gradient(circle, rgba(250,244,234,0.34), rgba(255,255,255,0) 72%)",
-  animation: "rootPulse 6.2s ease-in-out infinite",
+    "radial-gradient(circle, rgba(250,244,234,0.24), rgba(255,255,255,0) 72%)",
+  animation: "rootPulse 6.8s ease-in-out infinite",
+  zIndex: 2,
 },
-
 ensoInner: {
   position: "relative",
-  zIndex: 3,
-  width: "142px",
-  height: "142px",
+  zIndex: 5,
+  width: "170px",
+  height: "170px",
   borderRadius: "50%",
-  background: "rgba(255,255,255,0.36)",
+  background: "rgba(255,255,255,0.38)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  backdropFilter: "blur(14px)",
-  boxShadow: "inset 0 0 32px rgba(255,255,255,0.44)",
+  backdropFilter: "blur(18px)",
+  boxShadow:
+    "inset 0 0 42px rgba(255,255,255,0.52), 0 12px 34px rgba(0,0,0,0.08)",
 },
-
 ensoIdle: {
   animation: "rootBreath 5.6s ease-in-out infinite",
 },
