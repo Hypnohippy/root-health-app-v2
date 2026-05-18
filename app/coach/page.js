@@ -79,10 +79,14 @@ export default function CoachPage() {
 const peerConnectionRef = useRef(null);
 const dataChannelRef = useRef(null);
 const audioElementRef = useRef(null);
+  const audioContextRef = useRef(null);
+const analyserRef = useRef(null);
+const animationFrameRef = useRef(null);
   useEffect(() => {
     const load = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
+      const [voiceEnergy, setVoiceEnergy] = useState(0);
 
       let displayName =
         user?.user_metadata?.full_name ||
@@ -220,9 +224,41 @@ const startVoiceSession = async () => {
     audioElement.autoplay = true;
     audioElementRef.current = audioElement;
 
-    pc.ontrack = (event) => {
-      audioElement.srcObject = event.streams[0];
-    };
+   pc.ontrack = (event) => {
+  const stream = event.streams[0];
+
+  audioElement.srcObject = stream;
+
+  const audioContext = new AudioContext();
+  audioContextRef.current = audioContext;
+
+  const analyser = audioContext.createAnalyser();
+  analyser.fftSize = 256;
+
+  analyserRef.current = analyser;
+
+  const source = audioContext.createMediaStreamSource(stream);
+
+  source.connect(analyser);
+
+  const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  const animate = () => {
+    analyser.getByteFrequencyData(dataArray);
+
+    const average =
+      dataArray.reduce((sum, value) => sum + value, 0) /
+      dataArray.length;
+
+    const normalized = Math.min(average / 90, 1);
+
+    setVoiceEnergy(normalized);
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+  };
+
+  animate();
+};
 
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
@@ -330,7 +366,15 @@ const stopVoiceSession = () => {
   } catch (error) {
     console.error("Stop voice error:", error);
   }
+if (animationFrameRef.current) {
+  cancelAnimationFrame(animationFrameRef.current);
+}
 
+if (audioContextRef.current) {
+  audioContextRef.current.close();
+}
+
+setVoiceEnergy(0);
   dataChannelRef.current = null;
   peerConnectionRef.current = null;
   audioElementRef.current = null;
@@ -397,15 +441,20 @@ const stopVoiceSession = () => {
         stopVoiceSession();
       }
     }}
-    style={{
-      ...styles.ensoVoiceButton,
-      ...(voiceState === "ready" ? styles.ensoIdle : {}),
-      ...(voiceState === "connecting" ? styles.ensoConnecting : {}),
-      ...(voiceState === "listening" ? styles.ensoListening : {}),
-      ...(voiceState === "speaking" ? styles.ensoSpeaking : {}),
-      ...(voiceState === "thinking" ? styles.ensoThinking : {}),
-    }}
-  >
+   style={{
+  ...styles.ensoVoiceButton,
+  transform: `scale(${1 + voiceEnergy * 0.06})`,
+  boxShadow: `
+    0 0 ${40 + voiceEnergy * 90}px rgba(147,122,78,${0.22 + voiceEnergy * 0.28}),
+    0 32px 90px rgba(62,53,41,0.28),
+    inset 0 0 80px rgba(255,255,255,0.72)
+  `,
+  ...(voiceState === "ready" ? styles.ensoIdle : {}),
+  ...(voiceState === "connecting" ? styles.ensoConnecting : {}),
+  ...(voiceState === "listening" ? styles.ensoListening : {}),
+  ...(voiceState === "speaking" ? styles.ensoSpeaking : {}),
+  ...(voiceState === "thinking" ? styles.ensoThinking : {}),
+}}  >
     <span style={styles.ensoOuterRing} />
     <span style={styles.ensoMiddleRing} />
 
