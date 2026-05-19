@@ -171,7 +171,6 @@ const animationFrameRef = useRef(null);
       ...prev,
       {
         role: "coach",
-        content:
  content:
   mode.id === "grounding"
     ? "🌬️ Grounding mode selected.\n\nLet’s slow everything down. You do not need to explain it perfectly — just tell me what feels most present right now."
