@@ -129,7 +129,6 @@ const animationFrameRef = useRef(null);
     const load = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
-      const [voiceEnergy, setVoiceEnergy] = useState(0);
 
       let displayName =
         user?.user_metadata?.full_name ||
