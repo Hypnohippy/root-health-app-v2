@@ -375,7 +375,12 @@ if (
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-
+console.log("VOICE CONTEXT SENT:", {
+  bodySignals: history?.length || 0,
+  mindEntries: mindEntries?.length || 0,
+  journalEntries: journalEntries?.length || 0,
+  coachMode,
+});
   const sdpResponse = await fetch("/api/realtime-session", {
   method: "POST",
   headers: {
