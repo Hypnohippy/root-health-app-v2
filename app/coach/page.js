@@ -376,13 +376,21 @@ if (
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
-   const sdpResponse = await fetch("/api/realtime-session", {
+  const response = await fetch("/api/realtime-session", {
   method: "POST",
-  body: offer.sdp,
   headers: {
-    "Content-Type": "application/sdp",
+    "Content-Type": "application/json",
   },
-});
+  body: JSON.stringify({
+  sdp: offer.sdp,
+  userName: name,
+  profile,
+  history,
+  mindEntries,
+  journalEntries,
+  coachMode,
+}),
+  });
     if (!sdpResponse.ok) {
       const errorText = await sdpResponse.text();
       throw new Error(errorText);
