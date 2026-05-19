@@ -33,6 +33,11 @@ const coachModes = [
     label: "Grounding",
     icon: "🌬️",
   },
+    {
+    id: "sleep",
+    label: "Sleep wind-down",
+    icon: "🌙",
+  },
   { id: "nutrition", label: "Nutrition", icon: "🥗" },
   { id: "mind", label: "Mind & mood", icon: "🧠" },
   { id: "trauma", label: "Trauma & nervous system", icon: "🧩" },
@@ -167,10 +172,12 @@ const animationFrameRef = useRef(null);
       {
         role: "coach",
         content:
+ content:
   mode.id === "grounding"
     ? "🌬️ Grounding mode selected.\n\nLet’s slow everything down. You do not need to explain it perfectly — just tell me what feels most present right now."
-    : `${mode.icon} ${mode.label} mode selected.\n\nWhat would you like to work on today?`,
-      },
+    : mode.id === "sleep"
+    ? "🌙 Sleep wind-down selected.\n\nLet’s reduce the pressure of the day. You do not need to solve anything now — we’ll help your system settle."
+    : `${mode.icon} ${mode.label} mode selected.\n\nWhat would you like to work on today?`,      },
     ]);
   };
 
