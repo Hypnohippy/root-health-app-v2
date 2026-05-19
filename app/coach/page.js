@@ -75,6 +75,7 @@ export default function CoachPage() {
   const [thinking, setThinking] = useState(false);
   const [voiceState, setVoiceState] = useState("ready");
   const [voiceEnergy, setVoiceEnergy] = useState(0);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
 
   const bottomRef = useRef(null);
 const peerConnectionRef = useRef(null);
@@ -216,6 +217,7 @@ const animationFrameRef = useRef(null);
 const startVoiceSession = async () => {
   try {
     setVoiceState("connecting");
+    setVoiceTranscript("");
 
   
     const pc = new RTCPeerConnection();
@@ -297,6 +299,13 @@ const startVoiceSession = async () => {
         if (message.type === "response.audio.delta") {
           setVoiceState("speaking");
         }
+        if (message.type === "response.audio_transcript.delta") {
+  setVoiceTranscript((prev) => prev + message.delta);
+}
+
+if (message.type === "response.audio_transcript.done") {
+  setVoiceTranscript(message.transcript || "");
+}
 
         if (message.type === "response.done") {
           setVoiceState("listening");
@@ -481,11 +490,12 @@ setVoiceEnergy(0);
       ? "A calm spoken conversation with Root Coach."
       : "Tap the enso again to end voice mode."}
   </p>
-     {voiceState !== "ready" && (
+   {voiceState !== "ready" && (
   <button
     style={styles.resetVoiceButton}
     onClick={() => {
       stopVoiceSession();
+
       setTimeout(() => {
         startVoiceSession();
       }, 650);
@@ -494,6 +504,13 @@ setVoiceEnergy(0);
     Reset voice
   </button>
 )}
+
+{voiceTranscript && (
+  <p style={styles.voiceTranscript}>
+    {voiceTranscript}
+  </p>
+)}
+
 </div>
           </section>
 
