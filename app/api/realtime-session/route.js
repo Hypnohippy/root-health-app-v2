@@ -29,7 +29,17 @@ Sound like a calm, emotionally regulated human being.
 export async function POST(req) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
-    const sdp = await req.text();
+    const body = await req.json();
+
+const {
+  sdp,
+  userName,
+  profile,
+  history,
+  mindEntries,
+  journalEntries,
+  coachMode,
+} = body;
 
     if (!apiKey) {
       return new Response("Missing OPENAI_API_KEY", { status: 500 });
