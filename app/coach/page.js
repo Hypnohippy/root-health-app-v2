@@ -49,6 +49,32 @@ const coachModes = [
   { id: "movement", label: "Movement & body", icon: "🏃" },
   { id: "lifestyle", label: "Lifestyle", icon: "🌿" },
 ];
+const modeAtmospheres = {
+  grounding: {
+    label: "Grounding atmosphere",
+    background:
+      "linear-gradient(135deg, rgba(226,215,194,0.94), rgba(185,197,189,0.86))",
+    orbText: "Settle the system.",
+  },
+  sleep: {
+    label: "Sleep atmosphere",
+    background:
+      "linear-gradient(135deg, rgba(47,52,58,0.92), rgba(108,103,92,0.82))",
+    orbText: "Let the day soften.",
+  },
+  reflection: {
+    label: "Reflection atmosphere",
+    background:
+      "linear-gradient(135deg, rgba(218,205,184,0.92), rgba(158,142,119,0.72))",
+    orbText: "Listen beneath the noise.",
+  },
+  default: {
+    label: "Root atmosphere",
+    background:
+      "linear-gradient(135deg, rgba(250,244,234,0.82), rgba(255,255,255,0.54))",
+    orbText: "Slow down. Speak freely.",
+  },
+};
 
 function buildWelcome(name, history = [], mindEntries = [], journalEntries = []) {
   const cleanName = String(name || "").trim();
@@ -420,6 +446,8 @@ setVoiceEnergy(0);
   const latestSignal = history[0]?.signal || "No recent signal yet";
   const suggestedModeId = signalToCoach[latestSignal];
   const suggestedMode = coachModes.find((mode) => mode.id === suggestedModeId);
+  const currentAtmosphere =
+  modeAtmospheres[coachMode] || modeAtmospheres.default;
 
   return (
     <>
@@ -458,10 +486,15 @@ setVoiceEnergy(0);
             </p>
           </div>
 
-          <section style={styles.voiceStage}>
+          <section
+  style={{
+    ...styles.voiceStage,
+    background: currentAtmosphere.background,
+  }}
+>
             <div style={styles.voiceText}>
-              <p style={styles.voiceLabel}>Voice space</p>
-              <h2 style={styles.voiceTitle}>Slow down. Speak freely.</h2>
+              <p style={styles.voiceLabel}>{currentAtmosphere.label}</p>
+              <h2 style={styles.voiceTitle}>{currentAtmosphere.orbText}</h2>
               <p style={styles.voiceSubtitle}>
                 This is the visual foundation for Root Voice — calm, warm, spacious and ready
                 for live conversation.
