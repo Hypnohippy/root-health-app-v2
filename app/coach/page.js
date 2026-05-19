@@ -111,13 +111,13 @@ export default function CoachPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [coachMode, setCoachMode] = useState("");
-  const [thinking, setThinking] = useState(false);
-  const [voiceState, setVoiceState] = useState("ready");
-  const [voiceEnergy, setVoiceEnergy] = useState(0);
-  const [voiceTranscript, setVoiceTranscript] = useState("");
-
+const [input, setInput] = useState("");
+const [coachMode, setCoachMode] = useState("");
+const [thinking, setThinking] = useState(false);
+const [voiceState, setVoiceState] = useState("ready");
+const [voiceEnergy, setVoiceEnergy] = useState(0);
+const [voiceTranscript, setVoiceTranscript] = useState("");
+ 
   const bottomRef = useRef(null);
 const peerConnectionRef = useRef(null);
 const dataChannelRef = useRef(null);
