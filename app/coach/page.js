@@ -481,6 +481,19 @@ setVoiceEnergy(0);
       ? "A calm spoken conversation with Root Coach."
       : "Tap the enso again to end voice mode."}
   </p>
+     {voiceState !== "ready" && (
+  <button
+    style={styles.resetVoiceButton}
+    onClick={() => {
+      stopVoiceSession();
+      setTimeout(() => {
+        startVoiceSession();
+      }, 650);
+    }}
+  >
+    Reset voice
+  </button>
+)}
 </div>
           </section>
 
@@ -791,6 +804,16 @@ voiceHint: {
   textAlign: "center",
   maxWidth: "260px",
   lineHeight: "1.5",
+},
+  resetVoiceButton: {
+  marginTop: "12px",
+  border: "1px solid rgba(60,50,38,0.14)",
+  borderRadius: "999px",
+  padding: "10px 14px",
+  background: "rgba(255,255,255,0.56)",
+  color: "#3A332A",
+  cursor: "pointer",
+  fontSize: "13px",
 },
   heroCard: {
     background:
