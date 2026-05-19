@@ -59,7 +59,89 @@ function summariseJournal(entries = []) {
   if (!Array.isArray(entries) || entries.length === 0) {
     return "No recent journal reflections recorded.";
   }
+function buildRootContext({ history = [], mindEntries = [], journalEntries = [] }) {
+  const recentSignals = Array.isArray(history) ? history.slice(0, 10) : [];
+  const recentMind = Array.isArray(mindEntries) ? mindEntries.slice(0, 5) : [];
+  const recentJournal = Array.isArray(journalEntries) ? journalEntries.slice(0, 5) : [];
 
+  const signalNames = recentSignals
+    .map((entry) => entry.signal)
+    .filter(Boolean);
+
+  const highIntensitySignals = recentSignals.filter(
+    (entry) => Number(entry.intensity || 0) >= 7
+  );
+
+  const improvingSignals = recentSignals.filter(
+    (entry) => String(entry.context || "").toLowerCase().includes("improving")
+  );
+
+  const worseningSignals = recentSignals.filter(
+    (entry) => String(entry.context || "").toLowerCase().includes("getting worse")
+  );
+
+  const emotionalThemes = recentJournal
+    .map((entry) => entry.emotional_theme)
+    .filter(Boolean);
+
+  const recentEmotions = recentMind
+    .map((entry) => entry.emotion)
+    .filter(Boolean);
+
+  const helpedItems = recentSignals
+    .map((entry) => entry.what_helped)
+    .filter((item) => item && String(item).toLowerCase() !== "nothing yet");
+
+  const unique = (items) => [...new Set(items.map((item) => String(item).trim()).filter(Boolean))];
+
+  const lines = [];
+
+  if (signalNames.length > 0) {
+    lines.push(`Recent body signals: ${unique(signalNames).join(", ")}.`);
+  }
+
+  if (highIntensitySignals.length > 0) {
+    lines.push(
+      `Higher intensity signals recently include: ${unique(
+        highIntensitySignals.map((entry) => entry.signal)
+      ).join(", ")}.`
+    );
+  }
+
+  if (improvingSignals.length > 0) {
+    lines.push(
+      `Some signals have been marked as improving: ${unique(
+        improvingSignals.map((entry) => entry.signal)
+      ).join(", ")}.`
+    );
+  }
+
+  if (worseningSignals.length > 0) {
+    lines.push(
+      `Some signals have been marked as getting worse: ${unique(
+        worseningSignals.map((entry) => entry.signal)
+      ).join(", ")}.`
+    );
+  }
+
+  if (emotionalThemes.length > 0) {
+    lines.push(`Recent journal themes: ${unique(emotionalThemes).join(", ")}.`);
+  }
+
+  if (recentEmotions.length > 0) {
+    lines.push(`Recent recorded emotions: ${unique(recentEmotions).join(", ")}.`);
+  }
+
+  if (helpedItems.length > 0) {
+    lines.push(`Things that have helped recently: ${unique(helpedItems).join(", ")}.`);
+  }
+
+  if (lines.length === 0) {
+    return "No strong personal patterns available yet. Respond from the current conversation.";
+  }
+
+  return lines.join("\n");
+}
   return entries
     .slice(0, 5)
     .map((entry) =>
@@ -95,7 +177,11 @@ export async function POST(req) {
         reply: "Tell me what is showing up, and I’ll work with you from there.",
       });
     }
-
+const rootContext = buildRootContext({
+  history,
+  mindEntries,
+  journalEntries,
+});
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
@@ -529,6 +615,8 @@ Recent mind work:
 ${summariseMind(mindEntries)}
 Recent journal reflections:
 ${summariseJournal(journalEntries)}
+Root reflective context:
+${rootContext}
 Core principle:
 The user should feel guided, understood, and safely supported — not processed through a form.
 
