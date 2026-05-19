@@ -173,6 +173,33 @@ export async function POST(req) {
     const clean = String(message || "").trim();
 
     if (!clean) {
+      let reflectiveOptions = [];
+
+const lowerReply = String(reply || text || "").toLowerCase();
+
+if (
+  lowerReply.includes("sleep") ||
+  lowerReply.includes("overwhelm") ||
+  lowerReply.includes("stress")
+) {
+  reflectiveOptions.push("Explore calming approaches");
+}
+
+if (
+  lowerReply.includes("pattern") ||
+  lowerReply.includes("connection") ||
+  lowerReply.includes("linked")
+) {
+  reflectiveOptions.push("View deeper insights");
+}
+
+if (
+  lowerReply.includes("emotion") ||
+  lowerReply.includes("feeling") ||
+  lowerReply.includes("theme")
+) {
+  reflectiveOptions.push("Reflect on possible triggers");
+}
       return Response.json({
         reply: "Tell me what is showing up, and I’ll work with you from there.",
       });
@@ -1210,7 +1237,35 @@ Use phrases like:
       data?.choices?.[0]?.message?.content ||
       "I’m here with you. Let’s slow this down and look at one thing at a time.";
 
-    return Response.json({ reply });
+    const reflectiveOptions = [];
+
+const lowerReply = String(reply || "").toLowerCase();
+
+if (
+  lowerReply.includes("sleep") ||
+  lowerReply.includes("overwhelm") ||
+  lowerReply.includes("stress")
+) {
+  reflectiveOptions.push("Explore calming approaches");
+}
+
+if (
+  lowerReply.includes("pattern") ||
+  lowerReply.includes("connection") ||
+  lowerReply.includes("linked")
+) {
+  reflectiveOptions.push("View deeper insights");
+}
+
+if (
+  lowerReply.includes("emotion") ||
+  lowerReply.includes("feeling") ||
+  lowerReply.includes("theme")
+) {
+  reflectiveOptions.push("Reflect on possible triggers");
+}
+
+return Response.json({ reply, reflectiveOptions });
   } catch (err) {
     console.error("ROOT COACH ERROR:", err);
 
