@@ -240,15 +240,19 @@ const animationFrameRef = useRef(null);
       });
 
       const json = await res.json();
+      const options = Array.isArray(json.reflectiveOptions)
+  ? json.reflectiveOptions
+  : [];
 
       setMessages((prev) => [
         ...prev,
-        {
-          role: "coach",
-          content:
-            json.reply ||
-            "I’m here with you. Let’s slow this down and look at one thing at a time.",
-        },
+       {
+  role: "coach",
+  content:
+    json.reply ||
+    "I’m here with you. Let’s slow this down and look at one thing at a time.",
+  reflectiveOptions: options,
+},
       ]);
     } catch (error) {
       setMessages((prev) => [
@@ -623,6 +627,20 @@ setVoiceEnergy(0);
                 }}
               >
                 <p style={styles.messageText}>{message.content}</p>
+                {Array.isArray(message.reflectiveOptions) &&
+  message.reflectiveOptions.length > 0 && (
+    <div style={styles.reflectiveOptionsWrap}>
+      {message.reflectiveOptions.map((option) => (
+        <button
+          key={option}
+          style={styles.reflectiveOptionButton}
+          onClick={() => sendMessage(option)}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+)}
               </div>
             ))}
 
@@ -1052,4 +1070,21 @@ voiceHint: {
     fontSize: "15px",
     minWidth: "110px",
   },
+  reflectiveOptionsWrap: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "10px",
+  marginTop: "14px",
+},
+
+reflectiveOptionButton: {
+  border: "1px solid rgba(255,255,255,0.75)",
+  background: "rgba(255,255,255,0.62)",
+  borderRadius: "999px",
+  padding: "10px 14px",
+  cursor: "pointer",
+  color: "#333",
+  fontSize: "13px",
+  backdropFilter: "blur(8px)",
+},
 };
