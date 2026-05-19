@@ -59,6 +59,23 @@ function summariseJournal(entries = []) {
   if (!Array.isArray(entries) || entries.length === 0) {
     return "No recent journal reflections recorded.";
   }
+
+  return entries
+    .slice(0, 5)
+    .map((entry) =>
+      [
+        "title: " + (entry.title || "Reflection"),
+        "theme: " + (entry.emotional_theme || "unknown"),
+        "recommended coach mode: " + (entry.recommended_coach_mode || "unknown"),
+        "recommended prompt: " + (entry.recommended_prompt || "unknown"),
+        "content: " + (entry.content || "not recorded"),
+        "created: " + (entry.created_at || "unknown"),
+      ].join(", ")
+    )
+    .join("\n");
+}
+
+function buildRootContext({ history = [], mindEntries = [], journalEntries = [] }) {  
 function buildRootContext({ history = [], mindEntries = [], journalEntries = [] }) {
   const recentSignals = Array.isArray(history) ? history.slice(0, 10) : [];
   const recentMind = Array.isArray(mindEntries) ? mindEntries.slice(0, 5) : [];
@@ -142,20 +159,7 @@ function buildRootContext({ history = [], mindEntries = [], journalEntries = [] 
 
   return lines.join("\n");
 }
-  return entries
-    .slice(0, 5)
-    .map((entry) =>
-      [
-        "title: " + (entry.title || "Reflection"),
-        "theme: " + (entry.emotional_theme || "unknown"),
-        "recommended coach mode: " + (entry.recommended_coach_mode || "unknown"),
-        "recommended prompt: " + (entry.recommended_prompt || "unknown"),
-        "content: " + (entry.content || "not recorded"),
-        "created: " + (entry.created_at || "unknown"),
-      ].join(", ")
-    )
-    .join("\n");
-}
+  
 export async function POST(req) {
   try {
     const body = await req.json();
