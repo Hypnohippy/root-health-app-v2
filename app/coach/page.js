@@ -28,6 +28,11 @@ const signalToCoach = {
 };
 
 const coachModes = [
+    {
+    id: "grounding",
+    label: "Grounding",
+    icon: "🌬️",
+  },
   { id: "nutrition", label: "Nutrition", icon: "🥗" },
   { id: "mind", label: "Mind & mood", icon: "🧠" },
   { id: "trauma", label: "Trauma & nervous system", icon: "🧩" },
@@ -161,7 +166,10 @@ const animationFrameRef = useRef(null);
       ...prev,
       {
         role: "coach",
-        content: `${mode.icon} ${mode.label} mode selected.\n\nWhat would you like to work on today?`,
+        content:
+  mode.id === "grounding"
+    ? "🌬️ Grounding mode selected.\n\nLet’s slow everything down. You do not need to explain it perfectly — just tell me what feels most present right now."
+    : `${mode.icon} ${mode.label} mode selected.\n\nWhat would you like to work on today?`,
       },
     ]);
   };
