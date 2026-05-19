@@ -299,11 +299,17 @@ const startVoiceSession = async () => {
         if (message.type === "response.audio.delta") {
           setVoiceState("speaking");
         }
-        if (message.type === "response.audio_transcript.delta") {
-  setVoiceTranscript((prev) => prev + message.delta);
+       if (
+  message.type === "response.audio_transcript.delta" ||
+  message.type === "response.output_audio_transcript.delta"
+) {
+  setVoiceTranscript((prev) => prev + (message.delta || ""));
 }
 
-if (message.type === "response.audio_transcript.done") {
+if (
+  message.type === "response.audio_transcript.done" ||
+  message.type === "response.output_audio_transcript.done"
+) {
   setVoiceTranscript(message.transcript || "");
 }
 
