@@ -1292,8 +1292,7 @@ return Response.json({
   reply,
   reflectiveOptions,
   coachEscalation,
-});
-  } catch (err) {
+});  } catch (err) {
     console.error("ROOT COACH ERROR:", err);
 
     return Response.json({
