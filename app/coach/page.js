@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
-import RootAtmosphere from "@/components/RootAtmosphere";
+import RootAtmosphere from "../../components/RootAtmosphere";
 
 const signalToCoach = {
   "racing thoughts": "mind",
