@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+import RootAtmosphere from "@/components/RootAtmosphere";
 
 const signalToCoach = {
   "racing thoughts": "mind",
@@ -466,11 +467,19 @@ setVoiceEnergy(0);
   const currentAtmosphere =
   modeAtmospheres[coachMode] || modeAtmospheres.default;
 
-  return (
-    <>
-      <Nav />
-
-      <main style={styles.page}>
+ return (
+  <RootAtmosphere
+    type={
+      coachMode === "grounding"
+        ? "grounding"
+        : coachMode === "sleep"
+        ? "sleep"
+        : coachMode === "reflection"
+        ? "reflection"
+        : "coach"
+    }
+  >
+    <main style={styles.page}>
     <style>{`
   @keyframes rootBreath {
     0% { transform: scale(0.96); opacity: 0.58; }
@@ -716,16 +725,14 @@ setVoiceEnergy(0);
             </button>
           </div>
         </section>
-      </main>
-    </>
-  );
+        </main>
+  </RootAtmosphere>
+);
 }
 
 const styles = {
   page: {
     minHeight: "100vh",
-    background:
-      "radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 32%), linear-gradient(135deg, #D8CDBB 0%, #F6F1E9 38%, #B9C5BD 100%)",
     padding: "28px",
     display: "flex",
     justifyContent: "center",
