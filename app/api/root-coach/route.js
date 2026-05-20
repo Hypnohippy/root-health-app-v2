@@ -1239,6 +1239,7 @@ Use phrases like:
       "I’m here with you. Let’s slow this down and look at one thing at a time.";
 
     const reflectiveOptions = [];
+    let coachEscalation = null;
 
 const lowerReply = String(reply || "").toLowerCase();
 
@@ -1265,8 +1266,33 @@ if (
 ) {
   reflectiveOptions.push("Reflect on possible triggers");
 }
+    const repeatedStressSignals =
+  lowerReply.includes("overwhelm") ||
+  lowerReply.includes("stuck") ||
+  lowerReply.includes("stress") ||
+  lowerReply.includes("anxiety") ||
+  lowerReply.includes("panic") ||
+  lowerReply.includes("sleep");
 
-return Response.json({ reply, reflectiveOptions });
+if (repeatedStressSignals) {
+  coachEscalation = {
+    title: "This may be easier to explore in conversation.",
+    voiceLabel: "Continue with Voice Coach",
+    textLabel: "Reflect with Text Coach",
+    prompt:
+      coachMode === "sleep"
+        ? "My nervous system still feels active at night and I think stress may be carrying into my sleep."
+        : coachMode === "grounding"
+        ? "I’ve been overwhelmed for several days and my nervous system doesn’t seem to be settling."
+        : "I keep noticing the same emotional patterns appearing and I think there may be something underneath them.",
+  };
+}
+
+return Response.json({
+  reply,
+  reflectiveOptions,
+  coachEscalation,
+});
   } catch (err) {
     console.error("ROOT COACH ERROR:", err);
 
