@@ -241,6 +241,7 @@ const animationFrameRef = useRef(null);
 
       const json = await res.json();
       const options = Array.isArray(json.reflectiveOptions)
+        const escalation = json.coachEscalation || null;
   ? json.reflectiveOptions
   : [];
 
@@ -252,6 +253,7 @@ const animationFrameRef = useRef(null);
     json.reply ||
     "I’m here with you. Let’s slow this down and look at one thing at a time.",
   reflectiveOptions: options,
+         coachEscalation: escalation,
 },
       ]);
     } catch (error) {
@@ -641,6 +643,41 @@ setVoiceEnergy(0);
       ))}
     </div>
 )}
+ {message.coachEscalation && (
+  <div style={styles.coachEscalationCard}>
+    <p style={styles.coachEscalationTitle}>
+      {message.coachEscalation.title}
+    </p>
+
+    <div style={styles.coachEscalationButtons}>
+      <button
+        style={styles.coachEscalationButton}
+        onClick={() => {
+          setInput(message.coachEscalation.prompt);
+        }}
+      >
+        {message.coachEscalation.textLabel}
+      </button>
+
+      <button
+        style={styles.coachEscalationButton}
+        onClick={() => {
+          setCoachMode(
+            coachMode ||
+              suggestedMode?.id ||
+              "reflection"
+          );
+
+          setTimeout(() => {
+            startVoiceSession();
+          }, 250);
+        }}
+      >
+        {message.coachEscalation.voiceLabel}
+      </button>
+    </div>
+  </div>
+)} 
               </div>
             ))}
 
@@ -1086,5 +1123,37 @@ reflectiveOptionButton: {
   color: "#333",
   fontSize: "13px",
   backdropFilter: "blur(8px)",
+},
+  coachEscalationCard: {
+  marginTop: "18px",
+  padding: "18px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.56)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  backdropFilter: "blur(12px)",
+},
+
+coachEscalationTitle: {
+  margin: 0,
+  marginBottom: "14px",
+  color: "#3A352D",
+  fontSize: "14px",
+  lineHeight: "1.6",
+},
+
+coachEscalationButtons: {
+  display: "flex",
+  gap: "10px",
+  flexWrap: "wrap",
+},
+
+coachEscalationButton: {
+  border: "none",
+  borderRadius: "999px",
+  padding: "12px 16px",
+  background: "#2E2A24",
+  color: "#FFFFFF",
+  cursor: "pointer",
+  fontSize: "13px",
 },
 };
