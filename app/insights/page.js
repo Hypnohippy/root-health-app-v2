@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+import RootAtmosphere from "../../components/RootAtmosphere";
 function countBy(items, key) {
   const counts = {};
 
@@ -105,9 +106,10 @@ export default function InsightsPage() {
 
   if (loading) {
     return (
-      <>
-        <Nav />
-        <main style={styles.page}>
+      <RootAtmosphere type="reflection">
+  <Nav />
+
+  <main style={styles.page}>
           <section style={styles.shell}>
             <p>Loading insights...</p>
           </section>
@@ -209,9 +211,9 @@ export default function InsightsPage() {
             </p>
           </div>
         </section>
-      </main>
-    </>
-  );
+        </main>
+</RootAtmosphere>
+);
 }
 
 function InsightCard({ title, rows, empty }) {
@@ -246,7 +248,6 @@ function RecentCard({ label, title, meta }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
     display: "flex",
     justifyContent: "center",
     padding: "24px",
@@ -256,14 +257,16 @@ logoWrap: {
   justifyContent: "center",
   marginBottom: "10px",
 },
-  shell: {
-    width: "100%",
-    maxWidth: "1080px",
-    background: "rgba(255,255,255,0.88)",
-    borderRadius: "34px",
-    padding: "34px",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.08)",
-  },
+ shell: {
+  width: "100%",
+  maxWidth: "1080px",
+  background: "rgba(255,255,255,0.24)",
+  border: "1px solid rgba(255,255,255,0.42)",
+  backdropFilter: "blur(28px)",
+  borderRadius: "42px",
+  padding: "38px",
+  boxShadow: "0 30px 90px rgba(20,18,15,0.16)",
+},
 
   brandMark: {
     textAlign: "center",
@@ -287,7 +290,9 @@ logoWrap: {
   },
 
   heroCard: {
-    background: "#1A1A1A",
+   background: "linear-gradient(135deg, rgba(24,24,24,0.54), rgba(42,38,34,0.42))",
+    backdropFilter: "blur(18px)",
+    border: "1px solid rgba(255,255,255,0.18)",
     color: "#FFFFFF",
     borderRadius: "30px",
     padding: "30px",
@@ -324,12 +329,13 @@ logoWrap: {
   },
 
   card: {
-    background: "#FFFFFF",
-    borderRadius: "26px",
-    padding: "24px",
-    boxShadow: "0 12px 34px rgba(0,0,0,0.05)",
-    border: "1px solid #EEE8DF",
-  },
+  background: "rgba(255,255,255,0.22)",
+  borderRadius: "28px",
+  padding: "24px",
+  boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(18px)",
+},
 
   cardTitle: {
     fontSize: "20px",
@@ -353,12 +359,14 @@ logoWrap: {
   },
 
   timelinePanel: {
-    background: "#FFFFFF",
-    borderRadius: "30px",
-    padding: "28px",
-    boxShadow: "0 12px 34px rgba(0,0,0,0.05)",
-    marginBottom: "24px",
-  },
+  background: "rgba(255,255,255,0.20)",
+  borderRadius: "34px",
+  padding: "30px",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  boxShadow: "0 14px 44px rgba(0,0,0,0.08)",
+  marginBottom: "24px",
+},
 
   sectionTitle: {
     margin: "0 0 18px",
@@ -373,11 +381,12 @@ logoWrap: {
   },
 
   recentCard: {
-    background: "#F7F5F2",
-    borderRadius: "22px",
-    padding: "20px",
-    border: "1px solid #E6E2DA",
-  },
+  background: "rgba(255,255,255,0.18)",
+  borderRadius: "24px",
+  padding: "22px",
+  border: "1px solid rgba(255,255,255,0.28)",
+  backdropFilter: "blur(14px)",
+},
 
   recentTitle: {
     margin: "0 0 8px",
@@ -392,11 +401,12 @@ logoWrap: {
   },
 
   coachCard: {
-    background: "#F7F5F2",
-    borderRadius: "28px",
-    padding: "26px",
-    border: "1px solid #E6E2DA",
-  },
+  background: "rgba(255,255,255,0.20)",
+  borderRadius: "30px",
+  padding: "28px",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(18px)",
+},
 
   coachTitle: {
     margin: "0 0 10px",
