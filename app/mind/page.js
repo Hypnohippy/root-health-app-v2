@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+import RootAtmosphere from "../../components/RootAtmosphere";
 const tools = [
   {
     id: "cbt",
@@ -157,10 +158,22 @@ export default function MindPage() {
   };
 
   return (
-    <>
-      <Nav />
+   <RootAtmosphere
+  type={
+    activeTool === "grounding"
+      ? "grounding"
+      : activeTool === "breathwork"
+      ? "sleep"
+      : activeTool === "calming"
+      ? "sleep"
+      : activeTool === "journal"
+      ? "reflection"
+      : "coach"
+  }
+>
+  <Nav />
 
-      <main style={styles.page}>
+  <main style={styles.page}>
         <section style={styles.shell}>
           <div style={styles.glow} />
 
@@ -443,9 +456,9 @@ There is nothing to force here. Just allow your system to settle a little more w
             </div>
           )}
         </section>
-      </main>
-    </>
-  );
+        </main>
+</RootAtmosphere>
+);
 }
 
 function ToolExperience({ kicker, title, subtitle, body, saving, saved, onSave }) {
@@ -469,26 +482,23 @@ function ToolExperience({ kicker, title, subtitle, body, saving, saved, onSave }
 const styles = {
   page: {
     minHeight: "100vh",
-    background:
-      "radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 32%), linear-gradient(135deg, #D8CDBB 0%, #F6F1E9 38%, #B9C5BD 100%)",
     display: "flex",
     justifyContent: "center",
     padding: "28px",
   },
 
-  shell: {
-    position: "relative",
-    overflow: "hidden",
-    width: "100%",
-    maxWidth: "1120px",
-    background: "rgba(255,255,255,0.56)",
-    border: "1px solid rgba(255,255,255,0.72)",
-    backdropFilter: "blur(22px)",
-    borderRadius: "42px",
-    padding: "38px",
-    boxShadow: "0 34px 100px rgba(38,33,25,0.16)",
-  },
-
+ shell: {
+  position: "relative",
+  overflow: "hidden",
+  width: "100%",
+  maxWidth: "1120px",
+  background: "rgba(255,255,255,0.22)",
+  border: "1px solid rgba(255,255,255,0.42)",
+  backdropFilter: "blur(30px)",
+  borderRadius: "42px",
+  padding: "38px",
+  boxShadow: "0 34px 100px rgba(20,18,15,0.16)",
+},
   glow: {
     position: "absolute",
     top: "-110px",
@@ -537,15 +547,16 @@ const styles = {
   },
 
   heroCard: {
-    background:
-      "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
-    borderRadius: "34px",
-    padding: "30px",
-    color: "#FFFFFF",
-    marginBottom: "22px",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.18)",
-  },
-
+  background:
+    "linear-gradient(135deg, rgba(24,24,24,0.54), rgba(52,48,42,0.40))",
+  borderRadius: "34px",
+  padding: "32px",
+  color: "#FFFFFF",
+  marginBottom: "22px",
+  boxShadow: "0 24px 70px rgba(0,0,0,0.16)",
+  border: "1px solid rgba(255,255,255,0.14)",
+  backdropFilter: "blur(18px)",
+},
   heroLabel: {
     margin: "0 0 12px",
     fontSize: "12px",
@@ -573,20 +584,19 @@ const styles = {
     marginBottom: "24px",
   },
 
-  toolCard: {
-    border: "1px solid rgba(255,255,255,0.72)",
-    borderRadius: "28px",
-    padding: "24px",
-    background: "rgba(255,255,255,0.68)",
-    cursor: "pointer",
-    textAlign: "left",
-    boxShadow: "0 14px 34px rgba(0,0,0,0.06)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    backdropFilter: "blur(10px)",
-  },
-
+ toolCard: {
+  border: "1px solid rgba(255,255,255,0.34)",
+  borderRadius: "30px",
+  padding: "26px",
+  background: "rgba(255,255,255,0.18)",
+  cursor: "pointer",
+  textAlign: "left",
+  boxShadow: "0 16px 40px rgba(0,0,0,0.08)",
+  display: "flex",
+  flexDirection: "column",
+  gap: "10px",
+  backdropFilter: "blur(18px)",
+},
   icon: {
     fontSize: "30px",
   },
@@ -622,15 +632,14 @@ const styles = {
   },
 
   panel: {
-    background: "rgba(255,255,255,0.78)",
-    border: "1px solid rgba(255,255,255,0.72)",
-    borderRadius: "34px",
-    padding: "34px",
-    textAlign: "left",
-    boxShadow: "0 18px 48px rgba(43,38,30,0.08)",
-    backdropFilter: "blur(12px)",
-  },
-
+  background: "rgba(255,255,255,0.20)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  borderRadius: "36px",
+  padding: "36px",
+  textAlign: "left",
+  boxShadow: "0 20px 54px rgba(20,18,15,0.10)",
+  backdropFilter: "blur(22px)",
+},
   panelTitle: {
     margin: "0 0 10px",
     fontSize: "32px",
@@ -726,16 +735,17 @@ const styles = {
   },
 
   experienceCard: {
-    background:
-      "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
-    color: "#FFFFFF",
-    borderRadius: "30px",
-    padding: "30px",
-    marginTop: "22px",
-    marginBottom: "20px",
-    boxShadow: "0 20px 56px rgba(0,0,0,0.16)",
-  },
-
+  background:
+    "linear-gradient(135deg, rgba(24,24,24,0.46), rgba(52,48,42,0.32))",
+  color: "#FFFFFF",
+  borderRadius: "34px",
+  padding: "34px",
+  marginTop: "22px",
+  marginBottom: "20px",
+  boxShadow: "0 20px 56px rgba(0,0,0,0.14)",
+  border: "1px solid rgba(255,255,255,0.14)",
+  backdropFilter: "blur(18px)",
+},
   experienceText: {
     whiteSpace: "pre-line",
     lineHeight: "1.9",
