@@ -372,7 +372,6 @@ export default function JournalPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background:
     display: "flex",
     justifyContent: "center",
     padding: "28px",
