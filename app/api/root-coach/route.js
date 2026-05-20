@@ -75,26 +75,26 @@ function summariseJournal(entries = []) {
     .join("\n");
 }
 
-function buildRootContext({ history = [], mindEntries = [], journalEntries = [] }) {  
 function buildRootContext({ history = [], mindEntries = [], journalEntries = [] }) {
   const recentSignals = Array.isArray(history) ? history.slice(0, 10) : [];
   const recentMind = Array.isArray(mindEntries) ? mindEntries.slice(0, 5) : [];
   const recentJournal = Array.isArray(journalEntries) ? journalEntries.slice(0, 5) : [];
 
-  const signalNames = recentSignals
-    .map((entry) => entry.signal)
-    .filter(Boolean);
+  const unique = (items) =>
+    [...new Set(items.map((item) => String(item || "").trim()).filter(Boolean))];
+
+  const signalNames = recentSignals.map((entry) => entry.signal).filter(Boolean);
 
   const highIntensitySignals = recentSignals.filter(
     (entry) => Number(entry.intensity || 0) >= 7
   );
 
-  const improvingSignals = recentSignals.filter(
-    (entry) => String(entry.context || "").toLowerCase().includes("improving")
+  const improvingSignals = recentSignals.filter((entry) =>
+    String(entry.context || "").toLowerCase().includes("improving")
   );
 
-  const worseningSignals = recentSignals.filter(
-    (entry) => String(entry.context || "").toLowerCase().includes("getting worse")
+  const worseningSignals = recentSignals.filter((entry) =>
+    String(entry.context || "").toLowerCase().includes("getting worse")
   );
 
   const emotionalThemes = recentJournal
@@ -108,8 +108,6 @@ function buildRootContext({ history = [], mindEntries = [], journalEntries = [] 
   const helpedItems = recentSignals
     .map((entry) => entry.what_helped)
     .filter((item) => item && String(item).toLowerCase() !== "nothing yet");
-
-  const unique = (items) => [...new Set(items.map((item) => String(item).trim()).filter(Boolean))];
 
   const lines = [];
 
@@ -159,7 +157,6 @@ function buildRootContext({ history = [], mindEntries = [], journalEntries = [] 
 
   return lines.join("\n");
 }
-  
 export async function POST(req) {
   try {
     const body = await req.json();
