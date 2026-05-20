@@ -113,8 +113,8 @@ export default function InsightsPage() {
           <section style={styles.shell}>
             <p>Loading insights...</p>
           </section>
-        </main>
-      </>
+               </main>
+      </RootAtmosphere>
     );
   }
 
