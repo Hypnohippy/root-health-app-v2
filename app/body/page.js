@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import RootEnso from "../../components/RootEnso";
+import RootAtmosphere from "../../components/RootAtmosphere";
 import DigestionView from "../../components/body/DigestionView";
 import HeartView from "../../components/body/HeartView";
 import LungsView from "../../components/body/LungsView";
@@ -690,6 +691,7 @@ message += `\n\nA practical next step could be:`;
   };
 
   return (
+  <RootAtmosphere type="body">
     <main style={styles.page}>
       <style>{`
         @keyframes digestivePop { 0% { opacity: 0; transform: scale(0.88) translateX(-28px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
@@ -936,8 +938,9 @@ message += `\n\nA practical next step could be:`;
         <a href="/journal" style={styles.navItem}>Journal</a>
         <a href="/profile" style={styles.navItem}>You</a>
       </nav>
-    </main>
-  );
+       </main>
+  </RootAtmosphere>
+);
 }
 
 const styles = {
@@ -945,16 +948,16 @@ const styles = {
     minHeight: "100vh",
     position: "relative",
     overflow: "hidden",
-    background: "#F3EBDD",
     fontFamily: "Inter, sans-serif",
   },
 
   backgroundWash: {
-    position: "absolute",
-    inset: 0,
-    background:
-      "radial-gradient(circle at 50% 80%, rgba(76,91,68,0.24), transparent 40%), linear-gradient(180deg, #FAF4EA 0%, #E7DCCB 60%, #6D725F 100%)",
-  },
+  position: "absolute",
+  inset: 0,
+  background:
+    "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.08))",
+  pointerEvents: "none",
+},
 
   topBar: {
     position: "relative",
@@ -1210,11 +1213,11 @@ sensesConnectorLine: {
   explorePanel: {
     maxHeight: "72vh",
     overflowY: "auto",
-    background: "rgba(250,244,234,0.86)",
+    background: "rgba(255,255,255,0.38)",
     border: "1px solid rgba(255,255,255,0.74)",
     borderRadius: "34px",
     padding: "28px",
-    backdropFilter: "blur(20px)",
+    backdropFilter: "blur(24px)",
     boxShadow: "0 28px 80px rgba(45,38,28,0.2)",
   },
 
@@ -1299,7 +1302,7 @@ sensesConnectorLine: {
     background: "rgba(250,244,234,0.9)",
     borderRadius: "34px",
     padding: "30px",
-    backdropFilter: "blur(20px)",
+    backdropFilter: "blur(24px)",
     boxShadow: "0 24px 70px rgba(40,34,25,0.18)",
     maxWidth: "1000px",
     margin: "0 auto",
