@@ -78,11 +78,11 @@ const atmospheres = {
 };
 
 const styles = {
-  wrap: {
-    position: "relative",
-    minHeight: "100vh",
-    overflow: "hidden",
-  },
+ wrap: {
+  position: "relative",
+  minHeight: "100vh",
+  width: "100%",
+},
 
   background: {
     position: "absolute",
