@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+import RootAtmosphere from "../../components/RootAtmosphere";
 const quickCheckIns = [
   { emoji: "😔", label: "Heavy" },
   { emoji: "⚡", label: "Wired" },
@@ -201,11 +202,11 @@ export default function JournalPage() {
   };
 
   return (
-    <>
-      <Nav />
+   <RootAtmosphere type="journal">
+  <Nav />
 
-      <main style={styles.page}>
-        <section style={styles.shell}>
+  <main style={styles.page}>
+    <section style={styles.shell}>
           <div style={styles.glow} />
 
           <div style={styles.header}>
@@ -363,16 +364,15 @@ export default function JournalPage() {
             )}
           </div>
         </section>
-      </main>
-    </>
-  );
+        </main>
+</RootAtmosphere>
+);
 }
 
 const styles = {
   page: {
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 32%), linear-gradient(135deg, #D8CDBB 0%, #F6F1E9 38%, #B9C5BD 100%)",
     display: "flex",
     justifyContent: "center",
     padding: "28px",
@@ -388,8 +388,8 @@ logoWrap: {
     width: "100%",
     maxWidth: "1120px",
     background: "rgba(255,255,255,0.56)",
-    border: "1px solid rgba(255,255,255,0.72)",
-    backdropFilter: "blur(22px)",
+    border: "1px solid rgba(255,255,255,0.26)",
+    backdropFilter: "blur(28px)",
     borderRadius: "42px",
     padding: "38px",
     boxShadow: "0 34px 100px rgba(38,33,25,0.16)",
@@ -445,7 +445,7 @@ logoWrap: {
   checkInPanel: {
     position: "relative",
     zIndex: 2,
-    background: "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
+   background: "linear-gradient(135deg, rgba(28,28,28,0.58), rgba(52,48,42,0.52))",
     borderRadius: "34px",
     padding: "30px",
     color: "#FFFFFF",
@@ -498,7 +498,7 @@ logoWrap: {
     borderRadius: "26px",
     padding: "22px",
     cursor: "pointer",
-    background: "rgba(255,255,255,0.66)",
+    background: "rgba(255,255,255,0.28)",
     display: "flex",
     flexDirection: "column",
     gap: "8px",
@@ -522,7 +522,7 @@ logoWrap: {
   },
 
   journeyPanel: {
-    background: "rgba(255,255,255,0.78)",
+    background: "rgba(255,255,255,0.34)",
     border: "1px solid rgba(255,255,255,0.72)",
     borderRadius: "34px",
     padding: "34px",
@@ -626,7 +626,7 @@ logoWrap: {
 
   historyPanel: {
     marginTop: "26px",
-    background: "rgba(255,255,255,0.74)",
+    background: "rgba(255,255,255,0.30)",
     borderRadius: "34px",
     padding: "30px",
     boxShadow: "0 18px 48px rgba(43,38,30,0.08)",
@@ -652,7 +652,7 @@ logoWrap: {
   entryCard: {
     width: "100%",
     border: "1px solid rgba(255,255,255,0.72)",
-    background: "rgba(255,255,255,0.68)",
+    background: "rgba(255,255,255,0.22)",
     borderRadius: "24px",
     padding: "20px",
     marginBottom: "12px",
