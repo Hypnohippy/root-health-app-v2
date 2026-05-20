@@ -118,9 +118,9 @@ export default function InsightsPage() {
     );
 
   return (
-    <>
-      <Nav />
-
+   return (
+  <RootAtmosphere type="reflection">
+    <Nav />
       <main style={styles.page}>
         <section style={styles.shell}>
           <div style={styles.logoWrap}>
