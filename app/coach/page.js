@@ -239,12 +239,13 @@ const animationFrameRef = useRef(null);
         }),
       });
 
-      const json = await res.json();
-      const options = Array.isArray(json.reflectiveOptions)
-        const escalation = json.coachEscalation || null;
+     const json = await res.json();
+
+const options = Array.isArray(json.reflectiveOptions)
   ? json.reflectiveOptions
   : [];
 
+const escalation = json.coachEscalation || null;
       setMessages((prev) => [
         ...prev,
        {
