@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+import RootAtmosphere from "../../components/RootAtmosphere";
 const PROFILE_KEY = "main";
 
 export default function ProfilePage() {
@@ -100,11 +101,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <>
-      <Nav />
+   <RootAtmosphere type="coach">
+  <Nav />
 
-      <main style={styles.page}>
-        <section style={styles.shell}>
+  <main style={styles.page}>
+    <section style={styles.shell}>
           <div style={styles.logoWrap}>
   <RootEnso size={86} />
 </div>
@@ -130,15 +131,14 @@ export default function ProfilePage() {
             {saving ? "Saving..." : "Save profile"}
           </button>
         </section>
-      </main>
-    </>
-  );
+         </main>
+</RootAtmosphere>
+);
 }
 
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F5F2 0%, #E6E2DA 100%)",
     display: "flex",
     justifyContent: "center",
     padding: "24px",
@@ -149,14 +149,16 @@ const styles = {
   marginBottom: "10px",
 },
   shell: {
-    width: "100%",
-    maxWidth: "760px",
-    background: "rgba(255,255,255,0.86)",
-    borderRadius: "32px",
-    padding: "34px",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.08)",
-    textAlign: "center",
-  },
+  width: "100%",
+  maxWidth: "780px",
+  background: "rgba(255,255,255,0.20)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(30px)",
+  borderRadius: "42px",
+  padding: "42px",
+  boxShadow: "0 34px 100px rgba(20,18,15,0.14)",
+  textAlign: "center",
+},
   brandMark: {
     fontSize: "40px",
     marginBottom: "8px",
@@ -167,30 +169,36 @@ const styles = {
     color: "#1A1A1A",
   },
   subtitle: {
-    color: "#555",
+    color: "rgba(26,26,26,0.72)",
     fontSize: "16px",
     marginBottom: "24px",
   },
   grid: {
+    marginTop: "28px",
     display: "grid",
     gap: "12px",
   },
-  input: {
-    border: "1px solid #E6E2DA",
-    borderRadius: "16px",
-    padding: "14px 16px",
-    fontSize: "15px",
-    outline: "none",
-    background: "#FFFFFF",
-  },
+ input: {
+  border: "1px solid rgba(255,255,255,0.30)",
+  borderRadius: "22px",
+  padding: "16px 18px",
+  fontSize: "15px",
+  outline: "none",
+  background: "rgba(255,255,255,0.18)",
+  backdropFilter: "blur(16px)",
+  color: "#1A1A1A",
+  boxShadow: "0 10px 24px rgba(0,0,0,0.04)",
+},
   button: {
-    marginTop: "22px",
-    padding: "14px 22px",
-    borderRadius: "16px",
-    border: "none",
-    background: "#1A1A1A",
-    color: "#FFFFFF",
-    cursor: "pointer",
-    fontSize: "15px",
-  },
+  marginTop: "28px",
+  padding: "15px 24px",
+  borderRadius: "22px",
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "linear-gradient(135deg, rgba(24,24,24,0.72), rgba(42,38,34,0.58))",
+  color: "#FFFFFF",
+  cursor: "pointer",
+  fontSize: "15px",
+  backdropFilter: "blur(14px)",
+  boxShadow: "0 18px 44px rgba(0,0,0,0.14)",
+},
 };
