@@ -116,7 +116,6 @@ export default function InsightsPage() {
                </main>
       </RootAtmosphere>
     );
-  }
 
   return (
     <>
