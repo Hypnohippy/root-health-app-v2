@@ -741,19 +741,18 @@ const styles = {
     justifyContent: "center",
   },
 
-  shell: {
-    position: "relative",
-    overflow: "hidden",
-    width: "100%",
-    maxWidth: "1120px",
-    background: "rgba(255,255,255,0.56)",
-    border: "1px solid rgba(255,255,255,0.72)",
-    backdropFilter: "blur(22px)",
-    borderRadius: "42px",
-    padding: "36px",
-    boxShadow: "0 34px 100px rgba(38,33,25,0.16)",
-  },
-
+ shell: {
+  position: "relative",
+  overflow: "visible",
+  width: "100%",
+  maxWidth: "1120px",
+  background: "rgba(255,255,255,0.34)",
+  border: "1px solid rgba(255,255,255,0.52)",
+  backdropFilter: "blur(18px)",
+  borderRadius: "42px",
+  padding: "36px",
+  boxShadow: "0 34px 100px rgba(20,18,15,0.18)",
+},
   glow: {
     position: "absolute",
     top: "-100px",
@@ -833,11 +832,12 @@ const styles = {
     alignItems: "center",
     background:
       "linear-gradient(135deg, rgba(250,244,234,0.82), rgba(255,255,255,0.54))",
-    border: "1px solid rgba(255,255,255,0.74)",
+    border: "1px solid rgba(255,255,255,0.5)",
+    backdropFilter: "blur(16px)",
     borderRadius: "38px",
     padding: "32px",
     marginBottom: "22px",
-    boxShadow: "0 26px 80px rgba(42,36,28,0.13)",
+    boxShadow: "0 26px 80px rgba(20,18,15,0.16)",
   },
 
   voiceText: {
@@ -1025,7 +1025,7 @@ voiceHint: {
     border: "1px solid rgba(255,255,255,0.8)",
     borderRadius: "24px",
     padding: "18px",
-    background: "rgba(255,255,255,0.62)",
+    background: "rgba(255,255,255,0.48)",
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
@@ -1046,18 +1046,18 @@ voiceHint: {
     fontSize: "28px",
   },
 
-  chatPanel: {
-    background: "rgba(255,255,255,0.68)",
-    borderRadius: "32px",
-    padding: "24px",
-    minHeight: "420px",
-    maxHeight: "620px",
-    overflowY: "auto",
-    backdropFilter: "blur(12px)",
-    boxShadow: "0 18px 50px rgba(0,0,0,0.08)",
-    marginBottom: "20px",
-  },
-
+ chatPanel: {
+  background: "rgba(255,255,255,0.46)",
+  border: "1px solid rgba(255,255,255,0.52)",
+  borderRadius: "32px",
+  padding: "24px",
+  minHeight: "420px",
+  maxHeight: "620px",
+  overflowY: "auto",
+  backdropFilter: "blur(16px)",
+  boxShadow: "0 18px 50px rgba(20,18,15,0.12)",
+  marginBottom: "20px",
+},
   message: {
     padding: "18px 20px",
     borderRadius: "24px",
@@ -1066,10 +1066,12 @@ voiceHint: {
   },
 
   coachMessage: {
-    background: "rgba(243,239,232,0.95)",
-    color: "#1A1A1A",
-    borderTopLeftRadius: "8px",
-  },
+  background: "rgba(255,255,255,0.62)",
+  color: "#1A1A1A",
+  border: "1px solid rgba(255,255,255,0.54)",
+  backdropFilter: "blur(10px)",
+  borderTopLeftRadius: "8px",
+},
 
   userMessage: {
     background: "#181818",
