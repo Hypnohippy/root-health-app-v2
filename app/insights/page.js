@@ -118,7 +118,7 @@ export default function InsightsPage() {
     );
 
   return (
-   return (
+  
   <RootAtmosphere type="reflection">
     <Nav />
       <main style={styles.page}>
