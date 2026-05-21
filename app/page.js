@@ -219,7 +219,7 @@ const styles = {
     position: "relative",
     zIndex: 2,
     minHeight: "100vh",
-    padding: "48px 54px 180px",
+    padding: "120px 54px 120px",
     display: "flex",
     alignItems: "flex-start",
   },
