@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
+import Nav from "../components/Nav";
 
 export default function Home() {
   const [latestInsight, setLatestInsight] = useState("");
@@ -53,9 +54,10 @@ export default function Home() {
     load();
   }, []);
 
-  return (
-    <main style={styles.page}>
-      <img
+ return (
+  <main style={styles.page}>
+    <Nav />
+   <img
         src="/visuals/root-home-hero.png"
         alt="Root Health"
         style={styles.backgroundImage}
@@ -167,36 +169,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div style={styles.bottomNav}>
-        <a href="/" style={styles.activeNav}>
-          Home
-        </a>
-
-        <a href="/body" style={styles.navItem}>
-          Body
-        </a>
-
-        <a href="/coach" style={styles.navItem}>
-          Coach
-        </a>
-
-        <a href="/mind" style={styles.navItem}>
-          Mind
-        </a>
-
-        <a href="/journal" style={styles.navItem}>
-          Journal
-        </a>
-
-        <a href="/insights" style={styles.navItem}>
-          Insights
-        </a>
-
-        <a href="/profile" style={styles.navItem}>
-          Profile
-        </a>
-      </div>
-        <footer style={styles.footer}>
+    
+                    <footer style={styles.footer}>
   <a href="/privacy" style={styles.footerLink}>
     Privacy
   </a>
@@ -451,38 +425,6 @@ const styles = {
     background: "rgba(0,0,0,0.08)",
   },
 
-  bottomNav: {
-    position: "fixed",
-    left: "50%",
-    bottom: "24px",
-    transform: "translateX(-50%)",
-    width: "92%",
-    maxWidth: "1280px",
-    background: "rgba(248,242,233,0.88)",
-    borderRadius: "34px",
-    padding: "18px",
-    backdropFilter: "blur(18px)",
-    display: "flex",
-    justifyContent: "space-around",
-    zIndex: 5,
-    boxShadow: "0 24px 60px rgba(0,0,0,0.22)",
-  },
-
-  activeNav: {
-    background: "#324A31",
-    color: "#FFF",
-    padding: "16px 24px",
-    borderRadius: "18px",
-    textDecoration: "none",
-    fontSize: "18px",
-  },
-
-  navItem: {
-    color: "#222",
-    textDecoration: "none",
-    fontSize: "18px",
-    padding: "16px 12px",
-  },
   footer: {
   marginTop: "48px",
   paddingBottom: "24px",
