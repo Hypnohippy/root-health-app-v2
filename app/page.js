@@ -211,8 +211,8 @@ const styles = {
   overlay: {
     position: "absolute",
     inset: 0,
-    background:
-      "linear-gradient(to right, rgba(245,236,222,0.82) 0%, rgba(245,236,222,0.55) 38%, rgba(0,0,0,0.08) 100%)",
+background:
+  "linear-gradient(to right, rgba(245,236,222,0.96) 0%, rgba(245,236,222,0.88) 42%, rgba(0,0,0,0.18) 100%)",
   },
 
   content: {
@@ -305,7 +305,7 @@ const styles = {
   },
 
   secondaryCard: {
-    background: "rgba(247,241,232,0.92)",
+    background: "rgba(247,241,232,0.98)",
     borderRadius: "28px",
     padding: "28px 34px",
     display: "flex",
@@ -335,7 +335,7 @@ const styles = {
 
   insightCard: {
     marginTop: "34px",
-    background: "rgba(248,242,233,0.92)",
+    background: "rgba(248,242,233,0.98)",
     borderRadius: "34px",
     padding: "32px",
     maxWidth: "760px",
