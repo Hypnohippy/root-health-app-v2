@@ -196,6 +196,23 @@ export default function Home() {
           Profile
         </a>
       </div>
+        <footer style={styles.footer}>
+  <a href="/privacy" style={styles.footerLink}>
+    Privacy
+  </a>
+
+  <span style={styles.footerDivider}>•</span>
+
+  <a href="/safety" style={styles.footerLink}>
+    Safety
+  </a>
+
+  <span style={styles.footerDivider}>•</span>
+
+  <a href="/terms" style={styles.footerLink}>
+    Terms
+  </a>
+</footer>
     </main>
   );
 }
@@ -466,4 +483,26 @@ const styles = {
     fontSize: "18px",
     padding: "16px 12px",
   },
+  footer: {
+  marginTop: "48px",
+  paddingBottom: "24px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "12px",
+  flexWrap: "wrap",
+},
+
+footerLink: {
+  color: "rgba(255,255,255,0.72)",
+  textDecoration: "none",
+  fontSize: "13px",
+  letterSpacing: "0.04em",
+  transition: "opacity 0.2s ease",
+},
+
+footerDivider: {
+  color: "rgba(255,255,255,0.36)",
+  fontSize: "12px",
+},
 };
