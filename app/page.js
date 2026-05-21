@@ -92,60 +92,41 @@ export default function Home() {
           </p>
 
           <div style={styles.cardStack}>
-            <a href="/body" style={styles.primaryCard}>
-              <div>
-                <p style={styles.cardTitle}>Start Body Check</p>
-                <p style={styles.cardText}>
-                  Scan. Reflect. Release.
-                </p>
-              </div>
+  <a href="/body" style={styles.primaryCard}>
+    <div>
+      <p style={styles.cardTitle}>Start Body Check</p>
+      <p style={styles.cardText}>Scan. Reflect. Release.</p>
+    </div>
+
+    <span style={styles.arrow}>→</span>
+  </a>
+
+  <a href="/coach" style={styles.secondaryCard}>
+    <div>
+      <p style={styles.secondaryTitle}>Open Root Coach</p>
+      <p style={styles.secondaryText}>Guidance. Clarity. Support.</p>
+    </div>
+
+    <span style={styles.secondaryArrow}>→</span>
+  </a>
+</div>
 
 <footer style={styles.footer}>
-  <a href="/privacy" style={styles.footerLink}>
-    Privacy
-  </a>
-
+  <a href="/privacy" style={styles.footerLink}>Privacy</a>
   <span style={styles.footerDivider}>•</span>
-
-  <a href="/safety" style={styles.footerLink}>
-    Safety
-  </a>
-
+  <a href="/safety" style={styles.footerLink}>Safety</a>
   <span style={styles.footerDivider}>•</span>
-
-  <a href="/terms" style={styles.footerLink}>
-    Terms
-  </a>
+  <a href="/terms" style={styles.footerLink}>Terms</a>
 </footer>
 
 <div style={styles.insightCard}>
+  <div style={styles.insightTop}>
+    <p style={styles.insightHeading}>Today’s Insight</p>
 
-              <span style={styles.arrow}>→</span>
-            </a>
-
-            <a href="/coach" style={styles.secondaryCard}>
-              <div>
-                <p style={styles.secondaryTitle}>Open Root Coach</p>
-                <p style={styles.secondaryText}>
-                  Guidance. Clarity. Support.
-                </p>
-              </div>
-
-              <span style={styles.secondaryArrow}>→</span>
-            </a>
-          </div>
-
-          <div style={styles.insightCard}>
-            <div style={styles.insightTop}>
-              <p style={styles.insightHeading}>
-                Today’s Insight
-              </p>
-
-              <div style={styles.liveBadge}>
-                Live System Balance
-              </div>
-            </div>
-
+    <div style={styles.liveBadge}>
+      Live System Balance
+    </div>
+  </div>
             <div style={styles.insightContent}>
               <div style={styles.scoreSection}>
                 <div style={styles.scoreCircle}>
