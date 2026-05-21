@@ -932,7 +932,10 @@ message += `\n\nA practical next step could be:`;
           </div>
         )}
       </section>
-
+    </main>
+  </RootAtmosphere>
+);
+}
     
 
 const styles = {
