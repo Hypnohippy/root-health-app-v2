@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import DigestionView from "../../components/body/DigestionView";
@@ -690,10 +691,11 @@ message += `\n\nA practical next step could be:`;
     setSaving(false);
   };
 
-  return (
+ return (
   <RootAtmosphere type="body">
-    <main style={styles.page}>
-      <style>{`
+    <Nav />
+
+    <main style={styles.page}>      <style>{`
         @keyframes digestivePop { 0% { opacity: 0; transform: scale(0.88) translateX(-28px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
         @keyframes heartPop { 0% { opacity: 0; transform: scale(0.88) translateX(-24px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
         @keyframes lungsPop { 0% { opacity: 0; transform: scale(0.88) translateX(-24px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
@@ -931,17 +933,7 @@ message += `\n\nA practical next step could be:`;
         )}
       </section>
 
-      <nav style={styles.bottomNav}>
-        <a href="/" style={styles.navItem}>Home</a>
-        <a href="/coach" style={styles.navItem}>Coach</a>
-        <a href="/body" style={styles.activeNav}>Body</a>
-        <a href="/journal" style={styles.navItem}>Journal</a>
-        <a href="/profile" style={styles.navItem}>You</a>
-      </nav>
-       </main>
-  </RootAtmosphere>
-);
-}
+    
 
 const styles = {
   page: {
@@ -1339,37 +1331,4 @@ sensesConnectorLine: {
     paddingTop: "18px",
     borderTop: "1px solid rgba(0,0,0,0.1)",
   },
-
-  bottomNav: {
-    position: "fixed",
-    left: "50%",
-    bottom: "6px",
-    transform: "translateX(-50%)",
-    zIndex: 8,
-    width: "82%",
-    maxWidth: "720px",
-    background: "rgba(250,244,234,0.82)",
-    borderRadius: "24px",
-    padding: "7px",
-    backdropFilter: "blur(18px)",
-    display: "flex",
-    justifyContent: "space-around",
-    boxShadow: "0 14px 38px rgba(0,0,0,0.18)",
-  },
-
-  activeNav: {
-    background: "#181818",
-    color: "#FFFFFF",
-    borderRadius: "14px",
-    padding: "8px 13px",
-    textDecoration: "none",
-    fontSize: "13px",
-  },
-
-  navItem: {
-    color: "#2A261F",
-    textDecoration: "none",
-    padding: "8px 9px",
-    fontSize: "13px",
-  },
-};
+  };
