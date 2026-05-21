@@ -469,17 +469,19 @@ setVoiceEnergy(0);
 
  return (
   <RootAtmosphere
-    type={
-      coachMode === "grounding"
-        ? "grounding"
-        : coachMode === "sleep"
-        ? "sleep"
-        : coachMode === "reflection"
-        ? "reflection"
-        : "coach"
-    }
-  >
-    <main style={styles.page}>
+  type={
+    coachMode === "grounding"
+      ? "grounding"
+      : coachMode === "sleep"
+      ? "sleep"
+      : coachMode === "reflection"
+      ? "reflection"
+      : "coach"
+  }
+>
+  <Nav />
+
+  <main style={styles.page}>
     <style>{`
   @keyframes rootBreath {
     0% { transform: scale(0.96); opacity: 0.58; }
@@ -504,10 +506,7 @@ setVoiceEnergy(0);
           <div style={styles.softOrbGlow} />
 
          <div style={styles.header}>
-  <a href="/" style={styles.exitButton}>
-    ← Home
-  </a>
-
+ 
   <RootEnso size={128} />            <p style={styles.kicker}>Root Health Intelligence</p>
             <h1 style={styles.title}>Root Coach</h1>
             <p style={styles.subtitle}>
@@ -783,21 +782,6 @@ const styles = {
     position: "relative",
     zIndex: 2,
   },
-  exitButton: {
-  position: "absolute",
-  left: "0",
-  top: "0",
-  zIndex: 20,
-  textDecoration: "none",
-  color: "#2A261F",
-  background: "rgba(255,255,255,0.68)",
-  border: "1px solid rgba(255,255,255,0.72)",
-  borderRadius: "999px",
-  padding: "10px 16px",
-  fontSize: "14px",
-  fontWeight: "700",
-  backdropFilter: "blur(12px)",
-},
 
   kicker: {
     margin: "0 0 10px",
