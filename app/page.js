@@ -100,6 +100,26 @@ export default function Home() {
                 </p>
               </div>
 
+<footer style={styles.footer}>
+  <a href="/privacy" style={styles.footerLink}>
+    Privacy
+  </a>
+
+  <span style={styles.footerDivider}>•</span>
+
+  <a href="/safety" style={styles.footerLink}>
+    Safety
+  </a>
+
+  <span style={styles.footerDivider}>•</span>
+
+  <a href="/terms" style={styles.footerLink}>
+    Terms
+  </a>
+</footer>
+
+<div style={styles.insightCard}>
+
               <span style={styles.arrow}>→</span>
             </a>
 
@@ -170,23 +190,7 @@ export default function Home() {
       </div>
 
     
-                    <footer style={styles.footer}>
-  <a href="/privacy" style={styles.footerLink}>
-    Privacy
-  </a>
-
-  <span style={styles.footerDivider}>•</span>
-
-  <a href="/safety" style={styles.footerLink}>
-    Safety
-  </a>
-
-  <span style={styles.footerDivider}>•</span>
-
-  <a href="/terms" style={styles.footerLink}>
-    Terms
-  </a>
-</footer>
+                  
     </main>
   );
 }
@@ -334,8 +338,10 @@ background:
 
   insightCard: {
     marginTop: "34px",
-    background: "#F8F2E9",
+    background: "rgba(248,242,233,0.72)",
+    border: "1px solid rgba(255,255,255,0.34)",
     borderRadius: "34px",
+    backdropFilter: "blur(10px)",
     padding: "32px",
     maxWidth: "760px",
     boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
