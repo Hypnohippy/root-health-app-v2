@@ -241,7 +241,7 @@ const styles = {
     fontSize: "12px",
     textTransform: "uppercase",
     letterSpacing: "0.14em",
-    color: "#6F675B",
+    color: "rgba(255,255,255,0.82)",
     fontWeight: "800",
   },
 
