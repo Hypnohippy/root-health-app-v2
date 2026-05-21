@@ -317,16 +317,17 @@ background:
     fontSize: "42px",
   },
 
-  insightCard: {
-    marginTop: "34px",
-    background: "rgba(248,242,233,0.72)",
-    border: "1px solid rgba(255,255,255,0.34)",
-    borderRadius: "34px",
-    backdropFilter: "blur(10px)",
-    padding: "32px",
-    maxWidth: "760px",
-    boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
-  },
+ insightCard: {
+  marginTop: "34px",
+  background: "rgba(255,255,255,0.18)",
+  border: "1px solid rgba(255,255,255,0.28)",
+  borderRadius: "34px",
+  padding: "32px",
+  maxWidth: "760px",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.14)",
+},
 
   insightTop: {
     display: "flex",
@@ -410,24 +411,28 @@ background:
     background: "rgba(0,0,0,0.08)",
   },
 
-  footer: {
-  marginTop: "48px",
-  paddingBottom: "24px",
+ footer: {
+  position: "fixed",
+  bottom: "18px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  zIndex: 20,
   display: "flex",
-  justifyContent: "center",
   alignItems: "center",
   gap: "12px",
-  flexWrap: "wrap",
+  padding: "10px 18px",
+  borderRadius: "999px",
+  background: "rgba(20,20,20,0.28)",
+  border: "1px solid rgba(255,255,255,0.18)",
+  backdropFilter: "blur(12px)",
 },
 
 footerLink: {
-  color: "rgba(255,255,255,0.72)",
+  color: "rgba(255,255,255,0.82)",
   textDecoration: "none",
   fontSize: "13px",
   letterSpacing: "0.04em",
-  transition: "opacity 0.2s ease",
 },
-
 footerDivider: {
   color: "rgba(255,255,255,0.36)",
   fontSize: "12px",
