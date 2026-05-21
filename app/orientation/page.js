@@ -5,124 +5,90 @@ import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 
-const states = [
+const journeys = [
   {
-    id: "overwhelmed",
-    label: "Overwhelmed",
-    subtitle: "Too much is happening at once.",
+    id: "anxiety",
+    title: "Anxiety or overwhelm",
+    subtitle: "Pressure, racing thoughts, stress, panic, or nervous system overload.",
     icon: "🌊",
     atmosphere: "grounding",
-    message:
-      "Your system may need less pressure before deeper reflection. Let’s settle first, then understand.",
-    path: [
-      { label: "Begin grounding", href: "/coach?mode=grounding" },
-      { label: "Use breathwork", href: "/mind" },
-      { label: "Talk with Coach", href: "/coach" },
-    ],
+    explanation:
+      "Anxiety often shows up in the body before the mind fully understands it. We’ll begin by gently exploring where your system may be carrying the pressure.",
   },
+
   {
-    id: "wired",
-    label: "Tired but wired",
-    subtitle: "Exhausted, but unable to switch off.",
+    id: "sleep",
+    title: "Sleep and recovery",
+    subtitle: "Tired but wired, restless nights, difficulty switching off.",
     icon: "🌙",
     atmosphere: "sleep",
-    message:
-      "This may be a night for reducing stimulation, not solving everything. Let the system come down gradually.",
-    path: [
-      { label: "Sleep wind-down", href: "/coach?mode=sleep" },
-      { label: "Calming tool", href: "/mind" },
-      { label: "Reflect later", href: "/journal" },
-    ],
+    explanation:
+      "Sleep difficulties are often connected to nervous system load, stress patterns, overstimulation, and recovery capacity. We’ll begin with the body first.",
   },
+
   {
-    id: "heavy",
-    label: "Emotionally heavy",
-    subtitle: "Something feels weighty or unresolved.",
-    icon: "🪨",
-    atmosphere: "reflection",
-    message:
-      "Some feelings need space before answers. Reflection may help you hear what is underneath.",
-    path: [
-      { label: "Start reflection", href: "/coach?mode=reflection" },
-      { label: "Open Journal", href: "/journal" },
-      { label: "View Insights", href: "/insights" },
-    ],
+    id: "body",
+    title: "Physical symptoms and stress",
+    subtitle: "Tension, pain, digestive discomfort, fatigue, tightness or strain.",
+    icon: "🫁",
+    atmosphere: "body",
+    explanation:
+      "The body often carries stress patterns long before we consciously recognise them. We’ll begin by noticing where your system seems to be speaking the loudest.",
   },
+
   {
     id: "thoughts",
-    label: "Stuck in thought loops",
-    subtitle: "The mind keeps circling the same thing.",
+    title: "Thought loops and overthinking",
+    subtitle: "Repeating thoughts, pressure, rumination, worry loops.",
     icon: "🧠",
     atmosphere: "coach",
-    message:
-      "This may be a good moment to soften the meaning, not fight the thought. One small reframe can create space.",
-    path: [
-      { label: "Mind tools", href: "/mind" },
-      { label: "Talk with Coach", href: "/coach" },
-      { label: "Journal it out", href: "/journal" },
-    ],
+    explanation:
+      "Thought loops often become stronger when the nervous system is overloaded. Before trying to force clarity, we’ll first explore how the body is responding.",
   },
+
   {
-    id: "tense",
-    label: "Physically tense",
-    subtitle: "Your body feels tight, strained, or activated.",
-    icon: "🫁",
-    atmosphere: "grounding",
-    message:
-      "Your body may be giving useful feedback. Start with where you feel it, then choose one gentle next step.",
-    path: [
-      { label: "Body check", href: "/body" },
-      { label: "Grounding", href: "/coach?mode=grounding" },
-      { label: "Mind tools", href: "/mind" },
-    ],
+    id: "heavy",
+    title: "Emotional heaviness",
+    subtitle: "Sadness, grief, emotional pressure, exhaustion or emotional overload.",
+    icon: "🪨",
+    atmosphere: "reflection",
+    explanation:
+      "Heavy emotions can affect sleep, tension, digestion, energy, and recovery. We’ll begin gently by listening to how your system seems to be carrying this.",
   },
+
   {
-    id: "clarity",
-    label: "Looking for clarity",
-    subtitle: "You want to understand what matters next.",
+    id: "patterns",
+    title: "Understanding patterns",
+    subtitle: "You want to understand what may be connected beneath the surface.",
     icon: "🪞",
     atmosphere: "reflection",
-    message:
-      "Clarity often arrives when the pressure drops. Let’s look at the pattern without forcing an answer.",
-    path: [
-      { label: "Reflection mode", href: "/coach?mode=reflection" },
-      { label: "Journal", href: "/journal" },
-      { label: "Insights", href: "/insights" },
-    ],
-  },
-  {
-    id: "flat",
-    label: "Flat or disconnected",
-    subtitle: "Low energy, distant, or hard to engage.",
-    icon: "🌫️",
-    atmosphere: "coach",
-    message:
-      "This does not need to be pushed through. Start small and reduce the demand on yourself.",
-    path: [
-      { label: "Talk with Coach", href: "/coach" },
-      { label: "Body check", href: "/body" },
-      { label: "Gentle journal", href: "/journal" },
-    ],
-  },
-  {
-    id: "checking",
-    label: "Just checking in",
-    subtitle: "Nothing urgent — you want to stay connected.",
-    icon: "🌿",
-    atmosphere: "coach",
-    message:
-      "A simple check-in is enough. Root works best when small signals are noticed before they become loud.",
-    path: [
-      { label: "Body check", href: "/body" },
-      { label: "View Insights", href: "/insights" },
-      { label: "Open Coach", href: "/coach" },
-    ],
+    explanation:
+      "Root works best when small signals are connected over time. We’ll begin by understanding how your body may already be responding to your current stress load.",
   },
 ];
 
 export default function OrientationPage() {
-  const [selected, setSelected] = useState(states[0]);
+  const [selected, setSelected] = useState(null);
+
   const atmosphere = selected?.atmosphere || "coach";
+
+  const beginJourney = () => {
+    if (!selected) return;
+
+    localStorage.setItem(
+      "root_journey_v1",
+      JSON.stringify({
+        focus: selected.id,
+        title: selected.title,
+        startedAt: Date.now(),
+        nextStep: "body",
+      })
+    );
+
+    localStorage.setItem("root_orientation_complete_v1", "true");
+
+    window.location.href = "/body";
+  };
 
   return (
     <RootAtmosphere type={atmosphere}>
@@ -131,78 +97,114 @@ export default function OrientationPage() {
       <main style={styles.page}>
         <section style={styles.shell}>
           <div style={styles.logoWrap}>
-            <RootEnso size={86} />
+            <RootEnso size={92} />
           </div>
 
-          <p style={styles.kicker}>Root Orientation</p>
+          {!selected && (
+            <>
+              <p style={styles.kicker}>Welcome to Root</p>
 
-          <h1 style={styles.title}>What feels closest today?</h1>
+              <h1 style={styles.title}>
+                A calmer relationship with yourself.
+              </h1>
 
-          <p style={styles.subtitle}>
-            You do not need to know which tool to use. Start with how your system
-            feels, and Root will suggest a gentle path.
-          </p>
+              <p style={styles.subtitle}>
+                Root helps you explore how stress, emotions, nervous system load,
+                habits, sleep, and body symptoms may be connected.
+              </p>
 
-          <div style={styles.layout}>
-            <div style={styles.stateGrid}>
-              {states.map((state) => (
-                <button
-                  key={state.id}
-                  style={{
-                    ...styles.stateCard,
-                    ...(selected.id === state.id ? styles.stateCardActive : {}),
-                  }}
-                  onClick={() => setSelected(state)}
-                >
-                  <span style={styles.stateIcon}>{state.icon}</span>
+              <p style={styles.subtitleSmall}>
+                We’ll guide you step by step.
+              </p>
 
-                  <span style={styles.stateText}>
-                    <strong>{state.label}</strong>
-                    <small>{state.subtitle}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
+              <div style={styles.cardGrid}>
+                {journeys.map((journey) => (
+                  <button
+                    key={journey.id}
+                    style={styles.card}
+                    onClick={() => setSelected(journey)}
+                  >
+                    <span style={styles.cardIcon}>{journey.icon}</span>
 
-            <div style={styles.pathPanel}>
-              <p style={styles.kicker}>Suggested pathway</p>
+                    <div>
+                      <strong style={styles.cardTitle}>
+                        {journey.title}
+                      </strong>
 
-              <h2 style={styles.pathTitle}>{selected.label}</h2>
-
-              <p style={styles.pathMessage}>{selected.message}</p>
-
-              <div style={styles.pathSteps}>
-                {selected.path.map((step, index) => (
-                 <a
-  key={step.href + step.label}
-  href={step.href}
-  style={styles.pathStep}
-  onClick={() => {
-    localStorage.setItem("root_orientation_complete_v1", "true");
-  }}
->
-                    <span style={styles.stepNumber}>{index + 1}</span>
-                    <span>{step.label}</span>
-                    <span style={styles.stepArrow}>→</span>
-                  </a>
+                      <p style={styles.cardText}>
+                        {journey.subtitle}
+                      </p>
+                    </div>
+                  </button>
                 ))}
               </div>
-                  <a
-  href="/"
-  style={styles.homeButton}
-  onClick={() => {
-    localStorage.setItem("root_orientation_complete_v1", "true");
-  }}
->
-  Finish orientation and go to my Root homepage
-</a>
+            </>
+          )}
 
-              <p style={styles.helperText}>
-                This is not a diagnosis or assessment. It is simply a calmer way
-                to choose where to begin.
+          {selected && (
+            <div style={styles.selectedPanel}>
+              <p style={styles.kicker}>Your Root Journey</p>
+
+              <h2 style={styles.selectedTitle}>
+                {selected.title}
+              </h2>
+
+              <p style={styles.selectedText}>
+                {selected.explanation}
               </p>
+
+              <div style={styles.flowCard}>
+                <div style={styles.flowStep}>
+                  <span style={styles.flowNumber}>1</span>
+
+                  <div>
+                    <strong>Body Exploration</strong>
+
+                    <p>
+                      We’ll begin by exploring where this seems to appear in your body.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={styles.flowStep}>
+                  <span style={styles.flowNumber}>2</span>
+
+                  <div>
+                    <strong>Pattern Understanding</strong>
+
+                    <p>
+                      Root will help connect possible emotional, lifestyle, nervous system,
+                      and behavioural patterns.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={styles.flowStep}>
+                  <span style={styles.flowNumber}>3</span>
+
+                  <div>
+                    <strong>Guided Support</strong>
+
+                    <p>
+                      You’ll be guided toward the most relevant coach modes, tools,
+                      reflections, and next steps.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button style={styles.beginButton} onClick={beginJourney}>
+                Begin Body Exploration
+              </button>
+
+              <button
+                style={styles.backButton}
+                onClick={() => setSelected(null)}
+              >
+                ← Choose something different
+              </button>
             </div>
-          </div>
+          )}
         </section>
       </main>
     </RootAtmosphere>
@@ -221,7 +223,7 @@ const styles = {
     width: "100%",
     maxWidth: "1120px",
     background: "rgba(255,255,255,0.22)",
-    border: "1px solid rgba(255,255,255,0.36)",
+    border: "1px solid rgba(255,255,255,0.34)",
     backdropFilter: "blur(30px)",
     WebkitBackdropFilter: "blur(30px)",
     borderRadius: "42px",
@@ -232,7 +234,7 @@ const styles = {
   logoWrap: {
     display: "flex",
     justifyContent: "center",
-    marginBottom: "12px",
+    marginBottom: "14px",
   },
 
   kicker: {
@@ -246,154 +248,150 @@ const styles = {
   },
 
   title: {
-    margin: "0 0 14px",
+    margin: "0 0 18px",
     textAlign: "center",
-    fontSize: "48px",
-    color: "#181818",
-    letterSpacing: "-0.04em",
+    fontSize: "52px",
+    lineHeight: "1.1",
+    color: "#FFFFFF",
     fontFamily: "Georgia, serif",
     fontWeight: "500",
+    letterSpacing: "-0.04em",
   },
 
   subtitle: {
-    maxWidth: "740px",
-    margin: "0 auto 34px",
+    maxWidth: "760px",
+    margin: "0 auto 10px",
     textAlign: "center",
-    color: "rgba(26,26,26,0.78)",
-    lineHeight: "1.8",
+    color: "rgba(255,255,255,0.84)",
+    lineHeight: "1.85",
     fontSize: "18px",
   },
 
-  layout: {
-    display: "grid",
-    gridTemplateColumns: "1.1fr 0.9fr",
-    gap: "22px",
-    alignItems: "start",
+  subtitleSmall: {
+    textAlign: "center",
+    color: "rgba(255,255,255,0.66)",
+    marginBottom: "34px",
+    fontSize: "15px",
   },
 
-  stateGrid: {
+  cardGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-    gap: "14px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "16px",
   },
 
-  stateCard: {
-    border: "1px solid rgba(255,255,255,0.34)",
-    background: "rgba(255,255,255,0.20)",
+  card: {
+    border: "1px solid rgba(255,255,255,0.28)",
+    background: "rgba(255,255,255,0.14)",
     borderRadius: "28px",
-    padding: "18px",
-    cursor: "pointer",
+    padding: "22px",
+    display: "flex",
+    gap: "16px",
+    alignItems: "flex-start",
     textAlign: "left",
-    display: "flex",
-    gap: "14px",
-    alignItems: "center",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
-    boxShadow: "0 14px 36px rgba(0,0,0,0.07)",
-  },
-
-  stateCardActive: {
-    background: "linear-gradient(135deg, rgba(24,24,24,0.66), rgba(42,38,34,0.50))",
+    cursor: "pointer",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
     color: "#FFFFFF",
-    border: "1px solid rgba(255,255,255,0.22)",
   },
 
-  stateIcon: {
-    fontSize: "30px",
-    width: "44px",
-    height: "44px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "rgba(255,255,255,0.22)",
+  cardIcon: {
+    fontSize: "32px",
     flexShrink: 0,
   },
 
-  stateText: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-    lineHeight: "1.35",
+  cardTitle: {
+    display: "block",
+    marginBottom: "8px",
+    fontSize: "18px",
   },
 
-  pathPanel: {
-    background: "linear-gradient(135deg, rgba(24,24,24,0.58), rgba(42,38,34,0.42))",
-    color: "#FFFFFF",
+  cardText: {
+    margin: 0,
+    lineHeight: "1.65",
+    color: "rgba(255,255,255,0.76)",
+    fontSize: "14px",
+  },
+
+  selectedPanel: {
+    maxWidth: "820px",
+    margin: "0 auto",
+    background: "rgba(20,20,20,0.32)",
     border: "1px solid rgba(255,255,255,0.18)",
-    borderRadius: "34px",
-    padding: "30px",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.16)",
+    borderRadius: "36px",
+    padding: "38px",
+    color: "#FFFFFF",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
   },
 
-  pathTitle: {
-    margin: "0 0 14px",
-    fontSize: "34px",
+  selectedTitle: {
+    margin: "0 0 18px",
+    fontSize: "42px",
+    textAlign: "center",
     fontFamily: "Georgia, serif",
     fontWeight: "500",
   },
 
-  pathMessage: {
-    margin: "0 0 22px",
-    lineHeight: "1.75",
-    color: "rgba(255,255,255,0.86)",
-    fontSize: "16px",
+  selectedText: {
+    margin: "0 auto 28px",
+    maxWidth: "680px",
+    textAlign: "center",
+    lineHeight: "1.9",
+    color: "rgba(255,255,255,0.84)",
+    fontSize: "17px",
   },
 
-  pathSteps: {
+  flowCard: {
     display: "flex",
     flexDirection: "column",
-    gap: "12px",
+    gap: "16px",
+    marginBottom: "30px",
   },
 
-  pathStep: {
-    color: "#FFFFFF",
-    textDecoration: "none",
-    background: "rgba(255,255,255,0.14)",
-    border: "1px solid rgba(255,255,255,0.18)",
-    borderRadius: "22px",
-    padding: "15px 16px",
-    display: "grid",
-    gridTemplateColumns: "34px 1fr auto",
-    alignItems: "center",
-    gap: "12px",
+  flowStep: {
+    display: "flex",
+    gap: "16px",
+    alignItems: "flex-start",
+    background: "rgba(255,255,255,0.10)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    borderRadius: "24px",
+    padding: "18px",
   },
 
-  stepNumber: {
-    width: "30px",
-    height: "30px",
+  flowNumber: {
+    width: "34px",
+    height: "34px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.22)",
+    background: "rgba(255,255,255,0.18)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "13px",
-    fontWeight: "800",
+    fontWeight: "700",
+    flexShrink: 0,
   },
 
-  stepArrow: {
-    opacity: 0.8,
-    fontSize: "20px",
+  beginButton: {
+    width: "100%",
+    border: "none",
+    borderRadius: "999px",
+    padding: "18px",
+    background: "#FFFFFF",
+    color: "#181818",
+    fontSize: "16px",
+    cursor: "pointer",
+    marginBottom: "16px",
+    fontWeight: "700",
   },
 
-  helperText: {
-    margin: "22px 0 0",
-    color: "rgba(255,255,255,0.70)",
-    lineHeight: "1.6",
-    fontSize: "13px",
+  backButton: {
+    width: "100%",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: "999px",
+    padding: "14px",
+    background: "rgba(255,255,255,0.10)",
+    color: "#FFFFFF",
+    fontSize: "14px",
+    cursor: "pointer",
   },
-  homeButton: {
-  marginTop: "18px",
-  display: "block",
-  textAlign: "center",
-  color: "#FFFFFF",
-  textDecoration: "none",
-  background: "rgba(255,255,255,0.14)",
-  border: "1px solid rgba(255,255,255,0.18)",
-  borderRadius: "999px",
-  padding: "14px 18px",
-  fontSize: "14px",
-},
 };
