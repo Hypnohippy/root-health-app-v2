@@ -123,6 +123,15 @@ const states = [
 export default function OrientationPage() {
   const [selected, setSelected] = useState(states[0]);
   const atmosphere = selected?.atmosphere || "coach";
+  useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const completed = localStorage.getItem("root_orientation_complete_v1");
+
+  if (!completed) {
+    window.location.href = "/orientation";
+  }
+}, []);
 
   return (
     <RootAtmosphere type={atmosphere}>
