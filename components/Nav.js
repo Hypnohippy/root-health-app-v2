@@ -1,17 +1,19 @@
 export default function Nav() {
   const links = [
     { href: "/", label: "Home" },
-    { href: "/body", label: "Body Signals" },
-    { href: "/mind", label: "Mind & Emotions" },
+    { href: "/body", label: "Body" },
+    { href: "/mind", label: "Mind" },
     { href: "/journal", label: "Journal" },
     { href: "/insights", label: "Insights" },
     { href: "/coach", label: "Coach" },
-    { href: "/profile", label: "Profile" },
+    { href: "/profile", label: "You" },
   ];
 
   return (
     <nav style={styles.nav}>
-      <div style={styles.logo}>Root Health</div>
+      <a href="/" style={styles.logo}>
+        Root
+      </a>
 
       <div style={styles.links}>
         {links.map((link) => (
@@ -26,27 +28,48 @@ export default function Nav() {
 
 const styles = {
   nav: {
-    width: "100%",
-    padding: "16px 24px",
+    position: "fixed",
+    top: "18px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 1000,
+    width: "min(920px, calc(100% - 28px))",
+    padding: "10px 12px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    background: "rgba(255,255,255,0.75)",
-    borderBottom: "1px solid rgba(0,0,0,0.06)",
+    background: "rgba(255,255,255,0.28)",
+    border: "1px solid rgba(255,255,255,0.36)",
+    borderRadius: "999px",
+    backdropFilter: "blur(22px)",
+    boxShadow: "0 18px 50px rgba(20,18,15,0.12)",
     boxSizing: "border-box",
   },
+
   logo: {
-    fontWeight: "700",
+    textDecoration: "none",
+    fontWeight: "800",
     color: "#1A1A1A",
+    padding: "8px 14px",
+    borderRadius: "999px",
+    background: "rgba(255,255,255,0.34)",
+    fontSize: "14px",
   },
+
   links: {
     display: "flex",
-    gap: "14px",
+    gap: "4px",
     flexWrap: "wrap",
+    justifyContent: "flex-end",
   },
+
   link: {
-    color: "#333",
+    color: "#2A261F",
     textDecoration: "none",
-    fontSize: "14px",
+    fontSize: "13px",
+    padding: "8px 10px",
+    borderRadius: "999px",
+    background: "rgba(255,255,255,0.18)",
+    whiteSpace: "nowrap",
   },
 };
