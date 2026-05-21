@@ -123,6 +123,15 @@ const states = [
 export default function OrientationPage() {
   const [selected, setSelected] = useState(states[0]);
   const atmosphere = selected?.atmosphere || "coach";
+  useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const completed = localStorage.getItem("root_orientation_complete_v1");
+
+  if (!completed) {
+    window.location.href = "/orientation";
+  }
+}, []);
 
   return (
     <RootAtmosphere type={atmosphere}>
@@ -173,7 +182,14 @@ export default function OrientationPage() {
 
               <div style={styles.pathSteps}>
                 {selected.path.map((step, index) => (
-                  <a key={step.href + step.label} href={step.href} style={styles.pathStep}>
+                  <a
+  key={step.href + step.label}
+  href={step.href}
+  style={styles.pathStep}
+  onClick={() => {
+    localStorage.setItem("root_orientation_complete_v1", "true");
+  }}
+>
                     <span style={styles.stepNumber}>{index + 1}</span>
                     <span>{step.label}</span>
                     <span style={styles.stepArrow}>→</span>
