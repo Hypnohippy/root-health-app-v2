@@ -10,6 +10,15 @@ export default function Home() {
   const [balanceScore, setBalanceScore] = useState(null);
   const [patternNote, setPatternNote] = useState("");
   const [trendNote, setTrendNote] = useState("");
+  useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const completed = localStorage.getItem("root_orientation_complete_v1");
+
+  if (!completed) {
+    window.location.href = "/orientation";
+  }
+}, []);
 
   useEffect(() => {
     const load = async () => {
