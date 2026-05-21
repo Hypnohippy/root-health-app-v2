@@ -173,13 +173,29 @@ export default function OrientationPage() {
 
               <div style={styles.pathSteps}>
                 {selected.path.map((step, index) => (
-                  <a key={step.href + step.label} href={step.href} style={styles.pathStep}>
+                 <a
+  key={step.href + step.label}
+  href={step.href}
+  style={styles.pathStep}
+  onClick={() => {
+    localStorage.setItem("root_orientation_complete_v1", "true");
+  }}
+>
                     <span style={styles.stepNumber}>{index + 1}</span>
                     <span>{step.label}</span>
                     <span style={styles.stepArrow}>→</span>
                   </a>
                 ))}
               </div>
+                  <a
+  href="/"
+  style={styles.homeButton}
+  onClick={() => {
+    localStorage.setItem("root_orientation_complete_v1", "true");
+  }}
+>
+  Finish orientation and go to my Root homepage
+</a>
 
               <p style={styles.helperText}>
                 This is not a diagnosis or assessment. It is simply a calmer way
@@ -368,4 +384,16 @@ const styles = {
     lineHeight: "1.6",
     fontSize: "13px",
   },
+  homeButton: {
+  marginTop: "18px",
+  display: "block",
+  textAlign: "center",
+  color: "#FFFFFF",
+  textDecoration: "none",
+  background: "rgba(255,255,255,0.14)",
+  border: "1px solid rgba(255,255,255,0.18)",
+  borderRadius: "999px",
+  padding: "14px 18px",
+  fontSize: "14px",
+},
 };
