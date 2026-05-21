@@ -305,14 +305,13 @@ background:
   },
 
   secondaryCard: {
-    background: "rgba(247,241,232,0.98)",
+    background: "#F7F1E8",
     borderRadius: "28px",
     padding: "28px 34px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     textDecoration: "none",
-    backdropFilter: "blur(12px)",
   },
 
   secondaryTitle: {
@@ -335,11 +334,10 @@ background:
 
   insightCard: {
     marginTop: "34px",
-    background: "rgba(248,242,233,0.98)",
+    background: "#F8F2E9",
     borderRadius: "34px",
     padding: "32px",
     maxWidth: "760px",
-    backdropFilter: "blur(18px)",
     boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
   },
 
