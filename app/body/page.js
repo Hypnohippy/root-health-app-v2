@@ -1007,8 +1007,10 @@ if (journey) {
                     {index + 1}. {item} ({count} {count === 1 ? "time" : "times"})
                   </p>
                 ))}
-             <div style={styles.continueJourney}>
-  <p style={styles.continueLabel}>Next step in your Root journey</p>
+            <div style={styles.continueJourney}>
+  <p style={styles.continueLabel}>
+    Next step in your Root journey
+  </p>
 
   <h2 style={styles.continueTitle}>
     Continue with Root Coach
@@ -1023,7 +1025,10 @@ if (journey) {
     style={styles.continuePrimary}
     onClick={() => {
       const stored = localStorage.getItem("root_journey_v1");
-      const parsed = stored ? JSON.parse(stored) : {};
+
+      const parsed = stored
+        ? JSON.parse(stored)
+        : {};
 
       localStorage.setItem(
         "root_journey_v1",
@@ -1041,7 +1046,7 @@ if (journey) {
     Continue to Root Coach →
   </a>
 </div>
-    
+ )}   
 
 const styles = {
   page: {
