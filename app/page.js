@@ -18,6 +18,17 @@ export default function Home() {
   const [adaptiveSubtitle, setAdaptiveSubtitle] = useState(
   "Listen to your body.\nUnderstand the pattern.\nReturn to balance."
 );
+  const [primaryAction, setPrimaryAction] = useState({
+  href: "/body",
+  title: "Start Body Check",
+  text: "Scan. Reflect. Release.",
+});
+
+const [secondaryAction, setSecondaryAction] = useState({
+  href: "/coach",
+  title: "Open Root Coach",
+  text: "Guidance. Clarity. Support.",
+});
   useEffect(() => {
   if (typeof window === "undefined") return;
   const storedJourney = localStorage.getItem("root_journey_v1");
@@ -45,6 +56,43 @@ if (storedJourney) {
         setAdaptiveTitle(
           "Support your\nrecovery and\nrest."
         );
+        if (parsed.focus === "anxiety") {
+  setPrimaryAction({
+    href: "/coach",
+    title: "Settle the system",
+    text: "Grounding. Breath. Clarity.",
+  });
+
+  setSecondaryAction({
+    href: "/journal",
+    title: "Track the pattern",
+    text: "Notice. Reflect. Understand.",
+  });
+} else if (parsed.focus === "sleep") {
+  setPrimaryAction({
+    href: "/coach",
+    title: "Sleep wind-down",
+    text: "Slow down. Soften. Rest.",
+  });
+
+  setSecondaryAction({
+    href: "/journal",
+    title: "Evening reflection",
+    text: "Unload. Release. Recover.",
+  });
+} else {
+  setPrimaryAction({
+    href: "/body",
+    title: "Continue check-in",
+    text: "Listen. Notice. Learn.",
+  });
+
+  setSecondaryAction({
+    href: "/insights",
+    title: "View patterns",
+    text: "Signals. Themes. Direction.",
+  });
+}
 
         setAdaptiveSubtitle(
           "Root is helping you understand sleep,\nrecovery load, and nervous system balance."
@@ -174,24 +222,22 @@ if (storedJourney) {
   </div>
 )}     
   <div style={styles.cardStack}>
-  <a href="/body" style={styles.primaryCard}>
-    <div>
-      <p style={styles.cardTitle}>Start Body Check</p>
-      <p style={styles.cardText}>Scan. Reflect. Release.</p>
+ <a href={primaryAction.href} style={styles.primaryCard}>
+  <div>
+    <p style={styles.cardTitle}>{primaryAction.title}</p>
+    <p style={styles.cardText}>{primaryAction.text}</p>
+  </div>
+
+  <span style={styles.arrow}>→</span>
+<a href={secondaryAction.href} style={styles.secondaryCard}>
+  <div>
+    <p style={styles.secondaryTitle}>{secondaryAction.title}</p>
+    <p style={styles.secondaryText}>{secondaryAction.text}</p>
+  </div>
+
+  <span style={styles.secondaryArrow}>→</span>
+</a>
     </div>
-
-    <span style={styles.arrow}>→</span>
-  </a>
-
-  <a href="/coach" style={styles.secondaryCard}>
-    <div>
-      <p style={styles.secondaryTitle}>Open Root Coach</p>
-      <p style={styles.secondaryText}>Guidance. Clarity. Support.</p>
-    </div>
-
-    <span style={styles.secondaryArrow}>→</span>
-  </a>
-</div>
 
 <footer style={styles.footer}>
   <a href="/privacy" style={styles.footerLink}>Privacy</a>
