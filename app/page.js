@@ -221,24 +221,35 @@ if (storedJourney) {
     </p>
   </div>
 )}     
-  <div style={styles.cardStack}>
- <a href={primaryAction.href} style={styles.primaryCard}>
-  <div>
-    <p style={styles.cardTitle}>{primaryAction.title}</p>
-    <p style={styles.cardText}>{primaryAction.text}</p>
-  </div>
+ <div style={styles.cardStack}>
+  <a href={primaryAction.href} style={styles.primaryCard}>
+    <div>
+      <p style={styles.cardTitle}>
+        {primaryAction.title}
+      </p>
 
-  <span style={styles.arrow}>→</span>
-<a href={secondaryAction.href} style={styles.secondaryCard}>
-  <div>
-    <p style={styles.secondaryTitle}>{secondaryAction.title}</p>
-    <p style={styles.secondaryText}>{secondaryAction.text}</p>
-  </div>
-
-  <span style={styles.secondaryArrow}>→</span>
-</a>
+      <p style={styles.cardText}>
+        {primaryAction.text}
+      </p>
     </div>
 
+    <span style={styles.arrow}>→</span>
+  </a>
+
+  <a href={secondaryAction.href} style={styles.secondaryCard}>
+    <div>
+      <p style={styles.secondaryTitle}>
+        {secondaryAction.title}
+      </p>
+
+      <p style={styles.secondaryText}>
+        {secondaryAction.text}
+      </p>
+    </div>
+
+    <span style={styles.secondaryArrow}>→</span>
+  </a>
+</div>
 <footer style={styles.footer}>
   <a href="/privacy" style={styles.footerLink}>Privacy</a>
   <span style={styles.footerDivider}>•</span>
