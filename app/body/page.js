@@ -1008,42 +1008,39 @@ if (journey) {
                   </p>
                 ))}
              <div style={styles.continueJourney}>
-  <p style={styles.continueLabel}>
-    Continue your Root journey
+  <p style={styles.continueLabel}>Next step in your Root journey</p>
+
+  <h2 style={styles.continueTitle}>
+    Continue with Root Coach
+  </h2>
+
+  <p style={styles.continueText}>
+    Now that we’ve noticed where this is showing up in your body, Root Coach can help explore what may be driving the pattern.
   </p>
 
-  <div style={styles.continueGrid}>
-    <a href="/mind" style={styles.continueCard}>
-      <strong>Mind & Emotions</strong>
-      <span>
-        Explore thought pressure, emotional patterns, grounding, and nervous system support.
-      </span>
-    </a>
+  <a
+    href="/coach"
+    style={styles.continuePrimary}
+    onClick={() => {
+      const stored = localStorage.getItem("root_journey_v1");
+      const parsed = stored ? JSON.parse(stored) : {};
 
-    <a href="/coach" style={styles.continueCard}>
-      <strong>Talk with Root Coach</strong>
-      <span>
-        Continue the conversation and explore what may be driving the pattern.
-      </span>
-    </a>
-
-    <a href="/journal" style={styles.continueCard}>
-      <strong>Reflect & Journal</strong>
-      <span>
-        Begin tracking what repeats, settles, or changes over time.
-      </span>
-    </a>
-  </div>
+      localStorage.setItem(
+        "root_journey_v1",
+        JSON.stringify({
+          ...parsed,
+          currentStage: "coach",
+          completedBody: true,
+          bodyAreas: selectedItems.map((item) => item.label),
+          selectedSignal,
+          intensity,
+        })
+      );
+    }}
+  >
+    Continue to Root Coach →
+  </a>
 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </section>
-    </main>
-  </RootAtmosphere>
-);
-}
     
 
 const styles = {
@@ -1508,5 +1505,31 @@ continueCard: {
   borderRadius: "22px",
   padding: "18px",
   color: "#2A261F",
+},
+  continueTitle: {
+  margin: "0 0 10px",
+  fontFamily: "Georgia, serif",
+  fontSize: "28px",
+  fontWeight: "500",
+  color: "#2A261F",
+},
+
+continueText: {
+  margin: "0 0 18px",
+  color: "#4D463B",
+  lineHeight: "1.7",
+},
+
+continuePrimary: {
+  display: "inline-flex",
+  justifyContent: "center",
+  alignItems: "center",
+  textDecoration: "none",
+  background: "#181818",
+  color: "#FFFFFF",
+  borderRadius: "999px",
+  padding: "14px 20px",
+  fontSize: "14px",
+  fontWeight: "700",
 },
   };
