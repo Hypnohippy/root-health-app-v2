@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
+import { buildRootReflection } from "../lib/rootReflectionEngine";
 import Nav from "../components/Nav";
 
 export default function Home() {
@@ -25,6 +26,7 @@ export default function Home() {
 });
 
 const [secondaryAction, setSecondaryAction] = useState({
+const [rootReflection, setRootReflection] = useState(null); 
   href: "/coach",
   title: "Open Root Coach",
   text: "Guidance. Clarity. Support.",
@@ -51,6 +53,27 @@ if (storedJourney) {
           "Root is continuing to notice how stress,\nbody signals, and recovery patterns connect."
         );
       }
+        const storedBody =
+  JSON.parse(localStorage.getItem("root_body_entries_v1") || "[]");
+
+const storedJournal =
+  JSON.parse(localStorage.getItem("root_journal_entries_v1") || "[]");
+
+const storedMind =
+  JSON.parse(localStorage.getItem("root_mind_entries_v1") || "[]");
+
+const reflection = buildRootReflection({
+  bodySignals: storedBody,
+  journalEntries: storedJournal,
+  mindEntries: storedMind,
+  journey: parsed,
+});
+
+setRootReflection(reflection);
+
+if (reflection?.suggestedAction) {
+  setPrimaryAction(reflection.suggestedAction);
+}
 
       else if (parsed.focus === "sleep") {
         setAdaptiveTitle(
@@ -206,18 +229,18 @@ if (storedJourney) {
   ))}
 </p>
 
-    {journey?.completedInsights && (
+  {rootReflection && (
   <div style={styles.continuityCard}>
     <p style={styles.continuityLabel}>
-      Your Root journey is active
+      Root reflection
     </p>
 
+    <h2 style={styles.continuityTitle}>
+      {rootReflection.title}
+    </h2>
+
     <p style={styles.continuityText}>
-      Root is now building a deeper understanding of:
-      your nervous system,
-      emotional patterns,
-      body signals,
-      and recovery rhythms over time.
+      {rootReflection.reflection}
     </p>
   </div>
 )}     
@@ -390,6 +413,7 @@ background:
     color: "#283128",
     marginBottom: "42px",
   },
+  
 
   cardStack: {
     display: "flex",
@@ -602,5 +626,13 @@ continuityText: {
   fontSize: "18px",
   lineHeight: "1.8",
   color: "#283128",
+},
+  continuityTitle: {
+  margin: "0 0 14px",
+  fontFamily: "Georgia, serif",
+  fontSize: "30px",
+  lineHeight: "1.3",
+  color: "#1F281D",
+  fontWeight: "500",
 },
 };
