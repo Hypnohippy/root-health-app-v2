@@ -986,14 +986,16 @@ if (journey) {
             </div>
           )}
 
-        {(response || trendInsight || suggestedHelp || rankedHelp.length > 0) && (
+               {(response || trendInsight || suggestedHelp || rankedHelp.length > 0) && (
           <div style={styles.responsePanel}>
             <p style={styles.panelKicker}>Root response</p>
 
             {suggestedHelp && (
               <div style={styles.suggestionCard}>
                 Suggested focus: {suggestedHelp}
-                {confidenceScore !== null && <span style={styles.confidenceBadge}>{confidenceScore}%</span>}
+                {confidenceScore !== null && (
+                  <span style={styles.confidenceBadge}>{confidenceScore}%</span>
+                )}
               </div>
             )}
 
@@ -1007,45 +1009,44 @@ if (journey) {
                     {index + 1}. {item} ({count} {count === 1 ? "time" : "times"})
                   </p>
                 ))}
+              </div>
+            )}
+
             <div style={styles.continueJourney}>
-  <p style={styles.continueLabel}>
-    Next step in your Root journey
-  </p>
+              <p style={styles.continueLabel}>Next step in your Root journey</p>
 
-  <h2 style={styles.continueTitle}>
-    Continue with Root Coach
-  </h2>
+              <h2 style={styles.continueTitle}>Continue with Root Coach</h2>
 
-  <p style={styles.continueText}>
-    Now that we’ve noticed where this is showing up in your body, Root Coach can help explore what may be driving the pattern.
-  </p>
+              <p style={styles.continueText}>
+                Now that we’ve noticed where this is showing up in your body,
+                Root Coach can help explore what may be driving the pattern.
+              </p>
 
-  <a
-    href="/coach"
-    style={styles.continuePrimary}
-    onClick={() => {
-      const stored = localStorage.getItem("root_journey_v1");
+              <a
+                href="/coach"
+                style={styles.continuePrimary}
+                onClick={() => {
+                  const stored = localStorage.getItem("root_journey_v1");
+                  const parsed = stored ? JSON.parse(stored) : {};
 
-      const parsed = stored
-        ? JSON.parse(stored)
-        : {};
-
-      localStorage.setItem(
-        "root_journey_v1",
-        JSON.stringify({
-          ...parsed,
-          currentStage: "coach",
-          completedBody: true,
-          bodyAreas: selectedItems.map((item) => item.label),
-          selectedSignal,
-          intensity,
-        })
-      );
-    }}
-  >
-     Continue to Root Coach →
-  </a>
-</div>
+                  localStorage.setItem(
+                    "root_journey_v1",
+                    JSON.stringify({
+                      ...parsed,
+                      currentStage: "coach",
+                      completedBody: true,
+                      bodyAreas: selectedItems.map((item) => item.label),
+                      selectedSignal,
+                      intensity,
+                    })
+                  );
+                }}
+              >
+                Continue to Root Coach →
+              </a>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   </RootAtmosphere>
