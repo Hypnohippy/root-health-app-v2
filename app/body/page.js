@@ -1046,8 +1046,6 @@ if (journey) {
      Continue to Root Coach →
   </a>
 </div>
-          </div>
-        )}
       </section>
     </main>
   </RootAtmosphere>
