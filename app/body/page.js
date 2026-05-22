@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
@@ -492,9 +492,60 @@ export default function BodyPage() {
   const [trendInsight, setTrendInsight] = useState("");
   const [saving, setSaving] = useState(false);
   const [journeyStep, setJourneyStep] = useState("body");
+  const [journey, setJourney] = useState(null);
+  const [journeyIntro, setJourneyIntro] = useState("");
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
+  useEffect(() => {
+  const stored = localStorage.getItem("root_journey_v1");
+
+  if (!stored) return;
+
+  try {
+    const parsed = JSON.parse(stored);
+
+    setJourney(parsed);
+
+    if (parsed.focus === "anxiety") {
+      setJourneyIntro(
+        "We’re beginning by exploring how anxiety may be showing up in your body."
+      );
+    }
+
+    else if (parsed.focus === "sleep") {
+      setJourneyIntro(
+        "Sleep disruption often begins with nervous system overload and body tension."
+      );
+    }
+
+    else if (parsed.focus === "body") {
+      setJourneyIntro(
+        "Let’s gently explore where your body seems to be carrying pressure."
+      );
+    }
+
+    else if (parsed.focus === "thoughts") {
+      setJourneyIntro(
+        "Thought pressure often affects the body before we fully notice the mental load."
+      );
+    }
+
+    else if (parsed.focus === "heavy") {
+      setJourneyIntro(
+        "Emotional heaviness can affect energy, tension, digestion, and nervous system balance."
+      );
+    }
+
+    else if (parsed.focus === "patterns") {
+      setJourneyIntro(
+        "We’re beginning by listening to the body first, because patterns often appear there early."
+      );
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}, []);
 
   const resetLearningUI = () => {
     setResponse("");
@@ -662,7 +713,22 @@ message += `\n\nA practical next step could be:`;
     }
 
     setRankedHelp(ranked);
+    
+if (journey) {
+  const updatedJourney = {
+    ...journey,
+    bodyAreas: selectedItems.map((item) => item.label),
+    selectedSignal,
+    intensity,
+    completedBody: true,
+    nextSuggested: "mind",
+  };
 
+  localStorage.setItem(
+    "root_journey_v1",
+    JSON.stringify(updatedJourney)
+  );
+}
     const entryToSave = {
       areas: selectedItems.map((item) => item.label),
       system: selectedItems.map((item) => item.system).join(", "),
@@ -714,6 +780,20 @@ message += `\n\nA practical next step could be:`;
       </header>
 
       <section style={styles.stage}>
+  {journeyIntro && (
+  <div style={styles.journeyBanner}>
+    <p style={styles.journeyLabel}>Your Root Journey</p>
+
+    <h2 style={styles.journeyTitle}>
+      {journeyIntro}
+    </h2>
+
+    <p style={styles.journeyText}>
+      Begin by noticing where your system feels the strongest signal right now.
+      Root will guide you forward from there.
+    </p>
+  </div>
+)}
         <div style={styles.bodyPanel}>
           <h1 style={styles.title}>
             {current ? current.label : "Where are you feeling it today?"}
@@ -927,6 +1007,34 @@ message += `\n\nA practical next step could be:`;
                     {index + 1}. {item} ({count} {count === 1 ? "time" : "times"})
                   </p>
                 ))}
+             <div style={styles.continueJourney}>
+  <p style={styles.continueLabel}>
+    Continue your Root journey
+  </p>
+
+  <div style={styles.continueGrid}>
+    <a href="/mind" style={styles.continueCard}>
+      <strong>Mind & Emotions</strong>
+      <span>
+        Explore thought pressure, emotional patterns, grounding, and nervous system support.
+      </span>
+    </a>
+
+    <a href="/coach" style={styles.continueCard}>
+      <strong>Talk with Root Coach</strong>
+      <span>
+        Continue the conversation and explore what may be driving the pattern.
+      </span>
+    </a>
+
+    <a href="/journal" style={styles.continueCard}>
+      <strong>Reflect & Journal</strong>
+      <span>
+        Begin tracking what repeats, settles, or changes over time.
+      </span>
+    </a>
+  </div>
+</div>
               </div>
             )}
           </div>
@@ -1334,4 +1442,71 @@ sensesConnectorLine: {
     paddingTop: "18px",
     borderTop: "1px solid rgba(0,0,0,0.1)",
   },
+  journeyBanner: {
+  gridColumn: "1 / -1",
+  maxWidth: "980px",
+  margin: "0 auto 18px",
+  padding: "28px",
+  borderRadius: "32px",
+  background: "rgba(255,255,255,0.18)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(24px)",
+  textAlign: "center",
+},
+
+journeyLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "rgba(255,255,255,0.82)",
+  fontWeight: "800",
+},
+
+journeyTitle: {
+  margin: "0 0 12px",
+  fontFamily: "Georgia, serif",
+  fontSize: "34px",
+  fontWeight: "500",
+  color: "#FFFFFF",
+},
+
+journeyText: {
+  margin: 0,
+  color: "rgba(255,255,255,0.78)",
+  lineHeight: "1.8",
+  fontSize: "16px",
+},
+
+continueJourney: {
+  marginTop: "28px",
+  paddingTop: "24px",
+  borderTop: "1px solid rgba(0,0,0,0.08)",
+},
+
+continueLabel: {
+  marginBottom: "16px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#776C5B",
+  fontWeight: "800",
+},
+
+continueGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+  gap: "14px",
+},
+
+continueCard: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+  textDecoration: "none",
+  background: "rgba(255,255,255,0.72)",
+  borderRadius: "22px",
+  padding: "18px",
+  color: "#2A261F",
+},
   };
