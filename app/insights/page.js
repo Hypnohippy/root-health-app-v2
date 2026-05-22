@@ -31,10 +31,22 @@ export default function InsightsPage() {
   const [bodySignals, setBodySignals] = useState([]);
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
+  const [journey, setJourney] = useState(null);
 
-  useEffect(() => {
-    loadInsights();
-  }, []);
+ useEffect(() => {
+  loadInsights();
+
+  const stored = localStorage.getItem("root_journey_v1");
+
+  if (!stored) return;
+
+  try {
+    const parsed = JSON.parse(stored);
+    setJourney(parsed);
+  } catch (err) {
+    console.log(err);
+  }
+}, []);
 
   const loadInsights = async () => {
     const { data: bodyData } = await supabase
@@ -131,7 +143,23 @@ export default function InsightsPage() {
           <p style={styles.subtitle}>
             A gentle pattern map built from your body signals, mind tools, and journal reflections.
           </p>
+    
+          {journey?.currentStage === "insights" && (
+  <div style={styles.journeyReveal}>
+    <p style={styles.journeyLabel}>
+      Your first Root journey
+    </p>
 
+    <h2 style={styles.journeyTitle}>
+      Root is beginning to connect the signals from your journey.
+    </h2>
+
+    <p style={styles.journeyText}>
+      Your body signals, emotional reflections, nervous system patterns,
+      and support tools are beginning to form a gentle wellbeing map.
+    </p>
+  </div>
+)}
           <div style={styles.heroCard}>
             <p style={styles.kicker}>Current pattern</p>
             <h2 style={styles.heroText}>{insights.mainObservation}</h2>
@@ -208,6 +236,50 @@ export default function InsightsPage() {
               mind tools, and journal reflections together.
             </p>
           </div>
+                {journey?.currentStage === "insights" && (
+  <div style={styles.completePanel}>
+    <p style={styles.completeLabel}>
+      Root journey complete
+    </p>
+
+    <h2 style={styles.completeTitle}>
+      Your Root homepage is ready.
+    </h2>
+
+    <p style={styles.completeText}>
+      Root will now continue learning gently from:
+      your body check-ins,
+      emotional reflections,
+      nervous system patterns,
+      and recovery journey over time.
+    </p>
+
+    <a
+      href="/"
+      style={styles.completeButton}
+      onClick={() => {
+        const updatedJourney = {
+          ...journey,
+          completedInsights: true,
+          onboardingComplete: true,
+          currentStage: "complete",
+        };
+
+        localStorage.setItem(
+          "root_journey_v1",
+          JSON.stringify(updatedJourney)
+        );
+
+        localStorage.setItem(
+          "root_orientation_complete_v1",
+          "true"
+        );
+      }}
+    >
+      Enter My Root Homepage →
+    </a>
+  </div>
+)}
         </section>
         </main>
 </RootAtmosphere>
@@ -417,4 +489,81 @@ logoWrap: {
     color: "#555",
     lineHeight: "1.7",
   },
+  journeyReveal: {
+  marginBottom: "24px",
+  background: "rgba(24,24,24,0.44)",
+  borderRadius: "34px",
+  padding: "32px",
+  color: "#FFFFFF",
+  border: "1px solid rgba(255,255,255,0.16)",
+  backdropFilter: "blur(18px)",
+},
+
+journeyLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "rgba(255,255,255,0.72)",
+  fontWeight: "800",
+},
+
+journeyTitle: {
+  margin: "0 0 14px",
+  fontFamily: "Georgia, serif",
+  fontSize: "34px",
+  lineHeight: "1.25",
+  fontWeight: "500",
+},
+
+journeyText: {
+  margin: 0,
+  lineHeight: "1.85",
+  color: "rgba(255,255,255,0.82)",
+},
+
+completePanel: {
+  marginTop: "24px",
+  background: "rgba(255,255,255,0.56)",
+  borderRadius: "34px",
+  padding: "30px",
+  border: "1px solid rgba(255,255,255,0.72)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+completeLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#776C5B",
+  fontWeight: "800",
+},
+
+completeTitle: {
+  margin: "0 0 14px",
+  fontFamily: "Georgia, serif",
+  fontSize: "32px",
+  fontWeight: "500",
+  color: "#2A261F",
+},
+
+completeText: {
+  margin: "0 0 20px",
+  lineHeight: "1.8",
+  color: "#4D463B",
+},
+
+completeButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  background: "#181818",
+  color: "#FFFFFF",
+  borderRadius: "999px",
+  padding: "14px 22px",
+  fontSize: "14px",
+  fontWeight: "700",
+},
 };
