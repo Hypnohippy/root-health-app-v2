@@ -1043,13 +1043,18 @@ if (journey) {
       );
     }}
   >
-    Continue to Root Coach →
+     Continue to Root Coach →
   </a>
 </div>
- )}   
+          </div>
+        )}
+      </section>
+    </main>
+  </RootAtmosphere>
+);
+}
 
-const styles = {
-  page: {
+const styles = {  page: {
     minHeight: "100vh",
     position: "relative",
     overflow: "hidden",
