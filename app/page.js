@@ -10,8 +10,61 @@ export default function Home() {
   const [balanceScore, setBalanceScore] = useState(null);
   const [patternNote, setPatternNote] = useState("");
   const [trendNote, setTrendNote] = useState("");
+  const [journey, setJourney] = useState(null);
+  const [adaptiveGreeting, setAdaptiveGreeting] = useState("Welcome back");
+  const [adaptiveTitle, setAdaptiveTitle] = useState(
+  "How are you\nfeeling today?"
+);
+  const [adaptiveSubtitle, setAdaptiveSubtitle] = useState(
+  "Listen to your body.\nUnderstand the pattern.\nReturn to balance."
+);
   useEffect(() => {
   if (typeof window === "undefined") return;
+  const storedJourney = localStorage.getItem("root_journey_v1");
+
+if (storedJourney) {
+  try {
+    const parsed = JSON.parse(storedJourney);
+
+    setJourney(parsed);
+
+    if (parsed.completedInsights) {
+      setAdaptiveGreeting("Welcome back to Root");
+
+      if (parsed.focus === "anxiety") {
+        setAdaptiveTitle(
+          "Continue gently\nwith your\nnervous system."
+        );
+
+        setAdaptiveSubtitle(
+          "Root is continuing to notice how stress,\nbody signals, and recovery patterns connect."
+        );
+      }
+
+      else if (parsed.focus === "sleep") {
+        setAdaptiveTitle(
+          "Support your\nrecovery and\nrest."
+        );
+
+        setAdaptiveSubtitle(
+          "Root is helping you understand sleep,\nrecovery load, and nervous system balance."
+        );
+      }
+
+      else {
+        setAdaptiveTitle(
+          "Your Root\njourney is\ncontinuing."
+        );
+
+        setAdaptiveSubtitle(
+          "Root is gently learning from your body,\nreflections, and emotional patterns over time."
+        );
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
 
   const completed = localStorage.getItem("root_orientation_complete_v1");
 
@@ -84,23 +137,43 @@ export default function Home() {
             </div>
           </div>
 
-          <p style={styles.welcome}>Welcome back</p>
+          <p style={styles.welcome}>
+  {adaptiveGreeting}
+</p>
 
-          <h1 style={styles.title}>
-            How are you
-            <br />
-            feeling today?
-          </h1>
-
+         <h1 style={styles.title}>
+  {adaptiveTitle.split("\n").map((line, index) => (
+    <span key={index}>
+      {line}
+      <br />
+    </span>
+  ))}
+</h1>
           <p style={styles.subtitle}>
-            Listen to your body.
-            <br />
-            Understand the pattern.
-            <br />
-            Return to balance.
-          </p>
+  {adaptiveSubtitle.split("\n").map((line, index) => (
+    <span key={index}>
+      {line}
+      <br />
+    </span>
+  ))}
+</p>
 
-          <div style={styles.cardStack}>
+    {journey?.completedInsights && (
+  <div style={styles.continuityCard}>
+    <p style={styles.continuityLabel}>
+      Your Root journey is active
+    </p>
+
+    <p style={styles.continuityText}>
+      Root is now building a deeper understanding of:
+      your nervous system,
+      emotional patterns,
+      body signals,
+      and recovery rhythms over time.
+    </p>
+  </div>
+)}     
+  <div style={styles.cardStack}>
   <a href="/body" style={styles.primaryCard}>
     <div>
       <p style={styles.cardTitle}>Start Body Check</p>
@@ -445,5 +518,32 @@ footerLink: {
 footerDivider: {
   color: "rgba(255,255,255,0.36)",
   fontSize: "12px",
+},
+  continuityCard: {
+  maxWidth: "720px",
+  marginBottom: "28px",
+  padding: "26px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.18)",
+  border: "1px solid rgba(255,255,255,0.28)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.10)",
+},
+
+continuityLabel: {
+  margin: "0 0 12px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+continuityText: {
+  margin: 0,
+  fontSize: "18px",
+  lineHeight: "1.8",
+  color: "#283128",
 },
 };
