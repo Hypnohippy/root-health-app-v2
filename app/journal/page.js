@@ -114,13 +114,26 @@ export default function JournalPage() {
   const [entries, setEntries] = useState([]);
   const [openEntry, setOpenEntry] = useState(null);
   const [selectedCheckIn, setSelectedCheckIn] = useState(null);
+  const [journey, setJourney] = useState(null);
+  const [showJourneyInsights, setShowJourneyInsights] = useState(false);
 
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
 
   useEffect(() => {
-    loadEntries();
-  }, []);
+  loadEntries();
+
+  const stored = localStorage.getItem("root_journey_v1");
+
+  if (!stored) return;
+
+  try {
+    const parsed = JSON.parse(stored);
+    setJourney(parsed);
+  } catch (err) {
+    console.log(err);
+  }
+}, []);
 
   const loadEntries = async () => {
     const { data } = await supabase
@@ -195,6 +208,21 @@ export default function JournalPage() {
     }
 
     setSaved(true);
+    if (journey && journey.currentStage === "journal") {
+  const updatedJourney = {
+    ...journey,
+    completedJournal: true,
+    currentStage: "insights",
+  };
+
+  localStorage.setItem(
+    "root_journey_v1",
+    JSON.stringify(updatedJourney)
+  );
+
+  setJourney(updatedJourney);
+  setShowJourneyInsights(true);
+}
     setPatternResult(pattern);
     setResponses({});
     setStep(0);
@@ -213,6 +241,25 @@ export default function JournalPage() {
            <div style={styles.logoWrap}>
   <RootEnso size={86} />
 </div>
+    {journey?.currentStage === "journal" && (
+  <div style={styles.journeyBanner}>
+    <p style={styles.journeyLabel}>
+      Continuing your Root journey
+    </p>
+
+    <h2 style={styles.journeyTitle}>
+      Begin noticing the deeper patterns.
+    </h2>
+
+    <p style={styles.journeyText}>
+      Try reflecting on:
+      what seems to trigger this,
+      when it becomes louder,
+      what softens it,
+      and what your system may be asking for.
+    </p>
+  </div>
+)}
             <p style={styles.kicker}>Root Reflection</p>
             <h1 style={styles.title}>Journal</h1>
             <p style={styles.subtitle}>
@@ -323,6 +370,32 @@ export default function JournalPage() {
               </p>
             </div>
           )}
+                  {showJourneyInsights && (
+  <div style={styles.nextJourneyPanel}>
+    <p style={styles.journeyLabel}>
+      Root is beginning to notice patterns
+    </p>
+
+    <h2 style={styles.nextJourneyTitle}>
+      View your Root Insights
+    </h2>
+
+    <p style={styles.nextJourneyText}>
+      Root is beginning to connect:
+      body tension,
+      emotional load,
+      nervous system stress,
+      and recovery patterns across your journey.
+    </p>
+
+    <a
+      href="/insights"
+      style={styles.nextJourneyButton}
+    >
+      Continue to Insights →
+    </a>
+  </div>
+)}
 
           <div style={styles.historyPanel}>
             <div style={styles.historyHeader}>
@@ -694,4 +767,71 @@ logoWrap: {
     whiteSpace: "pre-line",
     lineHeight: "1.75",
   },
+  journeyBanner: {
+  marginBottom: "22px",
+  background: "rgba(24,24,24,0.48)",
+  borderRadius: "32px",
+  padding: "30px",
+  color: "#FFFFFF",
+  border: "1px solid rgba(255,255,255,0.14)",
+  backdropFilter: "blur(16px)",
+},
+
+journeyLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "rgba(255,255,255,0.72)",
+  fontWeight: "800",
+},
+
+journeyTitle: {
+  margin: "0 0 12px",
+  fontFamily: "Georgia, serif",
+  fontSize: "34px",
+  fontWeight: "500",
+},
+
+journeyText: {
+  margin: 0,
+  lineHeight: "1.85",
+  color: "rgba(255,255,255,0.84)",
+},
+
+nextJourneyPanel: {
+  marginTop: "24px",
+  background: "rgba(255,255,255,0.58)",
+  borderRadius: "30px",
+  padding: "28px",
+  border: "1px solid rgba(255,255,255,0.72)",
+  boxShadow: "0 18px 48px rgba(43,38,30,0.08)",
+},
+
+nextJourneyTitle: {
+  margin: "0 0 12px",
+  fontFamily: "Georgia, serif",
+  fontSize: "30px",
+  fontWeight: "500",
+  color: "#2A261F",
+},
+
+nextJourneyText: {
+  margin: "0 0 18px",
+  lineHeight: "1.8",
+  color: "#4D463B",
+},
+
+nextJourneyButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  background: "#181818",
+  color: "#FFFFFF",
+  borderRadius: "999px",
+  padding: "14px 20px",
+  fontSize: "14px",
+  fontWeight: "700",
+},
 };
