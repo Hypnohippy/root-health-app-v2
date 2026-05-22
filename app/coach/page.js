@@ -118,6 +118,8 @@ const [thinking, setThinking] = useState(false);
 const [voiceState, setVoiceState] = useState("ready");
 const [voiceEnergy, setVoiceEnergy] = useState(0);
 const [voiceTranscript, setVoiceTranscript] = useState("");
+  const [journey, setJourney] = useState(null);
+const [showJourneyNext, setShowJourneyNext] = useState(false);
  
   const bottomRef = useRef(null);
 const peerConnectionRef = useRef(null);
@@ -128,6 +130,18 @@ const analyserRef = useRef(null);
 const animationFrameRef = useRef(null);
   useEffect(() => {
     const load = async () => {
+      const storedJourney = localStorage.getItem("root_journey_v1");
+
+let parsedJourney = null;
+
+if (storedJourney) {
+  try {
+    parsedJourney = JSON.parse(storedJourney);
+    setJourney(parsedJourney);
+  } catch (err) {
+    console.log(err);
+  }
+}
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
@@ -176,17 +190,40 @@ const animationFrameRef = useRef(null);
       setJournalEntries(journalRows);
       setMindEntries(Array.isArray(mindData) ? mindData : []);
 
-      setMessages([
-        {
-          role: "coach",
-          content: buildWelcome(
-            displayName,
-            rows,
-            Array.isArray(mindData) ? mindData : [],
-            journalRows
-          ),
-        },
-      ]);
+     const baseWelcome = buildWelcome(
+  displayName,
+  rows,
+  Array.isArray(mindData) ? mindData : [],
+  journalRows
+);
+
+if (
+  parsedJourney &&
+  parsedJourney.currentStage === "coach"
+) {
+  const bodyAreas = Array.isArray(parsedJourney.bodyAreas)
+    ? parsedJourney.bodyAreas.join(", ")
+    : "your body";
+
+  const focus = parsedJourney.focus || "stress";
+
+  setMessages([
+    {
+      role: "coach",
+      content:
+        `We’re continuing your Root journey.\n\n` +
+        `You mentioned ${focus} and signals around ${bodyAreas}.\n\n` +
+        `Let’s gently explore what may be contributing to that pattern.`,
+    },
+  ]);
+} else {
+  setMessages([
+    {
+      role: "coach",
+      content: baseWelcome,
+    },
+  ]);
+}
     };
 
     load();
@@ -264,7 +301,22 @@ const escalation = json.coachEscalation || null;
         { role: "coach", content: "Something interrupted my response, but I’m still here." },
       ]);
     }
+if (journey && journey.currentStage === "coach") {
+  setShowJourneyNext(true);
 
+  const updatedJourney = {
+    ...journey,
+    completedCoach: true,
+    currentStage: "journal",
+  };
+
+  localStorage.setItem(
+    "root_journey_v1",
+    JSON.stringify(updatedJourney)
+  );
+
+  setJourney(updatedJourney);
+}
     setThinking(false);
     setVoiceState("ready");
   };
@@ -701,7 +753,30 @@ setVoiceEnergy(0);
 
             <div ref={bottomRef} />
           </div>
+{showJourneyNext && (
+  <div style={styles.journeyNextPanel}>
+    <p style={styles.journeyNextLabel}>
+      Continue your Root journey
+    </p>
 
+    <h2 style={styles.journeyNextTitle}>
+      Begin noticing the deeper patterns.
+    </h2>
+
+    <p style={styles.journeyNextText}>
+      Journaling can help Root understand:
+      emotional triggers, nervous system load,
+      repeated thoughts, and recovery patterns over time.
+    </p>
+
+    <a
+      href="/journal"
+      style={styles.journeyNextButton}
+    >
+      Continue to Journal →
+    </a>
+  </div>
+)}
           <div style={styles.quickRow}>
             {[
               "What patterns do you notice?",
@@ -1167,5 +1242,50 @@ coachEscalationButton: {
   color: "#FFFFFF",
   cursor: "pointer",
   fontSize: "13px",
+},
+  journeyNextPanel: {
+  marginBottom: "22px",
+  padding: "28px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.58)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  backdropFilter: "blur(14px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+journeyNextLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#776C5B",
+  fontWeight: "800",
+},
+
+journeyNextTitle: {
+  margin: "0 0 12px",
+  fontFamily: "Georgia, serif",
+  fontSize: "30px",
+  fontWeight: "500",
+  color: "#2A261F",
+},
+
+journeyNextText: {
+  margin: "0 0 18px",
+  color: "#4D463B",
+  lineHeight: "1.8",
+},
+
+journeyNextButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  background: "#181818",
+  color: "#FFFFFF",
+  borderRadius: "999px",
+  padding: "14px 20px",
+  fontSize: "14px",
+  fontWeight: "700",
 },
 };
