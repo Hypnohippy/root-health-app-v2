@@ -26,12 +26,12 @@ export default function Home() {
 });
 
 const [secondaryAction, setSecondaryAction] = useState({
-const [rootReflection, setRootReflection] = useState(null); 
   href: "/coach",
   title: "Open Root Coach",
   text: "Guidance. Clarity. Support.",
 });
-  useEffect(() => {
+
+const [rootReflection, setRootReflection] = useState(null);  useEffect(() => {
   if (typeof window === "undefined") return;
   const storedJourney = localStorage.getItem("root_journey_v1");
 
