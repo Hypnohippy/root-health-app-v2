@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
+import { buildRootReflection } from "../../lib/rootReflectionEngine";
 function countBy(items, key) {
   const counts = {};
 
