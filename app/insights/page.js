@@ -49,27 +49,14 @@ export default function InsightsPage() {
     console.log(err);
   }
 }, []);
- const reflection = buildRootReflection({
-  bodySignals:
-    typeof bodyEntries !== "undefined"
-      ? bodyEntries
-      : [],
-
-  journalEntries:
-    typeof journalEntries !== "undefined"
-      ? journalEntries
-      : [],
-
-  mindEntries:
-    typeof mindEntries !== "undefined"
-      ? mindEntries
-      : [],
-
-  journey: parsed,
+const reflection = buildRootReflection({
+  bodySignals: bodySignals || [],
+  journalEntries: journalEntries || [],
+  mindEntries: mindEntries || [],
+  journey: journey || null,
 });
 
 setRootReflection(reflection);
-
   const loadInsights = async () => {
     const { data: bodyData } = await supabase
       .from("body_signals")
