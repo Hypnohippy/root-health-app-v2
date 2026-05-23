@@ -185,19 +185,23 @@ const crisisDetected =
   lowerMessage.includes("cannot go on") ||
   lowerMessage.includes("everyone would be better without me") ||
   lowerMessage.includes("i want to disappear");
+  lowerMessage.includes("suicidal") ||
+lowerMessage.includes("i feel suicidal") ||
+lowerMessage.includes("thinking of ending it") ||
+lowerMessage.includes("don’t want to be here") ||
+lowerMessage.includes("dont want to be here") ||
+lowerMessage.includes("better off dead") ||
     if (crisisDetected) {
-  return Response.json({
-    reply:
-      "I’m really glad you said this out loud.\n\n" +
-      "You do not need to carry this on your own right now.\n\n" +
-      "For the moment, focus only on getting through the next few minutes, not solving everything.\n\n" +
-      "If you feel at immediate risk of harming yourself, call emergency services or go to the nearest emergency department.\n\n" +
-      "In the UK and ROI you can contact Samaritans any time on 116 123.\n\n" +
-      "If possible, reach out to a trusted human being and let them know things feel heavy right now.",
-    
-    reflectiveOptions: [
-      "Ground with the present moment",
-      "Reach out to human support",
+  return Response.json({reply:
+  "I’m really glad you said this out loud.\n\n" +
+  "This is a safety moment, not something to sit with alone.\n\n" +
+  "If you feel at immediate risk of harming yourself, please call 999 now or go to A&E.\n\n" +
+  "If you are in the UK or ROI, Samaritans are available 24/7 on 116 123.\n\n" +
+  "You can also contact NHS 111 if you need urgent mental health support but are not in immediate danger.\n\n" +
+  "For the next few minutes, move close to another person if you can, or message someone you trust: “I’m not safe on my own right now. Can you stay with me?”\n\n" +
+  "Stay with the next minute only. You do not need to solve your life right now.",
+reflectiveOptions: [],
+crisisMode: true,
     ],
 
     crisisMode: true,
