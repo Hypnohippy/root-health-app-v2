@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 function countBy(items, key) {
   const counts = {};
@@ -32,6 +33,7 @@ export default function InsightsPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [journey, setJourney] = useState(null);
+  const [rootReflection, setRootReflection] = useState(null);
 
  useEffect(() => {
   loadInsights();
@@ -47,6 +49,14 @@ export default function InsightsPage() {
     console.log(err);
   }
 }, []);
+  const reflection = buildRootReflection({
+  bodySignals: bodyEntries || [],
+  journalEntries: journalEntries || [],
+  mindEntries: mindEntries || [],
+  journey: parsed,
+});
+
+setRootReflection(reflection);
 
   const loadInsights = async () => {
     const { data: bodyData } = await supabase
@@ -160,12 +170,28 @@ export default function InsightsPage() {
     </p>
   </div>
 )}
-          <div style={styles.heroCard}>
-            <p style={styles.kicker}>Current pattern</p>
-            <h2 style={styles.heroText}>{insights.mainObservation}</h2>
-            <p style={styles.heroSub}>{insights.suggestedFocus}</p>
-          </div>
+         {rootReflection && (
+  <div style={styles.heroCard}>
+    <p style={styles.heroLabel}>
+      Root reflection
+    </p>
 
+    <h2 style={styles.heroTitle}>
+      {rootReflection.title}
+    </h2>
+
+    <p style={styles.heroText}>
+      {rootReflection.reflection}
+    </p>
+
+    <a
+      href={rootReflection.suggestedAction.href}
+      style={styles.heroButton}
+    >
+      {rootReflection.suggestedAction.title} →
+    </a>
+  </div>
+)}
           <div style={styles.grid}>
             <InsightCard
               title="Body signals"
@@ -390,6 +416,19 @@ logoWrap: {
     lineHeight: "1.7",
     opacity: 0.85,
   },
+  heroButton: {
+  marginTop: "18px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  background: "#181818",
+  color: "#FFFFFF",
+  borderRadius: "999px",
+  padding: "14px 20px",
+  fontSize: "14px",
+  fontWeight: "700",
+},
 
   grid: {
     display: "grid",
