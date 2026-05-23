@@ -172,7 +172,6 @@ export async function POST(req) {
   coachMode,
 } = body;
     const clean = String(message || "").trim();
-    const lowerMessage = clean.toLowerCase();
 
 const lowerMessage = clean.toLowerCase();
 
