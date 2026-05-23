@@ -45,7 +45,7 @@ export default function InsightsPage() {
   try {
     const parsed = JSON.parse(stored);
     setJourney(parsed);
-    const reflection = buildRootReflection({
+    const reflection = buildRootReflection({ 
   bodySignals: bodySignals || [],
   journalEntries: journalEntries || [],
   mindEntries: mindEntries || [],
