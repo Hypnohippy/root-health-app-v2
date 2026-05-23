@@ -192,6 +192,39 @@ const crisisDetected =
   lowerMessage.includes("don’t want to be here") ||
   lowerMessage.includes("dont want to be here") ||
   lowerMessage.includes("better off dead");
+    let emotionalState = "steady";
+
+if (
+  lowerMessage.includes("stressed") ||
+  lowerMessage.includes("burnt out") ||
+  lowerMessage.includes("overthinking") ||
+  lowerMessage.includes("anxious")
+) {
+  emotionalState = "stressed";
+}
+
+if (
+  lowerMessage.includes("overwhelmed") ||
+  lowerMessage.includes("panic") ||
+  lowerMessage.includes("cant cope") ||
+  lowerMessage.includes("can't cope") ||
+  lowerMessage.includes("breaking down")
+) {
+  emotionalState = "overwhelmed";
+}
+
+if (
+  lowerMessage.includes("hopeless") ||
+  lowerMessage.includes("empty") ||
+  lowerMessage.includes("numb") ||
+  lowerMessage.includes("worthless")
+) {
+  emotionalState = "distressed";
+}
+
+if (crisisDetected) {
+  emotionalState = "crisis";
+}
 
 if (crisisDetected) {
   return Response.json({
