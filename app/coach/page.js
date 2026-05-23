@@ -118,6 +118,7 @@ const [thinking, setThinking] = useState(false);
 const [voiceState, setVoiceState] = useState("ready");
 const [voiceEnergy, setVoiceEnergy] = useState(0);
 const [voiceTranscript, setVoiceTranscript] = useState("");
+  const [emotionalState, setEmotionalState] = useState("steady");
   const [journey, setJourney] = useState(null);
 const [showJourneyNext, setShowJourneyNext] = useState(false);
  
@@ -284,6 +285,7 @@ const options = Array.isArray(json.reflectiveOptions)
   : [];
 
 const escalation = json.coachEscalation || null;
+      setEmotionalState(json.emotionalState || "steady");
       setMessages((prev) => [
         ...prev,
        {
@@ -517,8 +519,28 @@ setVoiceEnergy(0);
   const suggestedModeId = signalToCoach[latestSignal];
   const suggestedMode = coachModes.find((mode) => mode.id === suggestedModeId);
   const currentAtmosphere =
-  modeAtmospheres[coachMode] || modeAtmospheres.default;
-
+  emotionalState === "crisis"
+    ? {
+        label: "Safety atmosphere",
+        background:
+          "linear-gradient(135deg, rgba(74,52,52,0.94), rgba(28,24,24,0.92))",
+        orbText: "Stay with the next minute only.",
+      }
+    : emotionalState === "overwhelmed"
+    ? {
+        label: "Overwhelm atmosphere",
+        background:
+          "linear-gradient(135deg, rgba(90,84,74,0.92), rgba(52,48,42,0.88))",
+        orbText: "Reduce pressure. Slow everything down.",
+      }
+    : emotionalState === "distressed"
+    ? {
+        label: "Distress atmosphere",
+        background:
+          "linear-gradient(135deg, rgba(88,74,68,0.92), rgba(45,40,38,0.88))",
+        orbText: "Your system may need safety before solutions.",
+      }
+    : modeAtmospheres[coachMode] || modeAtmospheres.default;
  return (
   <RootAtmosphere
   type={
