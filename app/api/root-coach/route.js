@@ -1370,7 +1370,9 @@ return Response.json({
   reply,
   reflectiveOptions,
   coachEscalation,
-});  } catch (err) {
+  emotionalState,
+}); 
+  } catch (err) {
     console.error("ROOT COACH ERROR:", err);
 
     return Response.json({
