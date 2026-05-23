@@ -172,6 +172,37 @@ export async function POST(req) {
   coachMode,
 } = body;
     const clean = String(message || "").trim();
+    const lowerMessage = clean.toLowerCase();
+
+const crisisDetected =
+  lowerMessage.includes("kill myself") ||
+  lowerMessage.includes("want to die") ||
+  lowerMessage.includes("end my life") ||
+  lowerMessage.includes("suicide") ||
+  lowerMessage.includes("hurt myself") ||
+  lowerMessage.includes("self harm") ||
+  lowerMessage.includes("can't go on") ||
+  lowerMessage.includes("cannot go on") ||
+  lowerMessage.includes("everyone would be better without me") ||
+  lowerMessage.includes("i want to disappear");
+    if (crisisDetected) {
+  return Response.json({
+    reply:
+      "I’m really glad you said this out loud.\n\n" +
+      "You do not need to carry this on your own right now.\n\n" +
+      "For the moment, focus only on getting through the next few minutes, not solving everything.\n\n" +
+      "If you feel at immediate risk of harming yourself, call emergency services or go to the nearest emergency department.\n\n" +
+      "In the UK and ROI you can contact Samaritans any time on 116 123.\n\n" +
+      "If possible, reach out to a trusted human being and let them know things feel heavy right now.",
+    
+    reflectiveOptions: [
+      "Ground with the present moment",
+      "Reach out to human support",
+    ],
+
+    crisisMode: true,
+  });
+}
 
     if (!clean) {
       let reflectiveOptions = [];
