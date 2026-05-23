@@ -49,10 +49,22 @@ export default function InsightsPage() {
     console.log(err);
   }
 }, []);
-  const reflection = buildRootReflection({
-  bodySignals: bodyEntries || [],
-  journalEntries: journalEntries || [],
-  mindEntries: mindEntries || [],
+ const reflection = buildRootReflection({
+  bodySignals:
+    typeof bodyEntries !== "undefined"
+      ? bodyEntries
+      : [],
+
+  journalEntries:
+    typeof journalEntries !== "undefined"
+      ? journalEntries
+      : [],
+
+  mindEntries:
+    typeof mindEntries !== "undefined"
+      ? mindEntries
+      : [],
+
   journey: parsed,
 });
 
