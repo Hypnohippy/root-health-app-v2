@@ -45,18 +45,18 @@ export default function InsightsPage() {
   try {
     const parsed = JSON.parse(stored);
     setJourney(parsed);
+    const reflection = buildRootReflection({
+  bodySignals: bodySignals || [],
+  journalEntries: journalEntries || [],
+  mindEntries: mindEntries || [],
+  journey: parsed || null,
+});
+
+setRootReflection(reflection);
   } catch (err) {
     console.log(err);
   }
 }, []);
-const reflection = buildRootReflection({
-  bodySignals: bodySignals || [],
-  journalEntries: journalEntries || [],
-  mindEntries: mindEntries || [],
-  journey: journey || null,
-});
-
-setRootReflection(reflection);
   const loadInsights = async () => {
     const { data: bodyData } = await supabase
       .from("body_signals")
