@@ -7,6 +7,7 @@ import { buildRootReflection } from "../lib/rootReflectionEngine";
 import { buildLongitudinalMemory } from "../lib/rootLongitudinalEngine";
 import { buildRelationalMemory } from "../lib/rootRelationalMemory";
 import { buildProactiveCare } from "../lib/rootProactiveCare";
+import { buildDailyRhythm } from "../lib/rootDailyRhythm";
 import Nav from "../components/Nav";
 
 export default function Home() {
@@ -42,6 +43,7 @@ const [rootReflection, setRootReflection] = useState(null);
 const [longitudinalMemory, setLongitudinalMemory] = useState(null);
 const [relationalMemory, setRelationalMemory] = useState(null);
 const [proactiveCare, setProactiveCare] = useState(null);
+const [dailyRhythm, setDailyRhythm] = useState(null);
 
 useEffect(() => {
   if (typeof window === "undefined") return;
@@ -102,6 +104,11 @@ const proactive = buildProactiveCare({
 });
 
 setProactiveCare(proactive);
+const rhythm = buildDailyRhythm({
+  bodySignals: safeBody,
+});
+
+setDailyRhythm(rhythm);
 
 if (reflection?.suggestedAction) {
   setPrimaryAction(reflection.suggestedAction);
@@ -390,6 +397,29 @@ if (reflection?.suggestedAction) {
     >
       {proactiveCare.action.label}
     </a>
+  </div>
+)}
+{dailyRhythm && (
+  <div style={styles.rhythmCard}>
+    <p style={styles.rhythmLabel}>
+      Daily rhythm awareness
+    </p>
+
+    <h2 style={styles.rhythmTitle}>
+      {dailyRhythm.headline}
+    </h2>
+
+    <p style={styles.rhythmText}>
+      {dailyRhythm.reflection}
+    </p>
+
+    {dailyRhythm.strongestPeriod && (
+      <div style={styles.rhythmPeriod}>
+        Most active period:
+        {" "}
+        {dailyRhythm.strongestPeriod}
+      </div>
+    )}
   </div>
 )}
  
@@ -953,5 +983,51 @@ proactiveButton: {
   textDecoration: "none",
   fontWeight: "600",
   backdropFilter: "blur(10px)",
+},
+  rhythmCard: {
+  marginBottom: "26px",
+  padding: "28px",
+  borderRadius: "30px",
+  background:
+    "linear-gradient(135deg, rgba(255,248,240,0.72), rgba(236,228,214,0.60))",
+  border: "1px solid rgba(255,255,255,0.46)",
+  backdropFilter: "blur(14px)",
+  boxShadow: "0 20px 48px rgba(20,18,15,0.08)",
+},
+
+rhythmLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#6F665A",
+  fontWeight: "800",
+},
+
+rhythmTitle: {
+  margin: "0 0 14px",
+  fontSize: "32px",
+  lineHeight: "1.2",
+  fontFamily: "Georgia, serif",
+  fontWeight: "500",
+  color: "#2B261F",
+},
+
+rhythmText: {
+  margin: "0 0 18px",
+  lineHeight: "1.8",
+  color: "#4A433A",
+  fontSize: "18px",
+},
+
+rhythmPeriod: {
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "10px 16px",
+  borderRadius: "999px",
+  background: "rgba(255,255,255,0.52)",
+  color: "#4C453B",
+  fontSize: "14px",
+  fontWeight: "600",
 },
 };
