@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 import { buildRootReflection } from "../lib/rootReflectionEngine";
 import { buildLongitudinalMemory } from "../lib/rootLongitudinalEngine";
+import { buildRelationalMemory } from "../lib/rootRelationalMemory";
 import Nav from "../components/Nav";
 
 export default function Home() {
@@ -38,6 +39,7 @@ const [secondaryAction, setSecondaryAction] = useState({
 const [rootReflection, setRootReflection] = useState(null);
 
 const [longitudinalMemory, setLongitudinalMemory] = useState(null);
+const [relationalMemory, setRelationalMemory] = useState(null);
 
 useEffect(() => {
   if (typeof window === "undefined") return;
@@ -85,6 +87,13 @@ setRootReflection(reflection);
 });
 
 setLongitudinalMemory(memory);
+  const relational = buildRelationalMemory({
+  bodySignals: safeBody,
+  journalEntries: safeJournal,
+  mindEntries: safeMind,
+});
+
+setRelationalMemory(relational);
 
 if (reflection?.suggestedAction) {
   setPrimaryAction(reflection.suggestedAction);
@@ -329,6 +338,28 @@ if (reflection?.suggestedAction) {
     <p style={styles.trajectoryText}>
       {longitudinalMemory.trajectoryReflection}
     </p>
+  </div>
+)}
+   {relationalMemory && (
+  <div style={styles.relationshipCard}>
+    <p style={styles.relationshipLabel}>
+      Root remembers
+    </p>
+
+    <h2 style={styles.relationshipTitle}>
+      {relationalMemory.headline}
+    </h2>
+
+    <div style={styles.relationshipList}>
+      {relationalMemory.memories.map((memory, index) => (
+        <div
+          key={index}
+          style={styles.relationshipItem}
+        >
+          {memory}
+        </div>
+      ))}
+    </div>
   </div>
 )}
  
@@ -804,5 +835,46 @@ trajectoryText: {
   margin: 0,
   lineHeight: "1.7",
   color: "#4C463D",
+},
+  relationshipCard: {
+  marginBottom: "24px",
+  padding: "28px",
+  borderRadius: "30px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.62), rgba(240,232,220,0.52))",
+  border: "1px solid rgba(255,255,255,0.48)",
+  backdropFilter: "blur(16px)",
+  boxShadow: "0 18px 50px rgba(20,18,15,0.08)",
+},
+
+relationshipLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+  color: "#6F675A",
+  fontWeight: "800",
+},
+
+relationshipTitle: {
+  margin: "0 0 18px",
+  fontSize: "30px",
+  fontFamily: "Georgia, serif",
+  color: "#2B261F",
+  fontWeight: "500",
+},
+
+relationshipList: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+},
+
+relationshipItem: {
+  padding: "16px 18px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.44)",
+  color: "#433D34",
+  lineHeight: "1.7",
 },
 };
