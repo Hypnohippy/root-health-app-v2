@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 import { buildRootReflection } from "../lib/rootReflectionEngine";
+import { buildLongitudinalMemory } from "../lib/rootLongitudinalEngine";
 import Nav from "../components/Nav";
 
 export default function Home() {
@@ -31,7 +32,11 @@ const [secondaryAction, setSecondaryAction] = useState({
   text: "Guidance. Clarity. Support.",
 });
 
-const [rootReflection, setRootReflection] = useState(null);  useEffect(() => {
+const [rootReflection, setRootReflection] = useState(null);
+
+const [longitudinalMemory, setLongitudinalMemory] = useState(null);
+
+useEffect(() => {
   if (typeof window === "undefined") return;
   const storedJourney = localStorage.getItem("root_journey_v1");
 
@@ -70,6 +75,13 @@ const reflection = buildRootReflection({
 });
 
 setRootReflection(reflection);
+     const memory = buildLongitudinalMemory({
+  bodySignals: storedBody,
+  journalEntries: storedJournal,
+  mindEntries: storedMind,
+});
+
+setLongitudinalMemory(memory);
 
 if (reflection?.suggestedAction) {
   setPrimaryAction(reflection.suggestedAction);
@@ -243,7 +255,34 @@ if (reflection?.suggestedAction) {
       {rootReflection.reflection}
     </p>
   </div>
-)}     
+)} 
+{longitudinalMemory && (
+  <div style={styles.memoryCard}>
+    <p style={styles.memoryLabel}>
+      Root has noticed
+    </p>
+
+    <h2 style={styles.memoryTitle}>
+      {longitudinalMemory.headline}
+    </h2>
+
+    <p style={styles.memoryText}>
+      {longitudinalMemory.reflection}
+    </p>
+
+    {longitudinalMemory.topBodyPattern && (
+      <p style={styles.memoryMeta}>
+        Body pattern: {longitudinalMemory.topBodyPattern}
+      </p>
+    )}
+
+    {longitudinalMemory.topEmotionalTheme && (
+      <p style={styles.memoryMeta}>
+        Emotional theme: {longitudinalMemory.topEmotionalTheme}
+      </p>
+    )}
+  </div>
+)}
  <div style={styles.cardStack}>
   <a href={primaryAction.href} style={styles.primaryCard}>
     <div>
@@ -634,5 +673,44 @@ continuityText: {
   lineHeight: "1.3",
   color: "#1F281D",
   fontWeight: "500",
+},
+  memoryCard: {
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(244,236,222,0.62))",
+  border: "1px solid rgba(255,255,255,0.72)",
+  borderRadius: "30px",
+  padding: "28px",
+  marginBottom: "22px",
+  backdropFilter: "blur(14px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+memoryLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#776C5B",
+  fontWeight: "800",
+},
+
+memoryTitle: {
+  margin: "0 0 12px",
+  fontFamily: "Georgia, serif",
+  fontSize: "28px",
+  fontWeight: "500",
+  color: "#2A261F",
+},
+
+memoryText: {
+  margin: "0 0 14px",
+  color: "#4D463B",
+  lineHeight: "1.8",
+},
+
+memoryMeta: {
+  margin: "6px 0 0",
+  color: "#6F675B",
+  fontSize: "14px",
 },
 };
