@@ -6,6 +6,7 @@ import RootEnso from "../components/RootEnso";
 import { buildRootReflection } from "../lib/rootReflectionEngine";
 import { buildLongitudinalMemory } from "../lib/rootLongitudinalEngine";
 import { buildRelationalMemory } from "../lib/rootRelationalMemory";
+import { buildProactiveCare } from "../lib/rootProactiveCare";
 import Nav from "../components/Nav";
 
 export default function Home() {
@@ -40,6 +41,7 @@ const [rootReflection, setRootReflection] = useState(null);
 
 const [longitudinalMemory, setLongitudinalMemory] = useState(null);
 const [relationalMemory, setRelationalMemory] = useState(null);
+const [proactiveCare, setProactiveCare] = useState(null);
 
 useEffect(() => {
   if (typeof window === "undefined") return;
@@ -94,6 +96,12 @@ setLongitudinalMemory(memory);
 });
 
 setRelationalMemory(relational);
+const proactive = buildProactiveCare({
+  longitudinalMemory: memory,
+  relationalMemory: relational,
+});
+
+setProactiveCare(proactive);
 
 if (reflection?.suggestedAction) {
   setPrimaryAction(reflection.suggestedAction);
@@ -360,6 +368,28 @@ if (reflection?.suggestedAction) {
         </div>
       ))}
     </div>
+  </div>
+)}
+{proactiveCare && (
+  <div style={styles.proactiveCard}>
+    <p style={styles.proactiveLabel}>
+      Root suggests
+    </p>
+
+    <h2 style={styles.proactiveTitle}>
+      {proactiveCare.title}
+    </h2>
+
+    <p style={styles.proactiveText}>
+      {proactiveCare.message}
+    </p>
+
+    <a
+      href={proactiveCare.action.href}
+      style={styles.proactiveButton}
+    >
+      {proactiveCare.action.label}
+    </a>
   </div>
 )}
  
@@ -876,5 +906,52 @@ relationshipItem: {
   background: "rgba(255,255,255,0.44)",
   color: "#433D34",
   lineHeight: "1.7",
+},
+  proactiveCard: {
+  marginBottom: "26px",
+  padding: "30px",
+  borderRadius: "32px",
+  background:
+    "linear-gradient(135deg, rgba(52,72,52,0.90), rgba(78,102,76,0.86))",
+  boxShadow: "0 24px 60px rgba(18,22,18,0.18)",
+  color: "#FFF",
+},
+
+proactiveLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "rgba(255,255,255,0.72)",
+  fontWeight: "800",
+},
+
+proactiveTitle: {
+  margin: "0 0 14px",
+  fontSize: "34px",
+  lineHeight: "1.2",
+  fontFamily: "Georgia, serif",
+  fontWeight: "500",
+},
+
+proactiveText: {
+  margin: "0 0 22px",
+  lineHeight: "1.8",
+  color: "rgba(255,255,255,0.88)",
+  fontSize: "18px",
+},
+
+proactiveButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "14px 22px",
+  borderRadius: "999px",
+  background: "rgba(255,255,255,0.16)",
+  border: "1px solid rgba(255,255,255,0.22)",
+  color: "#FFF",
+  textDecoration: "none",
+  fontWeight: "600",
+  backdropFilter: "blur(10px)",
 },
 };
