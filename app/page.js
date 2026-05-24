@@ -13,6 +13,9 @@ export default function Home() {
   const [patternNote, setPatternNote] = useState("");
   const [trendNote, setTrendNote] = useState("");
   const [journey, setJourney] = useState(null);
+  const [bodySignals, setBodySignals] = useState([]);
+const [journalEntries, setJournalEntries] = useState([]);
+const [mindEntries, setMindEntries] = useState([]);
   const [adaptiveGreeting, setAdaptiveGreeting] = useState("Welcome back");
   const [adaptiveTitle, setAdaptiveTitle] = useState(
   "How are you\nfeeling today?"
@@ -156,48 +159,91 @@ if (reflection?.suggestedAction) {
   }
 }, []);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("body_signals")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
+ useEffect(() => {
+  const load = async () => {
+    const { data: bodyData } = await supabase
+      .from("body_signals")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(40);
 
-      if (!data || data.length === 0) {
-        setLatestInsight("No recent signals yet.");
-        setPatternNote("Start tracking to begin building your pattern.");
-        setTrendNote("Root Coach becomes more accurate over time.");
-        setBalanceScore(null);
-        return;
-      }
+    const { data: journalData } = await supabase
+      .from("journal_entries")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(40);
 
-      const latestAreas = data[0].areas || [];
+    const { data: mindData } = await supabase
+      .from("mind_entries")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(40);
 
-      setLatestInsight(
-        latestAreas.length > 0
-          ? `Your body has recently been signalling around ${latestAreas.join(", ")}.`
-          : "Your body has logged a recent signal."
-      );
+    const safeBody = bodyData || [];
+    const safeJournal = journalData || [];
+    const safeMind = mindData || [];
 
-      const score = Math.max(
-        20,
-        Math.min(100, 100 - data.length * 3)
-      );
+    setBodySignals(safeBody);
+    setJournalEntries(safeJournal);
+    setMindEntries(safeMind);
 
-      setBalanceScore(score);
-
+    if (safeBody.length === 0) {
+      setLatestInsight("No recent signals yet.");
       setPatternNote(
-        "Digestion and stress patterns appear to be recurring this week."
+        "Start tracking to begin building your pattern."
       );
-
       setTrendNote(
-        "Signals have been stronger in the last 24 hours."
+        "Root Coach becomes more accurate over time."
       );
-    };
+      setBalanceScore(null);
+      return;
+    }
 
-    load();
-  }, []);
+    const latestAreas = safeBody[0].areas || [];
+
+    setLatestInsight(
+      latestAreas.length > 0
+        ? `Your body has recently been signalling around ${latestAreas.join(", ")}.`
+        : "Your body has logged a recent signal."
+    );
+
+    const score = Math.max(
+      20,
+      Math.min(100, 100 - safeBody.length * 2)
+    );
+
+    setBalanceScore(score);
+
+    const reflection = buildRootReflection({
+      bodySignals: safeBody,
+      journalEntries: safeJournal,
+      mindEntries: safeMind,
+      journey,
+    });
+
+    setRootReflection(reflection);
+
+    const memory = buildLongitudinalMemory({
+      bodySignals: safeBody,
+      journalEntries: safeJournal,
+      mindEntries: safeMind,
+    });
+
+    setLongitudinalMemory(memory);
+
+    setPatternNote(
+      memory.trajectoryHeadline ||
+        "Patterns are beginning to emerge."
+    );
+
+    setTrendNote(
+      memory.trajectoryReflection ||
+        "Root is learning from your recent signals."
+    );
+  };
+
+  load();
+}, [journey]);
 
  return (
   <main style={styles.page}>
