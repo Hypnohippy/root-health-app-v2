@@ -269,7 +269,23 @@ if (reflection?.suggestedAction) {
     <p style={styles.memoryText}>
       {longitudinalMemory.reflection}
     </p>
+     
+      {longitudinalMemory.trajectoryHeadline && (
+  <div style={styles.trajectoryPanel}>
+    <p style={styles.trajectoryLabel}>
+      Trajectory awareness
+    </p>
 
+    <h3 style={styles.trajectoryTitle}>
+      {longitudinalMemory.trajectoryHeadline}
+    </h3>
+
+    <p style={styles.trajectoryText}>
+      {longitudinalMemory.trajectoryReflection}
+    </p>
+  </div>
+)}
+ 
     {longitudinalMemory.topBodyPattern && (
       <p style={styles.memoryMeta}>
         Body pattern: {longitudinalMemory.topBodyPattern}
@@ -712,5 +728,35 @@ memoryMeta: {
   margin: "6px 0 0",
   color: "#6F675B",
   fontSize: "14px",
+},
+  trajectoryPanel: {
+  marginTop: "18px",
+  padding: "18px",
+  borderRadius: "22px",
+  background: "rgba(255,255,255,0.44)",
+  border: "1px solid rgba(255,255,255,0.38)",
+},
+
+trajectoryLabel: {
+  margin: "0 0 8px",
+  fontSize: "11px",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+  color: "#6A6459",
+  fontWeight: "700",
+},
+
+trajectoryTitle: {
+  margin: "0 0 10px",
+  fontSize: "22px",
+  fontFamily: "Georgia, serif",
+  color: "#2B261F",
+  fontWeight: "500",
+},
+
+trajectoryText: {
+  margin: 0,
+  lineHeight: "1.7",
+  color: "#4C463D",
 },
 };
