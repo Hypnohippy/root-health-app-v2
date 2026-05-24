@@ -8,6 +8,7 @@ import { buildLongitudinalMemory } from "../lib/rootLongitudinalEngine";
 import { buildRelationalMemory } from "../lib/rootRelationalMemory";
 import { buildProactiveCare } from "../lib/rootProactiveCare";
 import { buildDailyRhythm } from "../lib/rootDailyRhythm";
+import { buildPriorityFeed } from "../lib/rootPriorityFeed";
 import Nav from "../components/Nav";
 
 export default function Home() {
@@ -44,6 +45,7 @@ const [longitudinalMemory, setLongitudinalMemory] = useState(null);
 const [relationalMemory, setRelationalMemory] = useState(null);
 const [proactiveCare, setProactiveCare] = useState(null);
 const [dailyRhythm, setDailyRhythm] = useState(null);
+const [priorityFeed, setPriorityFeed] = useState([]);
 
 useEffect(() => {
   if (typeof window === "undefined") return;
@@ -109,6 +111,15 @@ const rhythm = buildDailyRhythm({
 });
 
 setDailyRhythm(rhythm);
+const feed = buildPriorityFeed({
+  rootReflection: reflection,
+  longitudinalMemory: memory,
+  relationalMemory: relational,
+  proactiveCare: proactive,
+  dailyRhythm: rhythm,
+});
+
+setPriorityFeed(feed);
 
 if (reflection?.suggestedAction) {
   setPrimaryAction(reflection.suggestedAction);
@@ -435,6 +446,47 @@ if (reflection?.suggestedAction) {
       </p>
     )}
   </div>
+)}
+  {priorityFeed.length > 0 && (
+  <section style={styles.feedSection}>
+    <div style={styles.feedHeader}>
+      <p style={styles.feedEyebrow}>
+        Today in Root
+      </p>
+
+      <h2 style={styles.feedTitle}>
+        Your guided support flow
+      </h2>
+    </div>
+
+    <div style={styles.feedStack}>
+      {priorityFeed.slice(0, 3).map((card, index) => (
+        <div
+          key={`${card.type}-${index}`}
+          style={styles.feedCard}
+        >
+          <p style={styles.feedCardLabel}>
+            {card.label}
+          </p>
+
+          <h3 style={styles.feedCardTitle}>
+            {card.title}
+          </h3>
+
+          <p style={styles.feedCardText}>
+            {card.text}
+          </p>
+
+          <a
+            href={card.href}
+            style={styles.feedCardButton}
+          >
+            {card.action}
+          </a>
+        </div>
+      ))}
+    </div>
+  </section>
 )}
  <div style={styles.cardStack}>
   <a href={primaryAction.href} style={styles.primaryCard}>
@@ -1028,6 +1080,83 @@ rhythmPeriod: {
   background: "rgba(255,255,255,0.52)",
   color: "#4C453B",
   fontSize: "14px",
+  fontWeight: "600",
+},
+  feedSection: {
+  marginBottom: "32px",
+},
+
+feedHeader: {
+  marginBottom: "18px",
+},
+
+feedEyebrow: {
+  margin: "0 0 8px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#72695C",
+  fontWeight: "800",
+},
+
+feedTitle: {
+  margin: 0,
+  fontSize: "38px",
+  lineHeight: "1.15",
+  fontFamily: "Georgia, serif",
+  color: "#2A261F",
+  fontWeight: "500",
+},
+
+feedStack: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "18px",
+},
+
+feedCard: {
+  padding: "24px",
+  borderRadius: "28px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(242,234,222,0.58))",
+  border: "1px solid rgba(255,255,255,0.48)",
+  backdropFilter: "blur(14px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+feedCardLabel: {
+  margin: "0 0 10px",
+  fontSize: "11px",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+  color: "#6F665A",
+  fontWeight: "800",
+},
+
+feedCardTitle: {
+  margin: "0 0 12px",
+  fontSize: "28px",
+  lineHeight: "1.2",
+  fontFamily: "Georgia, serif",
+  color: "#2A261F",
+  fontWeight: "500",
+},
+
+feedCardText: {
+  margin: "0 0 18px",
+  lineHeight: "1.8",
+  color: "#4C453B",
+},
+
+feedCardButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 18px",
+  borderRadius: "999px",
+  background: "rgba(32,30,26,0.08)",
+  color: "#2A261F",
+  textDecoration: "none",
   fontWeight: "600",
 },
 };
