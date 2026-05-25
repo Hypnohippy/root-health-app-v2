@@ -46,6 +46,11 @@ const [relationalMemory, setRelationalMemory] = useState(null);
 const [proactiveCare, setProactiveCare] = useState(null);
 const [dailyRhythm, setDailyRhythm] = useState(null);
 const [priorityFeed, setPriorityFeed] = useState([]);
+  const visibleFeedCount =
+  longitudinalMemory?.trajectory === "intensifying" ||
+  longitudinalMemory?.nervousSystemLoad === "high"
+    ? 1
+    : 3;
 
 useEffect(() => {
   if (typeof window === "undefined") return;
@@ -460,7 +465,7 @@ if (reflection?.suggestedAction) {
     </div>
 
     <div style={styles.feedStack}>
-      {priorityFeed.slice(0, 3).map((card, index) => (
+      {slice(0, visibleFeedCount).map((card, index) => (
         <div
           key={`${card.type}-${index}`}
           style={styles.feedCard}
