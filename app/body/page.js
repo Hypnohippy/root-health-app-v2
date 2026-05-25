@@ -769,7 +769,17 @@ if (journey) {
         @keyframes jointsPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
         @keyframes kidneysPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
         @keyframes nervousPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+        @media (max-width: 900px) {
+  main {
+    overflow-x: hidden;
+  }
+
+  .root-mobile-stack {
+    max-height: none !important;
+  }
+}
       `}</style>
+  
 
       <div style={styles.backgroundWash} />
 
@@ -814,56 +824,56 @@ if (journey) {
             {current && <div style={styles.activeGlow}>{current.label}</div>}
 
             {journeyStep === "nervous" && current?.id === "stress_nerves" && (
-              <div style={styles.nervousCallout}>
+              <div className="root-mobile-stack" style={styles.nervousCallout}>
                 <div style={styles.nervousConnectorLine} />
                 <NervousSystemView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "digestion" && current?.id === "digestion" && (
-              <div style={styles.digestiveCallout}>
+              <div className="root-mobile-stack" style={styles.digestiveCallout}>
                 <div style={styles.digestiveConnectorLine} />
                 <DigestionView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "heart" && current?.id === "heart_circulation" && (
-              <div style={styles.heartCallout}>
+              <div className="root-mobile-stack" style={styles.heartCallout}>
                 <div style={styles.heartConnectorLine} />
                 <HeartView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "lungs" && current?.id === "breathing" && (
-              <div style={styles.lungsCallout}>
+              <div className="root-mobile-stack" style={styles.lungsCallout}>
                 <div style={styles.lungsConnectorLine} />
                 <LungsView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "skin" && current?.id === "skin" && (
-              <div style={styles.skinCallout}>
+             <div className="root-mobile-stack" style={styles.skinCallout}>
                 <div style={styles.skinConnectorLine} />
                 <SkinView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "joints" && current?.id === "muscles_joints" && (
-              <div style={styles.jointsCallout}>
+              <div className="root-mobile-stack" style={styles.jointsCallout}>
                 <div style={styles.jointsConnectorLine} />
                 <JointsView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "kidneys" && current?.id === "bladder_hydration" && (
-              <div style={styles.kidneysCallout}>
+              <div className="root-mobile-stack" style={styles.kidneysCallout}>
                 <div style={styles.kidneysConnectorLine} />
                 <KidneysView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
           </div>
 {journeyStep === "senses" && current?.id === "senses" && (
-  <div style={styles.sensesCallout}>
+  <div className="root-mobile-stack" style={styles.sensesCallout}>
     <div style={styles.sensesConnectorLine} />
 
     <SensesView
@@ -1092,17 +1102,16 @@ const styles = {  page: {
     backdropFilter: "blur(14px)",
   },
 
-  stage: {
-    position: "relative",
-    zIndex: 2,
-    display: "grid",
-    gridTemplateColumns: "1fr 390px",
-    gap: "28px",
-    minHeight: "calc(100vh - 120px)",
-    padding: "20px 34px 124px",
-    alignItems: "center",
-  },
-
+ stage: {
+  position: "relative",
+  zIndex: 2,
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) 390px",
+  gap: "28px",
+  minHeight: "calc(100vh - 120px)",
+  padding: "20px 20px 124px",
+  alignItems: "start",
+},
   bodyPanel: {
     position: "relative",
     textAlign: "center",
@@ -1111,7 +1120,7 @@ const styles = {  page: {
   title: {
     margin: "0 0 18px",
     fontFamily: "Georgia, serif",
-    fontSize: "44px",
+    fontSize: "clamp(32px, 6vw, 44px)",
     fontWeight: "500",
     color: "#2A261F",
   },
@@ -1160,6 +1169,7 @@ const styles = {  page: {
   transform: "translate(-50%, -50%)",
   animation: "nervousPop 0.38s ease-out",
 },
+
   nervousConnectorLine: {
     position: "absolute",
     left: "-96px",
@@ -1300,6 +1310,15 @@ sensesCallout: {
   transform: "translate(-50%, -50%)",
   animation: "kidneysPop 0.38s ease-out",
 },
+ @media (max-width: 900px) {
+  .root-mobile-stack {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin-top: 22px !important;
+    animation: none !important;
 sensesConnectorLine: {
   display: "none",
 },
@@ -1355,7 +1374,7 @@ sensesConnectorLine: {
 
   choiceGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))",
     gap: "10px",
   },
 
