@@ -465,7 +465,7 @@ if (reflection?.suggestedAction) {
     </div>
 
     <div style={styles.feedStack}>
-      {slice(0, visibleFeedCount).map((card, index) => (
+      {priorityFeed.slice(0, visibleFeedCount).map((card, index) => (
         <div
           key={`${card.type}-${index}`}
           style={styles.feedCard}
@@ -581,7 +581,25 @@ if (reflection?.suggestedAction) {
         </div>
       </div>
 
-    
+   <style jsx>{`
+  @media (max-width: 768px) {
+    main {
+      overflow-x: hidden;
+    }
+
+    h1 {
+      line-height: 1 !important;
+    }
+
+    h2 {
+      line-height: 1.15 !important;
+    }
+
+    p {
+      line-height: 1.6 !important;
+    }
+  }
+`}</style>
                   
     </main>
   );
@@ -615,7 +633,7 @@ background:
     position: "relative",
     zIndex: 2,
     minHeight: "100vh",
-    padding: "120px 54px 120px",
+    padding: "120px 20px 120px",
     display: "flex",
     alignItems: "flex-start",
   },
@@ -647,17 +665,16 @@ background:
   },
 
   title: {
-    fontSize: "88px",
-    lineHeight: "0.95",
-    margin: "0 0 24px",
-    fontWeight: "500",
-    color: "#111",
-    letterSpacing: "-0.06em",
-    fontFamily: "Georgia, serif",
-  },
-
+  fontSize: "clamp(48px, 10vw, 88px)",
+  lineHeight: "0.95",
+  margin: "0 0 24px",
+  fontWeight: "500",
+  color: "#111",
+  letterSpacing: "-0.06em",
+  fontFamily: "Georgia, serif",
+},
   subtitle: {
-    fontSize: "24px",
+    fontSize: "clamp(16px, 3vw, 24px)",
     lineHeight: "1.7",
     color: "#283128",
     marginBottom: "42px",
@@ -763,12 +780,11 @@ background:
     color: "#444",
   },
 
-  insightContent: {
-    display: "grid",
-    gridTemplateColumns: "260px 1fr",
-    gap: "34px",
-  },
-
+ insightContent: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: "34px",
+},
   scoreSection: {
     textAlign: "center",
   },
@@ -824,7 +840,7 @@ background:
   },
 
  footer: {
-  position: "fixed",
+  position: "relative",
   bottom: "18px",
   left: "50%",
   transform: "translateX(-50%)",
@@ -1106,7 +1122,7 @@ feedEyebrow: {
 
 feedTitle: {
   margin: 0,
-  fontSize: "38px",
+  fontSize: "32px",
   lineHeight: "1.15",
   fontFamily: "Georgia, serif",
   color: "#2A261F",
@@ -1120,7 +1136,7 @@ feedStack: {
 },
 
 feedCard: {
-  padding: "24px",
+  padding: "18px",
   borderRadius: "28px",
   background:
     "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(242,234,222,0.58))",
