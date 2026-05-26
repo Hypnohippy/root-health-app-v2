@@ -12,6 +12,12 @@ const emotionalStates = [
     description: "The mind is looping, analysing, or unable to settle.",
     atmosphere: "reflection",
     suggestion: "Slow the mind before trying to solve the problem.",
+    pathways: [
+  "Externalise thoughts",
+  "Interrupt looping",
+  "Slow mental pace",
+  "Reconnect with the body",
+],
   },
   {
     id: "panic",
@@ -19,6 +25,12 @@ const emotionalStates = [
     description: "The nervous system feels activated or unsafe.",
     atmosphere: "grounding",
     suggestion: "Reduce activation before thinking deeply.",
+    pathways: [
+  "Grounding breath",
+  "Orient to the room",
+  "Reduce stimulation",
+  "Slow the nervous system",
+],
   },
   {
     id: "shutdown",
@@ -26,6 +38,12 @@ const emotionalStates = [
     description: "Everything feels distant, flat, or emotionally disconnected.",
     atmosphere: "sleep",
     suggestion: "Focus on gentle reconnection, not pressure.",
+    pathways: [
+  "Gentle body awareness",
+  "Reconnect with sensation",
+  "Reduce pressure",
+  "Small emotional movement",
+],
   },
   {
     id: "shame",
@@ -33,6 +51,12 @@ const emotionalStates = [
     description: "The inner voice has become harsh or heavy.",
     atmosphere: "coach",
     suggestion: "Respond softly rather than attacking yourself.",
+    pathways: [
+  "Soften inner dialogue",
+  "Practice self-compassion",
+  "Reconnect with values",
+  "Reduce self-attack",
+],
   },
   {
     id: "grief",
@@ -40,6 +64,12 @@ const emotionalStates = [
     description: "Something emotionally heavy is asking for space.",
     atmosphere: "reflection",
     suggestion: "Allow feeling before trying to fix.",
+    pathways: [
+  "Allow emotional space",
+  "Slow the nervous system",
+  "Gentle reflection",
+  "Emotional grounding",
+],
   },
   {
     id: "anger",
@@ -47,6 +77,12 @@ const emotionalStates = [
     description: "The body feels tight, reactive, or emotionally charged.",
     atmosphere: "coach",
     suggestion: "Slow the nervous system before responding outwardly.",
+    pathways: [
+  "Release physical tension",
+  "Slow emotional reactivity",
+  "Ground before responding",
+  "Create emotional space",
+],
   },
 ];
  
@@ -266,6 +302,14 @@ export default function MindPage() {
         <p style={styles.recommendationText}>
           The goal is not to force change immediately — only to help the nervous system feel slightly safer, steadier, and more supported.
         </p>
+      <div style={styles.pathwayList}>
+  {activeState.pathways.map((pathway) => (
+    <div key={pathway} style={styles.pathwayItem}>
+      <span style={styles.pathwayDot} />
+      <span>{pathway}</span>
+    </div>
+  ))}
+</div>
       </div>
     )}
 
@@ -962,5 +1006,27 @@ recommendationText: {
   margin: 0,
   lineHeight: "1.8",
   color: "#ECE6DC",
+},
+  pathwayList: {
+  marginTop: "22px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+},
+
+pathwayItem: {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  fontSize: "15px",
+  color: "#F4EEE4",
+},
+
+pathwayDot: {
+  width: "10px",
+  height: "10px",
+  borderRadius: "50%",
+  background: "#DCC7A1",
+  flexShrink: 0,
 },
 };
