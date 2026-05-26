@@ -759,12 +759,7 @@ if (journey) {
 
  return (
   <RootAtmosphere type="body">
-    <Nav />
-@media (max-width: 900px) {
-  main {
-    overflow-x: hidden;
-  }
-
+ <Nav />
   .root-mobile-stack {
     position: relative !important;
     left: auto !important;
