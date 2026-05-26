@@ -365,12 +365,10 @@ export default function MindPage() {
                 ))}
               </div>
 
-              <p style={styles.disclaimer}>
-                Root Health offers lifestyle and emotional support. It is not a
-                replacement for medical care, therapy, or crisis support.
-              </p>
-            </>
-          )}
+             <p style={styles.disclaimer}>
+  Root Health offers lifestyle and emotional support. It is not a
+  replacement for medical care, therapy, or crisis support.
+</p>
 
           {activeTool && (
             <button style={styles.backButton} onClick={() => setActiveTool(null)}>
