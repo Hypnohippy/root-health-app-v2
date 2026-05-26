@@ -10,7 +10,7 @@ const emotionalStates = [
     id: "overthinking",
     title: "Overthinking",
     description: "The mind is looping, analysing, or unable to settle.",
-    atmosphere: "reflection",
+    atmosphere: "overthinking",
     suggestion: "Slow the mind before trying to solve the problem.",
     pathways: [
   "Externalise thoughts",
@@ -23,7 +23,7 @@ const emotionalStates = [
     id: "panic",
     title: "Panic / overwhelm",
     description: "The nervous system feels activated or unsafe.",
-    atmosphere: "grounding",
+    atmosphere: "panic",
     suggestion: "Reduce activation before thinking deeply.",
     pathways: [
   "Grounding breath",
@@ -36,7 +36,7 @@ const emotionalStates = [
     id: "shutdown",
     title: "Shutdown / numbness",
     description: "Everything feels distant, flat, or emotionally disconnected.",
-    atmosphere: "sleep",
+    atmosphere: "shutdown",
     suggestion: "Focus on gentle reconnection, not pressure.",
     pathways: [
   "Gentle body awareness",
@@ -49,7 +49,7 @@ const emotionalStates = [
     id: "shame",
     title: "Shame / self-criticism",
     description: "The inner voice has become harsh or heavy.",
-    atmosphere: "coach",
+    atmosphere: "shame",
     suggestion: "Respond softly rather than attacking yourself.",
     pathways: [
   "Soften inner dialogue",
@@ -62,7 +62,7 @@ const emotionalStates = [
     id: "grief",
     title: "Grief / sadness",
     description: "Something emotionally heavy is asking for space.",
-    atmosphere: "reflection",
+    atmosphere: "grief",
     suggestion: "Allow feeling before trying to fix.",
     pathways: [
   "Allow emotional space",
@@ -75,7 +75,7 @@ const emotionalStates = [
     id: "anger",
     title: "Anger / frustration",
     description: "The body feels tight, reactive, or emotionally charged.",
-    atmosphere: "coach",
+    atmosphere: "anger",
     suggestion: "Slow the nervous system before responding outwardly.",
     pathways: [
   "Release physical tension",
