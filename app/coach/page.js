@@ -1023,9 +1023,7 @@ const styles = {
   alignItems: "center",
   justifyContent: "center",
   overflow: "visible",
-  transition: breathMode
-  ? "transform 4s ease-in-out, box-shadow 4s ease-in-out"
-  : "all 0.45s ease",
+  transition: "transform 4s ease-in-out, box-shadow 4s ease-in-out",
   boxShadow:
     "0 0 0 18px rgba(255,255,255,0.14), 0 32px 90px rgba(62,53,41,0.28), inset 0 0 80px rgba(255,255,255,0.72)",
 },
