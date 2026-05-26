@@ -343,6 +343,11 @@ const visibleTools = activeState
                     style={styles.toolCard}
                     onClick={() => openTool(tool.id)}
                   >
+                      {activeState && visibleTools.slice(0, 3).some((item) => item.id === tool.id) && (
+  <span style={styles.recommendedBadge}>
+    Recommended for {activeState.title}
+  </span>
+)}
                     <span style={styles.icon}>{tool.icon}</span>
                     <strong style={styles.toolTitle}>{tool.title}</strong>
                     <span style={styles.toolSubtitle}>{tool.subtitle}</span>
@@ -1017,4 +1022,14 @@ pathwayDot: {
   background: "#DCC7A1",
   flexShrink: 0,
 },
+ recommendedBadge: {
+  alignSelf: "flex-start",
+  borderRadius: "999px",
+  padding: "7px 11px",
+  background: "rgba(24,24,24,0.72)",
+  color: "#FFFFFF",
+  fontSize: "11px",
+  fontWeight: "800",
+  letterSpacing: "0.04em",
+}, 
 };
