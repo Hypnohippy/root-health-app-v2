@@ -255,17 +255,19 @@ const visibleTools = activeState
 
   return (
    <RootAtmosphere
-  type={
-    activeTool === "grounding"
-      ? "grounding"
-      : activeTool === "breathwork"
-      ? "sleep"
-      : activeTool === "calming"
-      ? "sleep"
-      : activeTool === "journal"
-      ? "reflection"
-      : "coach"
-  }
+ type={
+  activeState?.atmosphere
+    ? activeState.atmosphere
+    : activeTool === "grounding"
+    ? "grounding"
+    : activeTool === "breathwork"
+    ? "sleep"
+    : activeTool === "calming"
+    ? "sleep"
+    : activeTool === "journal"
+    ? "reflection"
+    : "coach"
+}
 >
   <Nav />
 
