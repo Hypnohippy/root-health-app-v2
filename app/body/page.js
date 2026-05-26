@@ -760,7 +760,22 @@ if (journey) {
  return (
   <RootAtmosphere type="body">
     <Nav />
+@media (max-width: 900px) {
+  main {
+    overflow-x: hidden;
+  }
 
+  .root-mobile-stack {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin-top: 22px !important;
+    animation: none !important;
+    max-height: none !important;
+  }
+}
     <main style={styles.page}>      <style>{`
         @keyframes digestivePop { 0% { opacity: 0; transform: scale(0.88) translateX(-28px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
         @keyframes heartPop { 0% { opacity: 0; transform: scale(0.88) translateX(-24px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
@@ -1311,17 +1326,7 @@ sensesCallout: {
   animation: "kidneysPop 0.38s ease-out",
 },
  @media (max-width: 900px) {
-  .root-mobile-stack {
-    position: relative !important;
-    left: auto !important;
-    top: auto !important;
-    transform: none !important;
-    width: 100% !important;
-    margin-top: 22px !important;
-    animation: none !important;
-sensesConnectorLine: {
-  display: "none",
-},
+  
   tapHint: {
     marginTop: "-34px",
     color: "#FFFFFF",
