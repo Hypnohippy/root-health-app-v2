@@ -669,29 +669,32 @@ const styles = {
   },
 
   kicker: {
-    margin: "0 0 10px",
-    fontSize: "12px",
-    textTransform: "uppercase",
-    letterSpacing: "0.14em",
-    color: "#6F675B",
-    fontWeight: "800",
-  },
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "rgba(255,255,255,0.82)",
+  fontWeight: "800",
+  textShadow: "0 2px 14px rgba(0,0,0,0.34)",
+},
 
-  title: {
-    margin: "0 0 12px",
-    fontSize: "48px",
-    color: "#181818",
-    letterSpacing: "-0.04em",
-  },
+ title: {
+  margin: "0 0 12px",
+  fontSize: "48px",
+  color: "#FFFFFF",
+  letterSpacing: "-0.04em",
+  textShadow: "0 3px 24px rgba(0,0,0,0.42)",
+},
 
-  subtitle: {
-    maxWidth: "760px",
-    margin: "0 auto",
-    color: "#5A554D",
-    lineHeight: "1.75",
-    fontSize: "17px",
-  },
-
+ subtitle: {
+  maxWidth: "760px",
+  margin: "0 auto",
+  color: "rgba(255,255,255,0.92)",
+  lineHeight: "1.75",
+  fontSize: "17px",
+  textShadow: "0 2px 18px rgba(0,0,0,0.42)",
+},
+  
   heroCard: {
   background:
     "linear-gradient(135deg, rgba(24,24,24,0.54), rgba(52,48,42,0.40))",
