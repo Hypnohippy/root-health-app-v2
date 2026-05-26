@@ -94,6 +94,8 @@ const tools = [
     suggestion: "Slow the nervous system before responding outwardly.",
   },
 ];
+
+const tools = [
   {
     id: "cbt",
     title: "CBT-style reframing",
