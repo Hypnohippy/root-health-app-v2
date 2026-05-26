@@ -629,6 +629,7 @@ style={{
     }}
    style={{
   ...styles.ensoVoiceButton,
+  ...(isMobile ? styles.ensoVoiceButtonMobile : {}),
   transform: `scale(${1 + voiceEnergy * 0.06})`,
   boxShadow: `
     0 0 ${40 + voiceEnergy * 90}px rgba(147,122,78,${0.22 + voiceEnergy * 0.28}),
@@ -721,15 +722,16 @@ style={{
             ))}
           </div>
 
-          <div style={styles.chatPanel}>
+         <div style={isMobile ? { ...styles.chatPanel, ...styles.chatPanelMobile } : styles.chatPanel}>
             {messages.map((message, index) => (
               <div
                 key={index}
-                style={{
-                  ...styles.message,
-                  ...(message.role === "user" ? styles.userMessage : styles.coachMessage),
-                }}
-              >
+               style={{
+  ...styles.message,
+  ...(isMobile ? styles.messageMobile : {}),
+  ...(message.role === "user" ? styles.userMessage : styles.coachMessage),
+}}
+>
                 <p style={styles.messageText}>{message.content}</p>
                 {Array.isArray(message.reflectiveOptions) &&
   message.reflectiveOptions.length > 0 && (
@@ -827,7 +829,7 @@ style={{
             ))}
           </div>
 
-          <div style={styles.inputWrap}>
+          <div style={isMobile ? { ...styles.inputWrap, ...styles.inputWrapMobile } : styles.inputWrap}>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -1366,8 +1368,16 @@ chatPanelMobile: {
 
 inputWrapMobile: {
   gridTemplateColumns: "1fr",
+  position: "sticky",
+  bottom: "12px",
+  zIndex: 20,
+  background: "rgba(245,238,226,0.82)",
+  border: "1px solid rgba(255,255,255,0.55)",
+  borderRadius: "28px",
+  padding: "12px",
+  backdropFilter: "blur(16px)",
+  boxShadow: "0 18px 40px rgba(20,18,15,0.16)",
 },
-
 messageMobile: {
   maxWidth: "100%",
 },
