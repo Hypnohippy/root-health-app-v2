@@ -63,7 +63,47 @@ const atmospheres = {
     gradient:
       "radial-gradient(circle at 22% 18%, rgba(255,255,255,0.46), transparent 28%), linear-gradient(180deg, rgba(246,237,222,0.38), rgba(72,64,56,0.38))",
   },
+  panic: {
+  image: "/atmospheres/grounding.jpg.png",
+  darkness: 0.22,
+  gradient:
+    "radial-gradient(circle at 50% 28%, rgba(255,244,216,0.18), transparent 28%), linear-gradient(180deg, rgba(32,38,34,0.36), rgba(10,12,10,0.58))",
+},
 
+overthinking: {
+  image: "/atmospheres/reflection.jpg.png",
+  darkness: 0.1,
+  gradient:
+    "radial-gradient(circle at 26% 18%, rgba(255,255,255,0.52), transparent 30%), linear-gradient(180deg, rgba(235,239,232,0.42), rgba(92,102,92,0.30))",
+},
+
+shutdown: {
+  image: "/atmospheres/sleep.jpg.png",
+  darkness: 0.2,
+  gradient:
+    "radial-gradient(circle at 70% 18%, rgba(255,244,216,0.18), transparent 26%), linear-gradient(180deg, rgba(22,24,30,0.32), rgba(8,10,14,0.62))",
+},
+
+shame: {
+  image: "/atmospheres/coach.jpg.png",
+  darkness: 0.12,
+  gradient:
+    "radial-gradient(circle at 42% 24%, rgba(255,235,205,0.34), transparent 32%), linear-gradient(180deg, rgba(244,224,198,0.34), rgba(80,64,50,0.38))",
+},
+
+grief: {
+  image: "/atmospheres/reflection.jpg.png",
+  darkness: 0.18,
+  gradient:
+    "radial-gradient(circle at 24% 20%, rgba(255,255,255,0.34), transparent 28%), linear-gradient(180deg, rgba(210,205,198,0.28), rgba(52,54,58,0.48))",
+},
+
+anger: {
+  image: "/atmospheres/grounding.jpg.png",
+  darkness: 0.18,
+  gradient:
+    "radial-gradient(circle at 50% 22%, rgba(255,220,180,0.18), transparent 26%), linear-gradient(180deg, rgba(74,56,44,0.34), rgba(28,26,22,0.52))",
+},
   body: {
     image: "/atmospheres/grounding.jpg.png",
     darkness: 0.18,
