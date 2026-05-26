@@ -174,7 +174,21 @@ export default function MindPage() {
     setValueAction("");
     setSaved(false);
   };
+  const recommendedToolOrder = {
+  overthinking: ["cbt", "journal", "breathwork", "grounding", "values", "calming"],
+  panic: ["grounding", "breathwork", "calming", "cbt", "journal", "values"],
+  shutdown: ["calming", "grounding", "journal", "breathwork", "values", "cbt"],
+  shame: ["cbt", "journal", "values", "calming", "grounding", "breathwork"],
+  grief: ["journal", "calming", "grounding", "values", "breathwork", "cbt"],
+  anger: ["breathwork", "grounding", "journal", "values", "cbt", "calming"],
+};
 
+const visibleTools = activeState
+  ? [...tools].sort((a, b) => {
+      const order = recommendedToolOrder[activeState.id] || [];
+      return order.indexOf(a.id) - order.indexOf(b.id);
+    })
+  : tools;
   const openTool = (toolId) => {
     setActiveTool(toolId);
     resetTool();
@@ -323,7 +337,7 @@ export default function MindPage() {
               </div>
 
               <div style={styles.grid}>
-                {tools.map((tool) => (
+                {visibleTools.map((tool) => (
                   <button
                     key={tool.id}
                     style={styles.toolCard}
