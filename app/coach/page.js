@@ -581,7 +581,10 @@ setVoiceEnergy(0);
 
          <div style={styles.header}>
  
-  <RootEnso size={128} />            <p style={styles.kicker}>Root Health Intelligence</p>
+ <div style={styles.ensoLogoWrap}>
+  <RootEnso size={128} />
+</div> 
+  <p style={styles.kicker}>Root Health Intelligence</p>
             <h1 style={styles.title}>Root Coach</h1>
             <p style={styles.subtitle}>
               A calm guide for mind, body, recovery and whole-person wellbeing.
@@ -631,7 +634,9 @@ setVoiceEnergy(0);
     <span style={styles.ensoMiddleRing} />
 
     <span style={styles.ensoInner}>
-      <RootEnso size={128} />
+    <div style={styles.ensoLogoWrap}>
+  <RootEnso size={128} />
+</div>
     </span>
   </button>
 
@@ -1012,18 +1017,28 @@ ensoInner: {
   width: "170px",
   height: "170px",
   borderRadius: "50%",
-  background: "rgba(255,255,255,0.38)",
+  overflow: "hidden",
+  background:
+    "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.92), rgba(234,224,204,0.68))",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  backdropFilter: "blur(18px)",
+  backdropFilter: "blur(20px)",
   boxShadow:
-    "inset 0 0 42px rgba(255,255,255,0.52), 0 12px 34px rgba(0,0,0,0.08)",
+    "inset 0 0 46px rgba(255,255,255,0.58), 0 14px 36px rgba(0,0,0,0.10)",
 },
-ensoIdle: {
+  ensoIdle: {
   animation: "rootBreath 5.6s ease-in-out infinite",
 },
-
+ensoLogoWrap: {
+  width: "132px",
+  height: "132px",
+  borderRadius: "50%",
+  overflow: "hidden",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+},
 ensoConnecting: {
   boxShadow:
     "0 0 0 24px rgba(255,255,255,0.2), 0 0 90px rgba(147,122,78,0.38), 0 26px 76px rgba(62,53,41,0.24), inset 0 0 80px rgba(255,255,255,0.68)",
