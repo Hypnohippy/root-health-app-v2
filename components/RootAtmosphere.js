@@ -79,6 +79,47 @@ const atmospheres = {
   },
 };
 
+if (typeof window !== "undefined") {
+  const existing = document.getElementById("root-atmosphere-animations");
+
+  if (!existing) {
+    const style = document.createElement("style");
+
+    style.id = "root-atmosphere-animations";
+
+    style.innerHTML = `
+      @keyframes rootAtmosphereFloat {
+        0% {
+          transform: scale(1.04) translateY(0px);
+        }
+
+        50% {
+          transform: scale(1.06) translateY(-8px);
+        }
+
+        100% {
+          transform: scale(1.04) translateY(0px);
+        }
+      }
+
+      @keyframes rootGradientBreath {
+        0% {
+          opacity: 0.92;
+        }
+
+        50% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 0.92;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+}
 const styles = {
   wrap: {
     position: "relative",
@@ -86,21 +127,27 @@ const styles = {
     width: "100%",
   },
 
-  background: {
-    position: "fixed",
-    inset: 0,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    transform: "scale(1.04)",
-    zIndex: 0,
-  },
-
+ background: {
+  position: "fixed",
+  inset: 0,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  transform: "scale(1.04)",
+  zIndex: 0,
+  transition:
+    "background-image 1.2s ease, transform 6s ease, filter 1.4s ease",
+  animation: "rootAtmosphereFloat 18s ease-in-out infinite",
+  willChange: "transform, filter",
+},
   gradient: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 1,
-    pointerEvents: "none",
-  },
+  position: "fixed",
+  inset: 0,
+  zIndex: 1,
+  pointerEvents: "none",
+  transition: "background 1.2s ease, opacity 1.2s ease",
+  animation: "rootGradientBreath 14s ease-in-out infinite",
+  mixBlendMode: "soft-light",
+},
 
   content: {
     position: "relative",
