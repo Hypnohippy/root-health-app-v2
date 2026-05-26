@@ -494,9 +494,20 @@ export default function BodyPage() {
   const [journeyStep, setJourneyStep] = useState("body");
   const [journey, setJourney] = useState(null);
   const [journeyIntro, setJourneyIntro] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
+  useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth <= 900);
+  };
+
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+
+  return () => window.removeEventListener("resize", checkMobile);
+}, []);
   useEffect(() => {
   const stored = localStorage.getItem("root_journey_v1");
 
@@ -789,7 +800,7 @@ if (journey) {
         <button style={styles.iconButton}>☰</button>
       </header>
 
-      <section style={styles.stage}>
+     <section style={isMobile ? { ...styles.stage, ...styles.stageMobile } : styles.stage}>
   {journeyIntro && (
   <div style={styles.journeyBanner}>
     <p style={styles.journeyLabel}>Your Root Journey</p>
@@ -809,7 +820,7 @@ if (journey) {
             {current ? current.label : "Where are you feeling it today?"}
           </h1>
 
-          <div style={styles.bodyImageWrap}>
+         <div style={isMobile ? { ...styles.bodyImageWrap, ...styles.bodyImageWrapMobile } : styles.bodyImageWrap}>
             <img src="/visuals/body-map-human.png" alt="Root Health body map" style={styles.bodyImage} />
 
             {bodyZones.map((zone) => (
@@ -1066,7 +1077,8 @@ if (journey) {
 const styles = {  page: {
     minHeight: "100vh",
     position: "relative",
-    overflow: "hidden",
+    overflowX: "hidden",
+    overflowY: "auto",
     fontFamily: "Inter, sans-serif",
   },
 
@@ -1547,5 +1559,22 @@ continuePrimary: {
   padding: "14px 20px",
   fontSize: "14px",
   fontWeight: "700",
+},
+  stageMobile: {
+  display: "flex",
+  flexDirection: "column",
+  padding: "18px 16px 90px",
+  gap: "22px",
+  minHeight: "auto",
+  alignItems: "stretch",
+},
+
+bodyImageWrapMobile: {
+  width: "min(360px, 88vw)",
+},
+
+pageMobile: {
+  overflowX: "hidden",
+  overflowY: "auto",
 },
   };
