@@ -341,17 +341,13 @@ if (journey && journey.currentStage === "coach") {
   setBreathPhase("inhale");
 
   setTimeout(() => {
-    setBreathPhase("hold");
-  }, 4000);
-
-  setTimeout(() => {
     setBreathPhase("exhale");
-  }, 7000);
+  }, 4000);
 
   setTimeout(() => {
     setBreathMode(false);
     setBreathPhase("inhale");
-  }, 12000);
+  }, 8000);
 };
 const startVoiceSession = async () => {
   try {
@@ -651,14 +647,11 @@ style={{
    style={{
   ...styles.ensoVoiceButton,
   ...(isMobile ? styles.ensoVoiceButtonMobile : {}),
-  transform: breathMode
+ transform: breathMode
   ? breathPhase === "inhale"
-    ? "scale(1.08)"
-    : breathPhase === "hold"
-    ? "scale(1.1)"
-    : "scale(0.96)"
-  : `scale(${1 + voiceEnergy * 0.06})`,
-  boxShadow: `
+    ? "scale(1.12)"
+    : "scale(0.94)"
+  : `scale(${1 + voiceEnergy * 0.06})`,  boxShadow: `
     0 0 ${40 + voiceEnergy * 90}px rgba(147,122,78,${0.22 + voiceEnergy * 0.28}),
     0 32px 90px rgba(62,53,41,0.28),
     inset 0 0 80px rgba(255,255,255,0.72)
@@ -1030,7 +1023,9 @@ const styles = {
   alignItems: "center",
   justifyContent: "center",
   overflow: "visible",
-  transition: "all 0.45s ease",
+  transition: breathMode
+  ? "transform 4s ease-in-out, box-shadow 4s ease-in-out"
+  : "all 0.45s ease",
   boxShadow:
     "0 0 0 18px rgba(255,255,255,0.14), 0 32px 90px rgba(62,53,41,0.28), inset 0 0 80px rgba(255,255,255,0.72)",
 },
