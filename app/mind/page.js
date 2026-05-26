@@ -313,35 +313,7 @@ export default function MindPage() {
       </div>
     )}
 
-    <div style={styles.heroCard}>
-      <p style={styles.heroLabel}>Intervention library</p>
-      <h2 style={styles.heroTitle}>Choose the support your system needs.</h2>
-      <p style={styles.heroText}>
-        Start small. Use one tool. Save what helped so Root Coach can understand the pattern over time.
-      </p>
-    </div>
-
-    <div style={styles.grid}>
-      {tools.map((tool) => (
-        <button
-          key={tool.id}
-          style={styles.toolCard}
-          onClick={() => openTool(tool.id)}
-        >
-          <span style={styles.icon}>{tool.icon}</span>
-          <strong style={styles.toolTitle}>{tool.title}</strong>
-          <span style={styles.toolSubtitle}>{tool.subtitle}</span>
-        </button>
-      ))}
-    </div>
-
-    <p style={styles.disclaimer}>
-      Root Health offers lifestyle and emotional support. It is not a replacement for medical care, therapy, or crisis support.
-    </p>
-  </>
-)}
-            <>
-              <div style={styles.heroCard}>
+             <div style={styles.heroCard}>
                 <p style={styles.heroLabel}>Intervention library</p>
                 <h2 style={styles.heroTitle}>Choose the support your system needs.</h2>
                 <p style={styles.heroText}>
