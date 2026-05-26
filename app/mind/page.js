@@ -49,52 +49,7 @@ const emotionalStates = [
     suggestion: "Slow the nervous system before responding outwardly.",
   },
 ];
-
-const emotionalStates = [
-  {
-    id: "overthinking",
-    title: "Overthinking",
-    description: "The mind is looping, analysing, or unable to settle.",
-    atmosphere: "reflection",
-    suggestion: "Slow the mind before trying to solve the problem.",
-  },
-  {
-    id: "panic",
-    title: "Panic / overwhelm",
-    description: "The nervous system feels activated or unsafe.",
-    atmosphere: "grounding",
-    suggestion: "Reduce activation before thinking deeply.",
-  },
-  {
-    id: "shutdown",
-    title: "Shutdown / numbness",
-    description: "Everything feels distant, flat, or emotionally disconnected.",
-    atmosphere: "sleep",
-    suggestion: "Focus on gentle reconnection, not pressure.",
-  },
-  {
-    id: "shame",
-    title: "Shame / self-criticism",
-    description: "The inner voice has become harsh or heavy.",
-    atmosphere: "coach",
-    suggestion: "Respond softly rather than attacking yourself.",
-  },
-  {
-    id: "grief",
-    title: "Grief / sadness",
-    description: "Something emotionally heavy is asking for space.",
-    atmosphere: "reflection",
-    suggestion: "Allow feeling before trying to fix.",
-  },
-  {
-    id: "anger",
-    title: "Anger / frustration",
-    description: "The body feels tight, reactive, or emotionally charged.",
-    atmosphere: "coach",
-    suggestion: "Slow the nervous system before responding outwardly.",
-  },
-];
-
+ 
 const tools = [
   {
     id: "cbt",
