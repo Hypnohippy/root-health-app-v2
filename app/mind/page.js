@@ -341,7 +341,10 @@ export default function MindPage() {
   replacement for medical care, therapy, or crisis support.
 </p>
 
-          {activeTool && (
+  </>
+)}
+
+{activeTool && (
             <button style={styles.backButton} onClick={() => setActiveTool(null)}>
               ← Back to tools
             </button>
