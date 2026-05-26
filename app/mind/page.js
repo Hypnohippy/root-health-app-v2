@@ -278,58 +278,69 @@ export default function MindPage() {
             </p>
           </div>
 
-          {!activeTool && (
-            <>
-  <div style={styles.stateIntro}>
-    <p style={styles.stateKicker}>Emotional check-in</p>
-    <h2 style={styles.stateTitle}>
-      What feels strongest right now?
-    </h2>
-    <p style={styles.stateSubtitle}>
-      Root can gently adapt support based on what your nervous system may need most.
-    </p>
-  </div>
-
-  <div style={styles.stateGrid}>
-    {emotionalStates.map((state) => (
-      <button
-        key={state.id}
-        onClick={() => setActiveState(state)}
-        style={{
-          ...styles.stateCard,
-          ...(activeState?.id === state.id
-            ? styles.stateCardActive
-            : {}),
-        }}
-      >
-        <strong style={styles.stateCardTitle}>
-          {state.title}
-        </strong>
-
-        <p style={styles.stateCardText}>
-          {state.description}
-        </p>
-      </button>
-    ))}
-  </div>
-
-  {activeState && (
-    <div style={styles.recommendationCard}>
-      <p style={styles.recommendationLabel}>
-        Root gently suggests
-      </p>
-
-      <h3 style={styles.recommendationTitle}>
-        {activeState.suggestion}
-      </h3>
-
-      <p style={styles.recommendationText}>
-        The goal is not to force change immediately —
-        only to help the nervous system feel slightly safer,
-        steadier, and more supported.
+         {!activeTool && (
+  <>
+    <div style={styles.stateIntro}>
+      <p style={styles.stateKicker}>Emotional check-in</p>
+      <h2 style={styles.stateTitle}>What feels strongest right now?</h2>
+      <p style={styles.stateSubtitle}>
+        Root can gently adapt support based on what your nervous system may need most.
       </p>
     </div>
-  )}
+
+    <div style={styles.stateGrid}>
+      {emotionalStates.map((state) => (
+        <button
+          key={state.id}
+          onClick={() => setActiveState(state)}
+          style={{
+            ...styles.stateCard,
+            ...(activeState?.id === state.id ? styles.stateCardActive : {}),
+          }}
+        >
+          <strong style={styles.stateCardTitle}>{state.title}</strong>
+          <p style={styles.stateCardText}>{state.description}</p>
+        </button>
+      ))}
+    </div>
+
+    {activeState && (
+      <div style={styles.recommendationCard}>
+        <p style={styles.recommendationLabel}>Root gently suggests</p>
+        <h3 style={styles.recommendationTitle}>{activeState.suggestion}</h3>
+        <p style={styles.recommendationText}>
+          The goal is not to force change immediately — only to help the nervous system feel slightly safer, steadier, and more supported.
+        </p>
+      </div>
+    )}
+
+    <div style={styles.heroCard}>
+      <p style={styles.heroLabel}>Intervention library</p>
+      <h2 style={styles.heroTitle}>Choose the support your system needs.</h2>
+      <p style={styles.heroText}>
+        Start small. Use one tool. Save what helped so Root Coach can understand the pattern over time.
+      </p>
+    </div>
+
+    <div style={styles.grid}>
+      {tools.map((tool) => (
+        <button
+          key={tool.id}
+          style={styles.toolCard}
+          onClick={() => openTool(tool.id)}
+        >
+          <span style={styles.icon}>{tool.icon}</span>
+          <strong style={styles.toolTitle}>{tool.title}</strong>
+          <span style={styles.toolSubtitle}>{tool.subtitle}</span>
+        </button>
+      ))}
+    </div>
+
+    <p style={styles.disclaimer}>
+      Root Health offers lifestyle and emotional support. It is not a replacement for medical care, therapy, or crisis support.
+    </p>
+  </>
+)}
             <>
               <div style={styles.heroCard}>
                 <p style={styles.heroLabel}>Intervention library</p>
