@@ -577,10 +577,10 @@ There is nothing to force here. Just allow your system to settle a little more w
               </button>
             </div>
           )}
-        </section>
-        </main>
-</RootAtmosphere>
-);
+               </section>
+      </main>
+    </RootAtmosphere>
+  );
 }
 
 function ToolExperience({ kicker, title, subtitle, body, saving, saved, onSave }) {
