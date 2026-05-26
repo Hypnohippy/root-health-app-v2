@@ -50,7 +50,7 @@ const emotionalStates = [
   },
 ];
 
-const tools = [
+const emotionalStates = [
   {
     id: "overthinking",
     title: "Overthinking",
