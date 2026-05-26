@@ -118,6 +118,8 @@ export default function CoachPage() {
   const [voiceState, setVoiceState] = useState("ready");
   const [voiceEnergy, setVoiceEnergy] = useState(0);
   const [voiceTranscript, setVoiceTranscript] = useState("");
+  const [breathMode, setBreathMode] = useState(false);
+  const [breathPhase, setBreathPhase] = useState("inhale");
   const [emotionalState, setEmotionalState] = useState("steady");
   const [journey, setJourney] = useState(null);
   const [showJourneyNext, setShowJourneyNext] = useState(false);
@@ -332,6 +334,25 @@ if (journey && journey.currentStage === "coach") {
     setThinking(false);
     setVoiceState("ready");
   };
+  const startBreathJourney = () => {
+  if (breathMode) return;
+
+  setBreathMode(true);
+  setBreathPhase("inhale");
+
+  setTimeout(() => {
+    setBreathPhase("hold");
+  }, 4000);
+
+  setTimeout(() => {
+    setBreathPhase("exhale");
+  }, 7000);
+
+  setTimeout(() => {
+    setBreathMode(false);
+    setBreathPhase("inhale");
+  }, 12000);
+};
 const startVoiceSession = async () => {
   try {
     setVoiceState("connecting");
@@ -630,7 +651,13 @@ style={{
    style={{
   ...styles.ensoVoiceButton,
   ...(isMobile ? styles.ensoVoiceButtonMobile : {}),
-  transform: `scale(${1 + voiceEnergy * 0.06})`,
+  transform: breathMode
+  ? breathPhase === "inhale"
+    ? "scale(1.08)"
+    : breathPhase === "hold"
+    ? "scale(1.1)"
+    : "scale(0.96)"
+  : `scale(${1 + voiceEnergy * 0.06})`,
   boxShadow: `
     0 0 ${40 + voiceEnergy * 90}px rgba(147,122,78,${0.22 + voiceEnergy * 0.28}),
     0 32px 90px rgba(62,53,41,0.28),
@@ -653,22 +680,34 @@ style={{
   </button>
 
   <p style={styles.voiceStatus}>
-    {voiceState === "connecting"
-      ? "Opening the voice space…"
-      : voiceState === "listening"
-      ? "Listening… take your time."
-      : voiceState === "speaking"
-      ? "Root Voice is speaking…"
-      : voiceState === "thinking"
-      ? "Root Coach is thinking gently…"
-      : "Tap the enso to begin."}
-  </p>
+    {breathMode
+  ? breathPhase === "inhale"
+    ? "Inhale slowly..."
+    : breathPhase === "hold"
+    ? "Hold gently..."
+    : "Exhale softly..."
+  : voiceState === "connecting"
+  ? "Opening the voice space…"
+  : voiceState === "listening"
+  ? "Listening… take your time."
+  : voiceState === "speaking"
+  ? "Root Voice is speaking…"
+  : voiceState === "thinking"
+  ? "Root Coach is thinking gently…"
+  : "Tap the enso to begin."}
+</p>
 
   <p style={styles.voiceHint}>
     {voiceState === "ready"
       ? "A calm spoken conversation with Root Coach."
       : "Tap the enso again to end voice mode."}
   </p>
+<button
+  style={styles.breathButton}
+  onClick={startBreathJourney}
+>
+  Breath with Root
+</button>
    {voiceState !== "ready" && (
   <button
     style={styles.resetVoiceButton}
@@ -1380,5 +1419,17 @@ inputWrapMobile: {
 },
 messageMobile: {
   maxWidth: "100%",
+},
+  breathButton: {
+  marginTop: "14px",
+  border: "1px solid rgba(255,255,255,0.55)",
+  background: "rgba(255,255,255,0.44)",
+  color: "#2A261F",
+  borderRadius: "999px",
+  padding: "12px 18px",
+  cursor: "pointer",
+  fontSize: "14px",
+  fontWeight: "600",
+  backdropFilter: "blur(10px)",
 },
 };
