@@ -112,26 +112,36 @@ export default function CoachPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [messages, setMessages] = useState([]);
-const [input, setInput] = useState("");
-const [coachMode, setCoachMode] = useState("");
-const [thinking, setThinking] = useState(false);
-const [voiceState, setVoiceState] = useState("ready");
-const [voiceEnergy, setVoiceEnergy] = useState(0);
-const [voiceTranscript, setVoiceTranscript] = useState("");
+  const [input, setInput] = useState("");
+  const [coachMode, setCoachMode] = useState("");
+  const [thinking, setThinking] = useState(false);
+  const [voiceState, setVoiceState] = useState("ready");
+  const [voiceEnergy, setVoiceEnergy] = useState(0);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
   const [emotionalState, setEmotionalState] = useState("steady");
   const [journey, setJourney] = useState(null);
-const [showJourneyNext, setShowJourneyNext] = useState(false);
- 
+  const [showJourneyNext, setShowJourneyNext] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+   useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth <= 900);
+  };
+
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+
+  return () => window.removeEventListener("resize", checkMobile);
+}, []);
   const bottomRef = useRef(null);
-const peerConnectionRef = useRef(null);
-const dataChannelRef = useRef(null);
-const audioElementRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const dataChannelRef = useRef(null);
+  const audioElementRef = useRef(null);
   const audioContextRef = useRef(null);
-const analyserRef = useRef(null);
-const animationFrameRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationFrameRef = useRef(null);
   useEffect(() => {
-    const load = async () => {
-      const storedJourney = localStorage.getItem("root_journey_v1");
+  const load = async () => {
+  const storedJourney = localStorage.getItem("root_journey_v1");
 
 let parsedJourney = null;
 
@@ -555,7 +565,7 @@ setVoiceEnergy(0);
 >
   <Nav />
 
-  <main style={styles.page}>
+  <main style={isMobile ? { ...styles.page, ...styles.pageMobile } : styles.page}>
     <style>{`
   @keyframes rootBreath {
     0% { transform: scale(0.96); opacity: 0.58; }
@@ -575,7 +585,7 @@ setVoiceEnergy(0);
     100% { transform: scale(0.98); filter: brightness(1); }
   }
 `}</style>
-        <section style={styles.shell}>
+        <section style={isMobile ? { ...styles.shell, ...styles.shellMobile } : styles.shell}>
           <div style={styles.glow} />
           <div style={styles.softOrbGlow} />
 
@@ -592,10 +602,11 @@ setVoiceEnergy(0);
           </div>
 
           <section
-  style={{
-    ...styles.voiceStage,
-    background: currentAtmosphere.background,
-  }}
+style={{
+  ...styles.voiceStage,
+  ...(isMobile ? styles.voiceStageMobile : {}),
+  background: currentAtmosphere.background,
+}}
 >
             <div style={styles.voiceText}>
               <p style={styles.voiceLabel}>{currentAtmosphere.label}</p>
@@ -1324,5 +1335,40 @@ journeyNextButton: {
   padding: "14px 20px",
   fontSize: "14px",
   fontWeight: "700",
+},
+  pageMobile: {
+  padding: "16px",
+  alignItems: "stretch",
+},
+
+shellMobile: {
+  borderRadius: "28px",
+  padding: "20px",
+},
+
+voiceStageMobile: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "18px",
+  padding: "22px",
+},
+
+ensoVoiceButtonMobile: {
+  width: "220px",
+  height: "220px",
+},
+
+chatPanelMobile: {
+  minHeight: "360px",
+  maxHeight: "520px",
+  padding: "18px",
+},
+
+inputWrapMobile: {
+  gridTemplateColumns: "1fr",
+},
+
+messageMobile: {
+  maxWidth: "100%",
 },
 };
