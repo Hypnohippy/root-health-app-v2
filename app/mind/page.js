@@ -6,6 +6,50 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 const tools = [
+  const emotionalStates = [
+  {
+    id: "overthinking",
+    title: "Overthinking",
+    description: "The mind is looping, analysing, or unable to settle.",
+    atmosphere: "reflection",
+    suggestion: "Slow the mind before trying to solve the problem.",
+  },
+  {
+    id: "panic",
+    title: "Panic / overwhelm",
+    description: "The nervous system feels activated or unsafe.",
+    atmosphere: "grounding",
+    suggestion: "Reduce activation before thinking deeply.",
+  },
+  {
+    id: "shutdown",
+    title: "Shutdown / numbness",
+    description: "Everything feels distant, flat, or emotionally disconnected.",
+    atmosphere: "sleep",
+    suggestion: "Focus on gentle reconnection, not pressure.",
+  },
+  {
+    id: "shame",
+    title: "Shame / self-criticism",
+    description: "The inner voice has become harsh or heavy.",
+    atmosphere: "coach",
+    suggestion: "Respond softly rather than attacking yourself.",
+  },
+  {
+    id: "grief",
+    title: "Grief / sadness",
+    description: "Something emotionally heavy is asking for space.",
+    atmosphere: "reflection",
+    suggestion: "Allow feeling before trying to fix.",
+  },
+  {
+    id: "anger",
+    title: "Anger / frustration",
+    description: "The body feels tight, reactive, or emotionally charged.",
+    atmosphere: "coach",
+    suggestion: "Slow the nervous system before responding outwardly.",
+  },
+];
   {
     id: "cbt",
     title: "CBT-style reframing",
@@ -65,6 +109,7 @@ function buildNextStep({ emotion }) {
 
 export default function MindPage() {
   const [activeTool, setActiveTool] = useState(null);
+  const [activeState, setActiveState] = useState(null);
 
   const [situation, setSituation] = useState("");
   const [automaticThought, setAutomaticThought] = useState("");
@@ -188,6 +233,57 @@ export default function MindPage() {
           </div>
 
           {!activeTool && (
+            <>
+  <div style={styles.stateIntro}>
+    <p style={styles.stateKicker}>Emotional check-in</p>
+    <h2 style={styles.stateTitle}>
+      What feels strongest right now?
+    </h2>
+    <p style={styles.stateSubtitle}>
+      Root can gently adapt support based on what your nervous system may need most.
+    </p>
+  </div>
+
+  <div style={styles.stateGrid}>
+    {emotionalStates.map((state) => (
+      <button
+        key={state.id}
+        onClick={() => setActiveState(state)}
+        style={{
+          ...styles.stateCard,
+          ...(activeState?.id === state.id
+            ? styles.stateCardActive
+            : {}),
+        }}
+      >
+        <strong style={styles.stateCardTitle}>
+          {state.title}
+        </strong>
+
+        <p style={styles.stateCardText}>
+          {state.description}
+        </p>
+      </button>
+    ))}
+  </div>
+
+  {activeState && (
+    <div style={styles.recommendationCard}>
+      <p style={styles.recommendationLabel}>
+        Root gently suggests
+      </p>
+
+      <h3 style={styles.recommendationTitle}>
+        {activeState.suggestion}
+      </h3>
+
+      <p style={styles.recommendationText}>
+        The goal is not to force change immediately —
+        only to help the nervous system feel slightly safer,
+        steadier, and more supported.
+      </p>
+    </div>
+  )}
             <>
               <div style={styles.heroCard}>
                 <p style={styles.heroLabel}>Intervention library</p>
@@ -763,4 +859,97 @@ const styles = {
     cursor: "pointer",
     fontSize: "14px",
   },
+  stateIntro: {
+  textAlign: "center",
+  marginBottom: "24px",
+},
+
+stateKicker: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#6F675B",
+  fontWeight: "800",
+},
+
+stateTitle: {
+  margin: "0 0 12px",
+  fontSize: "34px",
+  color: "#181818",
+},
+
+stateSubtitle: {
+  margin: "0 auto",
+  maxWidth: "720px",
+  color: "#5A554D",
+  lineHeight: "1.7",
+},
+
+stateGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+  gap: "16px",
+  marginBottom: "28px",
+},
+
+stateCard: {
+  border: "1px solid rgba(255,255,255,0.34)",
+  borderRadius: "28px",
+  padding: "22px",
+  background: "rgba(255,255,255,0.16)",
+  backdropFilter: "blur(18px)",
+  textAlign: "left",
+  cursor: "pointer",
+  transition: "all 0.25s ease",
+},
+
+stateCardActive: {
+  background:
+    "linear-gradient(135deg, rgba(24,24,24,0.62), rgba(52,48,42,0.42))",
+  color: "#FFFFFF",
+  transform: "translateY(-2px)",
+},
+
+stateCardTitle: {
+  display: "block",
+  marginBottom: "10px",
+  fontSize: "18px",
+},
+
+stateCardText: {
+  margin: 0,
+  lineHeight: "1.6",
+  fontSize: "14px",
+},
+
+recommendationCard: {
+  marginBottom: "30px",
+  borderRadius: "32px",
+  padding: "28px",
+  background:
+    "linear-gradient(135deg, rgba(24,24,24,0.54), rgba(52,48,42,0.36))",
+  color: "#FFFFFF",
+  boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
+},
+
+recommendationLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#D8CDBB",
+  fontWeight: "800",
+},
+
+recommendationTitle: {
+  margin: "0 0 12px",
+  fontSize: "28px",
+},
+
+recommendationText: {
+  margin: 0,
+  lineHeight: "1.8",
+  color: "#ECE6DC",
+},
 };
