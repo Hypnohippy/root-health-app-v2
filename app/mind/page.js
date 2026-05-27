@@ -372,7 +372,7 @@ const visibleTools = activeState
             </p>
           </div>
 
-         {!activeTool && (
+         {!activeTool && !activeJourney && (
   <>
     <div style={styles.stateIntro}>
       <p style={styles.stateKicker}>Emotional check-in</p>
@@ -491,7 +491,7 @@ const visibleTools = activeState
 
 {activeJourney && (
   <div style={styles.journeyCard}>
-    <p style={styles.journeyLabel}>
+  <p style={styles.journeyLabel}>
       Guided nervous-system journey
     </p>
 
