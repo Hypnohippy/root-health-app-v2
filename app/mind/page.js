@@ -192,6 +192,7 @@ export default function MindPage() {
   const [recoverySavedMessage, setRecoverySavedMessage] = useState("");
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
+  const [recoveryEntries, setRecoveryEntries] = useState([]);
   useEffect(() => {
   const loadRecentStates = async () => {
     const { data } = await supabase
@@ -200,7 +201,16 @@ export default function MindPage() {
       .eq("tool", "Emotional check-in")
       .order("created_at", { ascending: false })
       .limit(12);
+const { data: recoveryData } = await supabase
+  .from("mind_entries")
+  .select("*")
+  .eq("tool", "Panic Reset Journey")
+  .order("created_at", { ascending: false })
+  .limit(20);
 
+if (Array.isArray(recoveryData)) {
+  setRecoveryEntries(recoveryData);
+}
     if (Array.isArray(data)) {
       setRecentStates(
         data
@@ -252,6 +262,33 @@ const stateCounts = recentStates.reduce((acc, state) => {
   return acc;
 }, {});
 
+  const recoveryScoresList = recoveryEntries
+  .map((entry) => Number(entry.intensity))
+  .filter((score) => !Number.isNaN(score));
+
+const averageRecovery =
+  recoveryScoresList.length > 0
+    ? recoveryScoresList.reduce((sum, score) => sum + score, 0) /
+      recoveryScoresList.length
+    : null;
+
+let recoveryTrend = "";
+
+if (averageRecovery !== null) {
+  if (averageRecovery > 1) {
+    recoveryTrend =
+      "Root notices Panic Reset is often followed by a stronger sense of settling.";
+  } else if (averageRecovery > 0) {
+    recoveryTrend =
+      "Root notices Panic Reset may be helping your nervous system soften slightly.";
+  } else if (averageRecovery === 0) {
+    recoveryTrend =
+      "Root notices Panic Reset has been neutral so far. Another pathway may support you better.";
+  } else {
+    recoveryTrend =
+      "Root notices Panic Reset may not be enough on its own yet. More direct support may help.";
+  }
+}
 let rootNotice = "";
 
 if ((stateCounts.panic || 0) >= 3) {
@@ -466,6 +503,12 @@ const visibleTools = activeState
       </div>
     )}
 
+{recoveryTrend && (
+  <div style={styles.trendCard}>
+    <p style={styles.trendLabel}>Recovery intelligence</p>
+    <p style={styles.trendText}>{recoveryTrend}</p>
+  </div>
+)}
       {rootNotice && (
   <div style={styles.noticeCard}>
     <p style={styles.noticeLabel}>Root notices</p>
@@ -1475,6 +1518,32 @@ savedNoticeLabel: {
 },
 
 savedNoticeText: {
+  margin: 0,
+  color: "#FFFFFF",
+  lineHeight: "1.8",
+  fontSize: "16px",
+},
+  trendCard: {
+  marginBottom: "24px",
+  borderRadius: "30px",
+  padding: "24px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08))",
+  border: "1px solid rgba(255,255,255,0.26)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 40px rgba(0,0,0,0.10)",
+},
+
+trendLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#F4E7CF",
+  fontWeight: "800",
+},
+
+trendText: {
   margin: 0,
   color: "#FFFFFF",
   lineHeight: "1.8",
