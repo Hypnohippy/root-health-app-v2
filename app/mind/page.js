@@ -571,21 +571,25 @@ const visibleTools = activeState
           <button
             key={option}
             style={styles.recoveryButton}
-            onClick={async () => {
-             await saveEntry({
-  tool: "Panic Reset Journey",
-  situation: `Recovery response: ${option}`,
-  automatic_thought: "",
-  emotion: activeState?.id || "panic",
-  intensity: String(recoveryScores[option]),
-  reframe: `The user completed the Panic Reset journey.`,
-  next_step: `Reported outcome: ${option}`,
-});
-              setActiveJourney(null);
-              setJourneyStep(0);
-              setJourneyComplete(false);
-            }}
-          >
+           onClick={async () => {
+  try {
+    await saveEntry({
+      tool: "Panic Reset Journey",
+      situation: `Recovery response: ${option}`,
+      automatic_thought: "",
+      emotion: activeState?.id || "panic",
+      intensity: String(recoveryScores[option]),
+      reframe: "The user completed the Panic Reset journey.",
+      next_step: `Reported outcome: ${option}`,
+    });
+  } catch (err) {
+    console.log("Recovery save failed:", err);
+  }
+
+  setActiveJourney(null);
+  setJourneyStep(0);
+  setJourneyComplete(false);
+}}          >
             {option}
           </button>
         )
