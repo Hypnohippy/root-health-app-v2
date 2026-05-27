@@ -573,8 +573,14 @@ const visibleTools = activeState
         </button>
       )}
     </div>
-        {journeyComplete && (
-  <div style={styles.recoveryCard}>
+       {journeyComplete && (
+  <div
+    style={{
+      ...styles.recoveryCard,
+      position: "relative",
+      zIndex: 30,
+    }}
+  >
     <p style={styles.recoveryLabel}>Recovery check-in</p>
 
     <h3 style={styles.recoveryTitle}>
@@ -1442,6 +1448,8 @@ recoveryOptions: {
 },
 
 recoveryButton: {
+  position: "relative",
+  zIndex: 40,
   border: "none",
   borderRadius: "999px",
   padding: "12px 16px",
