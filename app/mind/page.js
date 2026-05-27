@@ -147,6 +147,7 @@ function buildNextStep({ emotion }) {
 export default function MindPage() {
   const [activeTool, setActiveTool] = useState(null);
   const [activeState, setActiveState] = useState(null);
+  const [recentStates, setRecentStates] = useState([]);
 
   const [situation, setSituation] = useState("");
   const [automaticThought, setAutomaticThought] = useState("");
@@ -182,7 +183,32 @@ export default function MindPage() {
   grief: ["journal", "calming", "grounding", "values", "breathwork", "cbt"],
   anger: ["breathwork", "grounding", "journal", "values", "cbt", "calming"],
 };
+const stateCounts = recentStates.reduce((acc, state) => {
+  acc[state] = (acc[state] || 0) + 1;
+  return acc;
+}, {});
 
+let rootNotice = "";
+
+if ((stateCounts.panic || 0) >= 3) {
+  rootNotice =
+    "Root notices your nervous system has been moving toward overwhelm recently.";
+} else if ((stateCounts.overthinking || 0) >= 3) {
+  rootNotice =
+    "Root notices periods of overthinking and mental looping appearing repeatedly.";
+} else if ((stateCounts.shutdown || 0) >= 3) {
+  rootNotice =
+    "Root notices moments of emotional shutdown or disconnection appearing recently.";
+} else if ((stateCounts.grief || 0) >= 3) {
+  rootNotice =
+    "Root notices emotionally heavy reflections returning more often recently.";
+} else if ((stateCounts.shame || 0) >= 3) {
+  rootNotice =
+    "Root notices a pattern of self-pressure or self-criticism appearing.";
+} else if ((stateCounts.anger || 0) >= 3) {
+  rootNotice =
+    "Root notices tension and emotional charge appearing repeatedly.";
+}
 const visibleTools = activeState
   ? [...tools].sort((a, b) => {
       const order = recommendedToolOrder[activeState.id] || [];
@@ -299,7 +325,14 @@ const visibleTools = activeState
       {emotionalStates.map((state) => (
         <button
           key={state.id}
-          onClick={() => setActiveState(state)}
+          onClick={() => {
+  setActiveState(state);
+
+  setRecentStates((prev) => {
+    const updated = [state.id, ...prev].slice(0, 12);
+    return updated;
+  });
+}}
           style={{
             ...styles.stateCard,
             ...(activeState?.id === state.id ? styles.stateCardActive : {}),
@@ -329,6 +362,12 @@ const visibleTools = activeState
       </div>
     )}
 
+      {rootNotice && (
+  <div style={styles.noticeCard}>
+    <p style={styles.noticeLabel}>Root notices</p>
+    <p style={styles.noticeText}>{rootNotice}</p>
+  </div>
+)}
              <div style={styles.heroCard}>
                 <p style={styles.heroLabel}>Intervention library</p>
                 <h2 style={styles.heroTitle}>Choose the support your system needs.</h2>
@@ -1036,5 +1075,31 @@ pathwayDot: {
   fontSize: "11px",
   fontWeight: "800",
   letterSpacing: "0.04em",
-}, 
+},
+  noticeCard: {
+  marginBottom: "24px",
+  borderRadius: "30px",
+  padding: "24px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08))",
+  border: "1px solid rgba(255,255,255,0.24)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 40px rgba(0,0,0,0.10)",
+},
+
+noticeLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#F4E7CF",
+  fontWeight: "800",
+},
+
+noticeText: {
+  margin: 0,
+  color: "#FFFFFF",
+  lineHeight: "1.8",
+  fontSize: "16px",
+},
 };
