@@ -46,6 +46,7 @@ const [relationalMemory, setRelationalMemory] = useState(null);
 const [proactiveCare, setProactiveCare] = useState(null);
 const [dailyRhythm, setDailyRhythm] = useState(null);
 const [priorityFeed, setPriorityFeed] = useState([]);
+const [rootGuidance, setRootGuidance] = useState(null);
   const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
   longitudinalMemory?.nervousSystemLoad === "high"
@@ -235,6 +236,63 @@ if (reflection?.suggestedAction) {
       setTrendNote(
         "Root Coach becomes more accurate over time."
       );
+      let guidance = null;
+
+if (
+  memory.topEmotionalTheme &&
+  memory.topEmotionalTheme.toLowerCase().includes("panic")
+) {
+  guidance = {
+    title: "Your nervous system may need safety before reflection.",
+    why:
+      "Root has noticed signs of overwhelm and heightened activation recently.",
+    recommendation:
+      "Grounding and slower breathing may help reduce internal threat scanning.",
+    science:
+      "This can help shift the nervous system away from survival mode and back toward steadier regulation.",
+    action: {
+      href: "/mind",
+      label: "Begin Panic Reset",
+    },
+  };
+}
+
+else if (
+  memory.topEmotionalTheme &&
+  memory.topEmotionalTheme.toLowerCase().includes("overthinking")
+) {
+  guidance = {
+    title: "Your mind may be trying to solve too much at once.",
+    why:
+      "Root has noticed recurring cognitive load and reflective looping.",
+    recommendation:
+      "Slowing the nervous system first may help thoughts feel clearer and less urgent.",
+    science:
+      "Calming physiological activation often improves emotional processing and cognitive flexibility.",
+    action: {
+      href: "/coach",
+      label: "Open Root Coach",
+    },
+  };
+}
+
+else {
+  guidance = {
+    title: "Small consistent moments create long-term change.",
+    why:
+      "Root is continuing to learn from your emotional and physical patterns.",
+    recommendation:
+      "Gentle reflection and nervous-system awareness help build emotional resilience over time.",
+    science:
+      "Consistent self-awareness practices are associated with improved stress regulation and behavioural recovery.",
+    action: {
+      href: "/body",
+      label: "Continue check-in",
+    },
+  };
+}
+
+setRootGuidance(guidance);
       setBalanceScore(null);
       return;
     }
@@ -326,7 +384,42 @@ if (reflection?.suggestedAction) {
     </span>
   ))}
 </p>
+  {rootGuidance && (
+  <div style={styles.guidanceCard}>
+    <p style={styles.guidanceLabel}>
+      Root guidance
+    </p>
 
+    <h2 style={styles.guidanceTitle}>
+      {rootGuidance.title}
+    </h2>
+
+    <p style={styles.guidanceWhy}>
+      {rootGuidance.why}
+    </p>
+
+    <div style={styles.guidancePanel}>
+      <p style={styles.guidancePanelTitle}>
+        Why Root is suggesting this
+      </p>
+
+      <p style={styles.guidanceText}>
+        {rootGuidance.recommendation}
+      </p>
+
+      <p style={styles.guidanceScience}>
+        {rootGuidance.science}
+      </p>
+    </div>
+
+    <a
+      href={rootGuidance.action.href}
+      style={styles.guidanceButton}
+    >
+      {rootGuidance.action.label}
+    </a>
+  </div>
+)}
   {rootReflection && (
   <div style={styles.continuityCard}>
     <p style={styles.continuityLabel}>
@@ -1182,5 +1275,81 @@ feedCardButton: {
   color: "#2A261F",
   textDecoration: "none",
   fontWeight: "600",
+},
+  guidanceCard: {
+  maxWidth: "760px",
+  marginBottom: "30px",
+  padding: "30px",
+  borderRadius: "34px",
+  background:
+    "linear-gradient(135deg, rgba(44,62,43,0.92), rgba(68,88,66,0.88))",
+  color: "#FFF",
+  boxShadow: "0 24px 70px rgba(0,0,0,0.18)",
+},
+
+guidanceLabel: {
+  margin: "0 0 12px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "rgba(255,255,255,0.72)",
+  fontWeight: "800",
+},
+
+guidanceTitle: {
+  margin: "0 0 18px",
+  fontSize: "38px",
+  lineHeight: "1.15",
+  fontFamily: "Georgia, serif",
+  fontWeight: "500",
+},
+
+guidanceWhy: {
+  margin: "0 0 24px",
+  lineHeight: "1.8",
+  color: "rgba(255,255,255,0.88)",
+  fontSize: "18px",
+},
+
+guidancePanel: {
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.10)",
+  border: "1px solid rgba(255,255,255,0.14)",
+  marginBottom: "24px",
+},
+
+guidancePanelTitle: {
+  margin: "0 0 14px",
+  fontSize: "13px",
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+  color: "rgba(255,255,255,0.68)",
+  fontWeight: "700",
+},
+
+guidanceText: {
+  margin: "0 0 16px",
+  lineHeight: "1.8",
+  fontSize: "17px",
+},
+
+guidanceScience: {
+  margin: 0,
+  lineHeight: "1.7",
+  color: "rgba(255,255,255,0.72)",
+  fontSize: "15px",
+},
+
+guidanceButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "14px 24px",
+  borderRadius: "999px",
+  background: "#FFF",
+  color: "#243224",
+  textDecoration: "none",
+  fontWeight: "700",
 },
 };
