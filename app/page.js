@@ -610,6 +610,7 @@ const styles = {
     position: "relative",
     minHeight: "100vh",
     overflow: "hidden",
+    overflowY: "auto",
     fontFamily: "Inter, sans-serif",
     background: "#000",
   },
