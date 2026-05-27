@@ -561,16 +561,6 @@ const visibleTools = activeState
   )}
 </div>
 
-      {journeyStep < activeJourney.steps.length - 1 ? (
-        <button
-          style={styles.journeyPrimary}
-          onClick={() =>
-            setJourneyStep((prev) => prev + 1)
-          }
-        >
-          Continue
-       
-    </div>
        {journeyStep === activeJourney.steps.length - 1 && (
   <div
     style={{
