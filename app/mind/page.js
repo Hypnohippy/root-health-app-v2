@@ -176,12 +176,7 @@ This does not mean dismissing what you feel. It means creating a little space ar
 }
 
 function buildNextStep({ emotion }) {
-  const recoveryScores = {
-  Calmer: 2,
-  "Slightly calmer": 1,
-  Unchanged: 0,
-  "Still overwhelmed": -1,
-};
+  
   if (!emotion) {
     return "Take one slower breath, then choose one small action that supports you rather than pressures you.";
   }
@@ -581,7 +576,7 @@ const visibleTools = activeState
           <button
             key={option}
             style={styles.recoveryButton}
-           onClick={async () => {
+          onClick={async () => {
   try {
     await saveEntry({
       tool: "Panic Reset Journey",
@@ -592,11 +587,24 @@ const visibleTools = activeState
       reframe: "The user completed the Panic Reset journey.",
       next_step: `Reported outcome: ${option}`,
     });
+
+    setRecoverySavedMessage(
+      `Root noticed: you felt ${option.toLowerCase()} after the Panic Reset.`
+    );
   } catch (err) {
     console.log("Recovery save failed:", err);
+    setRecoverySavedMessage(
+      "Root noticed your response, but could not confirm the save."
+    );
   }
 
-}}          >
+  setTimeout(() => {
+    setActiveJourney(null);
+    setJourneyStep(0);
+    setJourneyComplete(false);
+  }, 1400);
+}}
+            >
             {option}
           </button>
         )
