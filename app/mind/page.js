@@ -561,10 +561,7 @@ const visibleTools = activeState
           }
         >
           Continue
-        </button>
-      ) : (
-        <button
-          ) : null}
+       
     </div>
        {journeyStep === activeJourney.steps.length - 1 && (
   <div
