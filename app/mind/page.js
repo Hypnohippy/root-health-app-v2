@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
@@ -148,6 +148,26 @@ export default function MindPage() {
   const [activeTool, setActiveTool] = useState(null);
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
+  useEffect(() => {
+  const loadRecentStates = async () => {
+    const { data } = await supabase
+      .from("mind_entries")
+      .select("emotion")
+      .eq("tool", "Emotional check-in")
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    if (Array.isArray(data)) {
+      setRecentStates(
+        data
+          .map((entry) => entry.emotion)
+          .filter(Boolean)
+      );
+    }
+  };
+
+  loadRecentStates();
+}, []);
 
   const [situation, setSituation] = useState("");
   const [automaticThought, setAutomaticThought] = useState("");
@@ -325,13 +345,26 @@ const visibleTools = activeState
       {emotionalStates.map((state) => (
         <button
           key={state.id}
-          onClick={() => {
+         onClick={async () => {
   setActiveState(state);
 
   setRecentStates((prev) => {
     const updated = [state.id, ...prev].slice(0, 12);
     return updated;
   });
+
+  await supabase.from("mind_entries").insert([
+    {
+      profile_key: "main",
+      tool: "Emotional check-in",
+      situation: state.title,
+      automatic_thought: "",
+      emotion: state.id,
+      intensity: "",
+      reframe: state.suggestion,
+      next_step: state.pathways.join(", "),
+    },
+  ]);
 }}
           style={{
             ...styles.stateCard,
