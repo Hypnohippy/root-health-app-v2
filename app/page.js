@@ -522,13 +522,6 @@ if (reflection?.suggestedAction) {
     <span style={styles.secondaryArrow}>→</span>
   </a>
 </div>
-<footer style={styles.footer}>
-  <a href="/privacy" style={styles.footerLink}>Privacy</a>
-  <span style={styles.footerDivider}>•</span>
-  <a href="/safety" style={styles.footerLink}>Safety</a>
-  <span style={styles.footerDivider}>•</span>
-  <a href="/terms" style={styles.footerLink}>Terms</a>
-</footer>
 
 <div style={styles.insightCard}>
   <div style={styles.insightTop}>
@@ -580,6 +573,13 @@ if (reflection?.suggestedAction) {
           </div>
         </div>
       </div>
+<footer style={styles.footer}>
+  <a href="/privacy" style={styles.footerLink}>Privacy</a>
+  <span style={styles.footerDivider}>•</span>
+  <a href="/safety" style={styles.footerLink}>Safety</a>
+  <span style={styles.footerDivider}>•</span>
+  <a href="/terms" style={styles.footerLink}>Terms</a>
+</footer>
 
    <style jsx>{`
   @media (max-width: 768px) {
@@ -842,8 +842,8 @@ background:
     background: "rgba(0,0,0,0.08)",
   },
 
- footer: {
-  position: "relative",
+footer: {
+  position: "fixed",
   bottom: "18px",
   left: "50%",
   transform: "translateX(-50%)",
