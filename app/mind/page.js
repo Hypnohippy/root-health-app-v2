@@ -187,6 +187,7 @@ export default function MindPage() {
   const [activeTool, setActiveTool] = useState(null);
   const [activeJourney, setActiveJourney] = useState(null);
   const [journeyStep, setJourneyStep] = useState(0);
+  const [journeyComplete, setJourneyComplete] = useState(false);
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
   useEffect(() => {
@@ -439,6 +440,7 @@ const visibleTools = activeState
     onClick={() => {
       setActiveJourney(journeys[activeState.journey]);
       setJourneyStep(0);
+      setJourneyComplete(false);
     }}
   >
     Begin {journeys[activeState.journey].title}
@@ -542,14 +544,46 @@ const visibleTools = activeState
         <button
           style={styles.journeyPrimary}
           onClick={() => {
-            setActiveJourney(null);
-            setJourneyStep(0);
+          setJourneyComplete(true);
           }}
         >
           Complete journey
         </button>
       )}
     </div>
+        {journeyComplete && (
+  <div style={styles.recoveryCard}>
+    <p style={styles.recoveryLabel}>Recovery check-in</p>
+
+    <h3 style={styles.recoveryTitle}>
+      How does your nervous system feel now?
+    </h3>
+
+    <div style={styles.recoveryOptions}>
+      {["Calmer", "Slightly calmer", "Unchanged", "Still overwhelmed"].map(
+        (option) => (
+          <button
+            key={option}
+            style={styles.recoveryButton}
+            onClick={async () => {
+              await saveSimpleTool(
+                "Panic Reset Journey",
+                `Completed Panic Reset. Recovery response: ${option}`,
+                `The user reported feeling: ${option}`
+              );
+
+              setActiveJourney(null);
+              setJourneyStep(0);
+              setJourneyComplete(false);
+            }}
+          >
+            {option}
+          </button>
+        )
+      )}
+    </div>
+  </div>
+)}
   </div>
 )}
 {activeTool && (
@@ -1330,6 +1364,7 @@ journeyActions: {
   gap: "14px",
   flexWrap: "wrap",
 },
+  
 
 journeyPrimary: {
   border: "none",
@@ -1347,6 +1382,45 @@ journeySecondary: {
   padding: "14px 22px",
   background: "rgba(255,255,255,0.08)",
   color: "#FFF",
+  fontWeight: "700",
+  cursor: "pointer",
+},
+  recoveryCard: {
+  marginTop: "22px",
+  padding: "24px",
+  borderRadius: "28px",
+  background: "rgba(255,255,255,0.12)",
+  border: "1px solid rgba(255,255,255,0.22)",
+},
+
+recoveryLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#F4E7CF",
+  fontWeight: "800",
+},
+
+recoveryTitle: {
+  margin: "0 0 16px",
+  color: "#FFFFFF",
+  fontSize: "24px",
+  fontFamily: "Georgia, serif",
+},
+
+recoveryOptions: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "12px",
+},
+
+recoveryButton: {
+  border: "none",
+  borderRadius: "999px",
+  padding: "12px 16px",
+  background: "#FFFFFF",
+  color: "#111",
   fontWeight: "700",
   cursor: "pointer",
 },
