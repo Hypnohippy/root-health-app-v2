@@ -194,6 +194,7 @@ export default function MindPage() {
   const [activeJourney, setActiveJourney] = useState(null);
   const [journeyStep, setJourneyStep] = useState(0);
   const [journeyComplete, setJourneyComplete] = useState(false);
+  const [recoverySavedMessage, setRecoverySavedMessage] = useState("");
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
   useEffect(() => {
@@ -379,6 +380,12 @@ const visibleTools = activeState
             </p>
           </div>
 
+          {recoverySavedMessage && (
+  <div style={styles.savedNoticeCard}>
+    <p style={styles.savedNoticeLabel}>Recovery outcome saved</p>
+    <p style={styles.savedNoticeText}>{recoverySavedMessage}</p>
+  </div>
+)}
          {!activeTool && !activeJourney && (
   <>
     <div style={styles.stateIntro}>
@@ -448,7 +455,9 @@ const visibleTools = activeState
       setJourneyStep(0);
       setJourneyComplete(false);
       
-      alert("Root noticed your response and saved the recovery outcome.");
+      setRecoverySavedMessage(
+  `Root noticed: you felt ${option.toLowerCase()} after the Panic Reset.`
+);
     }}
   >
     Begin {journeys[activeState.journey].title}
@@ -1438,5 +1447,31 @@ recoveryButton: {
   color: "#111",
   fontWeight: "700",
   cursor: "pointer",
+},
+savedNoticeCard: {
+  marginBottom: "24px",
+  borderRadius: "30px",
+  padding: "24px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.10))",
+  border: "1px solid rgba(255,255,255,0.30)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 40px rgba(0,0,0,0.10)",
+},
+
+savedNoticeLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#F4E7CF",
+  fontWeight: "800",
+},
+
+savedNoticeText: {
+  margin: 0,
+  color: "#FFFFFF",
+  lineHeight: "1.8",
+  fontSize: "16px",
 },
 };
