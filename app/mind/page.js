@@ -176,6 +176,12 @@ This does not mean dismissing what you feel. It means creating a little space ar
 }
 
 function buildNextStep({ emotion }) {
+  const recoveryScores = {
+  Calmer: 2,
+  "Slightly calmer": 1,
+  Unchanged: 0,
+  "Still overwhelmed": -1,
+};
   if (!emotion) {
     return "Take one slower breath, then choose one small action that supports you rather than pressures you.";
   }
@@ -566,12 +572,15 @@ const visibleTools = activeState
             key={option}
             style={styles.recoveryButton}
             onClick={async () => {
-              await saveSimpleTool(
-                "Panic Reset Journey",
-                `Completed Panic Reset. Recovery response: ${option}`,
-                `The user reported feeling: ${option}`
-              );
-
+             await saveEntry({
+  tool: "Panic Reset Journey",
+  situation: `Recovery response: ${option}`,
+  automatic_thought: "",
+  emotion: activeState?.id || "panic",
+  intensity: String(recoveryScores[option]),
+  reframe: `The user completed the Panic Reset journey.`,
+  next_step: `Reported outcome: ${option}`,
+});
               setActiveJourney(null);
               setJourneyStep(0);
               setJourneyComplete(false);
