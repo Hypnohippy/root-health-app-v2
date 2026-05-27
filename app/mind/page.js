@@ -31,6 +31,7 @@ const emotionalStates = [
   "Reduce stimulation",
   "Slow the nervous system",
 ],
+    journey: "panic",
   },
   {
     id: "shutdown",
@@ -85,7 +86,45 @@ const emotionalStates = [
 ],
   },
 ];
- 
+const journeys = {
+  panic: {
+    title: "Panic Reset",
+    description:
+      "A gentle guided pathway to help the nervous system slow down and feel safer again.",
+
+    steps: [
+      {
+        title: "Orient to the room",
+        text:
+          "Look slowly around you. Notice shapes, light, colours, and objects around you. Let the nervous system realise this moment is different from the fear.",
+      },
+
+      {
+        title: "Slow the breath",
+        text:
+          "Breathe in gently for 4 seconds. Exhale slowly for 6 seconds. Longer exhales help calm the nervous system.",
+      },
+
+      {
+        title: "Ground into the body",
+        text:
+          "Feel your feet against the floor. Relax your jaw slightly. Allow your shoulders to soften.",
+      },
+
+      {
+        title: "Reduce mental urgency",
+        text:
+          "You do not need to solve everything right now. The priority is safety and regulation first.",
+      },
+
+      {
+        title: "Gentle recovery",
+        text:
+          "Your nervous system may still feel activated for a little while. That is okay. Recovery often happens gradually.",
+      },
+    ],
+  },
+}; 
 const tools = [
   {
     id: "cbt",
@@ -146,6 +185,8 @@ function buildNextStep({ emotion }) {
 
 export default function MindPage() {
   const [activeTool, setActiveTool] = useState(null);
+  const [activeJourney, setActiveJourney] = useState(null);
+  const [journeyStep, setJourneyStep] = useState(0);
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
   useEffect(() => {
@@ -392,6 +433,17 @@ const visibleTools = activeState
     </div>
   ))}
 </div>
+  {activeState.journey && (
+  <button
+    style={styles.journeyButton}
+    onClick={() => {
+      setActiveJourney(journeys[activeState.journey]);
+      setJourneyStep(0);
+    }}
+  >
+    Begin {journeys[activeState.journey].title}
+  </button>
+)}
       </div>
     )}
 
@@ -437,6 +489,69 @@ const visibleTools = activeState
   </>
 )}
 
+{activeJourney && (
+  <div style={styles.journeyCard}>
+    <p style={styles.journeyLabel}>
+      Guided nervous-system journey
+    </p>
+
+    <h2 style={styles.journeyTitle}>
+      {activeJourney.title}
+    </h2>
+
+    <p style={styles.journeyDescription}>
+      {activeJourney.description}
+    </p>
+
+    <div style={styles.journeyStepCard}>
+      <p style={styles.journeyStepCount}>
+        Step {journeyStep + 1} of {activeJourney.steps.length}
+      </p>
+
+      <h3 style={styles.journeyStepTitle}>
+        {activeJourney.steps[journeyStep].title}
+      </h3>
+
+      <p style={styles.journeyStepText}>
+        {activeJourney.steps[journeyStep].text}
+      </p>
+    </div>
+
+    <div style={styles.journeyActions}>
+      {journeyStep > 0 && (
+        <button
+          style={styles.journeySecondary}
+          onClick={() =>
+            setJourneyStep((prev) => prev - 1)
+          }
+        >
+          Back
+        </button>
+      )}
+
+      {journeyStep < activeJourney.steps.length - 1 ? (
+        <button
+          style={styles.journeyPrimary}
+          onClick={() =>
+            setJourneyStep((prev) => prev + 1)
+          }
+        >
+          Continue
+        </button>
+      ) : (
+        <button
+          style={styles.journeyPrimary}
+          onClick={() => {
+            setActiveJourney(null);
+            setJourneyStep(0);
+          }}
+        >
+          Complete journey
+        </button>
+      )}
+    </div>
+  </div>
+)}
 {activeTool && (
             <button style={styles.backButton} onClick={() => setActiveTool(null)}>
               ← Back to tools
@@ -1134,5 +1249,105 @@ noticeText: {
   color: "#FFFFFF",
   lineHeight: "1.8",
   fontSize: "16px",
+},
+  journeyButton: {
+  marginTop: "16px",
+  border: "none",
+  borderRadius: "999px",
+  padding: "12px 18px",
+  background: "rgba(24,24,24,0.82)",
+  color: "#FFF",
+  fontWeight: "700",
+  cursor: "pointer",
+},
+
+journeyCard: {
+  marginBottom: "26px",
+  borderRadius: "34px",
+  padding: "32px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08))",
+  border: "1px solid rgba(255,255,255,0.24)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.12)",
+},
+
+journeyLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#F4E7CF",
+  fontWeight: "800",
+},
+
+journeyTitle: {
+  margin: "0 0 14px",
+  fontSize: "38px",
+  lineHeight: "1.1",
+  color: "#FFF",
+  fontFamily: "Georgia, serif",
+},
+
+journeyDescription: {
+  margin: "0 0 24px",
+  color: "rgba(255,255,255,0.82)",
+  lineHeight: "1.8",
+},
+
+journeyStepCard: {
+  borderRadius: "26px",
+  padding: "24px",
+  background: "rgba(0,0,0,0.18)",
+  marginBottom: "22px",
+},
+
+journeyStepCount: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+  color: "rgba(255,255,255,0.62)",
+},
+
+journeyStepTitle: {
+  margin: "0 0 14px",
+  fontSize: "28px",
+  lineHeight: "1.2",
+  color: "#FFF",
+  fontFamily: "Georgia, serif",
+},
+
+journeyStepText: {
+  margin: 0,
+  color: "rgba(255,255,255,0.88)",
+  lineHeight: "1.9",
+  fontSize: "18px",
+},
+
+journeyActions: {
+  display: "flex",
+  gap: "14px",
+  flexWrap: "wrap",
+},
+
+journeyPrimary: {
+  border: "none",
+  borderRadius: "999px",
+  padding: "14px 22px",
+  background: "#FFF",
+  color: "#111",
+  fontWeight: "700",
+  cursor: "pointer",
+},
+
+journeySecondary: {
+  border: "1px solid rgba(255,255,255,0.24)",
+  borderRadius: "999px",
+  padding: "14px 22px",
+  background: "rgba(255,255,255,0.08)",
+  color: "#FFF",
+  fontWeight: "700",
+  cursor: "pointer",
 },
 };
