@@ -190,6 +190,7 @@ export default function MindPage() {
   const [journeyStep, setJourneyStep] = useState(0);
   const [journeyComplete, setJourneyComplete] = useState(false);
   const [recoverySavedMessage, setRecoverySavedMessage] = useState("");
+  const [showInsights, setShowInsights] = useState(false);
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
   const [recoveryEntries, setRecoveryEntries] = useState([]);
@@ -503,13 +504,21 @@ const visibleTools = activeState
       </div>
     )}
 
-{recoveryTrend && (
+<button
+  style={styles.insightToggle}
+  onClick={() => setShowInsights((prev) => !prev)}
+>
+  {showInsights
+    ? "Hide Root insights"
+    : "What Root has noticed"}
+</button>
+{showInsights && recoveryTrend && (
   <div style={styles.trendCard}>
     <p style={styles.trendLabel}>Recovery intelligence</p>
     <p style={styles.trendText}>{recoveryTrend}</p>
   </div>
 )}
-      {rootNotice && (
+     {showInsights && rootNotice && (
   <div style={styles.noticeCard}>
     <p style={styles.noticeLabel}>Root notices</p>
     <p style={styles.noticeText}>{rootNotice}</p>
@@ -1548,5 +1557,18 @@ trendText: {
   color: "#FFFFFF",
   lineHeight: "1.8",
   fontSize: "16px",
+},
+  insightToggle: {
+  width: "100%",
+  border: "1px solid rgba(255,255,255,0.18)",
+  borderRadius: "999px",
+  padding: "14px 18px",
+  background: "rgba(255,255,255,0.08)",
+  color: "#FFFFFF",
+  fontWeight: "700",
+  fontSize: "15px",
+  cursor: "pointer",
+  marginBottom: "20px",
+  backdropFilter: "blur(10px)",
 },
 };
