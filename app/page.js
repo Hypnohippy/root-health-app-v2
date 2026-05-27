@@ -631,13 +631,15 @@ background:
   },
 
   content: {
-    position: "relative",
-    zIndex: 2,
-    minHeight: "100vh",
-    padding: "120px 20px 120px",
-    display: "flex",
-    alignItems: "flex-start",
-  },
+  position: "relative",
+  zIndex: 2,
+  minHeight: "100vh",
+  padding: "120px 20px 40px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  alignItems: "stretch",
+},
 
   leftSide: {
     width: "100%",
