@@ -542,16 +542,24 @@ const visibleTools = activeState
     </div>
 
     <div style={styles.journeyActions}>
-      {journeyStep > 0 && (
-        <button
-          style={styles.journeySecondary}
-          onClick={() =>
-            setJourneyStep((prev) => prev - 1)
-          }
-        >
-          Back
-        </button>
-      )}
+  {journeyStep > 0 && (
+    <button
+      style={styles.journeySecondary}
+      onClick={() => setJourneyStep((prev) => prev - 1)}
+    >
+      Back
+    </button>
+  )}
+
+  {journeyStep < activeJourney.steps.length - 1 && (
+    <button
+      style={styles.journeyPrimary}
+      onClick={() => setJourneyStep((prev) => prev + 1)}
+    >
+      Continue
+    </button>
+  )}
+</div>
 
       {journeyStep < activeJourney.steps.length - 1 ? (
         <button
