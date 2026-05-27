@@ -564,16 +564,9 @@ const visibleTools = activeState
         </button>
       ) : (
         <button
-          style={styles.journeyPrimary}
-          onClick={() => {
-          setJourneyComplete(true);
-          }}
-        >
-          Complete journey
-        </button>
-      )}
+          ) : null}
     </div>
-       {journeyComplete && (
+       {journeyStep === activeJourney.steps.length - 1 && (
   <div
     style={{
       ...styles.recoveryCard,
