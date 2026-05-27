@@ -46,6 +46,7 @@ const [relationalMemory, setRelationalMemory] = useState(null);
 const [proactiveCare, setProactiveCare] = useState(null);
 const [dailyRhythm, setDailyRhythm] = useState(null);
 const [priorityFeed, setPriorityFeed] = useState([]);
+const [showDeepInsights, setShowDeepInsights] = useState(false);
 const [rootGuidance, setRootGuidance] = useState(null);
   const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
@@ -435,7 +436,17 @@ setRootGuidance(guidance);
     </p>
   </div>
 )} 
-{longitudinalMemory && (
+<button
+  style={styles.deepInsightsButton}
+  onClick={() =>
+    setShowDeepInsights((prev) => !prev)
+  }
+>
+  {showDeepInsights
+    ? "Hide deeper Root insights"
+    : "See deeper Root insights"}
+</button>
+{showDeepInsights && longitudinalMemory && (
   <div style={styles.memoryCard}>
     <p style={styles.memoryLabel}>
       Root has noticed
@@ -545,7 +556,7 @@ setRootGuidance(guidance);
     )}
   </div>
 )}
-  {priorityFeed.length > 0 && (
+  {showDeepInsights && priorityFeed.length > 0 && (
   <section style={styles.feedSection}>
     <div style={styles.feedHeader}>
       <p style={styles.feedEyebrow}>
@@ -1351,5 +1362,19 @@ guidanceButton: {
   color: "#243224",
   textDecoration: "none",
   fontWeight: "700",
+},
+  deepInsightsButton: {
+  width: "100%",
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "16px 22px",
+  borderRadius: "999px",
+  border: "1px solid rgba(255,255,255,0.22)",
+  background: "rgba(255,255,255,0.10)",
+  color: "#1F281D",
+  fontWeight: "700",
+  fontSize: "15px",
+  cursor: "pointer",
+  backdropFilter: "blur(10px)",
 },
 };
