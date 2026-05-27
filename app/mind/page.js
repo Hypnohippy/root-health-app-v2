@@ -458,6 +458,11 @@ const visibleTools = activeState
       setRecoverySavedMessage(
   `Root noticed: you felt ${option.toLowerCase()} after the Panic Reset.`
 );
+      setTimeout(() => {
+  setActiveJourney(null);
+  setJourneyStep(0);
+  setJourneyComplete(false);
+}, 1800);
     }}
   >
     Begin {journeys[activeState.journey].title}
@@ -597,9 +602,6 @@ const visibleTools = activeState
     console.log("Recovery save failed:", err);
   }
 
-  setActiveJourney(null);
-  setJourneyStep(0);
-  setJourneyComplete(false);
 }}          >
             {option}
           </button>
