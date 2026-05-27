@@ -447,6 +447,8 @@ const visibleTools = activeState
       setActiveJourney(journeys[activeState.journey]);
       setJourneyStep(0);
       setJourneyComplete(false);
+      
+      alert("Root noticed your response and saved the recovery outcome.");
     }}
   >
     Begin {journeys[activeState.journey].title}
