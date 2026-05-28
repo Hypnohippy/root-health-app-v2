@@ -48,7 +48,8 @@ const [dailyRhythm, setDailyRhythm] = useState(null);
 const [priorityFeed, setPriorityFeed] = useState([]);
 const [showDeepInsights, setShowDeepInsights] = useState(false);
 const [rootGuidance, setRootGuidance] = useState(null);
-  const visibleFeedCount =
+const [progressMessage, setProgressMessage] = useState("");
+const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
   longitudinalMemory?.nervousSystemLoad === "high"
     ? 1
@@ -294,6 +295,33 @@ else {
 }
 
 setRootGuidance(guidance);
+      const recoveryEntries = safeMind.filter(
+  (entry) => entry.tool === "Panic Reset Journey"
+);
+
+const recoveryScores = recoveryEntries
+  .map((entry) => Number(entry.intensity))
+  .filter((score) => !Number.isNaN(score));
+
+if (recoveryScores.length >= 2) {
+  const average =
+    recoveryScores.reduce((sum, score) => sum + score, 0) /
+    recoveryScores.length;
+
+  if (average > 1) {
+    setProgressMessage(
+      "Root notices your recovery responses are showing stronger signs of settling."
+    );
+  } else if (average > 0) {
+    setProgressMessage(
+      "Root notices small signs of recovery building through repeated practice."
+    );
+  } else {
+    setProgressMessage(
+      "Root notices you are continuing to practise, even when regulation feels difficult."
+    );
+  }
+}
       setBalanceScore(null);
       return;
     }
@@ -390,6 +418,12 @@ setRootGuidance(guidance);
     <p style={styles.guidanceLabel}>
       Root guidance
     </p>
+    {progressMessage && (
+  <div style={styles.progressCard}>
+    <p style={styles.progressLabel}>Your progress</p>
+    <p style={styles.progressText}>{progressMessage}</p>
+  </div>
+)}
 
     <h2 style={styles.guidanceTitle}>
       {rootGuidance.title}
@@ -1376,5 +1410,31 @@ guidanceButton: {
   fontSize: "15px",
   cursor: "pointer",
   backdropFilter: "blur(10px)",
+},
+  progressCard: {
+  maxWidth: "760px",
+  marginBottom: "26px",
+  padding: "24px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.22)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(16px)",
+  boxShadow: "0 16px 42px rgba(20,18,15,0.08)",
+},
+
+progressLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+progressText: {
+  margin: 0,
+  color: "#283128",
+  lineHeight: "1.8",
+  fontSize: "18px",
 },
 };
