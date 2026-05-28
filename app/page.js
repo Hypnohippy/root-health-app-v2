@@ -49,6 +49,7 @@ const [priorityFeed, setPriorityFeed] = useState([]);
 const [showDeepInsights, setShowDeepInsights] = useState(false);
 const [rootGuidance, setRootGuidance] = useState(null);
 const [progressMessage, setProgressMessage] = useState("");
+const [userName, setUserName] = useState("friend");
 const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
   longitudinalMemory?.nervousSystemLoad === "high"
@@ -204,6 +205,21 @@ if (reflection?.suggestedAction) {
 
  useEffect(() => {
   const load = async () => {
+    const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (user) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("first_name")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.first_name) {
+    setUserName(profile.first_name);
+  }
+}
     const { data: bodyData } = await supabase
       .from("body_signals")
       .select("*")
