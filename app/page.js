@@ -204,21 +204,25 @@ if (reflection?.suggestedAction) {
 
  useEffect(() => {
   const load = async () => {
+    let loadedName = "friend";
+
     const {
-  data: { user },
-} = await supabase.auth.getUser();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-if (user) {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("first_name")
-    .eq("id", user.id)
-    .single();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name")
+        .eq("id", user.id)
+        .single();
 
-  if (profile?.first_name) {
-    setUserName(profile.first_name);
-  }
-}
+      if (profile?.first_name) {
+        loadedName = profile.first_name;
+        setUserName(profile.first_name);
+      }
+    }
+
     const { data: bodyData } = await supabase
       .from("body_signals")
       .select("*")
@@ -244,52 +248,6 @@ if (user) {
     setBodySignals(safeBody);
     setJournalEntries(safeJournal);
     setMindEntries(safeMind);
-    setRootGuidance(guidance);
-      const recoveryEntries = safeMind.filter(
-  (entry) => entry.tool === "Panic Reset Journey"
-);
-
-const recoveryScores = recoveryEntries
-  .map((entry) => Number(entry.intensity))
-  .filter((score) => !Number.isNaN(score));
-
-if (recoveryScores.length >= 2) {
-  const average =
-    recoveryScores.reduce((sum, score) => sum + score, 0) /
-    recoveryScores.length;
-
-  if (average > 1) {
-    setProgressMessage(
-      "Root notices your recovery responses are showing stronger signs of settling."
-    );
-  } else if (average > 0) {
-    setProgressMessage(
-      "Root notices small signs of recovery building through repeated practice."
-    );
-  } else {
-    setProgressMessage(
-      "Root notices you are continuing to practise, even when regulation feels difficult."
-    );
-  }
-}
-      setBalanceScore(null);
-      return;
-    }
-
-    const latestAreas = safeBody[0].areas || [];
-
-    setLatestInsight(
-      latestAreas.length > 0
-        ? `Your body has recently been signalling around ${latestAreas.join(", ")}.`
-        : "Your body has logged a recent signal."
-    );
-
-    const score = Math.max(
-      20,
-      Math.min(100, 100 - safeBody.length * 2)
-    );
-
-    setBalanceScore(score);
 
     const reflection = buildRootReflection({
       bodySignals: safeBody,
@@ -308,61 +266,99 @@ if (recoveryScores.length >= 2) {
 
     setLongitudinalMemory(memory);
 
-    setPatternNote(
-      memory.trajectoryHeadline ||
-        "Patterns are beginning to emerge."
+    setLatestInsight(
+      safeBody.length > 0
+        ? `Your body has recently been signalling around ${(safeBody[0].areas || []).join(", ") || "recent patterns"}.`
+        : "No recent signals yet."
     );
-setTrendNote(
-  memory.trajectoryReflection ||
-    "Root is learning from your recent signals."
-);
 
-let guidance = null;
+    setPatternNote(
+      memory.trajectoryHeadline || "Patterns are beginning to emerge."
+    );
 
-if (
-  memory.topEmotionalTheme &&
-  memory.topEmotionalTheme.toLowerCase().includes("panic")
-) {
-  guidance = {
-    title: `${userName}, your nervous system may need safety before reflection.`,
-    why: "Recent emotional patterns suggest your system may be carrying heightened activation.",
-    recommendation: "Grounding and slower breathing may help reduce internal threat scanning and support steadier regulation.",
-    science: "When the nervous system begins orienting back toward safety, emotional processing often becomes clearer and less overwhelming.",
-    action: {
-      href: "/mind",
-      label: "Begin Panic Reset",
-    },
+    setTrendNote(
+      memory.trajectoryReflection || "Root is learning from your recent signals."
+    );
+
+    setBalanceScore(
+      safeBody.length > 0
+        ? Math.max(20, Math.min(100, 100 - safeBody.length * 2))
+        : null
+    );
+
+    let guidance = null;
+
+    if (
+      memory.topEmotionalTheme &&
+      memory.topEmotionalTheme.toLowerCase().includes("panic")
+    ) {
+      guidance = {
+        title: `${loadedName}, your nervous system may need safety before reflection.`,
+        why: "Recent emotional patterns suggest your system may be carrying heightened activation.",
+        recommendation: "Grounding and slower breathing may help reduce internal threat scanning and support steadier regulation.",
+        science: "When the nervous system begins orienting back toward safety, emotional processing often becomes clearer and less overwhelming.",
+        action: {
+          href: "/mind",
+          label: "Begin Panic Reset",
+        },
+      };
+    } else if (
+      memory.topEmotionalTheme &&
+      memory.topEmotionalTheme.toLowerCase().includes("overthinking")
+    ) {
+      guidance = {
+        title: `${loadedName}, your mind may be carrying too much at once.`,
+        why: "Recent reflections suggest ongoing cognitive load and emotional looping.",
+        recommendation: "Slowing the nervous system first may help thoughts feel less urgent and easier to process.",
+        science: "Reducing physiological activation can improve emotional regulation and cognitive flexibility.",
+        action: {
+          href: "/coach",
+          label: "Open Root Coach",
+        },
+      };
+    } else {
+      guidance = {
+        title: `${loadedName}, Root is continuing to learn your patterns gently over time.`,
+        why: "Your recent signals are helping Root understand emotional rhythms, recovery, and behavioural trends.",
+        recommendation: "Small consistent check-ins often create more meaningful long-term awareness than intensity alone.",
+        science: "Regular reflective practice supports self-awareness, resilience, and nervous-system regulation.",
+        action: {
+          href: "/body",
+          label: "Continue check-in",
+        },
+      };
+    }
+
+    setRootGuidance(guidance);
+
+    const recoveryEntries = safeMind.filter(
+      (entry) => entry.tool === "Panic Reset Journey"
+    );
+
+    const recoveryScores = recoveryEntries
+      .map((entry) => Number(entry.intensity))
+      .filter((score) => !Number.isNaN(score));
+
+    if (recoveryScores.length >= 2) {
+      const average =
+        recoveryScores.reduce((sum, score) => sum + score, 0) /
+        recoveryScores.length;
+
+      if (average > 1) {
+        setProgressMessage(
+          `${loadedName}, your recovery responses are showing stronger signs of settling.`
+        );
+      } else if (average > 0) {
+        setProgressMessage(
+          `${loadedName}, small signs of recovery are building through repeated practice.`
+        );
+      } else {
+        setProgressMessage(
+          `${loadedName}, you are continuing to practise even when regulation feels difficult.`
+        );
+      }
+    }
   };
-} else if (
-  memory.topEmotionalTheme &&
-  memory.topEmotionalTheme.toLowerCase().includes("overthinking")
-) {
-  guidance = {
-    title: `${userName}, your mind may be carrying too much at once.`,
-    why: "Recent reflections suggest ongoing cognitive load and emotional looping.",
-    recommendation: "Slowing the nervous system first may help thoughts feel less urgent and easier to process.",
-    science: "Reducing physiological activation can improve emotional regulation and cognitive flexibility.",
-    action: {
-      href: "/coach",
-      label: "Open Root Coach",
-    },
-  };
-} else {
-  guidance = {
-    title: `${userName}, Root is continuing to learn your patterns gently over time.`,
-    why: "Your recent signals are helping Root understand emotional rhythms, recovery, and behavioural trends.",
-    recommendation: "Small consistent check-ins often create more meaningful long-term awareness than intensity alone.",
-    science: "Regular reflective practice is associated with improved resilience, self-awareness, and nervous-system regulation.",
-    action: {
-      href: "/body",
-      label: "Continue check-in",
-    },
-  };
-}
-
-setRootGuidance(guidance);
-   
-
 
   load();
 }, [journey]);
