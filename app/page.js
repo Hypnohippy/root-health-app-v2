@@ -211,11 +211,13 @@ if (reflection?.suggestedAction) {
     } = await supabase.auth.getUser();
 
     if (user) {
+      console.log("AUTH USER ID", user.id);
       const { data: profile } = await supabase
         .from("profiles")
         .select("first_name")
         .eq("id", user.id)
         .single();
+        console.log("PROFILE RESULT", profile);
       console.log("USER", user);
       console.log("PROFILE", profile);
 
