@@ -49,7 +49,7 @@ const [priorityFeed, setPriorityFeed] = useState([]);
 const [showDeepInsights, setShowDeepInsights] = useState(false);
 const [rootGuidance, setRootGuidance] = useState(null);
 const [progressMessage, setProgressMessage] = useState("");
-const [userName, setUserName] = useState("friend");
+const [userName, setUserName] = useState("");
 const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
   longitudinalMemory?.nervousSystemLoad === "high"
@@ -204,7 +204,7 @@ if (reflection?.suggestedAction) {
 
  useEffect(() => {
   const load = async () => {
-    let loadedName = "friend";
+    let loadedName = "";
 
     const {
       data: { user },
@@ -299,7 +299,9 @@ if (reflection?.suggestedAction) {
       memory.topEmotionalTheme.toLowerCase().includes("panic")
     ) {
       guidance = {
-        title: `${loadedName}, your nervous system may need safety before reflection.`,
+        title: loadedName
+  ? `${loadedName}, your nervous system may need safety before reflection.`
+  : "Your nervous system may need safety before reflection.",
         why: "Recent emotional patterns suggest your system may be carrying heightened activation.",
         recommendation: "Grounding and slower breathing may help reduce internal threat scanning and support steadier regulation.",
         science: "When the nervous system begins orienting back toward safety, emotional processing often becomes clearer and less overwhelming.",
@@ -313,7 +315,9 @@ if (reflection?.suggestedAction) {
       memory.topEmotionalTheme.toLowerCase().includes("overthinking")
     ) {
       guidance = {
-        title: `${loadedName}, your mind may be carrying too much at once.`,
+       title: loadedName
+  ? `${loadedName}, your mind may be carrying too much at once.`
+  : "Your mind may be carrying too much at once.",
         why: "Recent reflections suggest ongoing cognitive load and emotional looping.",
         recommendation: "Slowing the nervous system first may help thoughts feel less urgent and easier to process.",
         science: "Reducing physiological activation can improve emotional regulation and cognitive flexibility.",
@@ -324,7 +328,9 @@ if (reflection?.suggestedAction) {
       };
     } else {
       guidance = {
-        title: `${loadedName}, Root is continuing to learn your patterns gently over time.`,
+        title: loadedName
+  ? `${loadedName}, Root is continuing to learn your patterns gently over time.`
+  : "Root is continuing to learn your patterns gently over time.",
         why: "Your recent signals are helping Root understand emotional rhythms, recovery, and behavioural trends.",
         recommendation: "Small consistent check-ins often create more meaningful long-term awareness than intensity alone.",
         science: "Regular reflective practice supports self-awareness, resilience, and nervous-system regulation.",
@@ -413,7 +419,9 @@ if (reflection?.suggestedAction) {
   {rootGuidance && (
   <div style={styles.guidanceCard}>
     <p style={styles.guidanceLabel}>
-  {userName}, here’s what may help today
+  {userName
+  ? `${userName}, here’s what may help today`
+  : "Here’s what may help today"}
 </p>
   {progressMessage && (
   <div style={styles.progressCard}>
