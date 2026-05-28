@@ -888,6 +888,7 @@ background:
   },
 
  insightCard: {
+  display: "none",
   marginTop: "34px",
   background: "rgba(255,255,255,0.18)",
   border: "1px solid rgba(255,255,255,0.28)",
