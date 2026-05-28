@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; 
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 import { buildRootReflection } from "../lib/rootReflectionEngine";
