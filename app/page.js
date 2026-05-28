@@ -313,12 +313,12 @@ if (recoveryScores.length >= 2) {
       memory.trajectoryHeadline ||
         "Patterns are beginning to emerge."
     );
+setTrendNote(
+  memory.trajectoryReflection ||
+    "Root is learning from your recent signals."
+);
 
-    setTrendNote(
-      memory.trajectoryReflection ||
-        "Root is learning from your recent signals."
-    );
-   let guidance = null;
+let guidance = null;
 
 if (
   memory.topEmotionalTheme &&
@@ -326,47 +326,34 @@ if (
 ) {
   guidance = {
     title: `${userName}, your nervous system may need safety before reflection.`,
-    why:
-      "Recent emotional patterns suggest your system may be carrying heightened activation.",
-    recommendation:
-      "Grounding and slower breathing may help reduce internal threat scanning and support steadier regulation.",
-    science:
-      "When the nervous system begins orienting back toward safety, emotional processing often becomes clearer and less overwhelming.",
+    why: "Recent emotional patterns suggest your system may be carrying heightened activation.",
+    recommendation: "Grounding and slower breathing may help reduce internal threat scanning and support steadier regulation.",
+    science: "When the nervous system begins orienting back toward safety, emotional processing often becomes clearer and less overwhelming.",
     action: {
       href: "/mind",
       label: "Begin Panic Reset",
     },
   };
-}
-
-else if (
+} else if (
   memory.topEmotionalTheme &&
   memory.topEmotionalTheme.toLowerCase().includes("overthinking")
 ) {
   guidance = {
     title: `${userName}, your mind may be carrying too much at once.`,
-    why:
-      "Recent reflections suggest ongoing cognitive load and emotional looping.",
-    recommendation:
-      "Slowing the nervous system first may help thoughts feel less urgent and easier to process.",
-    science:
-      "Reducing physiological activation can improve emotional regulation and cognitive flexibility.",
+    why: "Recent reflections suggest ongoing cognitive load and emotional looping.",
+    recommendation: "Slowing the nervous system first may help thoughts feel less urgent and easier to process.",
+    science: "Reducing physiological activation can improve emotional regulation and cognitive flexibility.",
     action: {
       href: "/coach",
       label: "Open Root Coach",
     },
   };
-}
-
-else {
+} else {
   guidance = {
     title: `${userName}, Root is continuing to learn your patterns gently over time.`,
-    why:
-      "Your recent signals are helping Root understand emotional rhythms, recovery, and behavioural trends.",
-    recommendation:
-      "Small consistent check-ins often create more meaningful long-term awareness than intensity alone.",
-    science:
-      "Regular reflective practice is associated with improved resilience, self-awareness, and nervous-system regulation.",
+    why: "Your recent signals are helping Root understand emotional rhythms, recovery, and behavioural trends.",
+    recommendation: "Small consistent check-ins often create more meaningful long-term awareness than intensity alone.",
+    science: "Regular reflective practice is associated with improved resilience, self-awareness, and nervous-system regulation.",
     action: {
       href: "/body",
       label: "Continue check-in",
@@ -375,7 +362,8 @@ else {
 }
 
 setRootGuidance(guidance);
-  };
+   
+
 
   load();
 }, [journey]);
