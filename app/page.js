@@ -216,6 +216,8 @@ if (reflection?.suggestedAction) {
         .select("first_name")
         .eq("id", user.id)
         .single();
+      console.log("USER", user);
+      console.log("PROFILE", profile);
 
      if (profile?.name) {
   const firstName = profile.name.split(" ")[0];
