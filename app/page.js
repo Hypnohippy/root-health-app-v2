@@ -206,29 +206,18 @@ if (reflection?.suggestedAction) {
   const load = async () => {
     let loadedName = "";
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user) {
-      console.log("AUTH USER ID", user.id);
-    const { data: profile } = await supabase
+   const { data: profile } = await supabase
   .from("profiles")
   .select("name")
-  .eq("user_id", user.id)
-  .single();
-        console.log("PROFILE RESULT", profile);
-      console.log("USER", user);
-      console.log("PROFILE", profile);
+  .eq("profile_key", "main")
+  .maybeSingle();
 
-     if (profile?.name) {
-  const firstName = profile.name.split(" ")[0];
+if (profile?.name) {
+  const firstName = profile.name.trim().split(" ")[0];
 
   loadedName = firstName;
   setUserName(firstName);
 }
-    }
-
     const { data: bodyData } = await supabase
       .from("body_signals")
       .select("*")
