@@ -103,9 +103,9 @@ setRootReflection(reflection);
 
 setLongitudinalMemory(memory);
   const relational = buildRelationalMemory({
-  bodySignals: safeBody,
-  journalEntries: safeJournal,
-  mindEntries: safeMind,
+  bodySignals: storedBody,
+  journalEntries: storedJournal,
+  mindEntries: storedMind,
 });
 
 setRelationalMemory(relational);
