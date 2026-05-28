@@ -217,10 +217,12 @@ if (reflection?.suggestedAction) {
         .eq("id", user.id)
         .single();
 
-      if (profile?.first_name) {
-        loadedName = profile.first_name;
-        setUserName(profile.first_name);
-      }
+     if (profile?.name) {
+  const firstName = profile.name.split(" ")[0];
+
+  loadedName = firstName;
+  setUserName(firstName);
+}
     }
 
     const { data: bodyData } = await supabase
