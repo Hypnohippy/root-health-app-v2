@@ -261,7 +261,7 @@ if (
   memory.topEmotionalTheme.toLowerCase().includes("panic")
 ) {
   guidance = {
-    title: "Your nervous system may need safety before reflection.",
+    title: `${userName}, your nervous system may need safety before reflection.`,
     why:
       "Root has noticed signs of overwhelm and heightened activation recently.",
     recommendation:
@@ -280,7 +280,7 @@ else if (
   memory.topEmotionalTheme.toLowerCase().includes("overthinking")
 ) {
   guidance = {
-    title: "Your mind may be trying to solve too much at once.",
+    title: `${userName}, your mind may be trying to solve too much at once.`,
     why:
       "Root has noticed recurring cognitive load and reflective looping.",
     recommendation:
@@ -296,7 +296,7 @@ else if (
 
 else {
   guidance = {
-    title: "Small consistent moments create long-term change.",
+    title: `${userName}, small consistent moments create long-term change.`,
     why:
       "Root is continuing to learn from your emotional and physical patterns.",
     recommendation:
@@ -432,9 +432,9 @@ if (recoveryScores.length >= 2) {
   {rootGuidance && (
   <div style={styles.guidanceCard}>
     <p style={styles.guidanceLabel}>
-      Root guidance
-    </p>
-    {progressMessage && (
+  {userName}, here’s what may help today
+</p>
+  {progressMessage && (
   <div style={styles.progressCard}>
     <p style={styles.progressLabel}>Your progress</p>
     <p style={styles.progressText}>{progressMessage}</p>
