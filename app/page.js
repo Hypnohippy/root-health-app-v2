@@ -116,9 +116,8 @@ const proactive = buildProactiveCare({
 
 setProactiveCare(proactive);
 const rhythm = buildDailyRhythm({
-  bodySignals: safeBody,
+  bodySignals: storedBody,
 });
-
 setDailyRhythm(rhythm);
 const feed = buildPriorityFeed({
   rootReflection: reflection,
