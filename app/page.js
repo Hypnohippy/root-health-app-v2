@@ -214,7 +214,7 @@ if (reflection?.suggestedAction) {
       console.log("AUTH USER ID", user.id);
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name")
+        .select("name")
         .eq("id", user.id)
         .single();
         console.log("PROFILE RESULT", profile);
