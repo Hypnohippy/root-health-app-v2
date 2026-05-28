@@ -212,10 +212,10 @@ if (reflection?.suggestedAction) {
 
     if (user) {
       console.log("AUTH USER ID", user.id);
-     const { data: profile } = await supabase
+    const { data: profile } = await supabase
   .from("profiles")
   .select("name")
-  .limit(1)
+  .eq("user_id", user.id)
   .single();
         console.log("PROFILE RESULT", profile);
       console.log("USER", user);
