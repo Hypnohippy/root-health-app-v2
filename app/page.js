@@ -53,6 +53,7 @@ const [livingMessage, setLivingMessage] = useState("");
 const [memorySummary, setMemorySummary] = useState("");
 const [storySummary, setStorySummary] = useState("");
 const [memoryDirection, setMemoryDirection] = useState("");
+const [rootMemoryNarrative, setRootMemoryNarrative] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
@@ -468,6 +469,35 @@ if (loadedName && mostCommonEmotion && mostCommonBodySignal) {
     `${loadedName}, ${mostCommonBodySignal} has appeared more than once recently. This may become an important body signal to understand.`
   );
 }
+    let rootMemory = "";
+
+if (loadedName) {
+  rootMemory = `${loadedName}, Root is beginning to recognise recurring patterns in your wellbeing journey. `;
+
+  if (positiveRecoveryCount >= 3) {
+    rootMemory +=
+      "Recovery has not been instant, but there are signs your system is finding its way back more often. ";
+  } else if (safeMind.length >= 5) {
+    rootMemory +=
+      "You have kept returning to the work, even while the pattern is still becoming clear. ";
+  } else if (safeBody.length >= 3) {
+    rootMemory +=
+      "Root is beginning to remember how your body speaks when pressure builds. ";
+  }
+
+  if (mostCommonEmotion) {
+    rootMemory += `${mostCommonEmotion} has appeared more than once recently. `;
+  }
+
+  if (mostCommonBodySignal) {
+    rootMemory += `${mostCommonBodySignal} may be becoming an important signal for understanding how pressure affects you. `;
+  }
+
+  rootMemory +=
+    "These observations are still forming, but the picture is becoming clearer over time.";
+}
+
+setRootMemoryNarrative(rootMemory);
 if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) > 0) {
   setLivingMessage(
     `${loadedName}, your recent recovery response suggests that guided regulation may be helping your system settle.`
@@ -559,26 +589,15 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
-{memoryDirection && (
-  <div style={styles.memoryDirectionCard}>
-    <p style={styles.memoryDirectionLabel}>Companion memory</p>
-    <p style={styles.memoryDirectionText}>{memoryDirection}</p>
-  </div>
-)}
-{storySummary && (
-  <div style={styles.storyCard}>
-   <p style={styles.storyLabel}>
-  What Root remembers
-</p>
-    <p style={styles.storyText}>
-      {storySummary}
+{rootMemoryNarrative && (
+  <div style={styles.rootMemoryCard}>
+    <p style={styles.rootMemoryLabel}>
+      Root’s memory of you
     </p>
-  </div>
-)}
-{memorySummary && (
-  <div style={styles.memorySummaryCard}>
-    <p style={styles.memorySummaryLabel}>Root memory</p>
-    <p style={styles.memorySummaryText}>{memorySummary}</p>
+
+    <p style={styles.rootMemoryText}>
+      {rootMemoryNarrative}
+    </p>
   </div>
 )}
 {livingMessage && (
@@ -1755,6 +1774,32 @@ memoryDirectionText: {
   margin: 0,
   fontSize: "18px",
   lineHeight: "1.85",
+  color: "#243224",
+},
+  rootMemoryCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "28px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.24)",
+  border: "1px solid rgba(255,255,255,0.36)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+rootMemoryLabel: {
+  margin: "0 0 12px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+rootMemoryText: {
+  margin: 0,
+  fontSize: "18px",
+  lineHeight: "1.9",
   color: "#243224",
 },
 };
