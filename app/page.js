@@ -49,7 +49,8 @@ const [priorityFeed, setPriorityFeed] = useState([]);
 const [showDeepInsights, setShowDeepInsights] = useState(false);
 const [rootGuidance, setRootGuidance] = useState(null);
 const [progressMessage, setProgressMessage] = useState("");
-  const [livingMessage, setLivingMessage] = useState("");
+const [livingMessage, setLivingMessage] = useState("");
+const [memorySummary, setMemorySummary] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
@@ -337,7 +338,38 @@ const recentBodySignal = safeBody[0]?.signal;
 const recentRecovery = safeMind.find(
   (entry) => entry.tool === "Panic Reset Journey"
 );
+const emotionCounts = {};
+const bodyCounts = {};
 
+safeMind.forEach((entry) => {
+  if (!entry.emotion) return;
+  emotionCounts[entry.emotion] = (emotionCounts[entry.emotion] || 0) + 1;
+});
+
+safeBody.forEach((entry) => {
+  if (!entry.signal) return;
+  bodyCounts[entry.signal] = (bodyCounts[entry.signal] || 0) + 1;
+});
+
+const mostCommonEmotion =
+  Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+const mostCommonBodySignal =
+  Object.entries(bodyCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+if (loadedName && mostCommonEmotion && mostCommonBodySignal) {
+  setMemorySummary(
+    `${loadedName}, ${mostCommonEmotion} and ${mostCommonBodySignal} have both appeared more than once recently. Root is beginning to connect this as a possible mind-body pattern.`
+  );
+} else if (loadedName && mostCommonEmotion) {
+  setMemorySummary(
+    `${loadedName}, ${mostCommonEmotion} has appeared more than once recently. Root will keep watching whether this changes over time.`
+  );
+} else if (loadedName && mostCommonBodySignal) {
+  setMemorySummary(
+    `${loadedName}, ${mostCommonBodySignal} has appeared more than once recently. This may become an important body signal to understand.`
+  );
+}
 if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) > 0) {
   setLivingMessage(
     `${loadedName}, your recent recovery response suggests that guided regulation may be helping your system settle.`
@@ -429,6 +461,12 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
+{memorySummary && (
+  <div style={styles.memorySummaryCard}>
+    <p style={styles.memorySummaryLabel}>Root memory</p>
+    <p style={styles.memorySummaryText}>{memorySummary}</p>
+  </div>
+)}
 {livingMessage && (
   <div style={styles.livingMessageCard}>
     <p style={styles.livingMessageLabel}>Today’s reflection</p>
@@ -1485,6 +1523,32 @@ livingMessageLabel: {
 livingMessageText: {
   margin: 0,
   fontSize: "20px",
+  lineHeight: "1.8",
+  color: "#243224",
+},
+  memorySummaryCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "24px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.20)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+memorySummaryLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+memorySummaryText: {
+  margin: 0,
+  fontSize: "18px",
   lineHeight: "1.8",
   color: "#243224",
 },
