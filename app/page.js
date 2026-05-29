@@ -496,12 +496,6 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
-{interventionInsight && (
-  <div style={styles.interventionInsightCard}>
-    <p style={styles.interventionInsightLabel}>Intervention intelligence</p>
-    <p style={styles.interventionInsightText}>{interventionInsight}</p>
-  </div>
-)}
 {memorySummary && (
   <div style={styles.memorySummaryCard}>
     <p style={styles.memorySummaryLabel}>Root memory</p>
@@ -548,6 +542,11 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
       <p style={styles.guidanceScience}>
         {rootGuidance.science}
       </p>
+      {interventionInsight && (
+  <p style={styles.guidanceEvidence}>
+    {interventionInsight}
+  </p>
+)}
     </div>
 
     <a
@@ -1618,5 +1617,13 @@ interventionInsightText: {
   fontSize: "18px",
   lineHeight: "1.8",
   color: "#243224",
+},
+  guidanceEvidence: {
+  margin: "16px 0 0",
+  paddingTop: "16px",
+  borderTop: "1px solid rgba(255,255,255,0.16)",
+  lineHeight: "1.7",
+  color: "rgba(255,255,255,0.78)",
+  fontSize: "15px",
 },
 };
