@@ -52,6 +52,7 @@ const [progressMessage, setProgressMessage] = useState("");
 const [livingMessage, setLivingMessage] = useState("");
 const [memorySummary, setMemorySummary] = useState("");
 const [storySummary, setStorySummary] = useState("");
+const [memoryDirection, setMemoryDirection] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
@@ -378,6 +379,24 @@ story += memoryObservation;
 }
 
 setStorySummary(story);
+    const positiveRecoveryCount = safeMind.filter((entry) => {
+  const score = Number(entry.intensity);
+  return entry.tool === "Panic Reset Journey" && !Number.isNaN(score) && score > 0;
+}).length;
+
+if (loadedName && positiveRecoveryCount >= 3) {
+  setMemoryDirection(
+    `${loadedName}, Root remembers that recovery has not been instant, but there are signs your system is finding its way back more often.`
+  );
+} else if (loadedName && safeMind.length >= 5) {
+  setMemoryDirection(
+    `${loadedName}, Root remembers that you have kept returning to the work, even while the pattern is still becoming clear.`
+  );
+} else if (loadedName && safeBody.length >= 3) {
+  setMemoryDirection(
+    `${loadedName}, Root is beginning to remember how your body speaks when pressure builds.`
+  );
+}
     const interventionCounts = {};
 const helpfulInterventions = {};
 
@@ -540,6 +559,12 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
+{memoryDirection && (
+  <div style={styles.memoryDirectionCard}>
+    <p style={styles.memoryDirectionLabel}>Companion memory</p>
+    <p style={styles.memoryDirectionText}>{memoryDirection}</p>
+  </div>
+)}
 {storySummary && (
   <div style={styles.storyCard}>
    <p style={styles.storyLabel}>
@@ -1704,6 +1729,32 @@ storyText: {
   margin: 0,
   fontSize: "18px",
   lineHeight: "1.9",
+  color: "#243224",
+},
+  memoryDirectionCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "26px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.22)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+memoryDirectionLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+memoryDirectionText: {
+  margin: 0,
+  fontSize: "18px",
+  lineHeight: "1.85",
   color: "#243224",
 },
 };
