@@ -54,6 +54,7 @@ const [memorySummary, setMemorySummary] = useState("");
 const [storySummary, setStorySummary] = useState("");
 const [memoryDirection, setMemoryDirection] = useState("");
 const [rootMemoryNarrative, setRootMemoryNarrative] = useState("");
+const [rootHypothesis, setRootHypothesis] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
@@ -498,6 +499,32 @@ if (loadedName) {
 }
 
 setRootMemoryNarrative(rootMemory);
+    let hypothesis = "";
+
+if (
+  loadedName &&
+  mostCommonEmotion &&
+  mostCommonBodySignal
+) {
+  hypothesis =
+    `${loadedName}, Root wonders whether ${mostCommonBodySignal} may often accompany periods of ${mostCommonEmotion}.`;
+}
+else if (
+  loadedName &&
+  mostCommonEmotion
+) {
+  hypothesis =
+    `${loadedName}, Root is beginning to wonder whether ${mostCommonEmotion} may be one of the recurring themes influencing your wellbeing.`;
+}
+else if (
+  loadedName &&
+  mostCommonBodySignal
+) {
+  hypothesis =
+    `${loadedName}, Root is beginning to wonder whether ${mostCommonBodySignal} may be an early signal worth paying attention to.`;
+}
+
+setRootHypothesis(hypothesis);
 if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) > 0) {
   setLivingMessage(
     `${loadedName}, your recent recovery response suggests that guided regulation may be helping your system settle.`
@@ -598,6 +625,17 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     <p style={styles.rootMemoryText}>
       {rootMemoryNarrative}
     </p>
+  {rootHypothesis && (
+  <div style={styles.hypothesisPanel}>
+    <p style={styles.hypothesisLabel}>
+      Root's current hypothesis
+    </p>
+
+    <p style={styles.hypothesisText}>
+      {rootHypothesis}
+    </p>
+  </div>
+)}
   </div>
 )}
 {livingMessage && (
@@ -1801,5 +1839,28 @@ rootMemoryText: {
   fontSize: "18px",
   lineHeight: "1.9",
   color: "#243224",
+},
+  hypothesisPanel: {
+  marginTop: "18px",
+  padding: "18px",
+  borderRadius: "22px",
+  background: "rgba(255,255,255,0.44)",
+  border: "1px solid rgba(255,255,255,0.32)",
+},
+
+hypothesisLabel: {
+  margin: "0 0 8px",
+  fontSize: "11px",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+  color: "#6A6459",
+  fontWeight: "700",
+},
+
+hypothesisText: {
+  margin: 0,
+  lineHeight: "1.7",
+  color: "#4C463D",
+  fontStyle: "italic",
 },
 };
