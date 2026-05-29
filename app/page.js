@@ -51,6 +51,7 @@ const [rootGuidance, setRootGuidance] = useState(null);
 const [progressMessage, setProgressMessage] = useState("");
 const [livingMessage, setLivingMessage] = useState("");
 const [memorySummary, setMemorySummary] = useState("");
+const [storySummary, setStorySummary] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
@@ -334,6 +335,35 @@ if (profile?.name) {
     }
 
     setRootGuidance(guidance);
+    const totalCheckIns =
+  safeMind.length +
+  safeBody.length;
+
+const recurringEmotion =
+  mostCommonEmotion || "reflection";
+
+const recurringSignal =
+  mostCommonBodySignal || "awareness";
+
+let story = "";
+
+if (loadedName) {
+  story = `${loadedName}, Root has been learning your wellbeing story. `;
+
+  if (totalCheckIns > 10) {
+    story += `You have continued showing up for yourself through ${totalCheckIns} recent check-ins. `;
+  }
+
+  story += `${recurringEmotion} has appeared more than once, alongside patterns around ${recurringSignal}. `;
+
+  if (interventionInsight) {
+    story += `Root is also beginning to understand which practices may help you recover and regulate more effectively. `;
+  }
+
+  story += `The picture is still forming, but your story is becoming clearer over time.`;
+}
+
+setStorySummary(story);
     const interventionCounts = {};
 const helpfulInterventions = {};
 
@@ -496,6 +526,17 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
+{storySummary && (
+  <div style={styles.storyCard}>
+    <p style={styles.storyLabel}>
+      Your story so far
+    </p>
+
+    <p style={styles.storyText}>
+      {storySummary}
+    </p>
+  </div>
+)}
 {memorySummary && (
   <div style={styles.memorySummaryCard}>
     <p style={styles.memorySummaryLabel}>Root memory</p>
@@ -1625,5 +1666,31 @@ interventionInsightText: {
   lineHeight: "1.7",
   color: "rgba(255,255,255,0.78)",
   fontSize: "15px",
+},
+  storyCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "28px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.22)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+storyLabel: {
+  margin: "0 0 12px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+storyText: {
+  margin: 0,
+  fontSize: "18px",
+  lineHeight: "1.9",
+  color: "#243224",
 },
 };
