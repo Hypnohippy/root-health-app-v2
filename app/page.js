@@ -18,8 +18,8 @@ export default function Home() {
   const [trendNote, setTrendNote] = useState("");
   const [journey, setJourney] = useState(null);
   const [bodySignals, setBodySignals] = useState([]);
-const [journalEntries, setJournalEntries] = useState([]);
-const [mindEntries, setMindEntries] = useState([]);
+  const [journalEntries, setJournalEntries] = useState([]);
+  const [mindEntries, setMindEntries] = useState([]);
   const [adaptiveGreeting, setAdaptiveGreeting] = useState("Welcome back");
   const [adaptiveTitle, setAdaptiveTitle] = useState(
   "How are you\nfeeling today?"
@@ -51,6 +51,7 @@ const [rootGuidance, setRootGuidance] = useState(null);
 const [progressMessage, setProgressMessage] = useState("");
 const [livingMessage, setLivingMessage] = useState("");
 const [memorySummary, setMemorySummary] = useState("");
+const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
@@ -333,6 +334,40 @@ if (profile?.name) {
     }
 
     setRootGuidance(guidance);
+    const interventionCounts = {};
+const helpfulInterventions = {};
+
+safeMind.forEach((entry) => {
+  if (!entry.tool) return;
+
+  interventionCounts[entry.tool] =
+    (interventionCounts[entry.tool] || 0) + 1;
+
+  const score = Number(entry.intensity);
+
+  if (!Number.isNaN(score) && score > 0) {
+    helpfulInterventions[entry.tool] =
+      (helpfulInterventions[entry.tool] || 0) + 1;
+  }
+});
+
+const mostUsedIntervention =
+  Object.entries(interventionCounts).sort((a, b) => b[1] - a[1])[0];
+
+if (loadedName && mostUsedIntervention) {
+  const [toolName, totalUses] = mostUsedIntervention;
+  const helpedCount = helpfulInterventions[toolName] || 0;
+
+  if (helpedCount > 0) {
+    setInterventionInsight(
+      `${loadedName}, ${toolName} has been used ${totalUses} time${totalUses === 1 ? "" : "s"} recently, and ${helpedCount} response${helpedCount === 1 ? "" : "s"} suggested it helped your system settle.`
+    );
+  } else {
+    setInterventionInsight(
+      `${loadedName}, ${toolName} has been one of your recent support tools. Root will keep watching whether it helps over time.`
+    );
+  }
+}
     const recentMindEmotion = safeMind[0]?.emotion;
 const recentBodySignal = safeBody[0]?.signal;
 const recentRecovery = safeMind.find(
@@ -461,6 +496,12 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
+{interventionInsight && (
+  <div style={styles.interventionInsightCard}>
+    <p style={styles.interventionInsightLabel}>Intervention intelligence</p>
+    <p style={styles.interventionInsightText}>{interventionInsight}</p>
+  </div>
+)}
 {memorySummary && (
   <div style={styles.memorySummaryCard}>
     <p style={styles.memorySummaryLabel}>Root memory</p>
@@ -1547,6 +1588,32 @@ memorySummaryLabel: {
 },
 
 memorySummaryText: {
+  margin: 0,
+  fontSize: "18px",
+  lineHeight: "1.8",
+  color: "#243224",
+},
+  interventionInsightCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "24px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.22)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+interventionInsightLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+interventionInsightText: {
   margin: 0,
   fontSize: "18px",
   lineHeight: "1.8",
