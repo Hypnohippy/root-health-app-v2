@@ -49,6 +49,7 @@ const [priorityFeed, setPriorityFeed] = useState([]);
 const [showDeepInsights, setShowDeepInsights] = useState(false);
 const [rootGuidance, setRootGuidance] = useState(null);
 const [progressMessage, setProgressMessage] = useState("");
+  const [livingMessage, setLivingMessage] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
@@ -331,6 +332,29 @@ if (profile?.name) {
     }
 
     setRootGuidance(guidance);
+    const recentMindEmotion = safeMind[0]?.emotion;
+const recentBodySignal = safeBody[0]?.signal;
+const recentRecovery = safeMind.find(
+  (entry) => entry.tool === "Panic Reset Journey"
+);
+
+if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) > 0) {
+  setLivingMessage(
+    `${loadedName}, your recent recovery response suggests that guided regulation may be helping your system settle.`
+  );
+} else if (loadedName && recentMindEmotion) {
+  setLivingMessage(
+    `${loadedName}, ${recentMindEmotion} has shown up recently. A gentle next step may help before trying to solve everything at once.`
+  );
+} else if (loadedName && recentBodySignal) {
+  setLivingMessage(
+    `${loadedName}, your body has been signalling around ${recentBodySignal}. It may be worth listening gently rather than pushing through.`
+  );
+} else if (loadedName) {
+  setLivingMessage(
+    `${loadedName}, Root is beginning to learn your patterns. Small check-ins will make this feel more personal over time.`
+  );
+}
 
     const recoveryEntries = safeMind.filter(
       (entry) => entry.tool === "Panic Reset Journey"
@@ -405,6 +429,12 @@ if (profile?.name) {
     </span>
   ))}
 </p>
+{livingMessage && (
+  <div style={styles.livingMessageCard}>
+    <p style={styles.livingMessageLabel}>Today’s reflection</p>
+    <p style={styles.livingMessageText}>{livingMessage}</p>
+  </div>
+)}
   {rootGuidance && (
   <div style={styles.guidanceCard}>
     <p style={styles.guidanceLabel}>
@@ -1431,5 +1461,31 @@ progressText: {
   color: "#283128",
   lineHeight: "1.8",
   fontSize: "18px",
+},
+  livingMessageCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "26px",
+  borderRadius: "30px",
+  background: "rgba(255,255,255,0.24)",
+  border: "1px solid rgba(255,255,255,0.36)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+livingMessageLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+livingMessageText: {
+  margin: 0,
+  fontSize: "20px",
+  lineHeight: "1.8",
+  color: "#243224",
 },
 };
