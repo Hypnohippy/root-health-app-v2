@@ -55,6 +55,7 @@ const [storySummary, setStorySummary] = useState("");
 const [memoryDirection, setMemoryDirection] = useState("");
 const [rootMemoryNarrative, setRootMemoryNarrative] = useState("");
 const [rootHypothesis, setRootHypothesis] = useState("");
+const [rootConfidence, setRootConfidence] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
 const visibleFeedCount =
@@ -525,6 +526,25 @@ else if (
 }
 
 setRootHypothesis(hypothesis);
+let confidence = "";
+
+const evidenceCount =
+  (mostCommonEmotion ? 1 : 0) +
+  (mostCommonBodySignal ? 1 : 0) +
+  positiveRecoveryCount;
+
+if (loadedName && evidenceCount >= 5) {
+  confidence =
+    "Root is becoming more confident in this pattern, though it will keep watching gently.";
+} else if (loadedName && evidenceCount >= 2) {
+  confidence =
+    "Root has seen this pattern a few times, but it is still learning.";
+} else if (loadedName) {
+  confidence =
+    "Root does not have enough evidence yet. A few more check-ins will help the picture become clearer.";
+}
+
+setRootConfidence(confidence);
 if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) > 0) {
   setLivingMessage(
     `${loadedName}, your recent recovery response suggests that guided regulation may be helping your system settle.`
@@ -634,6 +654,11 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     <p style={styles.hypothesisText}>
       {rootHypothesis}
     </p>
+    {rootConfidence && (
+  <p style={styles.confidenceText}>
+    {rootConfidence}
+  </p>
+)}
   </div>
 )}
   </div>
@@ -1862,5 +1887,11 @@ hypothesisText: {
   lineHeight: "1.7",
   color: "#4C463D",
   fontStyle: "italic",
+},
+  confidenceText: {
+  margin: "12px 0 0",
+  lineHeight: "1.7",
+  color: "#6A6459",
+  fontSize: "14px",
 },
 };
