@@ -346,6 +346,7 @@ const recurringSignal =
   mostCommonBodySignal || "awareness";
 
 let story = "";
+let memoryObservation = "";
 
 if (loadedName) {
   story = `${loadedName}, Root has been learning your wellbeing story. `;
@@ -360,7 +361,20 @@ if (loadedName) {
     story += `Root is also beginning to understand which practices may help you recover and regulate more effectively. `;
   }
 
-  story += `The picture is still forming, but your story is becoming clearer over time.`;
+  if (totalCheckIns >= 20) {
+  memoryObservation =
+    "Root is beginning to recognise recurring themes rather than isolated moments.";
+}
+else if (totalCheckIns >= 10) {
+  memoryObservation =
+    "Patterns are starting to emerge from your recent check-ins.";
+}
+else {
+  memoryObservation =
+    "Root is still learning your rhythms and responses.";
+}
+
+story += memoryObservation;
 }
 
 setStorySummary(story);
@@ -528,10 +542,9 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
 </p>
 {storySummary && (
   <div style={styles.storyCard}>
-    <p style={styles.storyLabel}>
-      Your story so far
-    </p>
-
+   <p style={styles.storyLabel}>
+  What Root remembers
+</p>
     <p style={styles.storyText}>
       {storySummary}
     </p>
