@@ -417,8 +417,7 @@ const startVoiceSession = async () => {
           type: "response.create",
           response: {
             instructions:
- "Speak only in calm British English Accent. Begin immediately in British English. Do not use Spanish, French, Arabic, Chinese, or any other language. If there is meaningful recent context, improvements, progress, successful interventions, or important patterns, acknowledge them briefly before asking a question. Recognition should come before advice. If nothing significant stands out, greet the user warmly and naturally in calm British English and ask what they would like to talk through."
-          },
+ "Speak only in calm British English Accent. Begin immediately in British English. If there is meaningful recent context, improvement, progress, successful interventions, or important patterns, open with that first. Do not begin with 'what would you like to discuss today' when meaningful context exists. Recognition comes before questions. Keep it brief and natural. If nothing significant stands out, greet the user warmly and ask what they would like to talk through."          },
         })
       );
     };
