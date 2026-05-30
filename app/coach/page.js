@@ -474,13 +474,14 @@ console.log("VOICE CONTEXT SENT:", {
   headers: {
     "Content-Type": "application/json",
   },
-  body: JSON.stringify({
-    sdp: offer.sdp,
-    coachMode,
-    history,
-    mindEntries,
-    journalEntries,
-  }),
+ body: JSON.stringify({
+  sdp: offer.sdp,
+  coachMode,
+  history,
+  mindEntries,
+  journalEntries,
+  name,
+}),
 });
     if (!sdpResponse.ok) {
       const errorText = await sdpResponse.text();
