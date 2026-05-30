@@ -484,36 +484,7 @@ if (loadedName && mostCommonEmotion && mostCommonBodySignal) {
     `${loadedName}, ${mostCommonBodySignal} has appeared more than once recently. This may become an important body signal to understand.`
   );
 }
-    let rootMemory = "";
-
-if (loadedName) {
-  rootMemory = `${loadedName}, Root is beginning to recognise recurring patterns in your wellbeing journey. `;
-
-  if (positiveRecoveryCount >= 3) {
-    rootMemory +=
-      "Recovery has not been instant, but there are signs your system is finding its way back more often. ";
-  } else if (safeMind.length >= 5) {
-    rootMemory +=
-      "You have kept returning to the work, even while the pattern is still becoming clear. ";
-  } else if (safeBody.length >= 3) {
-    rootMemory +=
-      "Root is beginning to remember how your body speaks when pressure builds. ";
-  }
-
-  if (mostCommonEmotion) {
-    rootMemory += `${mostCommonEmotion} has appeared more than once recently. `;
-  }
-
-  if (mostCommonBodySignal) {
-    rootMemory += `${mostCommonBodySignal} may be becoming an important signal for understanding how pressure affects you. `;
-  }
-
-  rootMemory +=
-    "These observations are still forming, but the picture is becoming clearer over time.";
-}
-
-setRootMemoryNarrative(rootMemory);
-    let hypothesis = "";
+       let hypothesis = "";
 
 if (
   loadedName &&
