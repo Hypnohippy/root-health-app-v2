@@ -1,3 +1,5 @@
+
+import { buildRootMemoryService } from "../../../lib/rootMemoryService";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,7 @@ export async function POST(req) {
       history = [],
       mindEntries = [],
       journalEntries = [],
+      name = "",
     } = body;
 
     if (!sdp) {
@@ -59,9 +62,22 @@ ${summariseList("Recent journal reflections", journalEntries, [
   "recommended_coach_mode",
 ])}
 `;
+    const rootMemory = buildRootMemoryService({
+  name,
+  bodySignals: history,
+  journalEntries,
+  mindEntries,
+});
+
+const openingObservation = rootMemory.recognition || rootMemory.memory || "";
 
     const rootVoicePrompt = `
 You are Root Voice, the spoken version of Root Coach.
+Important opening context:
+${openingObservation || "No strong opening observation today."}
+
+When a strong opening observation is present, begin with it briefly before asking what the user would like to explore.
+Do not overdo it. One warm sentence is enough.
 
 Always speak in English only.
 Use British English wording where possible.
