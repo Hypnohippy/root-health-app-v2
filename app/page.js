@@ -10,6 +10,7 @@ import { buildProactiveCare } from "../lib/rootProactiveCare";
 import { buildDailyRhythm } from "../lib/rootDailyRhythm";
 import { buildPriorityFeed } from "../lib/rootPriorityFeed";
 import Nav from "../components/Nav";
+import { buildRootMemoryService } from "../lib/rootMemoryService";
 
 export default function Home() {
   const [latestInsight, setLatestInsight] = useState("");
@@ -55,6 +56,7 @@ const [storySummary, setStorySummary] = useState("");
 const [memoryDirection, setMemoryDirection] = useState("");
 const [rootMemoryNarrative, setRootMemoryNarrative] = useState("");
 const [rootHypothesis, setRootHypothesis] = useState("");
+const [rootRecognition, setRootRecognition] = useState("");
 const [rootConfidence, setRootConfidence] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
@@ -339,6 +341,17 @@ if (profile?.name) {
     }
 
     setRootGuidance(guidance);
+    const rootMemory = buildRootMemoryService({
+  name: loadedName,
+  bodySignals: safeBody,
+  journalEntries: safeJournal,
+  mindEntries: safeMind,
+});
+
+setRootRecognition(rootMemory.recognition);
+setRootMemoryNarrative(rootMemory.memory);
+setInterventionInsight(rootMemory.interventionInsight);
+setRootHypothesis(rootMemory.hypothesis);
     const totalCheckIns =
   safeMind.length +
   safeBody.length;
@@ -636,6 +649,17 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
+{rootRecognition && (
+  <div style={styles.rootRecognitionCard}>
+    <p style={styles.rootRecognitionLabel}>
+      What Root noticed
+    </p>
+
+    <p style={styles.rootRecognitionText}>
+      {rootRecognition}
+    </p>
+  </div>
+)}
 {rootMemoryNarrative && (
   <div style={styles.rootMemoryCard}>
     <p style={styles.rootMemoryLabel}>
@@ -1893,5 +1917,31 @@ hypothesisText: {
   lineHeight: "1.7",
   color: "#6A6459",
   fontSize: "14px",
+},
+  rootRecognitionCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "30px",
+  borderRadius: "32px",
+  background:
+    "linear-gradient(135deg, rgba(44,62,43,0.92), rgba(68,88,66,0.86))",
+  color: "#FFFFFF",
+  boxShadow: "0 24px 70px rgba(0,0,0,0.16)",
+},
+
+rootRecognitionLabel: {
+  margin: "0 0 12px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "rgba(255,255,255,0.72)",
+  fontWeight: "800",
+},
+
+rootRecognitionText: {
+  margin: 0,
+  fontSize: "20px",
+  lineHeight: "1.85",
+  color: "rgba(255,255,255,0.92)",
 },
 };
