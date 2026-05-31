@@ -417,7 +417,8 @@ const startVoiceSession = async () => {
           type: "response.create",
           response: {
             instructions:
- "Speak only in calm British English Accent. Begin immediately in British English. If there is meaningful recent context, improvement, progress, successful interventions, or important patterns, open with that first. Do not begin with 'what would you like to discuss today' when meaningful context exists. Recognition comes before questions. Keep it brief and natural. If nothing significant stands out, greet the user warmly and ask what they would like to talk through."          },
+instructions:
+  "Speak only in calm British English. You do not have vision. You cannot see the room, background, objects, weather, flowers, parks, bicycles, or anything around the user. Never mention seeing anything. Never invent previous conversations, plans, locations, objects, images, or activities. Only use Root health context that was explicitly provided by the app. If no clear Root context is present, simply say: Welcome back. What would feel useful to talk through today?"
         })
       );
     };
