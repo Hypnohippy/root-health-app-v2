@@ -411,16 +411,6 @@ const startVoiceSession = async () => {
 
     dc.onopen = () => {
       setVoiceState("listening");
-
-    dc.send(
-  JSON.stringify({
-    type: "response.create",
-    response: {
-      instructions:
-        "Speak only in calm British English. You do not have vision. You cannot see the room, background, objects, weather, flowers, parks, bicycles, or anything around the user. Never mention seeing anything. Never invent previous conversations, plans, locations, objects, images, or activities. Only use Root health context that was explicitly provided by the app. If no clear Root context is present, simply say: Welcome back. What would feel useful to talk through today?",
-    },
-  })
-);
     };
 
     dc.onmessage = (event) => {
