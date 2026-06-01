@@ -311,7 +311,7 @@ if (
   lowerClean.includes("add that to my journal");
 
 if (wantsJournalSave) {
- const previousUserMessage =
+ let previousUserMessage =
   [...messages]
     .reverse()
     .find(
@@ -319,6 +319,30 @@ if (wantsJournalSave) {
         message.role === "user" &&
         !message.content.toLowerCase().includes("save")
     )?.content || "";
+
+if (!previousUserMessage) {
+  previousUserMessage = clean
+    .replace(/save this to my journal/gi, "")
+    .replace(/save that to my journal/gi, "")
+    .replace(/record this in my journal/gi, "")
+    .replace(/record that in my journal/gi, "")
+    .replace(/add this to my journal/gi, "")
+    .replace(/add that to my journal/gi, "")
+    .trim();
+}
+  if (!previousUserMessage) {
+  setMessages([
+    ...nextMessages,
+    {
+      role: "coach",
+      content:
+        "I can save that, but I need the words to record. Tell me what you want saved, then say: save that to my journal.",
+    },
+  ]);
+
+  setInput("");
+  return;
+}
 
  setPendingJournalSave(previousUserMessage);
 
