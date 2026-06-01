@@ -124,6 +124,7 @@ export default function CoachPage() {
   const [journey, setJourney] = useState(null);
   const [showJourneyNext, setShowJourneyNext] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [pendingJournalSave, setPendingJournalSave] = useState(null);
    useEffect(() => {
   const checkMobile = () => {
     setIsMobile(window.innerWidth <= 900);
@@ -266,8 +267,67 @@ if (
   const sendMessage = async (text) => {
     const clean = String(text || "").trim();
     if (!clean || thinking) return;
+    const lowerClean = clean.toLowerCase();
+
+if (
+  pendingJournalSave &&
+  ["yes", "yes please", "yeah", "yep", "save it", "record it", "do it"].includes(lowerClean)
+) {
+  setMessages((prev) => [
+    ...prev,
+    { role: "user", content: clean },
+  ]);
+
+  setInput("");
+  await savePendingJournalEntry();
+  return;
+}
+
+if (
+  pendingJournalSave &&
+  ["no", "no thanks", "cancel", "don't save", "dont save"].includes(lowerClean)
+) {
+  setMessages((prev) => [
+    ...prev,
+    { role: "user", content: clean },
+    {
+      role: "coach",
+      content: "No problem. I haven’t recorded it.",
+    },
+  ]);
+
+  setPendingJournalSave(null);
+  setInput("");
+  return;
+}
 
     const nextMessages = [...messages, { role: "user", content: clean }];
+    const wantsJournalSave =
+  lowerClean.includes("save this to my journal") ||
+  lowerClean.includes("save that to my journal") ||
+  lowerClean.includes("record this in my journal") ||
+  lowerClean.includes("record that in my journal") ||
+  lowerClean.includes("add this to my journal") ||
+  lowerClean.includes("add that to my journal");
+
+if (wantsJournalSave) {
+  const recentUserMessage =
+    [...messages].reverse().find((message) => message.role === "user")
+      ?.content || clean;
+
+  setPendingJournalSave(recentUserMessage);
+
+  setMessages([
+    ...nextMessages,
+    {
+      role: "coach",
+      content: `I can save this to your journal:\n\n"${recentUserMessage}"\n\nShall I record it?`,
+    },
+  ]);
+
+  setInput("");
+  return;
+}
 
     setMessages(nextMessages);
     setInput("");
@@ -334,6 +394,49 @@ if (journey && journey.currentStage === "coach") {
     setThinking(false);
     setVoiceState("ready");
   };
+  const savePendingJournalEntry = async () => {
+  if (!pendingJournalSave) return;
+
+  setThinking(true);
+
+  try {
+    const res = await fetch("/api/voice-actions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "save_journal",
+        content: pendingJournalSave,
+      }),
+    });
+
+    const json = await res.json();
+
+    if (!json.ok) {
+      throw new Error(json.error || "Save failed");
+    }
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "coach",
+        content: "Done. I’ve recorded that in your journal.",
+      },
+    ]);
+
+    setPendingJournalSave(null);
+  } catch (error) {
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "coach",
+        content:
+          "I tried to save that, but something went wrong. It has not been recorded yet.",
+      },
+    ]);
+  }
+
+  setThinking(false);
+};
   const startBreathJourney = () => {
   if (breathMode) return;
 
