@@ -311,17 +311,22 @@ if (
   lowerClean.includes("add that to my journal");
 
 if (wantsJournalSave) {
-  const recentUserMessage =
-    [...messages].reverse().find((message) => message.role === "user")
-      ?.content || clean;
+ const previousUserMessage =
+  [...messages]
+    .reverse()
+    .find(
+      (message) =>
+        message.role === "user" &&
+        !message.content.toLowerCase().includes("save")
+    )?.content || "";
 
-  setPendingJournalSave(recentUserMessage);
+ setPendingJournalSave(previousUserMessage);
 
   setMessages([
     ...nextMessages,
     {
       role: "coach",
-      content: `I can save this to your journal:\n\n"${recentUserMessage}"\n\nShall I record it?`,
+      content: `I can save this to your journal:\n\n"${previousUserMessage}"\n\nShall I record it?`,
     },
   ]);
 
