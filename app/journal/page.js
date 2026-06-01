@@ -116,6 +116,8 @@ export default function JournalPage() {
   const [selectedCheckIn, setSelectedCheckIn] = useState(null);
   const [journey, setJourney] = useState(null);
   const [showJourneyInsights, setShowJourneyInsights] = useState(false);
+  const [listeningStep, setListeningStep] = useState(null);
+  const [voiceSupported, setVoiceSupported] = useState(false);
 
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
@@ -133,6 +135,14 @@ export default function JournalPage() {
   } catch (err) {
     console.log(err);
   }
+}, []);
+  useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  setVoiceSupported(Boolean(SpeechRecognition));
 }, []);
 
   const loadEntries = async () => {
@@ -174,6 +184,53 @@ export default function JournalPage() {
   const updateResponse = (value) => {
     setResponses((prev) => ({ ...prev, [step]: value }));
   };
+  const startVoiceInput = () => {
+  if (typeof window === "undefined") return;
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Voice input is not supported in this browser yet.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.lang = "en-GB";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  setListeningStep(step);
+
+  recognition.onresult = (event) => {
+    const transcript = event.results?.[0]?.[0]?.transcript || "";
+
+    if (!transcript.trim()) return;
+
+    setResponses((prev) => {
+      const existing = prev[step] || "";
+      const nextValue = existing.trim()
+        ? `${existing.trim()}\n\n${transcript.trim()}`
+        : transcript.trim();
+
+      return {
+        ...prev,
+        [step]: nextValue,
+      };
+    });
+  };
+
+  recognition.onerror = () => {
+    setListeningStep(null);
+  };
+
+  recognition.onend = () => {
+    setListeningStep(null);
+  };
+
+  recognition.start();
+};
 
   const buildEntry = () => {
     return config.prompts
@@ -338,6 +395,18 @@ export default function JournalPage() {
               onChange={(e) => updateResponse(e.target.value)}
               placeholder="Write a little, or just a few words..."
             />
+                {voiceSupported && (
+  <button
+    type="button"
+    style={{
+      ...styles.voiceInputButton,
+      ...(listeningStep === step ? styles.voiceInputButtonActive : {}),
+    }}
+    onClick={startVoiceInput}
+  >
+    {listeningStep === step ? "Listening..." : "🎙️ Speak instead"}
+  </button>
+)}
 
             <div style={styles.buttonRow}>
               {step > 0 ? (
@@ -833,5 +902,21 @@ nextJourneyButton: {
   padding: "14px 20px",
   fontSize: "14px",
   fontWeight: "700",
+},
+  voiceInputButton: {
+  marginTop: "14px",
+  border: "1px solid rgba(24,24,24,0.12)",
+  borderRadius: "999px",
+  padding: "12px 18px",
+  background: "rgba(255,255,255,0.72)",
+  color: "#2A2722",
+  cursor: "pointer",
+  fontSize: "14px",
+  fontWeight: "700",
+},
+
+voiceInputButtonActive: {
+  background: "#181818",
+  color: "#FFFFFF",
 },
 };
