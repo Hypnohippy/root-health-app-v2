@@ -58,16 +58,18 @@ export default function PlaybookPage() {
     if (!cleanTitle || !cleanContent || saving) return;
 
     setSaving(true);
-
+    const {
+  data: { user },
+} = await supabase.auth.getUser();
     const { error } = await supabase.from("playbook_entries").insert([
-      {
-        title: cleanTitle,
-        category,
-        content: cleanContent,
-        source: "Manual",
-      },
-    ]);
-
+  {
+    user_id: user?.id,
+    title: cleanTitle,
+    category,
+    content: cleanContent,
+    source: "Manual",
+  },
+]);
     if (!error) {
       setTitle("");
       setCategory("General");
