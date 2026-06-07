@@ -31,11 +31,11 @@ export default function PlaybookPage() {
   const loadEntries = async () => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("playbook_entries")
-      .select("*")
-      .order("created_at", { ascending: false });
-
+   const { data, error } = await supabase
+  .from("playbook_entries")
+  .select("*")
+  .eq("profile_key", "main")
+  .order("created_at", { ascending: false });
     if (!error) {
       setEntries(Array.isArray(data) ? data : []);
     }
@@ -70,12 +70,12 @@ export default function PlaybookPage() {
 });
     const { error } = await supabase.from("playbook_entries").insert([
   {
-    user_id: user?.id,
-    title: cleanTitle,
-    category,
-    content: cleanContent,
-    source: "Manual",
-  },
+  profile_key: "main",
+  title: cleanTitle,
+  category,
+  content: cleanContent,
+  source: "Manual",
+}
 ]);
     if (!error) {
       setTitle("");
