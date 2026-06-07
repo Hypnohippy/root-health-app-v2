@@ -547,69 +547,80 @@ const startVoiceSession = async () => {
     };
 
     dc.onmessage = (event) => {
-      try {
-        if (
-  message.type ===
-  "conversation.item.input_audio_transcription.completed"
-) {
-  const transcript = message.transcript || "";
+  try {
+    const message = JSON.parse(event.data);
 
-  console.log("USER SAID:", transcript);
+    console.log(
+      "VOICE EVENT FULL:",
+      JSON.stringify(message, null, 2)
+    );
 
-  setLatestVoiceTranscript(transcript);
+    if (
+      message.type ===
+      "conversation.item.input_audio_transcription.completed"
+    ) {
+      const transcript = message.transcript || "";
 
-  if (
-    transcript.toLowerCase().includes("save") &&
-    transcript.toLowerCase().includes("journal")
-  ) {
-    fetch("/api/voice-actions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "save_journal",
-        content: latestVoiceTranscript,
-      }),
-    });
-  }
-}
-        const message = JSON.parse(event.data);
-        console.log("VOICE EVENT FULL:", JSON.stringify(message, null, 2));
+      console.log("USER SAID:", transcript);
 
-        if (message.type === "input_audio_buffer.speech_started") {
-          setVoiceState("listening");
-        }
+      setLatestVoiceTranscript(transcript);
 
-        if (message.type === "response.audio.delta") {
-          setVoiceState("speaking");
-        }
-       if (
-  message.type === "response.audio_transcript.delta" ||
-  message.type === "response.output_audio_transcript.delta"
-) {
-  setVoiceTranscript((prev) => prev + (message.delta || ""));
-}
-
-if (
-  message.type === "response.audio_transcript.done" ||
-  message.type === "response.output_audio_transcript.done"
-) {
-  setVoiceTranscript(message.transcript || "");
-}
-
-        if (message.type === "response.done") {
-          setVoiceState("listening");
-        }
-
-        if (message.type === "error") {
-          console.error("Realtime error:", message);
-          setVoiceState("ready");
-        }
-      } catch (error) {
-        console.error("Realtime message parse error:", error);
+      if (
+        transcript.toLowerCase().includes("save") &&
+        transcript.toLowerCase().includes("journal")
+      ) {
+        fetch("/api/voice-actions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "save_journal",
+            content: transcript,
+          }),
+        });
       }
-    };
+    }
+
+    if (message.type === "input_audio_buffer.speech_started") {
+      setVoiceState("listening");
+    }
+
+    if (message.type === "response.audio.delta") {
+      setVoiceState("speaking");
+    }
+
+    if (
+      message.type === "response.audio_transcript.delta" ||
+      message.type === "response.output_audio_transcript.delta"
+    ) {
+      setVoiceTranscript(
+        (prev) => prev + (message.delta || "")
+      );
+    }
+
+    if (
+      message.type === "response.audio_transcript.done" ||
+      message.type === "response.output_audio_transcript.done"
+    ) {
+      setVoiceTranscript(message.transcript || "");
+    }
+
+    if (message.type === "response.done") {
+      setVoiceState("listening");
+    }
+
+    if (message.type === "error") {
+      console.error("Realtime error:", message);
+      setVoiceState("ready");
+    }
+  } catch (error) {
+    console.error(
+      "Realtime message parse error:",
+      error
+    );
+  }
+};
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
