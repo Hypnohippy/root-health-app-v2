@@ -61,6 +61,13 @@ export default function PlaybookPage() {
     const {
   data: { user },
 } = await supabase.auth.getUser();
+   
+    console.log("PLAYBOOK USER:", user);
+    console.log("PLAYBOOK INSERT:", {
+  user_id: user?.id,
+  title: cleanTitle,
+  category,
+});
     const { error } = await supabase.from("playbook_entries").insert([
   {
     user_id: user?.id,
