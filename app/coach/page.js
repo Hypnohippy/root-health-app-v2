@@ -565,10 +565,16 @@ const startVoiceSession = async () => {
 
       setLatestVoiceTranscript(transcript);
 
-      if (
-        transcript.toLowerCase().includes("save") &&
-        transcript.toLowerCase().includes("journal")
-      ) {
+     const lowerTranscript = transcript.toLowerCase();
+
+const wantsJournalSave =
+  lowerTranscript.includes("save") ||
+  lowerTranscript.includes("record") ||
+  lowerTranscript.includes("add to my journal") ||
+  lowerTranscript.includes("journal");
+
+if (wantsJournalSave) {#
+      {
         fetch("/api/voice-actions", {
           method: "POST",
           headers: {
