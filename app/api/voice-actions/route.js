@@ -20,7 +20,8 @@ function detectPattern(text = "") {
     return {
       emotional_theme: "anxiety",
       recommended_coach_mode: "Mind & mood",
-      recommended_prompt: "Breathwork or CBT-style reframing",
+    recommended_prompt:
+  "Root has recorded this change and will continue watching the pattern over time.",
     };
   }
 
