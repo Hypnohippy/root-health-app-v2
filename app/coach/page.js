@@ -548,7 +548,7 @@ const startVoiceSession = async () => {
     dc.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("VOICE EVENT:", message.type, message);
+        console.log("VOICE EVENT FULL:", JSON.stringify(message, null, 2));
 
         if (message.type === "input_audio_buffer.speech_started") {
           setVoiceState("listening");
