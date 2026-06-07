@@ -106,6 +106,7 @@ function buildWelcome(name, history = [], mindEntries = [], journalEntries = [])
 }
 
 export default function CoachPage() {
+  const [latestVoiceTranscript, setLatestVoiceTranscript] = useState("");
   const [name, setName] = useState("");
   const [profile, setProfile] = useState(null);
   const [history, setHistory] = useState([]);
@@ -547,6 +548,32 @@ const startVoiceSession = async () => {
 
     dc.onmessage = (event) => {
       try {
+        if (
+  message.type ===
+  "conversation.item.input_audio_transcription.completed"
+) {
+  const transcript = message.transcript || "";
+
+  console.log("USER SAID:", transcript);
+
+  setLatestVoiceTranscript(transcript);
+
+  if (
+    transcript.toLowerCase().includes("save") &&
+    transcript.toLowerCase().includes("journal")
+  ) {
+    fetch("/api/voice-actions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "save_journal",
+        content: latestVoiceTranscript,
+      }),
+    });
+  }
+}
         const message = JSON.parse(event.data);
         console.log("VOICE EVENT FULL:", JSON.stringify(message, null, 2));
 
