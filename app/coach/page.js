@@ -573,8 +573,9 @@ const wantsJournalSave =
   lowerTranscript.includes("add to my journal") ||
   lowerTranscript.includes("journal");
 
-if (wantsJournalSave) {#
-      {
+if (wantsJournalSave) {
+  console.log("VOICE SAVE TRIGGERED:", transcript);
+
         fetch("/api/voice-actions", {
           method: "POST",
           headers: {
