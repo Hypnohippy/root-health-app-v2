@@ -57,6 +57,7 @@ const [memoryDirection, setMemoryDirection] = useState("");
 const [rootMemoryNarrative, setRootMemoryNarrative] = useState("");
 const [rootHypothesis, setRootHypothesis] = useState("");
 const [rootRecognition, setRootRecognition] = useState("");
+const [dailyReflection, setDailyReflection] = useState("");
 const [rootConfidence, setRootConfidence] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
@@ -341,7 +342,7 @@ if (profile?.name) {
     }
 
     setRootGuidance(guidance);
-    const rootMemory = buildRootMemoryService({
+   const rootMemory = buildRootMemoryService({
   name: loadedName,
   bodySignals: safeBody,
   journalEntries: safeJournal,
@@ -352,6 +353,7 @@ setRootRecognition(rootMemory.recognition);
 setRootMemoryNarrative(rootMemory.memory);
 setInterventionInsight(rootMemory.interventionInsight);
 setRootHypothesis(rootMemory.hypothesis);
+setDailyReflection(rootMemory.dailyReflection || "");
     const totalCheckIns =
   safeMind.length +
   safeBody.length;
@@ -620,6 +622,17 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
     </span>
   ))}
 </p>
+{dailyReflection && (
+  <div style={styles.dailyReflectionCard}>
+    <p style={styles.dailyReflectionLabel}>
+      Today's Root Reflection
+    </p>
+
+    <p style={styles.dailyReflectionText}>
+      {dailyReflection}
+    </p>
+  </div>
+)}
 {rootRecognition && (
   <div style={styles.rootRecognitionCard}>
     <p style={styles.rootRecognitionLabel}>
@@ -1914,5 +1927,32 @@ rootRecognitionText: {
   fontSize: "20px",
   lineHeight: "1.85",
   color: "rgba(255,255,255,0.92)",
+},
+  dailyReflectionCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "30px",
+  borderRadius: "32px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.30), rgba(245,236,222,0.26))",
+  border: "1px solid rgba(255,255,255,0.38)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+dailyReflectionLabel: {
+  margin: "0 0 12px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+dailyReflectionText: {
+  margin: 0,
+  fontSize: "20px",
+  lineHeight: "1.9",
+  color: "#243224",
 },
 };
