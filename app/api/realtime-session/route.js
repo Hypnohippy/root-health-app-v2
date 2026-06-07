@@ -187,11 +187,16 @@ Sound like a calm, emotionally regulated human being.
         type: "realtime",
         model: "gpt-realtime",
         instructions: rootVoicePrompt,
-        audio: {
-          output: {
-            voice: "marin",
-          },
-        },
+       audio: {
+  input: {
+    transcription: {
+      model: "gpt-4o-mini-transcribe",
+    },
+  },
+  output: {
+    voice: "marin",
+  },
+},
       })
     );
 
