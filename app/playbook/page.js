@@ -73,10 +73,10 @@ export default function PlaybookPage() {
       setCategory("General");
       setContent("");
       await loadEntries();
-    } else {
-      alert("Something went wrong saving this playbook entry.");
-    }
-
+   } else {
+  console.error("PLAYBOOK SAVE ERROR:", error);
+  alert(error.message || "Something went wrong saving this playbook entry.");
+}
     setSaving(false);
   };
 
