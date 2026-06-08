@@ -73,6 +73,40 @@ export async function POST(req) {
           recommended_prompt: pattern.recommended_prompt,
         },
       ]);
+      if (action === "save_playbook") {
+  const category =
+    body.category || "General";
+
+  const title =
+    body.title || "Voice Coach Playbook Entry";
+
+  const { error } = await supabase
+    .from("playbook_entries")
+    .insert([
+      {
+        profile_key: "main",
+        title,
+        category,
+        content,
+        source: "Voice Coach",
+      },
+    ]);
+
+  if (error) {
+    return Response.json(
+      {
+        ok: false,
+        error: error.message,
+      },
+      { status: 500 }
+    );
+  }
+
+  return Response.json({
+    ok: true,
+    message: "Playbook entry saved.",
+  });
+}
 
       if (error) {
         return Response.json(
