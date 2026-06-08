@@ -686,6 +686,27 @@ console.log("VOICE CONTEXT SENT:", {
       type: "answer",
       sdp: answerSdp,
     });
+    dc.send(
+  JSON.stringify({
+    type: "conversation.item.create",
+    item: {
+      type: "message",
+      role: "user",
+      content: [
+        {
+          type: "input_text",
+          text: "Begin the session with your opening observation and a warm greeting.",
+        },
+      ],
+    },
+  })
+);
+
+dc.send(
+  JSON.stringify({
+    type: "response.create",
+  })
+);
 
     setMessages((prev) => [
       ...prev,
