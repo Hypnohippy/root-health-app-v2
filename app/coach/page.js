@@ -340,6 +340,30 @@ if (!previousUserMessage) {
         "I can save that, but I need the words to record. Tell me what you want saved, then say: save that to my journal.",
     },
   ]);
+    const wantsPlaybookSave =
+  lowerTranscript.includes("playbook") ||
+  lowerTranscript.includes("meal plan") ||
+  lowerTranscript.includes("food plan") ||
+  lowerTranscript.includes("recovery plan") ||
+  lowerTranscript.includes("save this plan") ||
+  lowerTranscript.includes("save that plan");
+
+if (wantsPlaybookSave) {
+  console.log("PLAYBOOK SAVE TRIGGERED:", transcript);
+
+  fetch("/api/voice-actions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "save_playbook",
+      title: "Voice Coach Playbook Entry",
+      category: "General",
+      content: transcript,
+    }),
+  });
+}
 
   setInput("");
   return;
