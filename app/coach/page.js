@@ -566,53 +566,34 @@ const startVoiceSession = async () => {
     const dc = pc.createDataChannel("oai-events");
     dataChannelRef.current = dc;
 
-    dc.onopen = () => {
-      setVoiceState("listening");
-    };
+   dc.onopen = () => {
+  console.log("VOICE CHANNEL OPEN");
 
-    dc.onmessage = (event) => {
-  try {
-    const message = JSON.parse(event.data);
+  setVoiceState("listening");
 
-    console.log(
-      "VOICE EVENT FULL:",
-      JSON.stringify(message, null, 2)
-    );
-
-    if (
-      message.type ===
-      "conversation.item.input_audio_transcription.completed"
-    ) {
-      const transcript = message.transcript || "";
-
-      console.log("USER SAID:", transcript);
-
-      setLatestVoiceTranscript(transcript);
-
-     const lowerTranscript = transcript.toLowerCase();
-
-const wantsJournalSave =
-  lowerTranscript.includes("save") ||
-  lowerTranscript.includes("record") ||
-  lowerTranscript.includes("add to my journal") ||
-  lowerTranscript.includes("journal");
-
-if (wantsJournalSave) {
-  console.log("VOICE SAVE TRIGGERED:", transcript);
-
-        fetch("/api/voice-actions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+  dc.send(
+    JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text:
+              "Begin the session with a warm greeting, use your opening observation if available, and ask what the user would like to explore today.",
           },
-          body: JSON.stringify({
-            action: "save_journal",
-            content: transcript,
-          }),
-        });
-      }
-    }
+        ],
+      },
+    })
+  );
 
+  dc.send(
+    JSON.stringify({
+      type: "response.create",
+    })
+  );
+};
     if (message.type === "input_audio_buffer.speech_started") {
       setVoiceState("listening");
     }
