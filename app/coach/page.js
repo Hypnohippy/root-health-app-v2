@@ -143,6 +143,8 @@ export default function CoachPage() {
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const animationFrameRef = useRef(null);
+  const pendingPlaybookSaveRef = useRef(null);
+  const latestAssistantTranscriptRef = useRef("");
   useEffect(() => {
   const load = async () => {
   const storedJourney = localStorage.getItem("root_journey_v1");
@@ -584,43 +586,41 @@ dc.onmessage = (event) => {
   "conversation.item.input_audio_transcription.completed"
 ) {
   const transcript = message.transcript || "";
-  const lowerTranscript = transcript.toLowerCase();
+const lowerTranscript = transcript.toLowerCase();
 
-  console.log("USER SAID:", transcript);
+console.log("USER SAID:", transcript);
 
-  const wantsPlaybookSave =
-    lowerTranscript.includes("playbook") ||
-    lowerTranscript.includes("myplaybook") ||
-    lowerTranscript.includes("meal plan") ||
-    lowerTranscript.includes("food plan") ||
-    lowerTranscript.includes("recovery plan") ||
-    lowerTranscript.includes("save it") ||
-    lowerTranscript.includes("save this") ||
-    lowerTranscript.includes("save that");
+const wantsPlaybookSave =
+  lowerTranscript.includes("playbook") ||
+  lowerTranscript.includes("myplaybook") ||
+  lowerTranscript.includes("meal plan") ||
+  lowerTranscript.includes("food plan") ||
+  lowerTranscript.includes("recovery plan") ||
+  lowerTranscript.includes("save it") ||
+  lowerTranscript.includes("save this") ||
+  lowerTranscript.includes("save that");
 
-  if (wantsPlaybookSave) {
-    console.log("PLAYBOOK SAVE TRIGGERED:", transcript);
+if (wantsPlaybookSave) {
+  console.log("PLAYBOOK SAVE TRIGGERED:", transcript);
 
-    fetch("/api/voice-actions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "save_playbook",
-        title: lowerTranscript.includes("ibs")
-          ? "IBS Meal Plan"
-          : "Voice Coach Playbook Entry",
-        category:
-          lowerTranscript.includes("ibs") ||
-          lowerTranscript.includes("meal") ||
-          lowerTranscript.includes("food")
-            ? "Nutrition"
-            : "General",
-        content: transcript,
-      }),
-    });
-  }
+  fetch("/api/voice-actions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "save_playbook",
+      title: lowerTranscript.includes("ibs")
+        ? "IBS Meal Plan"
+        : "Voice Coach Playbook Entry",
+      category:
+        lowerTranscript.includes("ibs") ||
+        lowerTranscript.includes("meal") ||
+        lowerTranscript.includes("food")
+          ? "Nutrition"
+          : "General",
+      content: transcript,
+    );
 }
 
     if (message.type === "input_audio_buffer.speech_started") {
@@ -641,11 +641,37 @@ dc.onmessage = (event) => {
     }
 
     if (
-      message.type === "response.audio_transcript.done" ||
-      message.type === "response.output_audio_transcript.done"
-    ) {
-      setVoiceTranscript(message.transcript || "");
-    }
+  message.type === "response.audio_transcript.done" ||
+  message.type === "response.output_audio_transcript.done"
+) {
+  const assistantTranscript = message.transcript || "";
+
+  setVoiceTranscript(assistantTranscript);
+  latestAssistantTranscriptRef.current = assistantTranscript;
+if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
+  const pending = pendingPlaybookSaveRef.current;
+
+  console.log("SAVING ASSISTANT ANSWER TO PLAYBOOK:", {
+    title: pending.title,
+    category: pending.category,
+    content: assistantTranscript,
+  });
+
+  fetch("/api/voice-actions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "save_playbook",
+      title: pending.title,
+      category: pending.category,
+      content: assistantTranscript,
+    }),
+  });
+
+  pendingPlaybookSaveRef.current = null;
+}
 
     if (message.type === "response.done") {
       setVoiceState("listening");
