@@ -644,28 +644,52 @@ dc.onmessage = (event) => {
   latestAssistantTranscriptRef.current = assistantTranscript;
 if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
   const pending = pendingPlaybookSaveRef.current;
+  const lowerAssistant = assistantTranscript.toLowerCase();
 
-  console.log("SAVING ASSISTANT ANSWER TO PLAYBOOK:", {
-    title: pending.title,
-    category: pending.category,
-    content: assistantTranscript,
-  });
+  const isJustConfirmation =
+    lowerAssistant.includes("done. i’ve recorded that") ||
+    lowerAssistant.includes("done. i've recorded that") ||
+    lowerAssistant.includes("i’ve recorded that") ||
+    lowerAssistant.includes("i've recorded that");
 
-  fetch("/api/voice-actions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      action: "save_playbook",
+  const isOnlyAskingQuestion =
+    lowerAssistant.includes("?") &&
+    assistantTranscript.length < 280;
+
+  const looksLikeUsefulPlan =
+    lowerAssistant.includes("day 1") ||
+    lowerAssistant.includes("day one") ||
+    lowerAssistant.includes("breakfast") ||
+    lowerAssistant.includes("lunch") ||
+    lowerAssistant.includes("dinner") ||
+    lowerAssistant.includes("routine") ||
+    lowerAssistant.includes("strategy") ||
+    lowerAssistant.includes("steps");
+
+  if (!isJustConfirmation && !isOnlyAskingQuestion && looksLikeUsefulPlan) {
+    console.log("SAVING ASSISTANT ANSWER TO PLAYBOOK:", {
       title: pending.title,
       category: pending.category,
       content: assistantTranscript,
-    }),
-  });
+    });
 
- pendingPlaybookSaveRef.current = null;
-}
+    fetch("/api/voice-actions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "save_playbook",
+        title: pending.title,
+        category: pending.category,
+        content: assistantTranscript,
+      }),
+    });
+
+    pendingPlaybookSaveRef.current = null;
+  } else {
+    console.log("PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:", assistantTranscript);
+  }
 }
 
     if (message.type === "response.done") {
