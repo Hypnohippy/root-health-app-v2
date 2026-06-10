@@ -689,9 +689,9 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     pendingPlaybookSaveRef.current = null;
   } else {
     console.log(
-      "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
-                assistantTranscript);
-        );
+  "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
+  assistantTranscript
+);
         }
         }
 
