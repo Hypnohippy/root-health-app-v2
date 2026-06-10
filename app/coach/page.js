@@ -340,31 +340,7 @@ if (!previousUserMessage) {
         "I can save that, but I need the words to record. Tell me what you want saved, then say: save that to my journal.",
     },
   ]);
-    const wantsPlaybookSave =
-  lowerTranscript.includes("playbook") ||
-  lowerTranscript.includes("meal plan") ||
-  lowerTranscript.includes("food plan") ||
-  lowerTranscript.includes("recovery plan") ||
-  lowerTranscript.includes("save this plan") ||
-  lowerTranscript.includes("save that plan");
-
-if (wantsPlaybookSave) {
-  console.log("PLAYBOOK SAVE TRIGGERED:", transcript);
-
-  fetch("/api/voice-actions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      action: "save_playbook",
-      title: "Voice Coach Playbook Entry",
-      category: "General",
-      content: transcript,
-    }),
-  });
-}
-
+   
   setInput("");
   return;
 }
@@ -603,6 +579,49 @@ dc.onmessage = (event) => {
       "VOICE EVENT FULL:",
       JSON.stringify(message, null, 2)
     );
+    if (
+  message.type ===
+  "conversation.item.input_audio_transcription.completed"
+) {
+  const transcript = message.transcript || "";
+  const lowerTranscript = transcript.toLowerCase();
+
+  console.log("USER SAID:", transcript);
+
+  const wantsPlaybookSave =
+    lowerTranscript.includes("playbook") ||
+    lowerTranscript.includes("myplaybook") ||
+    lowerTranscript.includes("meal plan") ||
+    lowerTranscript.includes("food plan") ||
+    lowerTranscript.includes("recovery plan") ||
+    lowerTranscript.includes("save it") ||
+    lowerTranscript.includes("save this") ||
+    lowerTranscript.includes("save that");
+
+  if (wantsPlaybookSave) {
+    console.log("PLAYBOOK SAVE TRIGGERED:", transcript);
+
+    fetch("/api/voice-actions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "save_playbook",
+        title: lowerTranscript.includes("ibs")
+          ? "IBS Meal Plan"
+          : "Voice Coach Playbook Entry",
+        category:
+          lowerTranscript.includes("ibs") ||
+          lowerTranscript.includes("meal") ||
+          lowerTranscript.includes("food")
+            ? "Nutrition"
+            : "General",
+        content: transcript,
+      }),
+    });
+  }
+}
 
     if (message.type === "input_audio_buffer.speech_started") {
       setVoiceState("listening");
