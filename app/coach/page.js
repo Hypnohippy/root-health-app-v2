@@ -581,35 +581,24 @@ dc.onmessage = (event) => {
       "VOICE EVENT FULL:",
       JSON.stringify(message, null, 2)
     );
-    if (
+ if (
   message.type ===
   "conversation.item.input_audio_transcription.completed"
 ) {
   const transcript = message.transcript || "";
-const lowerTranscript = transcript.toLowerCase();
+  const lowerTranscript = transcript.toLowerCase();
 
-console.log("USER SAID:", transcript);
+  console.log("USER SAID:", transcript);
 
-const wantsPlaybookSave =
-  lowerTranscript.includes("playbook") ||
-  lowerTranscript.includes("myplaybook") ||
-  lowerTranscript.includes("meal plan") ||
-  lowerTranscript.includes("food plan") ||
-  lowerTranscript.includes("recovery plan") ||
-  lowerTranscript.includes("save it") ||
-  lowerTranscript.includes("save this") ||
-  lowerTranscript.includes("save that");
+  const wantsPlaybookSave =
+    lowerTranscript.includes("playbook") ||
+    lowerTranscript.includes("myplaybook") ||
+    lowerTranscript.includes("save it") ||
+    lowerTranscript.includes("save this") ||
+    lowerTranscript.includes("save that");
 
-if (wantsPlaybookSave) {
-  console.log("PLAYBOOK SAVE TRIGGERED:", transcript);
-
-  fetch("/api/voice-actions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      action: "save_playbook",
+  if (wantsPlaybookSave) {
+    pendingPlaybookSaveRef.current = {
       title: lowerTranscript.includes("ibs")
         ? "IBS Meal Plan"
         : "Voice Coach Playbook Entry",
@@ -619,8 +608,13 @@ if (wantsPlaybookSave) {
         lowerTranscript.includes("food")
           ? "Nutrition"
           : "General",
-      content: transcript,
+    };
+
+    console.log(
+      "PLAYBOOK SAVE PENDING:",
+      pendingPlaybookSaveRef.current
     );
+  }
 }
 
     if (message.type === "input_audio_buffer.speech_started") {
