@@ -688,9 +688,12 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
 
     pendingPlaybookSaveRef.current = null;
   } else {
-    console.log("PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:", assistantTranscript);
-  }
-}
+    console.log(
+      "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
+                assistantTranscript);
+        );
+        }
+        }
 
     if (message.type === "response.done") {
       setVoiceState("listening");
