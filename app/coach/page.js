@@ -664,7 +664,8 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     }),
   });
 
-  pendingPlaybookSaveRef.current = null;
+ pendingPlaybookSaveRef.current = null;
+}
 }
 
     if (message.type === "response.done") {
