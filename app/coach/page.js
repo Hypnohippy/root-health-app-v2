@@ -735,12 +735,21 @@ dc.onmessage = (event) => {
   console.log("USER SAID:", transcript);
 
   const wantsPlaybookSave =
-    lowerTranscript.includes("playbook") ||
-    lowerTranscript.includes("myplaybook") ||
-    lowerTranscript.includes("save it") ||
-    lowerTranscript.includes("save this") ||
-    lowerTranscript.includes("save that");
-
+  lowerTranscript.includes("playbook") ||
+  lowerTranscript.includes("myplaybook") ||
+  lowerTranscript.includes("save it") ||
+  lowerTranscript.includes("save this") ||
+  lowerTranscript.includes("save that") ||
+  lowerTranscript.includes("save the") ||
+  lowerTranscript.includes("save my") ||
+  lowerTranscript.includes("record it") ||
+  lowerTranscript.includes("record this") ||
+  lowerTranscript.includes("record that") ||
+  lowerTranscript.includes("add it") ||
+  lowerTranscript.includes("add this") ||
+  lowerTranscript.includes("add that") ||
+  lowerTranscript.includes("keep this") ||
+  lowerTranscript.includes("store this");
   if (wantsPlaybookSave) {
    pendingPlaybookSaveRef.current =
   inferPlaybookMeta(transcript, coachMode);
