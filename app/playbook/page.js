@@ -12,12 +12,15 @@ const categories = [
   "Sleep",
   "Movement",
   "Recovery",
+  "Mind & Mood",
+  "Routines",
   "General",
 ];
 
 export default function PlaybookPage() {
   const [entries, setEntries] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -48,9 +51,31 @@ export default function PlaybookPage() {
   };
 
   const filteredEntries = useMemo(() => {
-    if (selectedCategory === "All") return entries;
-    return entries.filter((entry) => entry.category === selectedCategory);
-  }, [entries, selectedCategory]);
+    const cleanSearch = searchTerm.trim().toLowerCase();
+
+    let nextEntries =
+      selectedCategory === "All"
+        ? entries
+        : entries.filter((entry) => entry.category === selectedCategory);
+
+    if (selectedCategory === "All" && cleanSearch) {
+      nextEntries = nextEntries.filter((entry) => {
+        const searchableText = [
+          entry.title,
+          entry.category,
+          entry.content,
+          entry.source,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(cleanSearch);
+      });
+    }
+
+    return nextEntries;
+  }, [entries, selectedCategory, searchTerm]);
 
   const saveEntry = async () => {
     const cleanTitle = title.trim();
@@ -74,6 +99,7 @@ export default function PlaybookPage() {
       setTitle("");
       setCategory("General");
       setContent("");
+      setSearchTerm("");
       await loadEntries();
     } else {
       console.error("PLAYBOOK SAVE ERROR:", error);
@@ -223,15 +249,35 @@ export default function PlaybookPage() {
           ))}
         </div>
 
+        {selectedCategory === "All" && (
+          <section style={styles.searchCard}>
+            <input
+              style={styles.searchInput}
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search your playbook, for example: IBS, sleep, breathing, bloating..."
+            />
+
+            {searchTerm.trim() && (
+              <button
+                style={styles.clearSearchButton}
+                onClick={() => setSearchTerm("")}
+              >
+                Clear
+              </button>
+            )}
+          </section>
+        )}
+
         {loading ? (
           <p style={styles.emptyText}>Loading your playbook...</p>
         ) : filteredEntries.length === 0 ? (
           <section style={styles.emptyCard}>
-            <h2 style={styles.emptyTitle}>Your playbook is ready to begin.</h2>
+            <h2 style={styles.emptyTitle}>Nothing found yet.</h2>
 
             <p style={styles.emptyText}>
-              When Root creates a useful plan, list or recovery idea, this is
-              where it can be kept safe for later.
+              Try another search, choose a different category, or save a new
+              plan to your playbook.
             </p>
           </section>
         ) : selectedCategory === "All" ? (
@@ -504,6 +550,42 @@ const styles = {
   filterButtonActive: {
     background: "#243224",
     color: "#FFFFFF",
+  },
+
+  searchCard: {
+    marginBottom: "22px",
+    padding: "16px",
+    borderRadius: "24px",
+    background: "rgba(255,255,255,0.34)",
+    border: "1px solid rgba(255,255,255,0.46)",
+    backdropFilter: "blur(16px)",
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+  },
+
+  searchInput: {
+    flex: 1,
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid rgba(36,50,36,0.16)",
+    borderRadius: "999px",
+    padding: "14px 16px",
+    background: "rgba(255,255,255,0.74)",
+    color: "#1F241E",
+    fontSize: "15px",
+    outline: "none",
+  },
+
+  clearSearchButton: {
+    border: "none",
+    borderRadius: "999px",
+    padding: "12px 16px",
+    background: "#243224",
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: "13px",
+    cursor: "pointer",
   },
 
   emptyCard: {
