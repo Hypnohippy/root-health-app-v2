@@ -7,6 +7,7 @@ import RootEnso from "../../components/RootEnso";
 
 const categories = [
   "Nutrition",
+  "Gut Health",
   "Stress & Anxiety",
   "Sleep",
   "Movement",
@@ -113,11 +114,11 @@ export default function PlaybookPage() {
     setDeletingId(null);
   };
 
-  const getPreview = (text) => {
+  const getPreview = (text, length = 180) => {
     if (!text) return "";
     const clean = text.trim();
-    if (clean.length <= 180) return clean;
-    return `${clean.slice(0, 180)}...`;
+    if (clean.length <= length) return clean;
+    return `${clean.slice(0, length)}...`;
   };
 
   const countLines = (text) => {
@@ -126,6 +127,11 @@ export default function PlaybookPage() {
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean).length;
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "No date";
+    return new Date(date).toLocaleDateString("en-GB");
   };
 
   return (
@@ -207,7 +213,10 @@ export default function PlaybookPage() {
                   ? styles.filterButtonActive
                   : {}),
               }}
-              onClick={() => setSelectedCategory(item)}
+              onClick={() => {
+                setSelectedCategory(item);
+                setOpenEntryId(null);
+              }}
             >
               {item}
             </button>
@@ -224,6 +233,65 @@ export default function PlaybookPage() {
               When Root creates a useful plan, list or recovery idea, this is
               where it can be kept safe for later.
             </p>
+          </section>
+        ) : selectedCategory === "All" ? (
+          <section style={styles.listCard}>
+            <div style={styles.listHeader}>
+              <span>Title</span>
+              <span>Category</span>
+              <span>Size</span>
+              <span>Date</span>
+              <span>Actions</span>
+            </div>
+
+            {filteredEntries.map((entry) => {
+              const isOpen = openEntryId === entry.id;
+              const lineCount = countLines(entry.content);
+
+              return (
+                <div key={entry.id} style={styles.listItem}>
+                  <div style={styles.listMain}>
+                    <strong style={styles.listTitle}>{entry.title}</strong>
+
+                    {isOpen ? (
+                      <p style={styles.listExpanded}>{entry.content}</p>
+                    ) : (
+                      <p style={styles.listPreview}>
+                        {getPreview(entry.content, 90)}
+                      </p>
+                    )}
+                  </div>
+
+                  <span style={styles.listCategory}>{entry.category}</span>
+
+                  <span style={styles.listMeta}>
+                    {lineCount > 0 ? `${lineCount} items` : "Saved"}
+                  </span>
+
+                  <span style={styles.listMeta}>{formatDate(entry.created_at)}</span>
+
+                  <div style={styles.listActions}>
+                    <button
+                      style={styles.smallViewButton}
+                      onClick={() => setOpenEntryId(isOpen ? null : entry.id)}
+                    >
+                      {isOpen ? "Hide" : "View"}
+                    </button>
+
+                    <button
+                      style={{
+                        ...styles.smallDeleteButton,
+                        opacity: deletingId === entry.id ? 0.65 : 1,
+                      }}
+                      onClick={() => deleteEntry(entry)}
+                      disabled={deletingId === entry.id}
+                    >
+                      {deletingId === entry.id ? "..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </section>
         ) : (
           <section style={styles.entryGrid}>
@@ -246,9 +314,7 @@ export default function PlaybookPage() {
                     </span>
 
                     <span style={styles.metaPill}>
-                      {entry.created_at
-                        ? new Date(entry.created_at).toLocaleDateString("en-GB")
-                        : "No date"}
+                      {formatDate(entry.created_at)}
                     </span>
                   </div>
 
@@ -259,9 +325,7 @@ export default function PlaybookPage() {
                   <div style={styles.actionRow}>
                     <button
                       style={styles.viewButton}
-                      onClick={() =>
-                        setOpenEntryId(isOpen ? null : entry.id)
-                      }
+                      onClick={() => setOpenEntryId(isOpen ? null : entry.id)}
                     >
                       {isOpen ? "Hide full plan" : "View full plan"}
                     </button>
@@ -464,6 +528,104 @@ const styles = {
     fontSize: "17px",
     lineHeight: "1.8",
     color: "#4B443A",
+  },
+
+  listCard: {
+    borderRadius: "28px",
+    overflow: "hidden",
+    background: "rgba(255,255,255,0.42)",
+    border: "1px solid rgba(255,255,255,0.52)",
+    backdropFilter: "blur(16px)",
+    boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+  },
+
+  listHeader: {
+    display: "grid",
+    gridTemplateColumns: "2fr 0.9fr 0.7fr 0.7fr 1fr",
+    gap: "12px",
+    padding: "14px 18px",
+    background: "rgba(36,50,36,0.1)",
+    color: "#364131",
+    fontSize: "12px",
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+  },
+
+  listItem: {
+    display: "grid",
+    gridTemplateColumns: "2fr 0.9fr 0.7fr 0.7fr 1fr",
+    gap: "12px",
+    alignItems: "start",
+    padding: "16px 18px",
+    borderTop: "1px solid rgba(36,50,36,0.1)",
+  },
+
+  listMain: {
+    minWidth: 0,
+  },
+
+  listTitle: {
+    display: "block",
+    color: "#1F241E",
+    fontSize: "15px",
+    marginBottom: "5px",
+  },
+
+  listPreview: {
+    margin: 0,
+    color: "#5E5549",
+    fontSize: "13px",
+    lineHeight: "1.5",
+  },
+
+  listExpanded: {
+    margin: "8px 0 0",
+    whiteSpace: "pre-line",
+    color: "#3E372F",
+    fontSize: "14px",
+    lineHeight: "1.7",
+  },
+
+  listCategory: {
+    color: "#364131",
+    fontWeight: "800",
+    fontSize: "13px",
+  },
+
+  listMeta: {
+    color: "#6D6254",
+    fontWeight: "700",
+    fontSize: "13px",
+  },
+
+  listActions: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    justifyContent: "flex-end",
+  },
+
+  smallViewButton: {
+    border: "none",
+    borderRadius: "999px",
+    padding: "8px 12px",
+    background: "#243224",
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: "12px",
+    cursor: "pointer",
+  },
+
+  smallDeleteButton: {
+    border: "1px solid rgba(120,40,30,0.25)",
+    borderRadius: "999px",
+    padding: "8px 12px",
+    background: "rgba(255,255,255,0.58)",
+    color: "#8B2E22",
+    fontWeight: "800",
+    fontSize: "12px",
+    cursor: "pointer",
   },
 
   entryGrid: {
