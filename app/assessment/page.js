@@ -8,14 +8,39 @@ import RootAtmosphere from "../../components/RootAtmosphere";
 
 const questions = [
   ["stress_score", "Stress", "0 = calm, 10 = overwhelmed"],
-  ["sleep_score", "Sleep", "0 = poor, 10 = excellent"],
-  ["recovery_score", "Recovery", "0 = exhausted, 10 = recovered"],
-  ["energy_score", "Energy", "0 = drained, 10 = energised"],
-  ["mood_score", "Mood", "0 = very low, 10 = positive"],
-  ["focus_score", "Focus", "0 = scattered, 10 = clear"],
+
+  [
+    "sleep_score",
+    "Sleep Difficulties",
+    "0 = sleeping well, 10 = severe sleep difficulties",
+  ],
+
+  [
+    "recovery_score",
+    "Recovery Difficulty",
+    "0 = well recovered, 10 = exhausted",
+  ],
+
+  [
+    "energy_score",
+    "Low Energy",
+    "0 = energised, 10 = completely drained",
+  ],
+
+  [
+    "mood_score",
+    "Low Mood",
+    "0 = positive, 10 = very low",
+  ],
+
+  [
+    "focus_score",
+    "Focus Difficulties",
+    "0 = clear focus, 10 = unable to focus",
+  ],
+
   ["burnout_score", "Burnout", "0 = none, 10 = severe"],
 ];
-
 export default function AssessmentPage() {
   const [scores, setScores] = useState({
     stress_score: 5,
