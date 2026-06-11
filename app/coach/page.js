@@ -807,8 +807,15 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     lowerAssistant.includes("dinner") ||
     lowerAssistant.includes("routine") ||
     lowerAssistant.includes("strategy") ||
-    lowerAssistant.includes("steps");
-
+    lowerAssistant.includes("steps") ||
+    lowerAssistant.includes("plan") ||
+    lowerAssistant.includes("recovery") ||
+    lowerAssistant.includes("burnout") ||
+    lowerAssistant.includes("rest") ||
+    lowerAssistant.includes("energy") ||
+    lowerAssistant.includes("pacing") ||
+    lowerAssistant.includes("reduce") ||
+    lowerAssistant.includes("support");
   if (!isJustConfirmation && !isOnlyAskingQuestion && looksLikeUsefulPlan) {
     console.log("SAVING ASSISTANT ANSWER TO PLAYBOOK:", {
       title: pending.title,
