@@ -544,10 +544,33 @@ const startVoiceSession = async () => {
     const dc = pc.createDataChannel("oai-events");
     dataChannelRef.current = dc;
 
-   dc.onopen = () => {
+  dc.onopen = () => {
   console.log("VOICE CHANNEL OPEN");
 
   setVoiceState("listening");
+
+  dc.send(
+    JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text:
+              "Begin the session with your opening observation, a warm greeting, and ask what I would like to explore today.",
+          },
+        ],
+      },
+    })
+  );
+
+  dc.send(
+    JSON.stringify({
+      type: "response.create",
+    })
+  );
 };
 
 dc.onmessage = (event) => {
