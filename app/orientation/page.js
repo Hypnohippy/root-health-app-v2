@@ -85,9 +85,7 @@ export default function OrientationPage() {
       })
     );
 
-    localStorage.setItem("root_orientation_complete_v1", "true");
-
-    window.location.href = "/body";
+    window.location.href = "/assessment?from=orientation";
   };
 
   return (
@@ -194,7 +192,7 @@ export default function OrientationPage() {
               </div>
 
               <button style={styles.beginButton} onClick={beginJourney}>
-                Begin Body Exploration
+                Begin Root Check-In
               </button>
 
               <button
