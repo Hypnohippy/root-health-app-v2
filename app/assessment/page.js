@@ -52,6 +52,18 @@ export default function AssessmentPage() {
     } else {
       setSaved(true);
       setNotes("");
+      if (typeof window !== "undefined") {
+  const params = new URLSearchParams(window.location.search);
+  const fromOrientation = params.get("from") === "orientation";
+
+  if (fromOrientation) {
+    localStorage.setItem("root_orientation_complete_v1", "true");
+
+    setTimeout(() => {
+      window.location.href = "/body";
+    }, 900);
+  }
+}
     }
 
     setSaving(false);
