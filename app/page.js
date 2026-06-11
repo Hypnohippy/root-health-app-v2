@@ -61,8 +61,10 @@ const [dailyReflection, setDailyReflection] = useState("");
 const [rootConfidence, setRootConfidence] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
-const visibleFeedCount =
-  longitudinalMemory?.trajectory === "intensifying" ||
+const [latestAssessment, setLatestAssessment] = useState(null);
+const [baselineAssessment, setBaselineAssessment] = useState(null);
+
+const visibleFeedCount =  longitudinalMemory?.trajectory === "intensifying" ||
   longitudinalMemory?.nervousSystemLoad === "high"
     ? 1
     : 3;
