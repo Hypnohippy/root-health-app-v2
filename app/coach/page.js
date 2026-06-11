@@ -548,29 +548,6 @@ const startVoiceSession = async () => {
   console.log("VOICE CHANNEL OPEN");
 
   setVoiceState("listening");
-
-  dc.send(
-    JSON.stringify({
-      type: "conversation.item.create",
-      item: {
-        type: "message",
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text:
-              "Begin the session with a warm greeting, use your opening observation if available, and ask what the user would like to explore today.",
-          },
-        ],
-      },
-    })
-  );
-
-  dc.send(
-    JSON.stringify({
-      type: "response.create",
-    })
-  );
 };
 
 dc.onmessage = (event) => {
