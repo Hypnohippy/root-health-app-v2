@@ -104,6 +104,150 @@ function buildWelcome(name, history = [], mindEntries = [], journalEntries = [])
 
   return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
 }
+function inferPlaybookMeta(transcript = "", coachMode = "") {
+  const text = transcript.toLowerCase();
+
+  if (
+    text.includes("ibs") ||
+    text.includes("bloating") ||
+    text.includes("gut") ||
+    text.includes("digest") ||
+    text.includes("reflux") ||
+    text.includes("constipation")
+  ) {
+    return {
+      title: "Gut Health Plan",
+      category: "Gut Health",
+    };
+  }
+
+  if (
+    text.includes("meal") ||
+    text.includes("food") ||
+    text.includes("nutrition") ||
+    text.includes("diet") ||
+    text.includes("protein") ||
+    text.includes("breakfast") ||
+    text.includes("lunch") ||
+    text.includes("dinner")
+  ) {
+    return {
+      title: "Nutrition Plan",
+      category: "Nutrition",
+    };
+  }
+
+  if (
+    text.includes("sleep") ||
+    text.includes("bedtime") ||
+    text.includes("wind down") ||
+    text.includes("insomnia")
+  ) {
+    return {
+      title: "Sleep Support Plan",
+      category: "Sleep",
+    };
+  }
+
+  if (
+    text.includes("stress") ||
+    text.includes("anxiety") ||
+    text.includes("panic") ||
+    text.includes("overwhelm") ||
+    text.includes("grounding") ||
+    text.includes("breathing")
+  ) {
+    return {
+      title: "Stress & Anxiety Support Plan",
+      category: "Stress & Anxiety",
+    };
+  }
+
+  if (
+    text.includes("movement") ||
+    text.includes("exercise") ||
+    text.includes("stretch") ||
+    text.includes("walk") ||
+    text.includes("mobility")
+  ) {
+    return {
+      title: "Movement Support Plan",
+      category: "Movement",
+    };
+  }
+
+  if (
+    text.includes("recovery") ||
+    text.includes("burnout") ||
+    text.includes("fatigue") ||
+    text.includes("reset")
+  ) {
+    return {
+      title: "Recovery Plan",
+      category: "Recovery",
+    };
+  }
+
+  if (
+    text.includes("emotion") ||
+    text.includes("mood") ||
+    text.includes("mind") ||
+    text.includes("confidence") ||
+    text.includes("motivation") ||
+    text.includes("overthinking")
+  ) {
+    return {
+      title: "Mind & Mood Support Plan",
+      category: "Mind & Mood",
+    };
+  }
+
+  if (
+    text.includes("routine") ||
+    text.includes("habit") ||
+    text.includes("morning") ||
+    text.includes("evening") ||
+    text.includes("daily")
+  ) {
+    return {
+      title: "Routine Plan",
+      category: "Routines",
+    };
+  }
+
+  if (coachMode === "sleep") {
+    return {
+      title: "Sleep Support Plan",
+      category: "Sleep",
+    };
+  }
+
+  if (coachMode === "nutrition") {
+    return {
+      title: "Nutrition Plan",
+      category: "Nutrition",
+    };
+  }
+
+  if (coachMode === "movement") {
+    return {
+      title: "Movement Support Plan",
+      category: "Movement",
+    };
+  }
+
+  if (coachMode === "mind") {
+    return {
+      title: "Mind & Mood Support Plan",
+      category: "Mind & Mood",
+    };
+  }
+
+  return {
+    title: "Voice Coach Playbook Entry",
+    category: "General",
+  };
+}
 
 export default function CoachPage() {
   const [latestVoiceTranscript, setLatestVoiceTranscript] = useState("");
@@ -598,18 +742,8 @@ dc.onmessage = (event) => {
     lowerTranscript.includes("save that");
 
   if (wantsPlaybookSave) {
-    pendingPlaybookSaveRef.current = {
-      title: lowerTranscript.includes("ibs")
-        ? "IBS Meal Plan"
-        : "Voice Coach Playbook Entry",
-      category:
-        lowerTranscript.includes("ibs") ||
-        lowerTranscript.includes("meal") ||
-        lowerTranscript.includes("food")
-          ? "Nutrition"
-          : "General",
-    };
-
+   pendingPlaybookSaveRef.current =
+  inferPlaybookMeta(transcript, coachMode);
     console.log(
       "PLAYBOOK SAVE PENDING:",
       pendingPlaybookSaveRef.current
