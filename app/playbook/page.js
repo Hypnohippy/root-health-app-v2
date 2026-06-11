@@ -19,6 +19,8 @@ export default function PlaybookPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [openEntryId, setOpenEntryId] = useState(null);
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("General");
@@ -31,11 +33,12 @@ export default function PlaybookPage() {
   const loadEntries = async () => {
     setLoading(true);
 
-   const { data, error } = await supabase
-  .from("playbook_entries")
-  .select("*")
-  .eq("profile_key", "main")
-  .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("playbook_entries")
+      .select("*")
+      .eq("profile_key", "main")
+      .order("created_at", { ascending: false });
+
     if (!error) {
       setEntries(Array.isArray(data) ? data : []);
     }
@@ -45,10 +48,7 @@ export default function PlaybookPage() {
 
   const filteredEntries = useMemo(() => {
     if (selectedCategory === "All") return entries;
-
-    return entries.filter(
-      (entry) => entry.category === selectedCategory
-    );
+    return entries.filter((entry) => entry.category === selectedCategory);
   }, [entries, selectedCategory]);
 
   const saveEntry = async () => {
@@ -58,35 +58,74 @@ export default function PlaybookPage() {
     if (!cleanTitle || !cleanContent || saving) return;
 
     setSaving(true);
-    const {
-  data: { user },
-} = await supabase.auth.getUser();
-   
-    console.log("PLAYBOOK USER:", user);
-    console.log("PLAYBOOK INSERT:", {
-  user_id: user?.id,
-  title: cleanTitle,
-  category,
-});
+
     const { error } = await supabase.from("playbook_entries").insert([
-  {
-  profile_key: "main",
-  title: cleanTitle,
-  category,
-  content: cleanContent,
-  source: "Manual",
-}
-]);
+      {
+        profile_key: "main",
+        title: cleanTitle,
+        category,
+        content: cleanContent,
+        source: "Manual",
+      },
+    ]);
+
     if (!error) {
       setTitle("");
       setCategory("General");
       setContent("");
       await loadEntries();
-   } else {
-  console.error("PLAYBOOK SAVE ERROR:", error);
-  alert(error.message || "Something went wrong saving this playbook entry.");
-}
+    } else {
+      console.error("PLAYBOOK SAVE ERROR:", error);
+      alert(error.message || "Something went wrong saving this playbook entry.");
+    }
+
     setSaving(false);
+  };
+
+  const deleteEntry = async (entry) => {
+    if (!entry?.id || deletingId) return;
+
+    const confirmed = window.confirm(
+      `Delete "${entry.title}" from your playbook? This cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(entry.id);
+
+    const { error } = await supabase
+      .from("playbook_entries")
+      .delete()
+      .eq("id", entry.id)
+      .eq("profile_key", "main");
+
+    if (!error) {
+      setEntries((current) => current.filter((item) => item.id !== entry.id));
+
+      if (openEntryId === entry.id) {
+        setOpenEntryId(null);
+      }
+    } else {
+      console.error("PLAYBOOK DELETE ERROR:", error);
+      alert(error.message || "Something went wrong deleting this playbook entry.");
+    }
+
+    setDeletingId(null);
+  };
+
+  const getPreview = (text) => {
+    if (!text) return "";
+    const clean = text.trim();
+    if (clean.length <= 180) return clean;
+    return `${clean.slice(0, 180)}...`;
+  };
+
+  const countLines = (text) => {
+    if (!text) return 0;
+    return text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean).length;
   };
 
   return (
@@ -179,9 +218,7 @@ export default function PlaybookPage() {
           <p style={styles.emptyText}>Loading your playbook...</p>
         ) : filteredEntries.length === 0 ? (
           <section style={styles.emptyCard}>
-            <h2 style={styles.emptyTitle}>
-              Your playbook is ready to begin.
-            </h2>
+            <h2 style={styles.emptyTitle}>Your playbook is ready to begin.</h2>
 
             <p style={styles.emptyText}>
               When Root creates a useful plan, list or recovery idea, this is
@@ -190,26 +227,59 @@ export default function PlaybookPage() {
           </section>
         ) : (
           <section style={styles.entryGrid}>
-            {filteredEntries.map((entry) => (
-              <article key={entry.id} style={styles.entryCard}>
-                <div style={styles.entryTop}>
-                  <p style={styles.entryCategory}>{entry.category}</p>
-                  <p style={styles.entrySource}>
-                    {entry.source || "Root"}
+            {filteredEntries.map((entry) => {
+              const isOpen = openEntryId === entry.id;
+              const lineCount = countLines(entry.content);
+
+              return (
+                <article key={entry.id} style={styles.entryCard}>
+                  <div style={styles.entryTop}>
+                    <p style={styles.entryCategory}>{entry.category}</p>
+                    <p style={styles.entrySource}>{entry.source || "Root"}</p>
+                  </div>
+
+                  <h2 style={styles.entryTitle}>{entry.title}</h2>
+
+                  <div style={styles.metaRow}>
+                    <span style={styles.metaPill}>
+                      {lineCount > 0 ? `${lineCount} notes/items` : "Saved plan"}
+                    </span>
+
+                    <span style={styles.metaPill}>
+                      {entry.created_at
+                        ? new Date(entry.created_at).toLocaleDateString("en-GB")
+                        : "No date"}
+                    </span>
+                  </div>
+
+                  <p style={styles.entryContent}>
+                    {isOpen ? entry.content : getPreview(entry.content)}
                   </p>
-                </div>
 
-                <h2 style={styles.entryTitle}>{entry.title}</h2>
+                  <div style={styles.actionRow}>
+                    <button
+                      style={styles.viewButton}
+                      onClick={() =>
+                        setOpenEntryId(isOpen ? null : entry.id)
+                      }
+                    >
+                      {isOpen ? "Hide full plan" : "View full plan"}
+                    </button>
 
-                <p style={styles.entryContent}>{entry.content}</p>
-
-                <p style={styles.entryDate}>
-                  {entry.created_at
-                    ? new Date(entry.created_at).toLocaleDateString("en-GB")
-                    : ""}
-                </p>
-              </article>
-            ))}
+                    <button
+                      style={{
+                        ...styles.deleteButton,
+                        opacity: deletingId === entry.id ? 0.65 : 1,
+                      }}
+                      onClick={() => deleteEntry(entry)}
+                      disabled={deletingId === entry.id}
+                    >
+                      {deletingId === entry.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </section>
         )}
       </section>
@@ -443,6 +513,23 @@ const styles = {
     color: "#1F241E",
   },
 
+  metaRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    marginBottom: "14px",
+  },
+
+  metaPill: {
+    display: "inline-flex",
+    borderRadius: "999px",
+    padding: "7px 10px",
+    background: "rgba(36,50,36,0.08)",
+    color: "#364131",
+    fontSize: "12px",
+    fontWeight: "800",
+  },
+
   entryContent: {
     margin: 0,
     whiteSpace: "pre-line",
@@ -451,9 +538,32 @@ const styles = {
     color: "#3E372F",
   },
 
-  entryDate: {
-    margin: "18px 0 0",
+  actionRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginTop: "18px",
+  },
+
+  viewButton: {
+    border: "none",
+    borderRadius: "999px",
+    padding: "11px 15px",
+    background: "#243224",
+    color: "#FFFFFF",
+    fontWeight: "800",
     fontSize: "13px",
-    color: "#6D6254",
+    cursor: "pointer",
+  },
+
+  deleteButton: {
+    border: "1px solid rgba(120,40,30,0.25)",
+    borderRadius: "999px",
+    padding: "11px 15px",
+    background: "rgba(255,255,255,0.58)",
+    color: "#8B2E22",
+    fontWeight: "800",
+    fontSize: "13px",
+    cursor: "pointer",
   },
 };
