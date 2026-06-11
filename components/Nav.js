@@ -1,11 +1,13 @@
 export default function Nav() {
   const links = [
     { href: "/", label: "Home" },
+    { href: "/coach", label: "Coach" },
+    { href: "/assessment", label: "Check-In" },
+    { href: "/playbook", label: "Playbook" },
+    { href: "/journal", label: "Journal" },
     { href: "/body", label: "Body" },
     { href: "/mind", label: "Mind" },
-    { href: "/journal", label: "Journal" },
     { href: "/insights", label: "Insights" },
-    { href: "/coach", label: "Coach" },
     { href: "/profile", label: "You" },
   ];
 
@@ -33,7 +35,7 @@ const styles = {
     left: "50%",
     transform: "translateX(-50%)",
     zIndex: 1000,
-    width: "min(920px, calc(100% - 28px))",
+    width: "min(1040px, calc(100% - 28px))",
     padding: "10px 12px",
     display: "flex",
     justifyContent: "space-between",
