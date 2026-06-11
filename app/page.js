@@ -61,6 +61,7 @@ const [dailyReflection, setDailyReflection] = useState("");
 const [rootConfidence, setRootConfidence] = useState("");
 const [interventionInsight, setInterventionInsight] = useState("");
 const [userName, setUserName] = useState("");
+const [userName, setUserName] = useState("");
 const visibleFeedCount =
   longitudinalMemory?.trajectory === "intensifying" ||
   longitudinalMemory?.nervousSystemLoad === "high"
@@ -246,10 +247,27 @@ if (profile?.name) {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(40);
+    const { data: assessmentData } = await supabase
+  .from("wellbeing_assessments")
+  .select("*")
+  .eq("profile_key", "main")
+  .order("created_at", { ascending: false })
+  .limit(20);
 
     const safeBody = bodyData || [];
     const safeJournal = journalData || [];
     const safeMind = mindData || [];
+    const safeAssessments = assessmentData || [];
+
+const latestSavedAssessment = safeAssessments[0] || null;
+
+const baselineSavedAssessment =
+  safeAssessments.find(
+    (item) => item.assessment_type === "baseline"
+  ) || null;
+
+setLatestAssessment(latestSavedAssessment);
+setBaselineAssessment(baselineSavedAssessment);
 
     setBodySignals(safeBody);
     setJournalEntries(safeJournal);
@@ -669,6 +687,51 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
 )}
   </div>
 )}
+  </div>
+)}
+{latestAssessment && (
+  <div style={styles.progressPictureCard}>
+    <p style={styles.progressPictureLabel}>
+      Your progress picture
+    </p>
+
+    <h2 style={styles.progressPictureTitle}>
+      Root is now tracking your wellbeing scores.
+    </h2>
+
+    <div style={styles.progressGrid}>
+      <div style={styles.progressMetric}>
+        <span>Stress</span>
+        <strong>
+          {baselineAssessment?.stress_score ?? "—"} → {latestAssessment.stress_score ?? "—"}
+        </strong>
+      </div>
+
+      <div style={styles.progressMetric}>
+        <span>Sleep</span>
+        <strong>
+          {baselineAssessment?.sleep_score ?? "—"} → {latestAssessment.sleep_score ?? "—"}
+        </strong>
+      </div>
+
+      <div style={styles.progressMetric}>
+        <span>Recovery</span>
+        <strong>
+          {baselineAssessment?.recovery_score ?? "—"} → {latestAssessment.recovery_score ?? "—"}
+        </strong>
+      </div>
+
+      <div style={styles.progressMetric}>
+        <span>Burnout</span>
+        <strong>
+          {baselineAssessment?.burnout_score ?? "—"} → {latestAssessment.burnout_score ?? "—"}
+        </strong>
+      </div>
+    </div>
+
+    <a href="/assessment" style={styles.progressPictureButton}>
+      Add new check-in →
+    </a>
   </div>
 )}
 {livingMessage && (
@@ -1954,5 +2017,64 @@ dailyReflectionText: {
   fontSize: "20px",
   lineHeight: "1.9",
   color: "#243224",
+},
+  progressPictureCard: {
+  maxWidth: "760px",
+  marginBottom: "24px",
+  padding: "28px",
+  borderRadius: "32px",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.30), rgba(245,236,222,0.26))",
+  border: "1px solid rgba(255,255,255,0.38)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+progressPictureLabel: {
+  margin: "0 0 12px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#364131",
+  fontWeight: "800",
+},
+
+progressPictureTitle: {
+  margin: "0 0 18px",
+  fontFamily: "Georgia, serif",
+  fontSize: "30px",
+  lineHeight: "1.2",
+  color: "#1F281D",
+  fontWeight: "500",
+},
+
+progressGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+  gap: "12px",
+  marginBottom: "18px",
+},
+
+progressMetric: {
+  padding: "14px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.44)",
+  border: "1px solid rgba(255,255,255,0.32)",
+  display: "flex",
+  flexDirection: "column",
+  gap: "6px",
+},
+
+progressPictureButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  background: "#243224",
+  color: "#FFFFFF",
+  borderRadius: "999px",
+  padding: "13px 18px",
+  fontSize: "14px",
+  fontWeight: "800",
 },
 };
