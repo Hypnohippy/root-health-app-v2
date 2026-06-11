@@ -708,13 +708,6 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
         </strong>
       </div>
 
-      <div style={styles.progressMetric}>
-  <span>Stress</span>
-  <strong>
-    {baselineAssessment?.stress_score ?? "—"} → {latestAssessment.stress_score ?? "—"}
-  </strong>
-</div>
-
 <div style={styles.progressMetric}>
   <span>Sleep Difficulties</span>
   <strong>
