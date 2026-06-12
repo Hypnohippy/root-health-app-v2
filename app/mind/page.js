@@ -125,6 +125,67 @@ const journeys = {
     ],
   },
 }; 
+const calmingTechniques = [
+  {
+    title: "Safe Place Visualisation",
+    body: `Close your eyes if comfortable.
+
+Take a slow breath in… and out.
+
+Imagine a place where your body feels safe and at ease. It does not have to be real.
+
+Let the image arrive slowly.
+
+Let your shoulders drop.
+Let your jaw soften.
+Let your breathing slow.
+
+There is nothing to force here. Just allow your system to settle a little more with each out-breath.`,
+  },
+
+  {
+    title: "Floating Leaves Exercise",
+    body: `Imagine sitting beside a gentle stream.
+
+Every thought that appears can be placed on a leaf.
+
+You do not need to stop the thoughts.
+
+Simply place each one onto a leaf and allow it to drift downstream.
+
+Notice that thoughts can come and go without needing your attention.`,
+  },
+
+  {
+    title: "Future Self Perspective",
+    body: `Imagine yourself six months from now.
+
+A version of you that has already moved through this challenge.
+
+What would they want you to know?
+
+What would they tell you to focus on today?
+
+Allow that future version of yourself to offer guidance.`,
+  },
+
+  {
+    title: "Body Scan Relaxation",
+    body: `Bring your attention to your feet.
+
+Notice any tension.
+
+Now your legs.
+
+Now your hips.
+
+Move slowly upward through the body.
+
+There is nothing to fix.
+
+Just notice and soften where possible.`,
+  },
+];
 const outcomeOptions = [
   { label: "Much better", score: 2 },
   { label: "A little better", score: 1 },
@@ -188,6 +249,7 @@ export default function MindPage() {
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
   const [recoveryEntries, setRecoveryEntries] = useState([]);
+  const [calmingIndex, setCalmingIndex] = useState(0);
   useEffect(() => {
   const loadRecentStates = async () => {
     const { data } = await supabase
@@ -791,35 +853,23 @@ There is no rush. Let your attention land on what is here now.`}
 
 {activeTool === "calming" && (
   <ToolExperience
-    kicker="Calming journey"
-    title="Hypnotherapy-style calming"
+    kicker={`Technique ${calmingIndex + 1} of ${calmingTechniques.length}`}
+    title={calmingTechniques[calmingIndex].title}
     subtitle="A gentle inner reset for the body and mind."
-    body={`Close your eyes if comfortable.
-
-Take a slow breath in… and out.
-
-Imagine a place where your body feels safe and at ease. It does not have to be real.
-
-Let the image arrive slowly.
-
-Let your shoulders drop.
-Let your jaw soften.
-Let your breathing slow.
-
-There is nothing to force here. Just allow your system to settle a little more with each out-breath.`}
+    body={calmingTechniques[calmingIndex].body}
     saveEntry={(entry) =>
       saveEntry({
         ...entry,
-        tool: "Hypnotherapy-style calming",
-        situation: "The user completed a gentle calming visualisation.",
-        reframe: "The user completed a gentle calming visualisation.",
+        tool: calmingTechniques[calmingIndex].title,
+        situation: "The user completed a calming intervention.",
+        reframe: "The user completed a calming intervention.",
         next_step:
           "Check whether the user feels softer, calmer, safer, or more settled.",
       })
     }
   />
 )}
-          {activeTool === "journal" && (
+{activeTool === "journal" && (
             <div style={styles.panel}>
               <p style={styles.kicker}>Reflection</p>
               <h2 style={styles.panelTitle}>Journaling prompts</h2>
@@ -956,6 +1006,37 @@ function ToolExperience({ kicker, title, subtitle, body, saveEntry }) {
       <div style={styles.experienceCard}>
         <p style={styles.experienceText}>{body}</p>
       </div>
+    {title !== "Breathwork" &&
+ title !== "EMDR-informed grounding" &&
+ title !== "Journaling prompts" && (
+  <div style={styles.techniqueBar}>
+    <button
+      style={styles.techniqueButton}
+      onClick={() =>
+        setCalmingIndex((current) =>
+          current === 0
+            ? calmingTechniques.length - 1
+            : current - 1
+        )
+      }
+    >
+      Previous Technique
+    </button>
+
+    <button
+      style={styles.techniqueButton}
+      onClick={() =>
+        setCalmingIndex((current) =>
+          current === calmingTechniques.length - 1
+            ? 0
+            : current + 1
+        )
+      }
+    >
+      Try Another Technique
+    </button>
+  </div>
+)}
 
       <OutcomeButtons
         toolName={title}
@@ -1676,4 +1757,21 @@ supportPanel: {
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
   gap: "16px",
 },  
+  techniqueBar: {
+  display: "flex",
+  gap: "12px",
+  flexWrap: "wrap",
+  marginTop: "18px",
+  marginBottom: "18px",
+},
+
+techniqueButton: {
+  border: "none",
+  borderRadius: "999px",
+  padding: "12px 16px",
+  background: "rgba(255,255,255,0.18)",
+  color: "#FFFFFF",
+  fontWeight: "700",
+  cursor: "pointer",
+},
 };
