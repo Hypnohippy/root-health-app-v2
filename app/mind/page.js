@@ -983,8 +983,8 @@ supportTitle: {
 supportSubtitle: {
   margin: "0 0 24px",
   lineHeight: "1.7",
-  color: "rgba(255,255,255,0.8)",
-},  
+  color: "rgba(255,255,255,0.82)",
+},
 
  shell: {
   position: "relative",
@@ -1105,7 +1105,7 @@ supportSubtitle: {
 
   toolTitle: {
     fontSize: "18px",
-    color: "#181818",
+    color: "#FFFFFF",
   },
 
   toolSubtitle: {
