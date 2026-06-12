@@ -521,22 +521,14 @@ const visibleTools = activeState
     <p style={styles.noticeText}>{rootNotice}</p>
   </div>
 )}
-             <div style={styles.heroCard}>
-                <p style={styles.heroLabel}>Intervention library</p>
-                <h2 style={styles.heroTitle}>Choose the support your system needs.</h2>
-                <p style={styles.heroText}>
-                  Start small. Use one tool. Save what helped so Root Coach can
-                  understand the pattern over time.
-                </p>
-              </div>
-              <h2 style={styles.supportTitle}>
+  <h2 style={styles.supportTitle}>
   What kind of support would help right now?
 </h2>
 
 <p style={styles.supportSubtitle}>
   There is no single right answer. Choose the approach that feels most useful in this moment.
 </p>
-              <div style={styles.grid}>
+              <div style={styles.supportPanel}>
                 {visibleTools.map((tool) => (
                   <button
                     key={tool.id}
