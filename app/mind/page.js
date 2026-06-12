@@ -857,6 +857,17 @@ There is no rush. Let your attention land on what is here now.`}
     title={calmingTechniques[calmingIndex].title}
     subtitle="A gentle inner reset for the body and mind."
     body={calmingTechniques[calmingIndex].body}
+    showTechniqueButtons={true}
+    onPreviousTechnique={() =>
+      setCalmingIndex((current) =>
+        current === 0 ? calmingTechniques.length - 1 : current - 1
+      )
+    }
+    onNextTechnique={() =>
+      setCalmingIndex((current) =>
+        current === calmingTechniques.length - 1 ? 0 : current + 1
+      )
+    }
     saveEntry={(entry) =>
       saveEntry({
         ...entry,
@@ -868,8 +879,7 @@ There is no rush. Let your attention land on what is here now.`}
       })
     }
   />
-)}
-{activeTool === "journal" && (
+)}{activeTool === "journal" && (
             <div style={styles.panel}>
               <p style={styles.kicker}>Reflection</p>
               <h2 style={styles.panelTitle}>Journaling prompts</h2>
@@ -996,7 +1006,16 @@ function OutcomeButtons({ toolName, summary, nextStepText, saveEntry }) {
   );
 }
 
-function ToolExperience({ kicker, title, subtitle, body, saveEntry }) {
+function ToolExperience({
+  kicker,
+  title,
+  subtitle,
+  body,
+  saveEntry,
+  showTechniqueButtons = false,
+  onPreviousTechnique,
+  onNextTechnique,
+}) {
   return (
     <div style={styles.panel}>
       <p style={styles.kicker}>{kicker}</p>
@@ -1006,32 +1025,18 @@ function ToolExperience({ kicker, title, subtitle, body, saveEntry }) {
       <div style={styles.experienceCard}>
         <p style={styles.experienceText}>{body}</p>
       </div>
-    {title !== "Breathwork" &&
- title !== "EMDR-informed grounding" &&
- title !== "Journaling prompts" && (
+    {showTechniqueButtons && (
   <div style={styles.techniqueBar}>
     <button
       style={styles.techniqueButton}
-      onClick={() =>
-        setCalmingIndex((current) =>
-          current === 0
-            ? calmingTechniques.length - 1
-            : current - 1
-        )
-      }
+      onClick={onPreviousTechnique}
     >
       Previous Technique
     </button>
 
     <button
       style={styles.techniqueButton}
-      onClick={() =>
-        setCalmingIndex((current) =>
-          current === calmingTechniques.length - 1
-            ? 0
-            : current + 1
-        )
-      }
+      onClick={onNextTechnique}
     >
       Try Another Technique
     </button>
