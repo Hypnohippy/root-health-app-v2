@@ -125,6 +125,12 @@ const journeys = {
     ],
   },
 }; 
+const outcomeOptions = [
+  { label: "Much better", score: 2 },
+  { label: "A little better", score: 1 },
+  { label: "No change", score: 0 },
+  { label: "Worse", score: -1 },
+];
 const tools = [
   {
     id: "cbt",
@@ -339,10 +345,13 @@ const visibleTools = activeState
     setSaving(true);
 
     const { error } = await supabase.from("mind_entries").insert([
-      {
-        profile_key: "main",
-        ...entry,
-      },
+     {
+  profile_key: "main",
+  outcome_label: entry.outcome_label || "",
+  outcome_score:
+    typeof entry.outcome_score === "number" ? entry.outcome_score : null,
+  ...entry,
+}
     ]);
 
     setSaving(false);
@@ -754,9 +763,7 @@ Exhale gently for 6 seconds
 Repeat for 2–3 minutes.
 
 Let the exhale be longer than the inhale. That is the signal to the body that it can begin to settle.`}
-              saving={saving}
-              saved={saved}
-              onSave={() =>
+            saveEntry={(entry) =>
                 saveSimpleTool(
                   "Breathwork",
                   "The user completed a 4-2-6 breathing reset.",
@@ -780,10 +787,7 @@ Let the exhale be longer than the inhale. That is the signal to the body that it
 1 thing you can taste
 
 There is no rush. Let your attention land on what is here now.`}
-              saving={saving}
-              saved={saved}
-              onSave={() =>
-                saveSimpleTool(
+             saveEntry={(entry) =>                saveSimpleTool(
                   "EMDR-informed grounding",
                   "The user completed a 5-4-3-2-1 grounding exercise.",
                   "Check whether the user feels more present, safer, or less overwhelmed."
@@ -810,9 +814,7 @@ Let your jaw soften.
 Let your breathing slow.
 
 There is nothing to force here. Just allow your system to settle a little more with each out-breath.`}
-              saving={saving}
-              saved={saved}
-              onSave={() =>
+             saveEntry={(entry) =>
                 saveSimpleTool(
                   "Hypnotherapy-style calming",
                   "The user completed a gentle calming visualisation.",
@@ -907,8 +909,49 @@ There is nothing to force here. Just allow your system to settle a little more w
     </RootAtmosphere>
   );
 }
+function OutcomeButtons({ toolName, summary, nextStepText, saveEntry }) {
+  const [savedOutcome, setSavedOutcome] = useState("");
 
-function ToolExperience({ kicker, title, subtitle, body, saving, saved, onSave }) {
+  return (
+    <div style={styles.outcomeCard}>
+      <p style={styles.outcomeLabel}>Did this help?</p>
+
+      <div style={styles.outcomeOptions}>
+        {outcomeOptions.map((option) => (
+          <button
+            key={option.label}
+            style={styles.outcomeButton}
+            onClick={async () => {
+              await saveEntry({
+                tool: toolName,
+                situation: summary,
+                automatic_thought: "",
+                emotion: "",
+                intensity: "",
+                reframe: summary,
+                next_step: nextStepText,
+                outcome_label: option.label,
+                outcome_score: option.score,
+              });
+
+              setSavedOutcome(option.label);
+            }}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {savedOutcome && (
+        <p style={styles.outcomeSaved}>
+          Saved. Root will remember that this felt: {savedOutcome}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ToolExperience({ kicker, title, subtitle, body, saveEntry }) {
   return (
     <div style={styles.panel}>
       <p style={styles.kicker}>{kicker}</p>
@@ -919,10 +962,12 @@ function ToolExperience({ kicker, title, subtitle, body, saving, saved, onSave }
         <p style={styles.experienceText}>{body}</p>
       </div>
 
-      <button style={styles.saveButton} onClick={onSave}>
-        {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
-      </button>
-    </div>
+     <OutcomeButtons
+  toolName={title}
+  summary={body}
+  nextStepText="Root will watch whether this support helps over time."
+  saveEntry={onSave}
+/>    </div>
   );
 }
 
@@ -1570,5 +1615,45 @@ trendText: {
   cursor: "pointer",
   marginBottom: "20px",
   backdropFilter: "blur(10px)",
+},
+  outcomeCard: {
+  marginTop: "22px",
+  padding: "22px",
+  borderRadius: "28px",
+  background: "rgba(255,255,255,0.18)",
+  border: "1px solid rgba(255,255,255,0.24)",
+  backdropFilter: "blur(18px)",
+},
+
+outcomeLabel: {
+  margin: "0 0 14px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#F4E7CF",
+  fontWeight: "800",
+},
+
+outcomeOptions: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "10px",
+},
+
+outcomeButton: {
+  border: "none",
+  borderRadius: "999px",
+  padding: "12px 15px",
+  background: "#FFFFFF",
+  color: "#111",
+  fontWeight: "800",
+  cursor: "pointer",
+},
+
+outcomeSaved: {
+  margin: "14px 0 0",
+  color: "#FFFFFF",
+  lineHeight: "1.6",
+  fontWeight: "700",
 },
 };
