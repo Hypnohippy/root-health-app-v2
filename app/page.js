@@ -702,19 +702,40 @@ if (loadedName && recentRecovery?.intensity && Number(recentRecovery.intensity) 
 
     <div style={styles.progressGrid}>
       <div style={styles.progressMetric}>
-        <span>Stress</span>
-        <strong>
-          {baselineAssessment?.stress_score ?? "—"} → {latestAssessment.stress_score ?? "—"}
-        </strong>
-      </div>
-
-<div style={styles.progressMetric}>
-  <span>Sleep Difficulties</span>
+  <span>Recovery Difficulty</span>
   <strong>
-    {baselineAssessment?.sleep_score ?? "—"} → {latestAssessment.sleep_score ?? "—"}
+    {baselineAssessment?.recovery_score ?? "—"} → {latestAssessment.recovery_score ?? "—"}
   </strong>
 </div>
 
+<div style={styles.progressMetric}>
+  <span>Low Energy</span>
+  <strong>
+    {baselineAssessment?.energy_score ?? "—"} → {latestAssessment.energy_score ?? "—"}
+  </strong>
+</div>
+
+<div style={styles.progressMetric}>
+  <span>Low Mood</span>
+  <strong>
+    {baselineAssessment?.mood_score ?? "—"} → {latestAssessment.mood_score ?? "—"}
+  </strong>
+</div>
+
+<div style={styles.progressMetric}>
+  <span>Focus Difficulties</span>
+  <strong>
+    {baselineAssessment?.focus_score ?? "—"} → {latestAssessment.focus_score ?? "—"}
+  </strong>
+</div>
+
+<div style={styles.progressMetric}>
+  <span>Burnout</span>
+  <strong>
+    {baselineAssessment?.burnout_score ?? "—"} → {latestAssessment.burnout_score ?? "—"}
+  </strong>
+</div>
+    
 <div style={styles.progressMetric}>
   <span>Recovery Difficulty</span>
   <strong>
