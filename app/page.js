@@ -524,7 +524,7 @@ export default function Home() {
                 setOpenCard={setOpenCard}
                 dark
               >
-                <p style={styles.expandedText}>
+               <p style={styles.expandedTextLight}>
   Root will keep watching this gently as more check-ins, reflections, and body signals are added.
 </p>
               </MiniInsightCard>
@@ -569,7 +569,6 @@ export default function Home() {
                 openCard={openCard}
                 setOpenCard={setOpenCard}
               >
-                <p style={styles.expandedText}>{rootMemoryNarrative}</p>
 
                 {rootHypothesis && (
                   <div style={styles.hypothesisPanel}>
@@ -596,7 +595,6 @@ export default function Home() {
                 setOpenCard={setOpenCard}
                 dark
               >
-                <p style={styles.expandedTextLight}>{rootGuidance.why}</p>
 
                 <div style={styles.guidancePanel}>
                   <p style={styles.guidancePanelTitle}>
