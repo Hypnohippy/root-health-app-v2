@@ -94,10 +94,11 @@ const styles = {
   },
 
  image: {
-  width: "150%",
-  height: "150%",
+  width: "118%",
+  height: "118%",
   objectFit: "cover",
-  objectPosition: "center 36%",
+  objectPosition: "center 18%",
   borderRadius: "50%",
   display: "block",
-},};
+},
+};
