@@ -93,12 +93,11 @@ const styles = {
       "inset 0 0 38px rgba(255,255,255,0.58), 0 14px 36px rgba(0,0,0,0.10)",
   },
 
-  image: {
-    width: "130%",
-    height: "130%",
-    objectFit: "cover",
-    objectPosition: "center 24%",
-    borderRadius: "50%",
-    display: "block",
-  },
-};
+ image: {
+  width: "150%",
+  height: "150%",
+  objectFit: "cover",
+  objectPosition: "center 36%",
+  borderRadius: "50%",
+  display: "block",
+},};
