@@ -1,4 +1,10 @@
+"use client";
+
+import { useState } from "react";
+
 export default function Nav() {
+  const [open, setOpen] = useState(false);
+
   const links = [
     { href: "/", label: "Home" },
     { href: "/coach", label: "Coach" },
@@ -12,19 +18,49 @@ export default function Nav() {
   ];
 
   return (
-    <nav style={styles.nav}>
-      <a href="/" style={styles.logo}>
-        Root
-      </a>
+    <>
+      <nav style={styles.nav}>
+        <a href="/" style={styles.logo}>
+          Root
+        </a>
 
-      <div style={styles.links}>
-        {links.map((link) => (
-          <a key={link.href} href={link.href} style={styles.link}>
-            {link.label}
-          </a>
-        ))}
-      </div>
-    </nav>
+        <div style={styles.desktopLinks}>
+          {links.map((link) => (
+            <a key={link.href} href={link.href} style={styles.link}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+
+        <button style={styles.menuButton} onClick={() => setOpen(!open)}>
+          {open ? "×" : "☰"}
+        </button>
+      </nav>
+
+      {open && (
+        <div style={styles.mobilePanel}>
+          {links.map((link) => (
+            <a key={link.href} href={link.href} style={styles.mobileLink}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      )}
+
+      <style jsx>{`
+        @media (max-width: 760px) {
+          nav div {
+            display: none !important;
+          }
+        }
+
+        @media (min-width: 761px) {
+          nav button {
+            display: none !important;
+          }
+        }
+      `}</style>
+    </>
   );
 }
 
@@ -58,7 +94,7 @@ const styles = {
     fontSize: "14px",
   },
 
-  links: {
+  desktopLinks: {
     display: "flex",
     gap: "4px",
     flexWrap: "wrap",
@@ -73,5 +109,43 @@ const styles = {
     borderRadius: "999px",
     background: "rgba(255,255,255,0.18)",
     whiteSpace: "nowrap",
+  },
+
+  menuButton: {
+    border: "none",
+    width: "38px",
+    height: "38px",
+    borderRadius: "999px",
+    background: "rgba(255,255,255,0.42)",
+    color: "#1A1A1A",
+    fontSize: "22px",
+    fontWeight: "800",
+    cursor: "pointer",
+  },
+
+  mobilePanel: {
+    position: "fixed",
+    top: "76px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 999,
+    width: "min(360px, calc(100% - 28px))",
+    padding: "14px",
+    display: "grid",
+    gap: "8px",
+    background: "rgba(255,255,255,0.82)",
+    border: "1px solid rgba(255,255,255,0.54)",
+    borderRadius: "28px",
+    backdropFilter: "blur(24px)",
+    boxShadow: "0 24px 70px rgba(20,18,15,0.18)",
+  },
+
+  mobileLink: {
+    textDecoration: "none",
+    color: "#1F241E",
+    padding: "13px 16px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.48)",
+    fontWeight: "800",
   },
 };
