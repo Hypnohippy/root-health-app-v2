@@ -524,7 +524,9 @@ export default function Home() {
                 setOpenCard={setOpenCard}
                 dark
               >
-                <p style={styles.expandedText}>{rootRecognition}</p>
+                <p style={styles.expandedText}>
+  Root will keep watching this gently as more check-ins, reflections, and body signals are added.
+</p>
               </MiniInsightCard>
             )}
 
@@ -537,7 +539,9 @@ export default function Home() {
                 openCard={openCard}
                 setOpenCard={setOpenCard}
               >
-                <p style={styles.expandedText}>{dailyReflection}</p>
+               <p style={styles.expandedText}>
+  This reflection is drawn from your recent Root activity. Use it as a gentle prompt rather than a fixed conclusion.
+</p>
               </MiniInsightCard>
             )}
 
@@ -550,7 +554,9 @@ export default function Home() {
                 openCard={openCard}
                 setOpenCard={setOpenCard}
               >
-                <p style={styles.expandedText}>{livingMessage}</p>
+                <p style={styles.expandedText}>
+  A small next step may be enough today. Root will keep connecting this with your wider pattern over time.
+</p>
               </MiniInsightCard>
             )}
 
@@ -625,7 +631,9 @@ export default function Home() {
                 openCard={openCard}
                 setOpenCard={setOpenCard}
               >
-                <p style={styles.expandedText}>{rootReflection.reflection}</p>
+                <p style={styles.expandedText}>
+  Root is using your body signals, mind entries, and journal reflections together to build a clearer picture.
+</p>
 
                 {rootReflection?.suggestedAction?.href && (
                   <a
