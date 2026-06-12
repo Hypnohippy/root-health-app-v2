@@ -752,33 +752,36 @@ const visibleTools = activeState
           )}
 
           {activeTool === "breathwork" && (
-            <ToolExperience
-              kicker="Body regulation"
-              title="Breathwork"
-              subtitle="A short breath pattern to settle activation."
-              body={`Inhale slowly for 4 seconds
+  <ToolExperience
+    kicker="Body regulation"
+    title="Breathwork"
+    subtitle="A short breath pattern to settle activation."
+    body={`Inhale slowly for 4 seconds
 Hold for 2 seconds
 Exhale gently for 6 seconds
 
 Repeat for 2–3 minutes.
 
 Let the exhale be longer than the inhale. That is the signal to the body that it can begin to settle.`}
-            saveEntry={(entry) =>
-                saveSimpleTool(
-                  "Breathwork",
-                  "The user completed a 4-2-6 breathing reset.",
-                  "Check whether the body feels slightly calmer, slower, or less activated."
-                )
-              }
-            />
-          )}
+    saveEntry={(entry) =>
+      saveEntry({
+        ...entry,
+        tool: "Breathwork",
+        situation: "The user completed a 4-2-6 breathing reset.",
+        reframe: "The user completed a 4-2-6 breathing reset.",
+        next_step:
+          "Check whether the body feels slightly calmer, slower, or less activated.",
+      })
+    }
+  />
+)}
 
-          {activeTool === "grounding" && (
-            <ToolExperience
-              kicker="Present moment"
-              title="EMDR-informed grounding"
-              subtitle="A simple orientation exercise for safety and presence."
-              body={`Look around and name:
+{activeTool === "grounding" && (
+  <ToolExperience
+    kicker="Present moment"
+    title="EMDR-informed grounding"
+    subtitle="A simple orientation exercise for safety and presence."
+    body={`Look around and name:
 
 5 things you can see
 4 things you can feel
@@ -787,21 +790,25 @@ Let the exhale be longer than the inhale. That is the signal to the body that it
 1 thing you can taste
 
 There is no rush. Let your attention land on what is here now.`}
-             saveEntry={(entry) =>                saveSimpleTool(
-                  "EMDR-informed grounding",
-                  "The user completed a 5-4-3-2-1 grounding exercise.",
-                  "Check whether the user feels more present, safer, or less overwhelmed."
-                )
-              }
-            />
-          )}
+    saveEntry={(entry) =>
+      saveEntry({
+        ...entry,
+        tool: "EMDR-informed grounding",
+        situation: "The user completed a 5-4-3-2-1 grounding exercise.",
+        reframe: "The user completed a 5-4-3-2-1 grounding exercise.",
+        next_step:
+          "Check whether the user feels more present, safer, or less overwhelmed.",
+      })
+    }
+  />
+)}
 
-          {activeTool === "calming" && (
-            <ToolExperience
-              kicker="Calming journey"
-              title="Hypnotherapy-style calming"
-              subtitle="A gentle inner reset for the body and mind."
-              body={`Close your eyes if comfortable.
+{activeTool === "calming" && (
+  <ToolExperience
+    kicker="Calming journey"
+    title="Hypnotherapy-style calming"
+    subtitle="A gentle inner reset for the body and mind."
+    body={`Close your eyes if comfortable.
 
 Take a slow breath in… and out.
 
@@ -814,16 +821,18 @@ Let your jaw soften.
 Let your breathing slow.
 
 There is nothing to force here. Just allow your system to settle a little more with each out-breath.`}
-             saveEntry={(entry) =>
-                saveSimpleTool(
-                  "Hypnotherapy-style calming",
-                  "The user completed a gentle calming visualisation.",
-                  "Check whether the user feels softer, calmer, safer, or more settled."
-                )
-              }
-            />
-          )}
-
+    saveEntry={(entry) =>
+      saveEntry({
+        ...entry,
+        tool: "Hypnotherapy-style calming",
+        situation: "The user completed a gentle calming visualisation.",
+        reframe: "The user completed a gentle calming visualisation.",
+        next_step:
+          "Check whether the user feels softer, calmer, safer, or more settled.",
+      })
+    }
+  />
+)}
           {activeTool === "journal" && (
             <div style={styles.panel}>
               <p style={styles.kicker}>Reflection</p>
@@ -962,15 +971,15 @@ function ToolExperience({ kicker, title, subtitle, body, saveEntry }) {
         <p style={styles.experienceText}>{body}</p>
       </div>
 
-     <OutcomeButtons
-  toolName={title}
-  summary={body}
-  nextStepText="Root will watch whether this support helps over time."
-  saveEntry={onSave}
-/>    </div>
+      <OutcomeButtons
+        toolName={title}
+        summary={body}
+        nextStepText="Root will watch whether this support helps over time."
+        saveEntry={saveEntry}
+      />
+    </div>
   );
 }
-
 const styles = {
   page: {
     minHeight: "100vh",
