@@ -1108,12 +1108,12 @@ supportSubtitle: {
     color: "#FFFFFF",
   },
 
-  toolSubtitle: {
-    fontSize: "14px",
-    color: "#5A554D",
-    lineHeight: "1.55",
-  },
-
+ toolSubtitle: {
+  marginTop: "6px",
+  color: "rgba(255,255,255,0.78)",
+  lineHeight: "1.6",
+  fontSize: "14px",
+},
   disclaimer: {
     marginTop: "24px",
     color: "#6F675B",
