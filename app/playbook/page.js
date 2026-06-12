@@ -284,7 +284,7 @@ export default function PlaybookPage() {
           </section>
         ) : selectedCategory === "All" ? (
           <section style={styles.listCard}>
-            <div style={styles.listHeader}>
+            <div className="playbook-list-header" style={styles.listHeader}>
               <span>Title</span>
               <span>Category</span>
               <span>Size</span>
@@ -297,7 +297,7 @@ export default function PlaybookPage() {
               const lineCount = countLines(entry.content);
 
               return (
-                <div key={entry.id} style={styles.listItem}>
+                <div key={entry.id} className="playbook-list-item" style={styles.listItem}>
                   <div style={styles.listMain}>
                     <strong style={styles.listTitle}>{entry.title}</strong>
 
@@ -318,7 +318,7 @@ export default function PlaybookPage() {
 
                   <span style={styles.listMeta}>{formatDate(entry.created_at)}</span>
 
-                  <div style={styles.listActions}>
+                  <div className="playbook-list-actions" style={styles.listActions}>
                     <button
                       style={styles.smallViewButton}
                       onClick={() => setOpenEntryId(isOpen ? null : entry.id)}
@@ -395,6 +395,24 @@ export default function PlaybookPage() {
           </section>
         )}
       </section>
+        <style jsx>{`
+  @media (max-width: 760px) {
+    .playbook-list-header {
+      display: none !important;
+    }
+
+    .playbook-list-item {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      padding: 18px !important;
+    }
+
+    .playbook-list-actions {
+      justify-content: flex-start !important;
+    }
+  }
+`}</style>
         </main>
   </RootAtmosphere>
   );
