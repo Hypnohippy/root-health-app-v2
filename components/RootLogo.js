@@ -94,8 +94,8 @@ const styles = {
   },
 
  image: {
-  width: "118%",
-  height: "118%",
+  width: "125%",
+  height: "125%",
   objectFit: "cover",
   objectPosition: "center 18%",
   borderRadius: "50%",
