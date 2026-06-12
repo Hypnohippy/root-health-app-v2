@@ -522,11 +522,11 @@ const visibleTools = activeState
   </div>
 )}
   <h2 style={styles.supportTitle}>
-  What kind of support would help right now?
+  Choose your route through this.
 </h2>
 
 <p style={styles.supportSubtitle}>
-  There is no single right answer. Choose the approach that feels most useful in this moment.
+  Root has made a suggestion, but you are not locked into one technique. If something did not help before, try another route.
 </p>
               <div style={styles.supportPanel}>
                 {visibleTools.map((tool) => (
@@ -1663,5 +1663,17 @@ outcomeSaved: {
   lineHeight: "1.6",
   fontWeight: "700",
 },
-  
+supportPanel: {
+  marginBottom: "24px",
+  padding: "28px",
+  borderRadius: "34px",
+  background:
+    "linear-gradient(135deg, rgba(24,24,24,0.52), rgba(52,48,42,0.34))",
+  border: "1px solid rgba(255,255,255,0.18)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "16px",
+},  
 };
