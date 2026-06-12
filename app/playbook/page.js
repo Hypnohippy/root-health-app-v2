@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
+import RootAtmosphere from "../../components/RootAtmosphere";
 
 const categories = [
   "Nutrition",
@@ -161,6 +162,7 @@ export default function PlaybookPage() {
   };
 
   return (
+  <RootAtmosphere type="reflection">
     <main style={styles.page}>
       <Nav />
 
@@ -393,24 +395,29 @@ export default function PlaybookPage() {
           </section>
         )}
       </section>
-    </main>
+        </main>
+  </RootAtmosphere>
   );
 }
 
 const styles = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "linear-gradient(135deg, #F4EBDD 0%, #E8DDCB 45%, #D8C7AA 100%)",
-    padding: "110px 20px 50px",
-    fontFamily: "Inter, sans-serif",
-  },
+ page: {
+  minHeight: "100vh",
+  padding: "120px 24px 60px",
+  fontFamily: "Inter, sans-serif",
+},
 
   shell: {
-    maxWidth: "1080px",
-    margin: "0 auto",
-  },
-
+  maxWidth: "1080px",
+  margin: "0 auto",
+  background: "rgba(255,255,255,0.22)",
+  border: "1px solid rgba(255,255,255,0.34)",
+  backdropFilter: "blur(30px)",
+  WebkitBackdropFilter: "blur(30px)",
+  borderRadius: "42px",
+  padding: "42px",
+  boxShadow: "0 34px 100px rgba(20,18,15,0.14)",
+},
   header: {
     textAlign: "center",
     marginBottom: "28px",
