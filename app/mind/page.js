@@ -133,43 +133,31 @@ const outcomeOptions = [
 ];
 const tools = [
   {
-    id: "cbt",
-    title: "CBT-style reframing",
-    subtitle: "Catch the thought, soften the meaning, choose a steadier next step.",
-    icon: "🧠",
-  },
-  {
-    id: "calming",
-    title: "Hypnotherapy-style calming",
-    subtitle: "A gentle reset for the body and mind.",
-    icon: "🌙",
-  },
-  {
     id: "grounding",
-    title: "EMDR-informed grounding",
-    subtitle: "Orient back to safety and the present moment.",
-    icon: "🧩",
+    title: "Feel safer",
+    subtitle: "Reconnect with the present moment.",
   },
   {
     id: "breathwork",
-    title: "Breathwork",
-    subtitle: "Use the breath to settle the nervous system.",
-    icon: "🌬️",
+    title: "Calm my body",
+    subtitle: "Reduce physical activation.",
+  },
+  {
+    id: "calming",
+    title: "Slow my mind",
+    subtitle: "Create mental space and ease.",
   },
   {
     id: "journal",
-    title: "Journaling prompts",
-    subtitle: "Reflect without spiralling.",
-    icon: "✍️",
+    title: "Write it out",
+    subtitle: "Express what is happening.",
   },
   {
-    id: "values",
-    title: "Values & behaviour change",
-    subtitle: "Reconnect with what matters and choose one action.",
-    icon: "🌿",
+    id: "cbt",
+    title: "Challenge the thought",
+    subtitle: "Look at the situation differently.",
   },
 ];
-
 function buildReframe({ automaticThought, emotion }) {
   const feeling = emotion || "this feeling";
   const thought = automaticThought || "the thought that showed up";
@@ -541,7 +529,13 @@ const visibleTools = activeState
                   understand the pattern over time.
                 </p>
               </div>
+              <h2 style={styles.supportTitle}>
+  What kind of support would help right now?
+</h2>
 
+<p style={styles.supportSubtitle}>
+  There is no single right answer. Choose the approach that feels most useful in this moment.
+</p>
               <div style={styles.grid}>
                 {visibleTools.map((tool) => (
                   <button
@@ -987,6 +981,18 @@ const styles = {
     justifyContent: "center",
     padding: "28px",
   },
+supportTitle: {
+  margin: "0 0 10px",
+  fontSize: "28px",
+  fontWeight: "700",
+  color: "#FFFFFF",
+},
+
+supportSubtitle: {
+  margin: "0 0 24px",
+  lineHeight: "1.7",
+  color: "rgba(255,255,255,0.8)",
+},  
 
  shell: {
   position: "relative",
@@ -1665,4 +1671,5 @@ outcomeSaved: {
   lineHeight: "1.6",
   fontWeight: "700",
 },
+  
 };
