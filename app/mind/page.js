@@ -845,6 +845,30 @@ const visibleTools = activeState
                   <button style={styles.saveButton} onClick={saveCbt}>
                     {saving ? "Saving..." : saved ? "Saved ✓" : "Save to Coach memory"}
                   </button>
+                    <button
+  style={styles.talkButton}
+  onClick={() => {
+    const coachContext = {
+      source: "thought_work",
+      situation,
+      automaticThought,
+      emotion,
+      intensity,
+      reframe,
+      nextStep,
+      createdAt: Date.now(),
+    };
+
+    localStorage.setItem(
+      "root_pending_coach_context_v1",
+      JSON.stringify(coachContext)
+    );
+
+    window.location.href = "/coach";
+  }}
+>
+  Talk this through with Voice Coach →
+</button>
                 </div>
               )}
             </div>
@@ -1923,5 +1947,16 @@ audioLabel: {
 
 audioPlayer: {
   width: "100%",
+},
+  talkButton: {
+  marginTop: "12px",
+  border: "1px solid rgba(24,24,24,0.16)",
+  borderRadius: "20px",
+  padding: "14px 22px",
+  background: "rgba(255,255,255,0.72)",
+  color: "#181818",
+  cursor: "pointer",
+  fontSize: "14px",
+  fontWeight: "800",
 },
 };
