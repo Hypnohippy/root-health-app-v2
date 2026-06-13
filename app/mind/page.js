@@ -185,6 +185,33 @@ const groundingTechniques = [
     body: `A short present-moment phrase and breath practice to help the system settle.`,
   },
 ];
+
+const bodyTechniques = [
+  {
+    title: "Extended Exhale Breathing",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/extended-exhale-breathing-1781357355630.mp3",
+    body: "A breathing exercise designed to slow the nervous system through a longer exhale.",
+  },
+  {
+    title: "Box Breathing",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/box-breathing-1781357384787.mp3",
+    body: "A structured breathing pattern used to create steadiness and calm.",
+  },
+  {
+    title: "Progressive Muscle Relaxation",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/progressive-muscle-relaxation-1781357417586.mp3",
+    body: "A guided exercise exploring the difference between tension and release.",
+  },
+  {
+    title: "Physical Tension Release",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/physical-tension-release-1781357452960.mp3",
+    body: "A gentle body-based exercise for releasing held tension.",
+  },
+];
 const tools = [
   {
     id: "grounding",
@@ -245,6 +272,7 @@ export default function MindPage() {
   const [speakingText, setSpeakingText] = useState("");
   const [calmingIndex, setCalmingIndex] = useState(0);
   const [groundingIndex, setGroundingIndex] = useState(0);
+  const [bodyIndex, setBodyIndex] = useState(0);
   useEffect(() => {
   const loadRecentStates = async () => {
     const { data } = await supabase
@@ -824,27 +852,29 @@ const visibleTools = activeState
 
           {activeTool === "breathwork" && (
   <ToolExperience
-    kicker="Body regulation"
-    title="Breathwork"
-    subtitle="A short breath pattern to settle activation."
-    body={`Inhale slowly for 4 seconds
-Hold for 2 seconds
-Exhale gently for 6 seconds
-
-Repeat for 2–3 minutes.
-
-Let the exhale be longer than the inhale. That is the signal to the body that it can begin to settle.`}
-    speakText={speakText}
-stopSpeaking={stopSpeaking}
-speakingText={speakingText}
+    kicker={`Technique ${bodyIndex + 1} of ${bodyTechniques.length}`}
+    title={bodyTechniques[bodyIndex].title}
+    subtitle="A body-based pathway to reduce physical activation."
+    body={bodyTechniques[bodyIndex].body}
+    audio={bodyTechniques[bodyIndex].audio}
+    showTechniqueButtons={true}
+    onPreviousTechnique={() =>
+      setBodyIndex((current) =>
+        current === 0 ? bodyTechniques.length - 1 : current - 1
+      )
+    }
+    onNextTechnique={() =>
+      setBodyIndex((current) =>
+        current === bodyTechniques.length - 1 ? 0 : current + 1
+      )
+    }
     saveEntry={(entry) =>
       saveEntry({
         ...entry,
-        tool: "Breathwork",
-        situation: "The user completed a 4-2-6 breathing reset.",
-        reframe: "The user completed a 4-2-6 breathing reset.",
-        next_step:
-          "Check whether the body feels slightly calmer, slower, or less activated.",
+        tool: bodyTechniques[bodyIndex].title,
+        situation: "The user completed a body regulation intervention.",
+        reframe: "The user completed a body regulation intervention.",
+        next_step: "Check whether physical activation has reduced.",
       })
     }
   />
