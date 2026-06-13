@@ -29,7 +29,8 @@ export async function POST(request) {
       );
     }
 
-    const fileName = `${safeFileName(title)}.mp3`;
+  const fileName =
+  `${safeFileName(title)}-${Date.now()}.mp3`;
 
     const speech = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
