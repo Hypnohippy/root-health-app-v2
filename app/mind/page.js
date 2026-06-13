@@ -239,15 +239,114 @@ const tools = [
     subtitle: "Look at the situation differently.",
   },
 ];
-function buildReframe({ automaticThought, emotion }) {
-  const feeling = emotion || "this feeling";
-  const thought = automaticThought || "the thought that showed up";
+function detectThoughtTheme({ situation = "", automaticThought = "", emotion = "" }) {
+  const text = `${situation} ${automaticThought} ${emotion}`.toLowerCase();
 
-  return `A steadier way to hold this might be:
+  if (
+    text.includes("love") ||
+    text.includes("commitment") ||
+    text.includes("girlfriend") ||
+    text.includes("boyfriend") ||
+    text.includes("wife") ||
+    text.includes("husband") ||
+    text.includes("partner") ||
+    text.includes("relationship")
+  ) {
+    return {
+      theme: "Relationship vulnerability",
+      notice:
+        "This may not simply be about danger. It may be about vulnerability, trust, closeness, or what commitment asks of you.",
+      question:
+        "What feels most uncomfortable here: losing freedom, being hurt, feeling responsible for someone else, or not knowing what you truly want?",
+      reframe:
+        "Anxiety does not always mean something is wrong. Sometimes it appears when something matters. You do not need to decide the whole future in one moment. You may only need to understand what this moment is asking of you.",
+    };
+  }
 
-“I notice ${thought}. That may be my mind trying to protect me, but it may not be the whole truth. I can pause, look for more evidence, and choose one small helpful action instead of reacting from ${feeling}.”
+  if (
+    text.includes("work") ||
+    text.includes("manager") ||
+    text.includes("boss") ||
+    text.includes("team") ||
+    text.includes("colleague") ||
+    text.includes("listen") ||
+    text.includes("ignored") ||
+    text.includes("safety") ||
+    text.includes("dangerous")
+  ) {
+    return {
+      theme: "Being heard / safety",
+      notice:
+        "Anger can appear when something important feels ignored, unsafe, or dismissed. The reaction may be pointing towards a need to be heard, respected, or taken seriously.",
+      question:
+        "What felt most threatened in that moment: safety, respect, responsibility, control, or being listened to?",
+      reframe:
+        "The intensity of the reaction may be telling you that something mattered. Before judging yourself, it may help to separate the message from the moment: what needed to be heard, and how could it be expressed more safely next time?",
+    };
+  }
 
-This does not mean dismissing what you feel. It means creating a little space around it.`;
+  if (
+    text.includes("fail") ||
+    text.includes("failure") ||
+    text.includes("mistake") ||
+    text.includes("mess up") ||
+    text.includes("not good enough") ||
+    text.includes("perfect")
+  ) {
+    return {
+      theme: "Fear of failure",
+      notice:
+        "This looks like pressure around performance, mistakes, or being enough. The mind may be treating imperfection as danger.",
+      question:
+        "What would this situation mean about you if it did not go perfectly?",
+      reframe:
+        "A mistake would not make you unsafe or unworthy. It may simply show where support, practice, or a slower pace is needed.",
+    };
+  }
+
+  if (
+    text.includes("shame") ||
+    text.includes("embarrassed") ||
+    text.includes("stupid") ||
+    text.includes("worthless") ||
+    text.includes("idiot")
+  ) {
+    return {
+      theme: "Shame / self-attack",
+      notice:
+        "Shame often turns pain inward. It can make a difficult moment feel like a statement about who you are.",
+      question:
+        "If someone you cared about was in this position, what would you want them to understand?",
+      reframe:
+        "This moment may be painful, but it does not define your worth. The kinder question is not ‘what is wrong with me?’ but ‘what needs care here?’",
+    };
+  }
+
+  return {
+    theme: "Unclear emotional meaning",
+    notice:
+      "There seems to be more underneath this thought than the thought alone. The emotion may be pointing towards a need, a fear, a boundary, or something that matters.",
+    question:
+      "What do you think this emotion is trying to protect, express, or ask for?",
+    reframe:
+      "This thought may be one possible interpretation, not the whole truth. Slowing down gives you room to understand what is really being asked of you.",
+  };
+}
+
+function buildReframe({ situation, automaticThought, emotion }) {
+  const theme = detectThoughtTheme({ situation, automaticThought, emotion });
+
+  return `Root notices
+
+${theme.notice}
+
+A useful question
+
+${theme.question}
+
+A steadier way to hold this might be:
+
+${theme.reframe}`;
 }
 
 function buildNextStep({ emotion }) {
@@ -430,11 +529,11 @@ const visibleTools = activeState
   };
 
   const generateReframe = () => {
-    const generatedReframe = buildReframe({
-      automaticThought,
-      emotion,
-    });
-
+  const generatedReframe = buildReframe({
+  situation,
+  automaticThought,
+  emotion,
+});
     const generatedNextStep = buildNextStep({ emotion });
 
     setReframe(generatedReframe);
