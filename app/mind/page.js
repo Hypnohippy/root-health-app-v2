@@ -1063,7 +1063,20 @@ function ToolExperience({
   <div style={styles.listenRow}>
   <button
     style={styles.listenButton}
-    onClick={() => speakText(`${title}. ${body}`)}
+    onClick={() => {
+  if (typeof speakText === "function") {
+    speakText(`${title}. ${body}`);
+  } else if (typeof window !== "undefined") {
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(`${title}. ${body}`);
+    utterance.rate = 0.86;
+    utterance.pitch = 0.92;
+    utterance.volume = 1;
+
+    window.speechSynthesis.speak(utterance);
+  }
+}}
   >
     ▶ Listen
   </button>
