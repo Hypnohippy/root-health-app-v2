@@ -249,6 +249,7 @@ export default function MindPage() {
   const [activeState, setActiveState] = useState(null);
   const [recentStates, setRecentStates] = useState([]);
   const [recoveryEntries, setRecoveryEntries] = useState([]);
+  const [speakingText, setSpeakingText] = useState("");
   const [calmingIndex, setCalmingIndex] = useState(0);
   useEffect(() => {
   const loadRecentStates = async () => {
@@ -294,6 +295,34 @@ if (Array.isArray(recoveryData)) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const stopSpeaking = () => {
+  if (typeof window === "undefined") return;
+
+  window.speechSynthesis.cancel();
+  setSpeakingText("");
+};
+
+const speakText = (text) => {
+  if (typeof window === "undefined") return;
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.86;
+  utterance.pitch = 0.92;
+  utterance.volume = 1;
+
+  utterance.onend = () => {
+    setSpeakingText("");
+  };
+
+  utterance.onerror = () => {
+    setSpeakingText("");
+  };
+
+  setSpeakingText(text);
+  window.speechSynthesis.speak(utterance);
+};
   const resetTool = () => {
     setSituation("");
     setAutomaticThought("");
@@ -811,6 +840,9 @@ Exhale gently for 6 seconds
 Repeat for 2–3 minutes.
 
 Let the exhale be longer than the inhale. That is the signal to the body that it can begin to settle.`}
+    speakText={speakText}
+stopSpeaking={stopSpeaking}
+speakingText={speakingText}
     saveEntry={(entry) =>
       saveEntry({
         ...entry,
@@ -1015,6 +1047,9 @@ function ToolExperience({
   showTechniqueButtons = false,
   onPreviousTechnique,
   onNextTechnique,
+  speakText,
+  stopSpeaking,
+  speakingText,
 }) {
   return (
     <div style={styles.panel}>
@@ -1025,6 +1060,20 @@ function ToolExperience({
       <div style={styles.experienceCard}>
         <p style={styles.experienceText}>{body}</p>
       </div>
+  <div style={styles.listenRow}>
+  <button
+    style={styles.listenButton}
+    onClick={() => speakText(`${title}. ${body}`)}
+  >
+    ▶ Listen
+  </button>
+
+  {speakingText && (
+    <button style={styles.stopButton} onClick={stopSpeaking}>
+      ■ Stop
+    </button>
+  )}
+</div>
     {showTechniqueButtons && (
   <div style={styles.techniqueBar}>
     <button
@@ -1777,6 +1826,33 @@ techniqueButton: {
   background: "rgba(255,255,255,0.18)",
   color: "#FFFFFF",
   fontWeight: "700",
+  cursor: "pointer",
+},
+  listenRow: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "10px",
+  marginTop: "16px",
+  marginBottom: "18px",
+},
+
+listenButton: {
+  border: "none",
+  borderRadius: "999px",
+  padding: "12px 16px",
+  background: "#FFFFFF",
+  color: "#111111",
+  fontWeight: "800",
+  cursor: "pointer",
+},
+
+stopButton: {
+  border: "1px solid rgba(255,255,255,0.22)",
+  borderRadius: "999px",
+  padding: "12px 16px",
+  background: "rgba(255,255,255,0.14)",
+  color: "#FFFFFF",
+  fontWeight: "800",
   cursor: "pointer",
 },
 };
