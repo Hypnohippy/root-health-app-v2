@@ -351,6 +351,37 @@ if (storedJourney) {
       setJournalEntries(journalRows);
       setMindEntries(Array.isArray(mindData) ? mindData : []);
 
+      const pendingCoachContext =
+  typeof window !== "undefined"
+    ? localStorage.getItem("root_pending_coach_context_v1")
+    : null;
+
+if (pendingCoachContext) {
+  try {
+    const parsedContext = JSON.parse(pendingCoachContext);
+
+    setCoachMode("mind");
+
+    setMessages([
+      {
+        role: "coach",
+        content:
+          `You’ve brought something through from Thought Work.\n\n` +
+          `Situation: ${parsedContext.situation || "Not recorded"}\n\n` +
+          `Thought: ${parsedContext.automaticThought || "Not recorded"}\n\n` +
+          `Emotion: ${parsedContext.emotion || "Not recorded"}\n\n` +
+          `Intensity: ${parsedContext.intensity || "Not recorded"}/10\n\n` +
+          `Root reframe: ${parsedContext.reframe || "Not recorded"}\n\n` +
+          `We can talk this through gently from here. What feels most important to explore first?`,
+      },
+    ]);
+
+    localStorage.removeItem("root_pending_coach_context_v1");
+    return;
+  } catch (error) {
+    console.log("Pending coach context failed:", error);
+  }
+}
      const baseWelcome = buildWelcome(
   displayName,
   rows,
