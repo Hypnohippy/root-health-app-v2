@@ -5,31 +5,8 @@ import { useState } from "react";
 export default function AudioTestPage() {
   const [loading, setLoading] = useState(false);
   const [audioFile, setAudioFile] = useState("");
-  const [title, setTitle] = useState("safe-place-test");
-
-const [script, setScript] = useState(`
-Close your eyes if comfortable.
-
-Take a slow breath in.
-
-And slowly breathe out.
-
-Imagine a place where you feel safe, calm, and supported.
-`);
-
-  const generateAudio = async () => {
-    setLoading(true);
-
-    const response = await fetch("/api/generate-audio", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-     body: JSON.stringify({
-  title,
-  text: script,
-}),`
-Close your eyes if comfortable.
+  const [title, setTitle] = useState("safe-place-visualisation");
+  const [script, setScript] = useState(`Close your eyes if comfortable.
 
 Take a slow breath in.
 
@@ -43,8 +20,20 @@ Notice what you can see.
 
 Notice what you can hear.
 
-Notice how your body begins to soften.
-        `,
+Notice how your body begins to soften.`);
+
+  const generateAudio = async () => {
+    setLoading(true);
+    setAudioFile("");
+
+    const response = await fetch("/api/generate-audio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title,
+        text: script,
       }),
     });
 
@@ -71,35 +60,37 @@ Notice how your body begins to soften.
       <h1>Root Audio Test</h1>
 
       <input
-  value={title}
-  onChange={(e) => setTitle(e.target.value)}
-  placeholder="Audio title"
-  style={{
-    width: "100%",
-    padding: "12px",
-    marginBottom: "12px",
-  }}
-/>
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Audio title"
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "12px",
+          boxSizing: "border-box",
+        }}
+      />
 
-<textarea
-  value={script}
-  onChange={(e) => setScript(e.target.value)}
-  placeholder="Audio script"
-  style={{
-    width: "100%",
-    minHeight: "300px",
-    padding: "12px",
-    marginBottom: "12px",
-  }}
-/>
-      <button onClick={generateAudio}>
+      <textarea
+        value={script}
+        onChange={(e) => setScript(e.target.value)}
+        placeholder="Audio script"
+        style={{
+          width: "100%",
+          minHeight: "300px",
+          padding: "12px",
+          marginBottom: "12px",
+          boxSizing: "border-box",
+        }}
+      />
+
+      <button onClick={generateAudio} disabled={loading}>
         {loading ? "Generating..." : "Generate Audio"}
       </button>
 
       {audioFile && (
         <>
           <p>{audioFile}</p>
-
           <audio controls src={audioFile} />
         </>
       )}
