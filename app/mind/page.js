@@ -529,7 +529,7 @@ const visibleTools = activeState
   };
 
   const generateReframe = () => {
-  const generatedReframe = buildReframe({
+const generatedReframe = buildReframe({
   situation,
   automaticThought,
   emotion,
