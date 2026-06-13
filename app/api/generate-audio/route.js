@@ -1,10 +1,14 @@
 import OpenAI from "openai";
-import fs from "fs/promises";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 function safeFileName(value = "") {
   return String(value)
@@ -26,10 +30,6 @@ export async function POST(request) {
     }
 
     const fileName = `${safeFileName(title)}.mp3`;
-    const audioDir = path.join(process.cwd(), "public", "audio");
-    const filePath = path.join(audioDir, fileName);
-
-    await fs.mkdir(audioDir, { recursive: true });
 
     const speech = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
@@ -40,11 +40,25 @@ export async function POST(request) {
 
     const buffer = Buffer.from(await speech.arrayBuffer());
 
-    await fs.writeFile(filePath, buffer);
+    const { error } = await supabaseAdmin.storage
+      .from("root-audio")
+      .upload(fileName, buffer, {
+        contentType: "audio/mpeg",
+        upsert: true,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data } = supabaseAdmin.storage
+      .from("root-audio")
+      .getPublicUrl(fileName);
 
     return Response.json({
       ok: true,
-      file: `/audio/${fileName}`,
+      file: data.publicUrl,
+      path: fileName,
     });
   } catch (error) {
     console.error("GENERATE AUDIO ERROR:", error);
