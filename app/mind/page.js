@@ -128,65 +128,32 @@ const journeys = {
 const calmingTechniques = [
   {
     title: "Safe Place Visualisation",
-    body: `Close your eyes if comfortable.
-
-Take a slow breath in… and out.
-
-Imagine a place where your body feels safe and at ease. It does not have to be real.
-
-Let the image arrive slowly.
-
-Let your shoulders drop.
-Let your jaw soften.
-Let your breathing slow.
-
-There is nothing to force here. Just allow your system to settle a little more with each out-breath.`,
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/safe-place-visualisation-1781348124095.mp3",
+    body: `Close your eyes if comfortable...`,
   },
 
   {
     title: "Floating Leaves Exercise",
-    body: `Imagine sitting beside a gentle stream.
-
-Every thought that appears can be placed on a leaf.
-
-You do not need to stop the thoughts.
-
-Simply place each one onto a leaf and allow it to drift downstream.
-
-Notice that thoughts can come and go without needing your attention.`,
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/floating-leaves-1781348171074.mp3",
+    body: `Imagine sitting beside a gentle stream...`,
   },
 
   {
     title: "Future Self Perspective",
-    body: `Imagine yourself six months from now.
-
-A version of you that has already moved through this challenge.
-
-What would they want you to know?
-
-What would they tell you to focus on today?
-
-Allow that future version of yourself to offer guidance.`,
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/future-self-perspective-1781348220955.mp3",
+    body: `Imagine yourself six months from now...`,
   },
 
   {
     title: "Body Scan Relaxation",
-    body: `Bring your attention to your feet.
-
-Notice any tension.
-
-Now your legs.
-
-Now your hips.
-
-Move slowly upward through the body.
-
-There is nothing to fix.
-
-Just notice and soften where possible.`,
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/body-scan-relaxation-1781348251226.mp3",
+    body: `Bring your attention to your feet...`,
   },
-];
-const outcomeOptions = [
+];const outcomeOptions = [
   { label: "Much better", score: 2 },
   { label: "A little better", score: 1 },
   { label: "No change", score: 0 },
@@ -889,6 +856,7 @@ There is no rush. Let your attention land on what is here now.`}
     title={calmingTechniques[calmingIndex].title}
     subtitle="A gentle inner reset for the body and mind."
     body={calmingTechniques[calmingIndex].body}
+    audio={calmingTechniques[calmingIndex].audio}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setCalmingIndex((current) =>
@@ -1047,6 +1015,7 @@ function ToolExperience({
   showTechniqueButtons = false,
   onPreviousTechnique,
   onNextTechnique,
+  audio,
   speakText,
   stopSpeaking,
   speakingText,
@@ -1060,33 +1029,39 @@ function ToolExperience({
       <div style={styles.experienceCard}>
         <p style={styles.experienceText}>{body}</p>
       </div>
+ {audio ? (
+  <div style={styles.audioPlayerCard}>
+    <p style={styles.audioLabel}>Guided Audio</p>
+
+    <audio
+      controls
+      src={audio}
+      style={styles.audioPlayer}
+    />
+  </div>
+) : (
   <div style={styles.listenRow}>
-  <button
-    style={styles.listenButton}
-    onClick={() => {
-  if (typeof speakText === "function") {
-    speakText(`${title}. ${body}`);
-  } else if (typeof window !== "undefined") {
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(`${title}. ${body}`);
-    utterance.rate = 0.86;
-    utterance.pitch = 0.92;
-    utterance.volume = 1;
-
-    window.speechSynthesis.speak(utterance);
-  }
-}}
-  >
-    ▶ Listen
-  </button>
-
-  {speakingText && (
-    <button style={styles.stopButton} onClick={stopSpeaking}>
-      ■ Stop
+    <button
+      style={styles.listenButton}
+      onClick={() => {
+        if (typeof speakText === "function") {
+          speakText(`${title}. ${body}`);
+        }
+      }}
+    >
+      ▶ Listen
     </button>
-  )}
-</div>
+
+    {speakingText && (
+      <button
+        style={styles.stopButton}
+        onClick={stopSpeaking}
+      >
+        ■ Stop
+      </button>
+    )}
+  </div>
+)}
     {showTechniqueButtons && (
   <div style={styles.techniqueBar}>
     <button
@@ -1867,5 +1842,26 @@ stopButton: {
   color: "#FFFFFF",
   fontWeight: "800",
   cursor: "pointer",
+},
+  audioPlayerCard: {
+  marginTop: "18px",
+  marginBottom: "18px",
+  padding: "18px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.16)",
+  border: "1px solid rgba(255,255,255,0.22)",
+},
+
+audioLabel: {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#F4E7CF",
+  fontWeight: "800",
+},
+
+audioPlayer: {
+  width: "100%",
 },
 };
