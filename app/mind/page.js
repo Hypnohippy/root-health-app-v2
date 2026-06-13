@@ -159,6 +159,32 @@ const calmingTechniques = [
   { label: "No change", score: 0 },
   { label: "Worse", score: -1 },
 ];
+const groundingTechniques = [
+  {
+    title: "5-4-3-2-1 Grounding",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/grounding-54321-1781350599311.mp3",
+    body: `A simple grounding exercise using the senses to help bring attention back to the present moment.`,
+  },
+  {
+    title: "Room Orientation",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/room-orientation-1781350631246.mp3",
+    body: `A gentle exercise to help the nervous system recognise where you are now.`,
+  },
+  {
+    title: "Safe Object Anchor",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/safe-object-anchor-1781350662306.mp3",
+    body: `Use one nearby object as a steady anchor back into the present moment.`,
+  },
+  {
+    title: "Present Moment Anchor",
+    audio:
+      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/present-moment-anchor-1781350712096.mp3",
+    body: `A short present-moment phrase and breath practice to help the system settle.`,
+  },
+];
 const tools = [
   {
     id: "grounding",
@@ -218,6 +244,7 @@ export default function MindPage() {
   const [recoveryEntries, setRecoveryEntries] = useState([]);
   const [speakingText, setSpeakingText] = useState("");
   const [calmingIndex, setCalmingIndex] = useState(0);
+  const [groundingIndex, setGroundingIndex] = useState(0);
   useEffect(() => {
   const loadRecentStates = async () => {
     const { data } = await supabase
@@ -825,31 +852,34 @@ speakingText={speakingText}
 
 {activeTool === "grounding" && (
   <ToolExperience
-    kicker="Present moment"
-    title="EMDR-informed grounding"
-    subtitle="A simple orientation exercise for safety and presence."
-    body={`Look around and name:
-
-5 things you can see
-4 things you can feel
-3 things you can hear
-2 things you can smell
-1 thing you can taste
-
-There is no rush. Let your attention land on what is here now.`}
+    kicker={`Technique ${groundingIndex + 1} of ${groundingTechniques.length}`}
+    title={groundingTechniques[groundingIndex].title}
+    subtitle="A grounding pathway to help the nervous system recognise the present moment."
+    body={groundingTechniques[groundingIndex].body}
+    audio={groundingTechniques[groundingIndex].audio}
+    showTechniqueButtons={true}
+    onPreviousTechnique={() =>
+      setGroundingIndex((current) =>
+        current === 0 ? groundingTechniques.length - 1 : current - 1
+      )
+    }
+    onNextTechnique={() =>
+      setGroundingIndex((current) =>
+        current === groundingTechniques.length - 1 ? 0 : current + 1
+      )
+    }
     saveEntry={(entry) =>
       saveEntry({
         ...entry,
-        tool: "EMDR-informed grounding",
-        situation: "The user completed a 5-4-3-2-1 grounding exercise.",
-        reframe: "The user completed a 5-4-3-2-1 grounding exercise.",
+        tool: groundingTechniques[groundingIndex].title,
+        situation: "The user completed a grounding intervention.",
+        reframe: "The user completed a grounding intervention.",
         next_step:
           "Check whether the user feels more present, safer, or less overwhelmed.",
       })
     }
   />
 )}
-
 {activeTool === "calming" && (
   <ToolExperience
     kicker={`Technique ${calmingIndex + 1} of ${calmingTechniques.length}`}
