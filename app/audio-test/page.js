@@ -5,6 +5,17 @@ import { useState } from "react";
 export default function AudioTestPage() {
   const [loading, setLoading] = useState(false);
   const [audioFile, setAudioFile] = useState("");
+  const [title, setTitle] = useState("safe-place-test");
+
+const [script, setScript] = useState(`
+Close your eyes if comfortable.
+
+Take a slow breath in.
+
+And slowly breathe out.
+
+Imagine a place where you feel safe, calm, and supported.
+`);
 
   const generateAudio = async () => {
     setLoading(true);
@@ -14,9 +25,10 @@ export default function AudioTestPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        title: "safe-place-test",
-        text: `
+     body: JSON.stringify({
+  title,
+  text: script,
+}),`
 Close your eyes if comfortable.
 
 Take a slow breath in.
@@ -58,6 +70,28 @@ Notice how your body begins to soften.
     >
       <h1>Root Audio Test</h1>
 
+      <input
+  value={title}
+  onChange={(e) => setTitle(e.target.value)}
+  placeholder="Audio title"
+  style={{
+    width: "100%",
+    padding: "12px",
+    marginBottom: "12px",
+  }}
+/>
+
+<textarea
+  value={script}
+  onChange={(e) => setScript(e.target.value)}
+  placeholder="Audio script"
+  style={{
+    width: "100%",
+    minHeight: "300px",
+    padding: "12px",
+    marginBottom: "12px",
+  }}
+/>
       <button onClick={generateAudio}>
         {loading ? "Generating..." : "Generate Audio"}
       </button>
