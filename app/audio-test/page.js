@@ -41,16 +41,15 @@ Notice how your body begins to soften.`);
     const data = await response.json();
 
     if (data.ok) {
-  setAudioFile(data.file);
+      setAudioFile(data.file);
 
-  setGeneratedFiles((current) => [
-    {
-      title,
-      file: data.file,
-    },
-    ...current,
-  ]);
-}
+      setGeneratedFiles((current) => [
+        {
+          title,
+          file: data.file,
+        },
+        ...current,
+      ]);
     } else {
       alert(data.error || "Audio generation failed.");
     }
@@ -104,28 +103,29 @@ Notice how your body begins to soften.`);
           <audio controls src={audioFile} />
         </>
       )}
-{generatedFiles.length > 0 && (
-  <section style={{ marginTop: "30px" }}>
-    <h2>Generated audio files</h2>
 
-    {generatedFiles.map((item, index) => (
-      <div
-        key={`${item.file}-${index}`}
-        style={{
-          marginBottom: "20px",
-          padding: "16px",
-          border: "1px solid rgba(255,255,255,0.2)",
-          borderRadius: "16px",
-          background: "rgba(255,255,255,0.08)",
-        }}
-      >
-        <strong>{item.title}</strong>
-        <p style={{ wordBreak: "break-all" }}>{item.file}</p>
-        <audio controls src={item.file} />
-      </div>
-    ))}
-  </section>
-)}
+      {generatedFiles.length > 0 && (
+        <section style={{ marginTop: "30px" }}>
+          <h2>Generated audio files</h2>
+
+          {generatedFiles.map((item, index) => (
+            <div
+              key={`${item.file}-${index}`}
+              style={{
+                marginBottom: "20px",
+                padding: "16px",
+                border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.08)",
+              }}
+            >
+              <strong>{item.title}</strong>
+              <p style={{ wordBreak: "break-all" }}>{item.file}</p>
+              <audio controls src={item.file} />
+            </div>
+          ))}
+        </section>
+      )}
     </main>
   );
 }
