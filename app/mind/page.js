@@ -345,15 +345,23 @@ A steadier way to hold this might be:
 ${theme.reframe}`;
 }
 
-function buildNextStep({ emotion }) {
-  
+function buildNextStep({ situation, automaticThought, emotion }) {
+  const theme = detectThoughtTheme({
+    situation,
+    automaticThought,
+    emotion,
+  });
+
+  if (theme.nextStep) {
+    return theme.nextStep;
+  }
+
   if (!emotion) {
     return "Take one slower breath, then choose one small action that supports you rather than pressures you.";
   }
 
   return `For the next few minutes, treat ${emotion.toLowerCase()} as information rather than instruction. Slow down, reduce pressure, and choose one small grounded action.`;
 }
-
 export default function MindPage() {
   const [activeTool, setActiveTool] = useState(null);
   const [activeJourney, setActiveJourney] = useState(null);
@@ -530,7 +538,11 @@ const generatedReframe = buildReframe({
   automaticThought,
   emotion,
 });
-    const generatedNextStep = buildNextStep({ emotion });
+    const generatedNextStep = buildNextStep({
+  situation,
+  automaticThought,
+  emotion,
+});
 
     setReframe(generatedReframe);
     setNextStep(generatedNextStep);
