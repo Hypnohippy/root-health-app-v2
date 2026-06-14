@@ -20,6 +20,48 @@ function format(value) {
   return value.toFixed(1);
 }
 
+function mapChallengeTheme(theme = "") {
+  const value = String(theme).toLowerCase();
+
+  if (
+    value.includes("bullying") ||
+    value.includes("job security") ||
+    value.includes("work")
+  ) {
+    return "Workplace Pressure";
+  }
+
+  if (
+    value.includes("relationship") ||
+    value.includes("trust") ||
+    value.includes("commitment")
+  ) {
+    return "Relationship Stress";
+  }
+
+  if (
+    value.includes("failure") ||
+    value.includes("performance") ||
+    value.includes("perfect")
+  ) {
+    return "Performance Pressure";
+  }
+
+  if (
+    value.includes("shame") ||
+    value.includes("self")
+  ) {
+    return "Self-Criticism";
+  }
+
+  if (
+    value.includes("unclear")
+  ) {
+    return "Emotional Uncertainty";
+  }
+
+  return theme || "Other";
+}
 function countBy(items, key) {
   const counts = {};
   items.forEach((item) => {
@@ -234,7 +276,17 @@ const toolCounts = useMemo(
     .filter((item) => item.change !== null && item.change < 0)
     .sort((a, b) => a.change - b.change)[0];
 
-  const mostCommonTheme = themeCounts[0]?.[0] || "No theme data yet";
+  const mappedChallengeCounts = countBy(
+  mindEntries
+    .filter((entry) => entry.thought_theme)
+    .map((entry) => ({
+      challenge: mapChallengeTheme(entry.thought_theme),
+    })),
+  "challenge"
+);
+
+const mostCommonTheme =
+  mappedChallengeCounts[0]?.[0] || "No challenge data yet";
   const mostUsedTool = toolCounts[0]?.[0] || "No tool data yet";
 
   const trialStart = organisation?.trial_start ? new Date(organisation.trial_start) : null;
