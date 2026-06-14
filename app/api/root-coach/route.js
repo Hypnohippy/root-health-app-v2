@@ -45,12 +45,16 @@ function summariseMind(entries = []) {
     .map((entry) =>
       [
         "tool: " + (entry.tool || "unknown"),
-        "situation: " + (entry.situation || "unknown"),
-        "thought: " + (entry.automatic_thought || "unknown"),
-        "emotion: " + (entry.emotion || "unknown"),
-        "intensity: " + (entry.intensity || "unknown"),
-        "reframe: " + (entry.reframe || "not recorded"),
-        "next step: " + (entry.next_step || "not recorded"),
+"situation: " + (entry.situation || "unknown"),
+"thought: " + (entry.automatic_thought || "unknown"),
+"emotion: " + (entry.emotion || "unknown"),
+"intensity: " + (entry.intensity || "unknown"),
+"thought theme: " + (entry.thought_theme || "not recorded"),
+"root noticed: " + (entry.thought_notice || "not recorded"),
+"useful question: " + (entry.thought_question || "not recorded"),
+"theme next step: " + (entry.thought_next_step || "not recorded"),
+"reframe: " + (entry.reframe || "not recorded"),
+"next step: " + (entry.next_step || "not recorded"),
       ].join(", ")
     )
     .join("\n");
