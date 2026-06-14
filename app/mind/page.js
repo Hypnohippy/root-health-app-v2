@@ -260,6 +260,8 @@ function detectThoughtTheme({ situation = "", automaticThought = "", emotion = "
       "What do you currently know for certain, and what are you assuming might be true?",
     reframe:
       "Fear often wants certainty, especially when something important feels at risk. The thought may be one possible explanation, but it is not yet the same thing as evidence. Before deciding what is true, it may help to separate what you know from what you fear.",
+    nextStep:
+  "Before reacting, write down two lists: what I know for certain, and what I am afraid might be true. Keep them separate for now.",
   };
 }
 
@@ -279,6 +281,8 @@ if (
       "What feels most uncomfortable here: losing freedom, being hurt, feeling responsible for someone else, or not knowing what you truly want?",
     reframe:
       "Anxiety does not always mean something is wrong. Sometimes it appears when something matters. You do not need to decide the whole future in one moment. You may only need to understand what this moment is asking of you.",
+    nextStep:
+  "Do not decide the whole future today. Write down what feels too much: the relationship, the responsibility, the speed of change, or the fear of being hurt.",
   };
 }
   if (
