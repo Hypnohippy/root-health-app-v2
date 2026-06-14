@@ -92,10 +92,18 @@ function buildWelcome(name, history = [], mindEntries = [], journalEntries = [])
     return `${greeting} I can see you added a recent reflection.\n\nDo you want to explore it, use a Mind & Mood tool, or focus somewhere else?`;
   }
 
-  if (latestMind) {
-    const emotion = latestMind.emotion || "something emotional";
-    return `${greeting} Last time, you were working with ${emotion.toLowerCase()}.\n\nDo you want to continue with that, or focus somewhere else?`;
-  }
+ if (latestMind?.thought_theme) {
+  return (
+    `${greeting} Last time, Thought Work explored a theme around ${latestMind.thought_theme}.\n\n` +
+    `${latestMind.thought_notice || "That may be worth staying with gently."}\n\n` +
+    `Would you like to continue with that, talk it through, or focus somewhere else?`
+  );
+}
+
+if (latestMind) {
+  const emotion = latestMind.emotion || "something emotional";
+  return `${greeting} Last time, you were working with ${emotion.toLowerCase()}.\n\nDo you want to continue with that, or focus somewhere else?`;
+}
 
   if (latestBody) {
     const signal = latestBody.signal || "your body signals";
