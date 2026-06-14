@@ -242,49 +242,45 @@ const tools = [
 function detectThoughtTheme({ situation = "", automaticThought = "", emotion = "" }) {
   const text = `${situation} ${automaticThought} ${emotion}`.toLowerCase();
 
-  if (
-    text.includes("love") ||
-    text.includes("commitment") ||
-    text.includes("girlfriend") ||
-    text.includes("boyfriend") ||
-    text.includes("wife") ||
-    text.includes("husband") ||
-    text.includes("partner") ||
-    text.includes("relationship")
-  ) {
-    return {
-      theme: "Relationship vulnerability",
-      notice:
-        "This may not simply be about danger. It may be about vulnerability, trust, closeness, or what commitment asks of you.",
-      question:
-        "What feels most uncomfortable here: losing freedom, being hurt, feeling responsible for someone else, or not knowing what you truly want?",
-      reframe:
-        "Anxiety does not always mean something is wrong. Sometimes it appears when something matters. You do not need to decide the whole future in one moment. You may only need to understand what this moment is asking of you.",
-    };
-  }
+ if (
+  text.includes("affair") ||
+  text.includes("cheat") ||
+  text.includes("cheating") ||
+  text.includes("texting") ||
+  text.includes("another man") ||
+  text.includes("another woman") ||
+  text.includes("betray") ||
+  text.includes("betrayal")
+) {
+  return {
+    theme: "Relationship trust",
+    notice:
+      "The strongest emotion here may not be anger. Anger often appears when something important feels threatened. Underneath it may be fear of loss, betrayal, uncertainty, or being hurt.",
+    question:
+      "What do you currently know for certain, and what are you assuming might be true?",
+    reframe:
+      "Fear often wants certainty, especially when something important feels at risk. The thought may be one possible explanation, but it is not yet the same thing as evidence. Before deciding what is true, it may help to separate what you know from what you fear.",
+  };
+}
 
-  if (
-    text.includes("work") ||
-    text.includes("manager") ||
-    text.includes("boss") ||
-    text.includes("team") ||
-    text.includes("colleague") ||
-    text.includes("listen") ||
-    text.includes("ignored") ||
-    text.includes("safety") ||
-    text.includes("dangerous")
-  ) {
-    return {
-      theme: "Being heard / safety",
-      notice:
-        "Anger can appear when something important feels ignored, unsafe, or dismissed. The reaction may be pointing towards a need to be heard, respected, or taken seriously.",
-      question:
-        "What felt most threatened in that moment: safety, respect, responsibility, control, or being listened to?",
-      reframe:
-        "The intensity of the reaction may be telling you that something mattered. Before judging yourself, it may help to separate the message from the moment: what needed to be heard, and how could it be expressed more safely next time?",
-    };
-  }
-
+if (
+  text.includes("love") ||
+  text.includes("commitment") ||
+  text.includes("girlfriend") ||
+  text.includes("boyfriend") ||
+  text.includes("marriage") ||
+  text.includes("future together")
+) {
+  return {
+    theme: "Relationship commitment",
+    notice:
+      "This may not simply be about danger. It may be about vulnerability, closeness, responsibility, or what commitment asks of you.",
+    question:
+      "What feels most uncomfortable here: losing freedom, being hurt, feeling responsible for someone else, or not knowing what you truly want?",
+    reframe:
+      "Anxiety does not always mean something is wrong. Sometimes it appears when something matters. You do not need to decide the whole future in one moment. You may only need to understand what this moment is asking of you.",
+  };
+}
   if (
     text.includes("fail") ||
     text.includes("failure") ||
