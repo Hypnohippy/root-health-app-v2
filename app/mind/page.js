@@ -570,12 +570,7 @@ const generatedReframe = buildReframe({
   automaticThought,
   emotion,
 });
-  const themeData = detectThoughtTheme({
-  situation,
-  automaticThought,
-  emotion,
-});
-
+ 
     setReframe(generatedReframe);
     setNextStep(generatedNextStep);
     setSaved(false);
@@ -607,10 +602,24 @@ const generatedReframe = buildReframe({
   const saveCbt = async () => {
     if (!reframe) return;
 
-   const themeData = detectThoughtTheme({
+  const themeData = detectThoughtTheme({
   situation,
   automaticThought,
   emotion,
+});
+
+await saveEntry({
+  tool: "CBT-style reframing",
+  situation,
+  automatic_thought: automaticThought,
+  emotion,
+  intensity,
+  reframe,
+  next_step: nextStep,
+  thought_theme: themeData.theme,
+  thought_notice: themeData.notice,
+  thought_question: themeData.question,
+  thought_next_step: themeData.nextStep,
 });
 
 await saveEntry({
