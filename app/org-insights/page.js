@@ -188,9 +188,31 @@ export default function OrgInsightsPage() {
     ["Focus difficulty", "focus_score"],
   ];
 
-  const themeCounts = useMemo(() => countBy(mindEntries, "thought_theme"), [mindEntries]);
-  const toolCounts = useMemo(() => countBy(mindEntries, "tool"), [mindEntries]);
+  const themeCounts = useMemo(
+  () =>
+    countBy(
+      mindEntries.filter(
+        (entry) =>
+          entry.thought_theme &&
+          entry.thought_theme !== "Unclear emotional meaning"
+      ),
+      "thought_theme"
+    ),
+  [mindEntries]
+);
 
+const toolCounts = useMemo(
+  () =>
+    countBy(
+      mindEntries.filter(
+        (entry) =>
+          entry.tool &&
+          entry.tool !== "Emotional check-in"
+      ),
+      "tool"
+    ),
+  [mindEntries]
+);
   const invited = members.length;
   const activated = members.filter((m) => m.activated_at).length;
   const baselineCompleted = members.filter((m) => m.baseline_completed_at).length;
