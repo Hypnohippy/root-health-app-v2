@@ -144,6 +144,109 @@ function MiniBar({ label, value }) {
     </div>
   );
 }
+function LineTrendChart({ rows = [] }) {
+  const width = 900;
+  const height = 320;
+  const padding = 46;
+
+  const series = [
+    { key: "stress", label: "Stress" },
+    { key: "burnout", label: "Burnout" },
+    { key: "sleep", label: "Sleep difficulty" },
+    { key: "recovery", label: "Recovery difficulty" },
+  ];
+
+  const xFor = (index) =>
+    padding + (index / Math.max(rows.length - 1, 1)) * (width - padding * 2);
+
+  const yFor = (value) =>
+    height - padding - (Number(value || 0) / 10) * (height - padding * 2);
+
+  const pathFor = (key) =>
+    rows
+      .map((row, index) => {
+        const command = index === 0 ? "M" : "L";
+        return `${command} ${xFor(index)} ${yFor(row[key])}`;
+      })
+      .join(" ");
+
+  if (!rows.length) {
+    return <p style={styles.empty}>No trend data recorded yet.</p>;
+  }
+
+  return (
+    <div style={styles.svgChartWrap}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={styles.svgChart}>
+        {[0, 2, 4, 6, 8, 10].map((tick) => (
+          <line
+            key={tick}
+            x1={padding}
+            x2={width - padding}
+            y1={yFor(tick)}
+            y2={yFor(tick)}
+            stroke="rgba(24,24,24,0.08)"
+            strokeWidth="1"
+          />
+        ))}
+
+        {series.map((item, index) => (
+          <path
+            key={item.key}
+            d={pathFor(item.key)}
+            fill="none"
+            stroke={
+              ["#181818", "#6F675B", "#9B8A6A", "#C1A46B"][index]
+            }
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ))}
+
+        {rows.map((row, rowIndex) =>
+          series.map((item, index) => (
+            <circle
+              key={`${item.key}-${rowIndex}`}
+              cx={xFor(rowIndex)}
+              cy={yFor(row[item.key])}
+              r="5"
+              fill={["#181818", "#6F675B", "#9B8A6A", "#C1A46B"][index]}
+            />
+          ))
+        )}
+
+        {rows.map((row, index) => (
+          <text
+            key={row.label}
+            x={xFor(index)}
+            y={height - 12}
+            textAnchor="middle"
+            fontSize="13"
+            fill="#5A554D"
+          >
+            {row.label}
+          </text>
+        ))}
+      </svg>
+
+      <div style={styles.chartLegend}>
+        {series.map((item, index) => (
+          <span key={item.key} style={styles.legendItem}>
+            <span
+              style={{
+                ...styles.legendDot,
+                background: ["#181818", "#6F675B", "#9B8A6A", "#C1A46B"][
+                  index
+                ],
+              }}
+            />
+            {item.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 function BarRow({ label, value, max = 10 }) {
   const percent = value === null ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
 
@@ -411,23 +514,11 @@ detail="Total recorded support interactions"
                 <MetricCard title="Engagement score" value={engagementScore ?? "—"} />
               </section>
 
-              <section style={styles.panel}>
-                <p style={styles.panelLabel}>Outcome movement</p>
-                <h2 style={styles.panelTitle}>Wellbeing snapshot</h2>
-
-                <div style={styles.metricRows}>
-                  {metricResults.map((item) => (
-                    <div key={item.key} style={styles.metricRow}>
-                      <strong>{item.label}</strong>
-                      <span>
-                        {format(item.start)} → {format(item.current)}
-                      </span>
-                      <em>{changeText(item.start, item.current)}</em>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
+             <section style={styles.panel}>
+  <p style={styles.panelLabel}>Trend view</p>
+  <h2 style={styles.panelTitle}>Wellbeing movement over time</h2>
+  <LineTrendChart rows={trendRows} />
+</section>
               <section style={styles.panel}>
   <p style={styles.panelLabel}>Trend view</p>
   <h2 style={styles.panelTitle}>Wellbeing movement over time</h2>
@@ -839,5 +930,39 @@ miniBarValue: {
   fontSize: "13px",
   color: "#181818",
   fontWeight: "800",
+},
+  svgChartWrap: {
+  padding: "20px",
+  borderRadius: "28px",
+  background: "rgba(255,255,255,0.62)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+svgChart: {
+  width: "100%",
+  height: "auto",
+  display: "block",
+},
+
+chartLegend: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "14px",
+  marginTop: "18px",
+},
+
+legendItem: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontSize: "13px",
+  color: "#4D463B",
+  fontWeight: "700",
+},
+
+legendDot: {
+  width: "11px",
+  height: "11px",
+  borderRadius: "50%",
 },
 };
