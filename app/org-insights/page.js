@@ -327,8 +327,8 @@ const toolCounts = useMemo(
 
                 <ExecutiveCard
   label="Support engagement"
-  value={voiceSessions.length}
-  detail="Voice coaching sessions completed"
+ value={mindEntries.length + journalEntries.length + voiceSessions.length}
+detail="Total recorded support interactions"
 />              </section>
 
               <section style={styles.cardGrid}>
