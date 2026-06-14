@@ -621,6 +621,7 @@ await saveEntry({
   thought_question: themeData.question,
   thought_next_step: themeData.nextStep,
 });
+  {;
 
 await saveEntry({
   tool: "CBT-style reframing",
