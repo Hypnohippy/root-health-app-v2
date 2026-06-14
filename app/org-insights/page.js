@@ -130,6 +130,20 @@ function MetricCard({ title, value }) {
   );
 }
 
+function MiniBar({ label, value }) {
+  const percent =
+    Number.isNaN(Number(value)) ? 0 : Math.min(100, Math.max(0, Number(value) * 10));
+
+  return (
+    <div style={styles.miniBarWrap}>
+      <span style={styles.miniBarLabel}>{label}</span>
+      <div style={styles.miniBarTrack}>
+        <div style={{ ...styles.miniBarFill, width: `${percent}%` }} />
+      </div>
+      <span style={styles.miniBarValue}>{Number.isNaN(Number(value)) ? "—" : value}</span>
+    </div>
+  );
+}
 function BarRow({ label, value, max = 10 }) {
   const percent = value === null ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
 
@@ -264,7 +278,14 @@ const toolCounts = useMemo(
 
   const engagementScore =
     invited > 0 ? Math.round(((activated + baselineCompleted) / (invited * 2)) * 100) : null;
-
+  
+  const trendRows = assessments.map((entry, index) => ({
+  label: entry.assessment_type === "baseline" ? "Baseline" : `Check-in ${index}`,
+  stress: Number(entry.stress_score),
+  burnout: Number(entry.burnout_score),
+  sleep: Number(entry.sleep_score),
+  recovery: Number(entry.recovery_score),
+}));
   const metricResults = metrics.map(([label, key]) => {
     const start = average(baseline, key);
     const current = average(latest, key);
@@ -407,6 +428,29 @@ detail="Total recorded support interactions"
                 </div>
               </section>
 
+              <section style={styles.panel}>
+  <p style={styles.panelLabel}>Trend view</p>
+  <h2 style={styles.panelTitle}>Wellbeing movement over time</h2>
+
+  <div style={styles.trendPanel}>
+    {trendRows.length === 0 ? (
+      <p style={styles.empty}>No trend data recorded yet.</p>
+    ) : (
+      trendRows.map((row) => (
+        <div key={row.label} style={styles.trendRow}>
+          <strong style={styles.trendLabel}>{row.label}</strong>
+
+          <div style={styles.trendBars}>
+            <MiniBar label="Stress" value={row.stress} />
+            <MiniBar label="Burnout" value={row.burnout} />
+            <MiniBar label="Sleep" value={row.sleep} />
+            <MiniBar label="Recovery" value={row.recovery} />
+          </div>
+        </div>
+      ))
+    )}
+  </div>
+</section>
               <section style={styles.panel}>
                 <p style={styles.panelLabel}>Chart view</p>
                 <h2 style={styles.panelTitle}>Current wellbeing load</h2>
@@ -742,4 +786,58 @@ const styles = {
     color: "#6F675B",
     lineHeight: "1.6",
   },
+  trendPanel: {
+  display: "grid",
+  gap: "18px",
+},
+
+trendRow: {
+  padding: "18px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.62)",
+  border: "1px solid rgba(255,255,255,0.68)",
+},
+
+trendLabel: {
+  display: "block",
+  marginBottom: "14px",
+  color: "#181818",
+},
+
+trendBars: {
+  display: "grid",
+  gap: "10px",
+},
+
+miniBarWrap: {
+  display: "grid",
+  gridTemplateColumns: "90px 1fr 36px",
+  gap: "10px",
+  alignItems: "center",
+},
+
+miniBarLabel: {
+  fontSize: "13px",
+  color: "#5A554D",
+  fontWeight: "700",
+},
+
+miniBarTrack: {
+  height: "10px",
+  borderRadius: "999px",
+  background: "rgba(24,24,24,0.08)",
+  overflow: "hidden",
+},
+
+miniBarFill: {
+  height: "100%",
+  borderRadius: "999px",
+  background: "#181818",
+},
+
+miniBarValue: {
+  fontSize: "13px",
+  color: "#181818",
+  fontWeight: "800",
+},
 };
