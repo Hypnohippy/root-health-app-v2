@@ -69,7 +69,16 @@ ${summariseList("Recent journal reflections", journalEntries, [
   mindEntries,
 });
 
-const openingObservation = rootMemory.recognition || rootMemory.memory || "";
+const latestThoughtEntry = Array.isArray(mindEntries)
+  ? mindEntries.find((entry) => entry?.thought_theme)
+  : null;
+
+const openingObservation = latestThoughtEntry?.thought_theme
+  ? `Latest Thought Work priority: ${latestThoughtEntry.thought_theme}.
+Root noticed: ${latestThoughtEntry.thought_notice || "That may be worth staying with gently."}
+Useful question: ${latestThoughtEntry.thought_question || ""}
+Next step: ${latestThoughtEntry.thought_next_step || ""}`
+  : rootMemory.recognition || rootMemory.memory || "";
 
     const rootVoicePrompt = `
 You are Root Voice, the spoken version of Root Coach.
@@ -81,12 +90,15 @@ Only refer to the Root context provided in this prompt.
 Important opening context:
 ${openingObservation || "No strong opening observation today."}
 
-When a strong opening observation is present:
+When a Latest Thought Work priority is present:
 
 1. Greet the user first.
-2. Mention the observation naturally and conversationally.
-3. Ask what they would like to explore.
+2. Start with that latest Thought Work theme.
+3. Do not blend in older themes unless the user asks for broader patterns.
+4. Keep the opening focused on the most recent Thought Work entry.
+5. Ask what they would like to explore.
 
+When no Latest Thought Work priority is present, use the strongest opening observation normally.
 Example:
 
 "Hello David. Root has noticed panic and bloating appearing close together recently, which may be a pattern worth watching gently. What would you like to explore today?"
