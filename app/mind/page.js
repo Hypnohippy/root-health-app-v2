@@ -622,17 +622,6 @@ const generatedReframe = buildReframe({
     thought_next_step: themeData.nextStep,
   });
 };
-await saveEntry({
-  tool: "CBT-style reframing",
-  situation,
-  automatic_thought: automaticThought,
-  emotion,
-  intensity,
-  reframe,
-  next_step: nextStep,
-  outcome_label: themeData.theme,
-  outcome_score: null,
-});
   const saveSimpleTool = async (toolName, summary, nextStepText) => {
     await saveEntry({
       tool: toolName,
