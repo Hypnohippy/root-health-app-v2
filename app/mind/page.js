@@ -322,6 +322,29 @@ if (
     };
   }
 
+  if (
+  text.includes("final warning") ||
+  text.includes("warning") ||
+  text.includes("sack") ||
+  text.includes("sacked") ||
+  text.includes("fired") ||
+  text.includes("dismissed") ||
+  text.includes("lose my job") ||
+  text.includes("job security") ||
+  text.includes("disciplinary")
+) {
+  return {
+    theme: "Work / job security",
+    notice:
+      "This sounds less like ordinary work stress and more like threat around security, status, and what happens next. Fear can become very loud when income, identity, or stability feel at risk.",
+    question:
+      "What do you know for certain about the warning, and what part is your mind filling in about the future?",
+    reframe:
+      "A final warning is serious, but it is not the same thing as already being dismissed. The useful focus now is not panic, but clarity: what is being asked of you, what support or evidence you need, and what next step protects your position.",
+    nextStep:
+      "Write down three things: what the warning actually says, what action is expected from you, and who you can speak to for clarity or support before assuming the worst.",
+  };
+}
   return {
     theme: "Unclear emotional meaning",
     notice:
