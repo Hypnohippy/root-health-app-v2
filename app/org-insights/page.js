@@ -319,18 +319,17 @@ const toolCounts = useMemo(
                   }
                 />
 
-                <ExecutiveCard
-                  label="Most common theme"
-                  value={mostCommonTheme}
-                  detail="Anonymous Thought Work theme"
-                />
+               <ExecutiveCard
+  label="Most common challenge"
+  value={mostCommonTheme}
+  detail="Most frequently occurring anonymous workforce theme"
+/>
 
                 <ExecutiveCard
-                  label="Most used support"
-                  value={mostUsedTool}
-                  detail="Based on saved support activity"
-                />
-              </section>
+  label="Support engagement"
+  value={voiceSessions.length}
+  detail="Voice coaching sessions completed"
+/>              </section>
 
               <section style={styles.cardGrid}>
                 <MetricCard title="Employees invited" value={invited || "—"} />
