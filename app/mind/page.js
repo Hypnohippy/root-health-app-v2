@@ -321,6 +321,29 @@ if (
         "This moment may be painful, but it does not define your worth. The kinder question is not ‘what is wrong with me?’ but ‘what needs care here?’",
     };
   }
+  if (
+  text.includes("bully") ||
+  text.includes("bullied") ||
+  text.includes("bullying") ||
+  text.includes("harass") ||
+  text.includes("harassment") ||
+  text.includes("intimidated") ||
+  text.includes("picked on") ||
+  text.includes("powerless") ||
+  text.includes("helpless")
+) {
+  return {
+    theme: "Workplace bullying / feeling powerless",
+    notice:
+      "This may not simply be about work performance. It may be about feeling trapped between protecting yourself and protecting your livelihood. When people feel powerless, fear and frustration often appear together.",
+    question:
+      "If losing your job were not a concern, what would you want to say or do differently?",
+    reframe:
+      "Feeling unable to challenge unfair behaviour does not mean you are weak. It may mean you are trying to balance safety, income, and self-respect at the same time. The challenge is finding a response that protects all three as much as possible.",
+    nextStep:
+      "Write down what behaviour feels unacceptable, what evidence or examples you have, and what safe support options may be available before reacting alone.",
+  };
+}
 
   if (
   text.includes("final warning") ||
