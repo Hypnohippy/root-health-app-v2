@@ -12,7 +12,6 @@ function average(items, key) {
     .filter((value) => !Number.isNaN(value));
 
   if (values.length === 0) return null;
-
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
@@ -21,19 +20,8 @@ function format(value) {
   return value.toFixed(1);
 }
 
-function changeText(start, current) {
-  if (start === null || current === null) return "No comparison yet";
-
-  const diff = current - start;
-
-  if (diff < 0) return `${Math.abs(diff).toFixed(1)} point improvement`;
-  if (diff > 0) return `${diff.toFixed(1)} point increase`;
-  return "No change yet";
-}
-
 function countBy(items, key) {
   const counts = {};
-
   items.forEach((item) => {
     const value = item[key];
     if (!value) return;
@@ -43,6 +31,77 @@ function countBy(items, key) {
   return Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6);
+}
+
+function metricChange(start, current) {
+  if (start === null || current === null) return null;
+  return current - start;
+}
+
+function changeText(start, current) {
+  const change = metricChange(start, current);
+  if (change === null) return "No comparison yet";
+  if (change < 0) return `${Math.abs(change).toFixed(1)} point improvement`;
+  if (change > 0) return `${change.toFixed(1)} point increase`;
+  return "No change yet";
+}
+
+function scoreFromAssessments(items) {
+  if (!items.length) return null;
+
+  const keys = [
+    "stress_score",
+    "burnout_score",
+    "sleep_score",
+    "recovery_score",
+    "mood_score",
+    "focus_score",
+  ];
+
+  const avgLoad =
+    keys
+      .map((key) => average(items, key))
+      .filter((value) => value !== null)
+      .reduce((sum, value, index, arr) => sum + value / arr.length, 0) || null;
+
+  if (avgLoad === null) return null;
+
+  return Math.round(100 - avgLoad * 10);
+}
+
+function ExecutiveCard({ label, value, detail }) {
+  return (
+    <div style={styles.executiveCard}>
+      <p style={styles.metricLabel}>{label}</p>
+      <h2 style={styles.executiveValue}>{value}</h2>
+      <p style={styles.executiveDetail}>{detail}</p>
+    </div>
+  );
+}
+
+function MetricCard({ title, value }) {
+  return (
+    <div style={styles.metricCard}>
+      <p style={styles.metricLabel}>{title}</p>
+      <h2 style={styles.metricValue}>{value}</h2>
+    </div>
+  );
+}
+
+function BarRow({ label, value, max = 10 }) {
+  const percent = value === null ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
+
+  return (
+    <div style={styles.barRow}>
+      <div style={styles.barTop}>
+        <strong>{label}</strong>
+        <span>{format(value)}</span>
+      </div>
+      <div style={styles.barTrack}>
+        <div style={{ ...styles.barFill, width: `${percent}%` }} />
+      </div>
+    </div>
+  );
 }
 
 export default function OrgInsightsPage() {
@@ -72,6 +131,10 @@ export default function OrgInsightsPage() {
 
     const orgId = org?.id || null;
 
+    const orgFilter = orgId
+      ? `organisation_id.eq.${orgId},organisation_id.is.null`
+      : "organisation_id.is.null";
+
     const { data: memberData } = await supabase
       .from("organisation_members")
       .select("*")
@@ -80,27 +143,27 @@ export default function OrgInsightsPage() {
     const { data: assessmentData } = await supabase
       .from("wellbeing_assessments")
       .select("*")
-      .or(orgId ? `organisation_id.eq.${orgId},organisation_id.is.null` : "organisation_id.is.null")
+      .or(orgFilter)
       .order("created_at", { ascending: true });
 
     const { data: mindData } = await supabase
       .from("mind_entries")
       .select("*")
-      .or(orgId ? `organisation_id.eq.${orgId},organisation_id.is.null` : "organisation_id.is.null")
+      .or(orgFilter)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: journalData } = await supabase
       .from("journal_entries")
       .select("*")
-      .or(orgId ? `organisation_id.eq.${orgId},organisation_id.is.null` : "organisation_id.is.null")
+      .or(orgFilter)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: voiceData } = await supabase
       .from("voice_sessions")
       .select("*")
-      .or(orgId ? `organisation_id.eq.${orgId},organisation_id.is.null` : "organisation_id.is.null")
+      .or(orgFilter)
       .order("created_at", { ascending: false })
       .limit(200);
 
@@ -125,28 +188,35 @@ export default function OrgInsightsPage() {
     ["Focus difficulty", "focus_score"],
   ];
 
-  const themeCounts = useMemo(
-    () => countBy(mindEntries, "thought_theme"),
-    [mindEntries]
-  );
-
-  const toolCounts = useMemo(
-    () => countBy(mindEntries, "tool"),
-    [mindEntries]
-  );
+  const themeCounts = useMemo(() => countBy(mindEntries, "thought_theme"), [mindEntries]);
+  const toolCounts = useMemo(() => countBy(mindEntries, "tool"), [mindEntries]);
 
   const invited = members.length;
   const activated = members.filter((m) => m.activated_at).length;
   const baselineCompleted = members.filter((m) => m.baseline_completed_at).length;
 
-  const trialStart = organisation?.trial_start
-    ? new Date(organisation.trial_start)
-    : null;
+  const baselineScore = scoreFromAssessments(baseline);
+  const currentScore = scoreFromAssessments(latest);
 
-  const trialEnd = organisation?.trial_end
-    ? new Date(organisation.trial_end)
-    : null;
+  const engagementScore =
+    invited > 0 ? Math.round(((activated + baselineCompleted) / (invited * 2)) * 100) : null;
 
+  const metricResults = metrics.map(([label, key]) => {
+    const start = average(baseline, key);
+    const current = average(latest, key);
+    const change = metricChange(start, current);
+    return { label, key, start, current, change };
+  });
+
+  const mostImproved = metricResults
+    .filter((item) => item.change !== null && item.change < 0)
+    .sort((a, b) => a.change - b.change)[0];
+
+  const mostCommonTheme = themeCounts[0]?.[0] || "No theme data yet";
+  const mostUsedTool = toolCounts[0]?.[0] || "No tool data yet";
+
+  const trialStart = organisation?.trial_start ? new Date(organisation.trial_start) : null;
+  const trialEnd = organisation?.trial_end ? new Date(organisation.trial_end) : null;
   const today = new Date();
 
   const trialProgress =
@@ -162,6 +232,17 @@ export default function OrgInsightsPage() {
         )
       : 0;
 
+  const executiveInsight =
+    assessments.length === 0
+      ? "Root has not collected enough organisation data yet. Once employees complete baseline and follow-up check-ins, this area will summarise early wellbeing movement, engagement and anonymous themes."
+      : `Early data shows a current workforce wellbeing score of ${
+          currentScore ?? "—"
+        }. ${
+          mostImproved
+            ? `${mostImproved.label} is currently showing the strongest improvement.`
+            : "More follow-up data is needed before reliable improvement patterns can be shown."
+        } The most common anonymous theme is ${mostCommonTheme}. Continued use over the full trial period will give stronger evidence of direction and help identify where support should be focused next.`;
+
   return (
     <RootAtmosphere type="coach">
       <Nav />
@@ -170,11 +251,8 @@ export default function OrgInsightsPage() {
         <section style={styles.shell}>
           <div style={styles.header}>
             <RootEnso size={90} />
-
             <p style={styles.kicker}>Root Health</p>
-
             <h1 style={styles.title}>Organisation Insights</h1>
-
             <p style={styles.subtitle}>
               Anonymous wellbeing trends, engagement, support usage and early outcome movement for organisational review.
             </p>
@@ -185,30 +263,58 @@ export default function OrgInsightsPage() {
           ) : (
             <>
               <section style={styles.heroCard}>
-                <p style={styles.heroLabel}>Current trial</p>
-                <h2 style={styles.heroTitle}>
-                  {organisation?.name || "Root Health Trial Company"}
-                </h2>
-
-                <p style={styles.heroText}>
-                  Trial progress: {Math.round(trialProgress)}%
-                </p>
+                <div>
+                  <p style={styles.heroLabel}>Current trial</p>
+                  <h2 style={styles.heroTitle}>
+                    {organisation?.name || "Root Health Trial Company"}
+                  </h2>
+                  <p style={styles.heroText}>Trial progress: {Math.round(trialProgress)}%</p>
+                </div>
 
                 <div style={styles.progressTrack}>
-                  <div
-                    style={{
-                      ...styles.progressFill,
-                      width: `${trialProgress}%`,
-                    }}
-                  />
+                  <div style={{ ...styles.progressFill, width: `${trialProgress}%` }} />
                 </div>
+              </section>
+
+              <section style={styles.executiveGrid}>
+                <ExecutiveCard
+                  label="Wellbeing score"
+                  value={currentScore ?? "—"}
+                  detail={
+                    baselineScore !== null && currentScore !== null
+                      ? `Baseline ${baselineScore} → Current ${currentScore}`
+                      : "Waiting for comparison data"
+                  }
+                />
+
+                <ExecutiveCard
+                  label="Most improved"
+                  value={mostImproved?.label || "—"}
+                  detail={
+                    mostImproved
+                      ? changeText(mostImproved.start, mostImproved.current)
+                      : "More follow-up data needed"
+                  }
+                />
+
+                <ExecutiveCard
+                  label="Most common theme"
+                  value={mostCommonTheme}
+                  detail="Anonymous Thought Work theme"
+                />
+
+                <ExecutiveCard
+                  label="Most used support"
+                  value={mostUsedTool}
+                  detail="Based on saved support activity"
+                />
               </section>
 
               <section style={styles.cardGrid}>
                 <MetricCard title="Employees invited" value={invited || "—"} />
                 <MetricCard title="Activated" value={activated || "—"} />
                 <MetricCard title="Baselines completed" value={baselineCompleted || "—"} />
-                <MetricCard title="Voice sessions" value={voiceSessions.length} />
+                <MetricCard title="Engagement score" value={engagementScore ?? "—"} />
               </section>
 
               <section style={styles.panel}>
@@ -216,18 +322,26 @@ export default function OrgInsightsPage() {
                 <h2 style={styles.panelTitle}>Wellbeing snapshot</h2>
 
                 <div style={styles.metricRows}>
-                  {metrics.map(([label, key]) => {
-                    const start = average(baseline, key);
-                    const current = average(latest, key);
+                  {metricResults.map((item) => (
+                    <div key={item.key} style={styles.metricRow}>
+                      <strong>{item.label}</strong>
+                      <span>
+                        {format(item.start)} → {format(item.current)}
+                      </span>
+                      <em>{changeText(item.start, item.current)}</em>
+                    </div>
+                  ))}
+                </div>
+              </section>
 
-                    return (
-                      <div key={key} style={styles.metricRow}>
-                        <strong>{label}</strong>
-                        <span>{format(start)} → {format(current)}</span>
-                        <em>{changeText(start, current)}</em>
-                      </div>
-                    );
-                  })}
+              <section style={styles.panel}>
+                <p style={styles.panelLabel}>Chart view</p>
+                <h2 style={styles.panelTitle}>Current wellbeing load</h2>
+
+                <div style={styles.barPanel}>
+                  {metricResults.map((item) => (
+                    <BarRow key={item.key} label={item.label} value={item.current} />
+                  ))}
                 </div>
               </section>
 
@@ -266,18 +380,12 @@ export default function OrgInsightsPage() {
               </section>
 
               <section style={styles.reportCard}>
-                <p style={styles.panelLabel}>Automated report direction</p>
-                <h2 style={styles.panelTitle}>Draft executive insight</h2>
+                <p style={styles.panelLabel}>Automated executive summary</p>
+                <h2 style={styles.panelTitle}>Draft review narrative</h2>
 
-                <p style={styles.reportText}>
-                  Early organisation data will be summarised here. Root will compare baseline and current scores,
-                  highlight engagement, identify anonymous themes, and produce a professional review narrative suitable
-                  for HR, wellbeing or clinical leads.
-                </p>
+                <p style={styles.reportText}>{executiveInsight}</p>
 
-                <button style={styles.reportButton}>
-                  Generate report soon
-                </button>
+                <button style={styles.reportButton}>Generate PDF soon</button>
               </section>
 
               <p style={styles.privacy}>
@@ -288,15 +396,6 @@ export default function OrgInsightsPage() {
         </section>
       </main>
     </RootAtmosphere>
-  );
-}
-
-function MetricCard({ title, value }) {
-  return (
-    <div style={styles.metricCard}>
-      <p style={styles.metricLabel}>{title}</p>
-      <h2 style={styles.metricValue}>{value}</h2>
-    </div>
   );
 }
 
@@ -356,7 +455,8 @@ const styles = {
   heroCard: {
     padding: "30px",
     borderRadius: "34px",
-    background: "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
+    background:
+      "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(52,48,42,0.92))",
     color: "#FFFFFF",
     marginBottom: "22px",
   },
@@ -391,6 +491,35 @@ const styles = {
     height: "100%",
     borderRadius: "999px",
     background: "#FFFFFF",
+  },
+
+  executiveGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+    gap: "16px",
+    marginBottom: "18px",
+  },
+
+  executiveCard: {
+    padding: "26px",
+    borderRadius: "30px",
+    background:
+      "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,255,255,0.42))",
+    border: "1px solid rgba(255,255,255,0.76)",
+  },
+
+  executiveValue: {
+    margin: "0 0 8px",
+    fontSize: "34px",
+    color: "#181818",
+    lineHeight: "1.1",
+  },
+
+  executiveDetail: {
+    margin: 0,
+    color: "#5A554D",
+    lineHeight: "1.5",
+    fontSize: "14px",
   },
 
   cardGrid: {
@@ -460,6 +589,35 @@ const styles = {
     color: "#2A261F",
   },
 
+  barPanel: {
+    display: "grid",
+    gap: "16px",
+  },
+
+  barRow: {
+    display: "grid",
+    gap: "8px",
+  },
+
+  barTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    color: "#2A261F",
+  },
+
+  barTrack: {
+    height: "14px",
+    borderRadius: "999px",
+    background: "rgba(24,24,24,0.08)",
+    overflow: "hidden",
+  },
+
+  barFill: {
+    height: "100%",
+    borderRadius: "999px",
+    background: "#181818",
+  },
+
   twoColumn: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -483,7 +641,8 @@ const styles = {
   reportCard: {
     padding: "30px",
     borderRadius: "34px",
-    background: "linear-gradient(135deg, rgba(255,255,255,0.62), rgba(255,255,255,0.34))",
+    background:
+      "linear-gradient(135deg, rgba(255,255,255,0.62), rgba(255,255,255,0.34))",
     border: "1px solid rgba(255,255,255,0.72)",
     marginBottom: "18px",
   },
