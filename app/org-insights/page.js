@@ -538,28 +538,10 @@ detail="Total recorded support interactions"
                 <MetricCard title="Engagement score" value={engagementScore ?? "—"} />
               </section>
 
-              <section style={styles.panel}>
+             <section style={styles.panel}>
   <p style={styles.panelLabel}>Trend view</p>
   <h2 style={styles.panelTitle}>Wellbeing movement over time</h2>
-
-  <div style={styles.trendPanel}>
-    {trendRows.length === 0 ? (
-      <p style={styles.empty}>No trend data recorded yet.</p>
-    ) : (
-      trendRows.map((row) => (
-        <div key={row.label} style={styles.trendRow}>
-          <strong style={styles.trendLabel}>{row.label}</strong>
-
-          <div style={styles.trendBars}>
-            <MiniBar label="Stress" value={row.stress} />
-            <MiniBar label="Burnout" value={row.burnout} />
-            <MiniBar label="Sleep" value={row.sleep} />
-            <MiniBar label="Recovery" value={row.recovery} />
-          </div>
-        </div>
-      ))
-    )}
-  </div>
+  <LineTrendChart rows={trendRows} />
 </section>
               <section style={styles.panel}>
                 <p style={styles.panelLabel}>Chart view</p>
