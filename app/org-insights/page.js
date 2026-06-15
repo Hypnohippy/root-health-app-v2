@@ -684,9 +684,9 @@ export default function OrgInsightsPage() {
                 <MetricCard title="Engagement score" value={engagementScore ?? "—"} />
               </section>
 
-              <section style={styles.panel}>
-                <LineTrendChart rows={trendRows} />
-              </section>
+          <section style={styles.chartPanel}>
+  <LineTrendChart rows={trendRows} />
+</section>
 
               <section style={styles.panel}>
                 <p style={styles.panelLabel}>Chart view</p>
@@ -932,6 +932,15 @@ const styles = {
     fontSize: "28px",
     color: "#181818",
   },
+  chartPanel: {
+  padding: "28px",
+  borderRadius: "32px",
+  background: "rgba(255,255,255,0.28)",
+  border: "1px solid rgba(255,255,255,0.55)",
+  backdropFilter: "blur(22px)",
+  WebkitBackdropFilter: "blur(22px)",
+  marginBottom: "18px",
+},
 
  
   chartInsight: {
