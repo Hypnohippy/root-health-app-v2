@@ -673,13 +673,20 @@ const confidenceLabel =
     : "Early Stage";
 
 const nextReviewFocus = [
-  mostCommonTheme,
-  metricResults.find((m) => m.current >= 6)?.label || "Recovery consistency",
-  engagementScore !== null && engagementScore < 60
-    ? "Employee participation"
-    : "Maintain engagement",
-];
+  mostCommonTheme
+    ? `Continue monitoring ${mostCommonTheme.toLowerCase()}`
+    : "Continue monitoring workforce wellbeing",
 
+  metricResults.find((m) => m.current >= 6)
+    ? `Improve ${metricResults
+        .find((m) => m.current >= 6)
+        .label.toLowerCase()}`
+    : "Improve recovery consistency",
+
+  engagementScore !== null && engagementScore < 60
+    ? "Increase employee participation"
+    : "Maintain employee engagement",
+];
 return (
   <RootAtmosphere type="coach">
       <Nav />
@@ -904,12 +911,13 @@ return (
   <p style={styles.panelLabel}>Recommended Actions</p>
   <h2 style={styles.panelTitle}>Immediate opportunities</h2>
 
-  <ul style={styles.reportList}>
-    {workforceNarrative.actions.map((item) => (
-      <li key={item}>{item}</li>
-    ))}
-  </ul>
-
+  <div style={styles.priorityGrid}>
+  {nextReviewFocus.map((item) => (
+    <div key={item} style={styles.priorityCard}>
+      {item}
+    </div>
+  ))}
+</div>
   <h3 style={styles.smallHeading}>Watch areas</h3>
 
   <ul style={styles.reportList}>
@@ -931,7 +939,7 @@ return (
 </section>
 
 <section style={styles.reportCard}>
-  <p style={styles.panelLabel}>Additional Support Options</p>
+ <p style={styles.panelLabel}>Optional Organisational Development</p>
   <h2 style={styles.panelTitle}>Optional organisational support</h2>
 
   <ul style={styles.reportList}>
@@ -945,7 +953,7 @@ return (
     onClick={() => window.print()}
   >
       <section style={styles.reportCard}>
-  <p style={styles.panelLabel}>Next Review Focus</p>
+  <p style={styles.panelLabel}>Recommended Priorities</p>
   <h2 style={styles.panelTitle}>Recommended priorities</h2>
 
   <ul style={styles.reportList}>
@@ -954,7 +962,7 @@ return (
     ))}
   </ul>
 </section>
-    Generate PDF Report
+    Generate Executive Report
   </button>
 </section>
               <p style={styles.privacy}>
@@ -1368,6 +1376,24 @@ confidenceFill: {
   height: "100%",
   background: "#181818",
   borderRadius: "999px",
+},
+    priorityGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+  gap: "16px",
+  marginTop: "12px",
+},
+
+priorityCard: {
+  padding: "18px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.32)",
+  border: "1px solid rgba(255,255,255,0.55)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  color: "#181818",
+  fontWeight: 600,
+  lineHeight: 1.5,
 },
 
 smallHeading: {
