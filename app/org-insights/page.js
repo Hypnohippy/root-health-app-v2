@@ -173,11 +173,11 @@ function TrendBadge({ label, start, current }) {
       }}
     >
       <span style={styles.trendBadgeSymbol}>{trend.symbol}</span>
-      <div>
-        <strong>{label}</strong>
-        <span>{trend.label}</span>
+      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+  <strong>{label}</strong>
+  <span>{trend.label}</span>
+</div>
       </div>
-    </div>
   );
 }
 
