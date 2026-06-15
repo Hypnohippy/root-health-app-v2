@@ -880,6 +880,27 @@ return (
 </section>
 
 <section style={styles.reportCard}>
+                  <section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Root Confidence Rating</p>
+
+  <h2 style={styles.panelTitle}>
+    {confidenceLabel} Confidence
+  </h2>
+
+  <div style={styles.confidenceTrack}>
+    <div
+      style={{
+        ...styles.confidenceFill,
+        width: `${confidenceScore}%`,
+      }}
+    />
+  </div>
+
+  <p style={styles.reportText}>
+    Based on {assessments.length} assessments and{" "}
+    {supportInteractions} support interactions.
+  </p>
+</section>
   <p style={styles.panelLabel}>Executive Summary</p>
   <h2 style={styles.panelTitle}>Current organisational picture</h2>
 
@@ -941,7 +962,9 @@ return (
 <section style={styles.finalGrid}>
   <section style={styles.finalPanel}>
     <p style={styles.panelLabel}>Optional Organisational Development</p>
-    <h2 style={styles.panelTitle}>Optional organisational support</h2>
+    <h2 style={styles.panelTitle}>
+  Organisational Development Opportunities
+</h2>
 
     <div style={styles.supportOptionList}>
       {workforceNarrative.support.map((item, index) => (
@@ -977,7 +1000,7 @@ return (
     style={styles.reportButton}
     onClick={() => window.print()}
   >
-    Generate Executive Report
+    Generate Executive Review
   </button>
 </section>
 
