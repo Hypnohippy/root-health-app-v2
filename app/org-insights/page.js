@@ -217,11 +217,8 @@ function LineTrendChart({ rows = [] }) {
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{
-              filter: `drop-shadow(0 0 8px ${item.color})`,
-              strokeDasharray: 1400,
-              strokeDashoffset: 1400,
-              animation: "drawLine 1.6s ease forwards",
-            }}
+  filter: `drop-shadow(0 0 8px ${item.color})`,
+}}
           />
         ))}
 
