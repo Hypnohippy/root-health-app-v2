@@ -742,7 +742,12 @@ export default function OrgInsightsPage() {
 
                 <p style={styles.reportText}>{executiveInsight}</p>
 
-                <button style={styles.reportButton}>Generate PDF soon</button>
+                <button
+  style={styles.reportButton}
+  onClick={() => window.print()}
+>
+  Generate PDF report
+</button>
               </section>
 
               <p style={styles.privacy}>
