@@ -933,115 +933,7 @@ const styles = {
     color: "#181818",
   },
 
-  premiumChartCard: {
-    padding: "30px",
-    borderRadius: "32px",
-    background:
-      "linear-gradient(135deg, rgba(13,20,38,0.98), rgba(30,36,82,0.94))",
-    border: "1px solid rgba(120,132,255,0.42)",
-    boxShadow: "0 28px 80px rgba(10,14,32,0.36)",
-    overflow: "hidden",
-  },
-
-  chartHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "18px",
-    marginBottom: "20px",
-    flexWrap: "wrap",
-  },
-
-  chartKicker: {
-    margin: "0 0 8px",
-    color: "rgba(255,255,255,0.62)",
-    fontSize: "12px",
-    textTransform: "uppercase",
-    letterSpacing: "0.14em",
-    fontWeight: "800",
-  },
-
-  chartTitle: {
-    margin: "0 0 8px",
-    color: "#FFFFFF",
-    fontSize: "30px",
-  },
-
-  chartHint: {
-    margin: 0,
-    color: "rgba(255,255,255,0.68)",
-    lineHeight: "1.5",
-  },
-
-  chartMiniSummary: {
-    minWidth: "240px",
-    padding: "16px",
-    borderRadius: "20px",
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "#FFFFFF",
-  },
-
-  trendBadgeGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "12px",
-    marginBottom: "22px",
-  },
-
-  trendBadge: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "14px",
-    borderRadius: "18px",
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "rgba(255,255,255,0.78)",
-  },
-
-  trendBadgeGood: {
-    background: "rgba(34,197,94,0.14)",
-    border: "1px solid rgba(34,197,94,0.32)",
-  },
-
-  trendBadgeWatch: {
-    background: "rgba(249,115,22,0.14)",
-    border: "1px solid rgba(249,115,22,0.32)",
-  },
-
-  trendBadgeSymbol: {
-    fontSize: "24px",
-    fontWeight: "900",
-  },
-
-  svgChart: {
-    width: "100%",
-    height: "auto",
-    display: "block",
-  },
-
-  chartLegend: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "14px",
-    marginTop: "18px",
-  },
-
-  legendItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    fontSize: "13px",
-    color: "rgba(255,255,255,0.82)",
-    fontWeight: "700",
-  },
-
-  legendDot: {
-    width: "11px",
-    height: "11px",
-    borderRadius: "50%",
-  },
-
+ 
   chartInsight: {
     marginTop: "22px",
     padding: "18px",
@@ -1051,7 +943,123 @@ const styles = {
     color: "rgba(255,255,255,0.82)",
     lineHeight: "1.7",
   },
+premiumChartCard: {
+  padding: "30px",
+  borderRadius: "34px",
+  background: "rgba(255,255,255,0.58)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  backdropFilter: "blur(22px)",
+  WebkitBackdropFilter: "blur(22px)",
+  boxShadow: "0 24px 80px rgba(20,18,15,0.12)",
+},
 
+chartHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "18px",
+  marginBottom: "24px",
+  flexWrap: "wrap",
+},
+
+chartKicker: {
+  margin: "0 0 8px",
+  color: "#6F675B",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  fontWeight: "800",
+},
+
+chartTitle: {
+  margin: "0 0 8px",
+  color: "#181818",
+  fontSize: "30px",
+  lineHeight: "1.1",
+},
+
+chartHint: {
+  margin: 0,
+  color: "#5A554D",
+  lineHeight: "1.6",
+},
+
+chartMiniSummary: {
+  minWidth: "260px",
+  padding: "16px",
+  borderRadius: "20px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+},
+
+trendBadgeGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "12px",
+  marginBottom: "24px",
+},
+
+trendBadge: {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  padding: "14px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+},
+
+trendBadgeGood: {
+  background: "rgba(34,197,94,0.12)",
+},
+
+trendBadgeWatch: {
+  background: "rgba(249,115,22,0.12)",
+},
+
+trendBadgeSymbol: {
+  fontSize: "24px",
+  fontWeight: "900",
+},
+
+svgChart: {
+  width: "100%",
+  height: "auto",
+  display: "block",
+},
+
+chartLegend: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "14px",
+  marginTop: "20px",
+},
+
+legendItem: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontSize: "13px",
+  color: "#181818",
+  fontWeight: "700",
+},
+
+legendDot: {
+  width: "11px",
+  height: "11px",
+  borderRadius: "50%",
+},
+
+chartInsight: {
+  marginTop: "22px",
+  padding: "18px",
+  borderRadius: "22px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+  lineHeight: "1.8",
+},
   barPanel: {
     display: "grid",
     gap: "16px",
