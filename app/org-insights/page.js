@@ -938,34 +938,65 @@ return (
   </ul>
 </section>
 
-<section style={styles.reportCard}>
- <p style={styles.panelLabel}>Optional Organisational Development</p>
-  <h2 style={styles.panelTitle}>Optional organisational support</h2>
+<section style={styles.finalGrid}>
+  <section style={styles.finalPanel}>
+    <p style={styles.panelLabel}>Optional Organisational Development</p>
+    <h2 style={styles.panelTitle}>Optional organisational support</h2>
 
-  <ul style={styles.reportList}>
-    {workforceNarrative.support.map((item) => (
-      <li key={item}>{item}</li>
-    ))}
-  </ul>
+    <div style={styles.supportOptionList}>
+      {workforceNarrative.support.map((item, index) => (
+        <div key={item} style={styles.supportOptionRow}>
+          <span style={styles.supportIcon}>
+            {["◌", "◎", "◇", "✦"][index % 4]}
+          </span>
+          <span>{item}</span>
+        </div>
+      ))}
+    </div>
+  </section>
 
+  <section style={styles.finalPanel}>
+    <p style={styles.panelLabel}>Recommended Priorities</p>
+    <h2 style={styles.panelTitle}>Recommended priorities</h2>
+
+    <div style={styles.priorityGrid}>
+      {nextReviewFocus.map((item, index) => (
+        <div key={item} style={styles.priorityCard}>
+          <span style={styles.priorityIcon}>
+            {["↗", "◒", "☷"][index % 3]}
+          </span>
+          <strong>{item}</strong>
+        </div>
+      ))}
+    </div>
+  </section>
+</section>
+
+<section style={styles.reportActionCard}>
   <button
     style={styles.reportButton}
     onClick={() => window.print()}
   >
-      <section style={styles.reportCard}>
-  <p style={styles.panelLabel}>Recommended Priorities</p>
-  <h2 style={styles.panelTitle}>Recommended priorities</h2>
-
-  <ul style={styles.reportList}>
-    {nextReviewFocus.map((item) => (
-      <li key={item}>{item}</li>
-    ))}
-  </ul>
-</section>
     Generate Executive Report
   </button>
 </section>
-              <p style={styles.privacy}>
+
+<section style={styles.reportFooter}>
+  <div style={styles.footerItem}>
+    <strong>Root Health</strong>
+    <span>Organisational Wellbeing Review</span>
+  </div>
+
+  <div style={styles.footerItem}>
+    <strong>Confidential</strong>
+    <span>For internal use only</span>
+  </div>
+
+  <div style={styles.footerItem}>
+    <strong>Generated automatically</strong>
+    <span>From anonymised workforce data</span>
+  </div>
+</section>              <p style={styles.privacy}>
                 This dashboard should only show anonymous organisation-level trends.
                 Individual user reflections should never be visible to managers.
               </p>
@@ -1416,7 +1447,105 @@ smallHeading: {
     cursor: "pointer",
     fontWeight: "800",
   },
+  finalGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+  gap: "18px",
+  marginBottom: "18px",
+},
 
+finalPanel: {
+  padding: "30px",
+  borderRadius: "34px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+},
+
+supportOptionList: {
+  display: "grid",
+  gap: "18px",
+  marginTop: "18px",
+},
+
+supportOptionRow: {
+  display: "flex",
+  alignItems: "center",
+  gap: "16px",
+  color: "#181818",
+  fontWeight: "700",
+  fontSize: "17px",
+},
+
+supportIcon: {
+  width: "42px",
+  height: "42px",
+  borderRadius: "50%",
+  display: "grid",
+  placeItems: "center",
+  background: "rgba(220,230,205,0.6)",
+  color: "#526943",
+  fontWeight: "900",
+},
+
+priorityGrid: {
+  display: "grid",
+  gap: "14px",
+  marginTop: "18px",
+},
+
+priorityCard: {
+  display: "flex",
+  alignItems: "center",
+  gap: "16px",
+  padding: "18px",
+  borderRadius: "20px",
+  background: "rgba(255,255,255,0.46)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+  lineHeight: "1.45",
+},
+
+priorityIcon: {
+  width: "42px",
+  height: "42px",
+  borderRadius: "50%",
+  display: "grid",
+  placeItems: "center",
+  background: "rgba(220,230,205,0.6)",
+  color: "#526943",
+  fontWeight: "900",
+  flexShrink: 0,
+},
+
+reportActionCard: {
+  padding: "30px",
+  borderRadius: "34px",
+  background: "rgba(255,255,255,0.36)",
+  border: "1px solid rgba(255,255,255,0.65)",
+  display: "flex",
+  justifyContent: "center",
+  marginBottom: "18px",
+},
+
+reportFooter: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "18px",
+  padding: "22px",
+  borderRadius: "28px",
+  background: "rgba(255,255,255,0.34)",
+  border: "1px solid rgba(255,255,255,0.58)",
+  color: "#181818",
+  marginBottom: "18px",
+},
+
+footerItem: {
+  display: "grid",
+  gap: "4px",
+  fontSize: "14px",
+},
   privacy: {
     textAlign: "center",
     fontSize: "13px",
