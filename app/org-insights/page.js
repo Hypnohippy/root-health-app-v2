@@ -998,7 +998,7 @@ return (
 <section style={styles.reportActionCard}>
  <button
   style={styles.reportButton}
-  onClick={() => window.open("/executive-review", "_blank")}
+  onClick={() => window.open("/executive-review?print=1", "_blank")}
 >
   Generate Executive Review
 </button>
