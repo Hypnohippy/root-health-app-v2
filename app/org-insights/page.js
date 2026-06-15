@@ -119,6 +119,72 @@ function trendLabel(start, current) {
   };
 }
 
+function buildWorkforceNarrative({
+  metricResults = [],
+  mostCommonTheme = "",
+  supportInteractions = 0,
+  currentScore = null,
+}) {
+  const improved = metricResults
+    .filter((item) => item.change !== null && item.change < 0)
+    .sort((a, b) => a.change - b.change);
+
+  const worsened = metricResults
+    .filter((item) => item.change !== null && item.change > 0)
+    .sort((a, b) => b.change - a.change);
+
+  const strongest = improved[0];
+  const watch = worsened[0];
+
+  const insight = strongest
+    ? `${strongest.label} showed the strongest improvement during the review period, moving from ${format(
+        strongest.start
+      )} to ${format(strongest.current)}. ${
+        watch
+          ? `${watch.label} increased during the same period and should be watched as more data is collected.`
+          : "Several indicators are beginning to show a healthier direction of travel."
+      } Overall, current data suggests early positive movement, although a longer review period will give greater confidence.`
+    : "Root is still gathering enough follow-up data to identify reliable workforce movement.";
+
+  const executiveSummary = `Early workforce wellbeing data indicates ${
+    currentScore !== null ? `a current wellbeing score of ${currentScore}` : "an emerging baseline"
+  }. ${
+    strongest
+      ? `${strongest.label} is currently the strongest area of improvement.`
+      : "More follow-up data is needed before improvement patterns can be confirmed."
+  } The most common anonymous workforce challenge is ${mostCommonTheme}. Support engagement currently stands at ${supportInteractions} recorded interactions.`;
+
+  const actions = [
+    "Encourage weekly wellbeing check-ins so movement can be tracked more reliably.",
+    "Promote Voice Coach and Thought Work as practical support routes between formal reviews.",
+    "Use team conversations to normalise recovery, sleep, stress and burnout awareness.",
+  ];
+
+  const watchAreas = [
+    watch ? `${watch.label} should be monitored during the next review period.` : "Continue monitoring sleep, recovery and burnout consistency.",
+    mostCommonTheme !== "No challenge data yet"
+      ? `${mostCommonTheme} appears as the strongest anonymous workforce challenge.`
+      : "More anonymous theme data is needed.",
+  ];
+
+  const learning = [
+    strongest?.label === "Stress" || mostCommonTheme.includes("Workplace")
+      ? "Stress Management and Workplace Resilience"
+      : "Emotional Resilience Foundations",
+    "Burnout Prevention and Recovery Habits",
+    "Sleep, Energy and Recovery Foundations",
+    "Practical Lifestyle Coaching Principles",
+  ];
+
+  const support = [
+    "Lifestyle Coaching",
+    "Wellbeing Workshops",
+    "Manager Awareness Training",
+    "Resilience Programmes",
+  ];
+
+  return { insight, executiveSummary, actions, watchAreas, learning, support };
+}
 function scoreFromAssessments(items) {
   if (!items.length) return null;
 
@@ -578,7 +644,15 @@ export default function OrgInsightsPage() {
             ? `${mostImproved.label} is currently showing the strongest improvement.`
             : "More follow-up data is needed before reliable improvement patterns can be shown."
         } The most common anonymous challenge is ${mostCommonTheme}. Continued use over the full trial period will give stronger evidence of direction and help identify where support should be focused next.`;
+const supportInteractions =
+  mindEntries.length + journalEntries.length + voiceSessions.length;
 
+const workforceNarrative = buildWorkforceNarrative({
+  metricResults,
+  mostCommonTheme,
+  supportInteractions,
+  currentScore,
+});
   return (
     <RootAtmosphere type="coach">
       <Nav />
