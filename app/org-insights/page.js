@@ -47,23 +47,20 @@ function mapChallengeTheme(theme = "") {
     return "Performance Pressure";
   }
 
-  if (
-    value.includes("shame") ||
-    value.includes("self")
-  ) {
+  if (value.includes("shame") || value.includes("self")) {
     return "Self-Criticism";
   }
 
-  if (
-    value.includes("unclear")
-  ) {
+  if (value.includes("unclear")) {
     return "Emotional Uncertainty";
   }
 
   return theme || "Other";
 }
+
 function countBy(items, key) {
   const counts = {};
+
   items.forEach((item) => {
     const value = item[key];
     if (!value) return;
@@ -88,6 +85,40 @@ function changeText(start, current) {
   return "No change yet";
 }
 
+function trendLabel(start, current) {
+  const change = metricChange(start, current);
+
+  if (change === null) {
+    return {
+      label: "Awaiting data",
+      symbol: "•",
+      tone: "neutral",
+    };
+  }
+
+  if (change <= -1) {
+    return {
+      label: "Improving",
+      symbol: "↓",
+      tone: "good",
+    };
+  }
+
+  if (change >= 1) {
+    return {
+      label: "Needs attention",
+      symbol: "↑",
+      tone: "watch",
+    };
+  }
+
+  return {
+    label: "Stable",
+    symbol: "→",
+    tone: "neutral",
+  };
+}
+
 function scoreFromAssessments(items) {
   if (!items.length) return null;
 
@@ -100,13 +131,13 @@ function scoreFromAssessments(items) {
     "focus_score",
   ];
 
-  const avgLoad =
-    keys
-      .map((key) => average(items, key))
-      .filter((value) => value !== null)
-      .reduce((sum, value, index, arr) => sum + value / arr.length, 0) || null;
+  const values = keys
+    .map((key) => average(items, key))
+    .filter((value) => value !== null);
 
-  if (avgLoad === null) return null;
+  if (values.length === 0) return null;
+
+  const avgLoad = values.reduce((sum, value) => sum + value, 0) / values.length;
 
   return Math.round(100 - avgLoad * 10);
 }
@@ -130,49 +161,67 @@ function MetricCard({ title, value }) {
   );
 }
 
-function MiniBar({ label, value }) {
-  const percent =
-    Number.isNaN(Number(value)) ? 0 : Math.min(100, Math.max(0, Number(value) * 10));
+function TrendBadge({ label, start, current }) {
+  const trend = trendLabel(start, current);
 
   return (
-    <div style={styles.miniBarWrap}>
-      <span style={styles.miniBarLabel}>{label}</span>
-      <div style={styles.miniBarTrack}>
-        <div style={{ ...styles.miniBarFill, width: `${percent}%` }} />
+    <div
+      style={{
+        ...styles.trendBadge,
+        ...(trend.tone === "good" ? styles.trendBadgeGood : {}),
+        ...(trend.tone === "watch" ? styles.trendBadgeWatch : {}),
+      }}
+    >
+      <span style={styles.trendBadgeSymbol}>{trend.symbol}</span>
+      <div>
+        <strong>{label}</strong>
+        <span>{trend.label}</span>
       </div>
-      <span style={styles.miniBarValue}>{Number.isNaN(Number(value)) ? "—" : value}</span>
     </div>
   );
 }
+
 function LineTrendChart({ rows = [] }) {
-  const width = 1000;
-  const height = 380;
-  const padding = 58;
+  const width = 1100;
+  const height = 430;
+  const paddingLeft = 70;
+  const paddingRight = 70;
+  const paddingTop = 44;
+  const paddingBottom = 66;
 
   const series = [
-    { key: "stress", label: "Stress", color: "#ef4444" },
-    { key: "burnout", label: "Burnout", color: "#f97316" },
-    { key: "sleep", label: "Sleep difficulty", color: "#3b82f6" },
-    { key: "recovery", label: "Recovery difficulty", color: "#22c55e" },
+    { key: "stress", label: "Stress", color: "#ff3b45" },
+    { key: "burnout", label: "Burnout", color: "#ff8a1f" },
+    { key: "sleep", label: "Sleep difficulty", color: "#3b82ff" },
+    { key: "recovery", label: "Recovery difficulty", color: "#17c964" },
   ];
 
+  const safeRows = rows.filter((row) => row);
+
   const xFor = (index) =>
-    padding + (index / Math.max(rows.length - 1, 1)) * (width - padding * 2);
+    paddingLeft +
+    (index / Math.max(safeRows.length - 1, 1)) *
+      (width - paddingLeft - paddingRight);
 
   const yFor = (value) =>
-    height - padding - (Number(value || 0) / 10) * (height - padding * 2);
+    height -
+    paddingBottom -
+    (Number(value || 0) / 10) * (height - paddingTop - paddingBottom);
 
   const pathFor = (key) =>
-    rows
+    safeRows
       .map((row, index) => {
         const command = index === 0 ? "M" : "L";
         return `${command} ${xFor(index)} ${yFor(row[key])}`;
       })
       .join(" ");
 
-  if (!rows.length) {
+  if (!safeRows.length) {
     return <p style={styles.empty}>No trend data recorded yet.</p>;
   }
+
+  const first = safeRows[0];
+  const last = safeRows[safeRows.length - 1];
 
   return (
     <div style={styles.premiumChartCard}>
@@ -180,23 +229,49 @@ function LineTrendChart({ rows = [] }) {
         <div>
           <p style={styles.chartKicker}>Executive trend</p>
           <h3 style={styles.chartTitle}>Wellbeing movement over time</h3>
-          <p style={styles.chartHint}>Lower scores indicate reduced difficulty.</p>
+          <p style={styles.chartHint}>
+            Lower scores indicate reduced difficulty. Latest values are highlighted.
+          </p>
+        </div>
+
+        <div style={styles.chartMiniSummary}>
+          <span>Current snapshot</span>
+          <strong>
+            Stress {last.stress} · Burnout {last.burnout} · Sleep {last.sleep} · Recovery{" "}
+            {last.recovery}
+          </strong>
         </div>
       </div>
 
+      <div style={styles.trendBadgeGrid}>
+        <TrendBadge label="Stress" start={first.stress} current={last.stress} />
+        <TrendBadge label="Burnout" start={first.burnout} current={last.burnout} />
+        <TrendBadge label="Sleep" start={first.sleep} current={last.sleep} />
+        <TrendBadge label="Recovery" start={first.recovery} current={last.recovery} />
+      </div>
+
       <svg viewBox={`0 0 ${width} ${height}`} style={styles.svgChart}>
+        <defs>
+          <radialGradient id="chartGlow" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </radialGradient>
+        </defs>
+
+        <rect x="0" y="0" width={width} height={height} fill="url(#chartGlow)" />
+
         {[0, 2, 4, 6, 8, 10].map((tick) => (
           <g key={tick}>
             <line
-              x1={padding}
-              x2={width - padding}
+              x1={paddingLeft}
+              x2={width - paddingRight}
               y1={yFor(tick)}
               y2={yFor(tick)}
-              stroke="rgba(255,255,255,0.10)"
+              stroke="rgba(255,255,255,0.12)"
               strokeWidth="1"
             />
             <text
-              x={padding - 22}
+              x={paddingLeft - 28}
               y={yFor(tick) + 5}
               fontSize="13"
               fill="rgba(255,255,255,0.62)"
@@ -207,51 +282,71 @@ function LineTrendChart({ rows = [] }) {
           </g>
         ))}
 
-        {series.map((item) => (
+        {series.map((item, index) => (
           <path
             key={item.key}
             d={pathFor(item.key)}
             fill="none"
             stroke={item.color}
-            strokeWidth="4"
+            strokeWidth="5"
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{
-  filter: `drop-shadow(0 0 8px ${item.color})`,
-}}
+              filter: `drop-shadow(0 0 10px ${item.color})`,
+              strokeDasharray: 1600,
+              strokeDashoffset: 1600,
+              animation: `drawLine 1.6s ${index * 0.14}s ease forwards`,
+            }}
           />
         ))}
 
-        {rows.map((row, rowIndex) =>
-          series.map((item) => {
-            const isLast = rowIndex === rows.length - 1;
+        {safeRows.map((row, rowIndex) =>
+          series.map((item, index) => {
+            const isLast = rowIndex === safeRows.length - 1;
 
             return (
               <circle
                 key={`${item.key}-${rowIndex}`}
                 cx={xFor(rowIndex)}
                 cy={yFor(row[item.key])}
-                r={isLast ? "7" : "5"}
+                r={isLast ? "8" : "5"}
                 fill="#101827"
                 stroke={item.color}
                 strokeWidth={isLast ? "4" : "3"}
                 style={{
-                  filter: isLast ? `drop-shadow(0 0 10px ${item.color})` : "none",
-                  animation: isLast ? "pulseDot 2.4s ease-in-out infinite" : "none",
+                  filter: isLast
+                    ? `drop-shadow(0 0 16px ${item.color})`
+                    : `drop-shadow(0 0 4px ${item.color})`,
+                  animation: isLast
+                    ? "pulseDot 2.4s ease-in-out infinite"
+                    : `fadeDot 0.8s ${0.2 + index * 0.08}s ease forwards`,
                 }}
               />
             );
           })
         )}
 
-        {rows.map((row, index) => (
+        {series.map((item) => (
+          <text
+            key={`${item.key}-latest-label`}
+            x={width - paddingRight + 18}
+            y={yFor(last[item.key]) + 5}
+            fontSize="13"
+            fill={item.color}
+            fontWeight="800"
+          >
+            {last[item.key]}
+          </text>
+        ))}
+
+        {safeRows.map((row, index) => (
           <text
             key={row.label}
             x={xFor(index)}
-            y={height - 16}
+            y={height - 24}
             textAnchor="middle"
             fontSize="13"
-            fill="rgba(255,255,255,0.68)"
+            fill="rgba(255,255,255,0.72)"
           >
             {row.label}
           </text>
@@ -266,10 +361,23 @@ function LineTrendChart({ rows = [] }) {
           </span>
         ))}
       </div>
+
+      <div style={styles.chartInsight}>
+        <strong>Root insight</strong>
+        <p>
+          Stress moved from {first.stress} to {last.stress}, while burnout moved from{" "}
+          {first.burnout} to {last.burnout}. Sleep difficulty should be watched because
+          it showed the largest temporary movement during the period. Overall, the chart
+          is beginning to show a clearer direction of change.
+        </p>
+      </div>
     </div>
   );
-}function BarRow({ label, value, max = 10 }) {
-  const percent = value === null ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
+}
+
+function BarRow({ label, value, max = 10 }) {
+  const percent =
+    value === null ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
     <div style={styles.barRow}>
@@ -356,7 +464,10 @@ export default function OrgInsightsPage() {
     setLoading(false);
   };
 
-  const baseline = assessments.filter((item) => item.assessment_type === "baseline");
+  const baseline = assessments.filter(
+    (item) => item.assessment_type === "baseline"
+  );
+
   const latest = assessments.length > 0 ? [assessments[assessments.length - 1]] : [];
 
   const metrics = [
@@ -369,30 +480,29 @@ export default function OrgInsightsPage() {
   ];
 
   const themeCounts = useMemo(
-  () =>
-    countBy(
-      mindEntries.filter(
-        (entry) =>
-          entry.thought_theme &&
-          entry.thought_theme !== "Unclear emotional meaning"
+    () =>
+      countBy(
+        mindEntries.filter(
+          (entry) =>
+            entry.thought_theme &&
+            entry.thought_theme !== "Unclear emotional meaning"
+        ),
+        "thought_theme"
       ),
-      "thought_theme"
-    ),
-  [mindEntries]
-);
+    [mindEntries]
+  );
 
-const toolCounts = useMemo(
-  () =>
-    countBy(
-      mindEntries.filter(
-        (entry) =>
-          entry.tool &&
-          entry.tool !== "Emotional check-in"
+  const toolCounts = useMemo(
+    () =>
+      countBy(
+        mindEntries.filter(
+          (entry) => entry.tool && entry.tool !== "Emotional check-in"
+        ),
+        "tool"
       ),
-      "tool"
-    ),
-  [mindEntries]
-);
+    [mindEntries]
+  );
+
   const invited = members.length;
   const activated = members.filter((m) => m.activated_at).length;
   const baselineCompleted = members.filter((m) => m.baseline_completed_at).length;
@@ -401,15 +511,18 @@ const toolCounts = useMemo(
   const currentScore = scoreFromAssessments(latest);
 
   const engagementScore =
-    invited > 0 ? Math.round(((activated + baselineCompleted) / (invited * 2)) * 100) : null;
-  
+    invited > 0
+      ? Math.round(((activated + baselineCompleted) / (invited * 2)) * 100)
+      : null;
+
   const trendRows = assessments.map((entry, index) => ({
-  label: entry.assessment_type === "baseline" ? "Baseline" : `Check-in ${index}`,
-  stress: Number(entry.stress_score),
-  burnout: Number(entry.burnout_score),
-  sleep: Number(entry.sleep_score),
-  recovery: Number(entry.recovery_score),
-}));
+    label: entry.assessment_type === "baseline" ? "Baseline" : `Check-in ${index}`,
+    stress: Number(entry.stress_score),
+    burnout: Number(entry.burnout_score),
+    sleep: Number(entry.sleep_score),
+    recovery: Number(entry.recovery_score),
+  }));
+
   const metricResults = metrics.map(([label, key]) => {
     const start = average(baseline, key);
     const current = average(latest, key);
@@ -422,20 +535,25 @@ const toolCounts = useMemo(
     .sort((a, b) => a.change - b.change)[0];
 
   const mappedChallengeCounts = countBy(
-  mindEntries
-    .filter((entry) => entry.thought_theme)
-    .map((entry) => ({
-      challenge: mapChallengeTheme(entry.thought_theme),
-    })),
-  "challenge"
-);
+    mindEntries
+      .filter((entry) => entry.thought_theme)
+      .map((entry) => ({
+        challenge: mapChallengeTheme(entry.thought_theme),
+      })),
+    "challenge"
+  );
 
-const mostCommonTheme =
-  mappedChallengeCounts[0]?.[0] || "No challenge data yet";
-  const mostUsedTool = toolCounts[0]?.[0] || "No tool data yet";
+  const mostCommonTheme =
+    mappedChallengeCounts[0]?.[0] || "No challenge data yet";
 
-  const trialStart = organisation?.trial_start ? new Date(organisation.trial_start) : null;
-  const trialEnd = organisation?.trial_end ? new Date(organisation.trial_end) : null;
+  const trialStart = organisation?.trial_start
+    ? new Date(organisation.trial_start)
+    : null;
+
+  const trialEnd = organisation?.trial_end
+    ? new Date(organisation.trial_end)
+    : null;
+
   const today = new Date();
 
   const trialProgress =
@@ -460,20 +578,40 @@ const mostCommonTheme =
           mostImproved
             ? `${mostImproved.label} is currently showing the strongest improvement.`
             : "More follow-up data is needed before reliable improvement patterns can be shown."
-        } The most common anonymous theme is ${mostCommonTheme}. Continued use over the full trial period will give stronger evidence of direction and help identify where support should be focused next.`;
+        } The most common anonymous challenge is ${mostCommonTheme}. Continued use over the full trial period will give stronger evidence of direction and help identify where support should be focused next.`;
 
   return (
     <RootAtmosphere type="coach">
       <Nav />
 
       <main style={styles.page}>
+        <style>{`
+          @keyframes drawLine {
+            to {
+              stroke-dashoffset: 0;
+            }
+          }
+
+          @keyframes pulseDot {
+            0% { transform: scale(1); opacity: 0.86; }
+            50% { transform: scale(1.28); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.86; }
+          }
+
+          @keyframes fadeDot {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}</style>
+
         <section style={styles.shell}>
           <div style={styles.header}>
             <RootEnso size={90} />
             <p style={styles.kicker}>Root Health</p>
             <h1 style={styles.title}>Organisation Insights</h1>
             <p style={styles.subtitle}>
-              Anonymous wellbeing trends, engagement, support usage and early outcome movement for organisational review.
+              Anonymous wellbeing trends, engagement, support usage and early outcome
+              movement for organisational review.
             </p>
           </div>
 
@@ -487,11 +625,18 @@ const mostCommonTheme =
                   <h2 style={styles.heroTitle}>
                     {organisation?.name || "Root Health Trial Company"}
                   </h2>
-                  <p style={styles.heroText}>Trial progress: {Math.round(trialProgress)}%</p>
+                  <p style={styles.heroText}>
+                    Trial progress: {Math.round(trialProgress)}%
+                  </p>
                 </div>
 
                 <div style={styles.progressTrack}>
-                  <div style={{ ...styles.progressFill, width: `${trialProgress}%` }} />
+                  <div
+                    style={{
+                      ...styles.progressFill,
+                      width: `${trialProgress}%`,
+                    }}
+                  />
                 </div>
               </section>
 
@@ -516,37 +661,44 @@ const mostCommonTheme =
                   }
                 />
 
-               <ExecutiveCard
-  label="Most common challenge"
-  value={mostCommonTheme}
-  detail="Most frequently occurring anonymous workforce theme"
-/>
+                <ExecutiveCard
+                  label="Most common challenge"
+                  value={mostCommonTheme}
+                  detail="Most frequently occurring anonymous workforce theme"
+                />
 
                 <ExecutiveCard
-  label="Support engagement"
- value={mindEntries.length + journalEntries.length + voiceSessions.length}
-detail="Total recorded support interactions"
-/>              </section>
+                  label="Support engagement"
+                  value={mindEntries.length + journalEntries.length + voiceSessions.length}
+                  detail="Total recorded support interactions"
+                />
+              </section>
 
               <section style={styles.cardGrid}>
                 <MetricCard title="Employees invited" value={invited || "—"} />
                 <MetricCard title="Activated" value={activated || "—"} />
-                <MetricCard title="Baselines completed" value={baselineCompleted || "—"} />
+                <MetricCard
+                  title="Baselines completed"
+                  value={baselineCompleted || "—"}
+                />
                 <MetricCard title="Engagement score" value={engagementScore ?? "—"} />
               </section>
 
-             <section style={styles.panel}>
-  <p style={styles.panelLabel}>Trend view</p>
-  <h2 style={styles.panelTitle}>Wellbeing movement over time</h2>
-  <LineTrendChart rows={trendRows} />
-</section>
+              <section style={styles.panel}>
+                <LineTrendChart rows={trendRows} />
+              </section>
+
               <section style={styles.panel}>
                 <p style={styles.panelLabel}>Chart view</p>
                 <h2 style={styles.panelTitle}>Current wellbeing load</h2>
 
                 <div style={styles.barPanel}>
                   {metricResults.map((item) => (
-                    <BarRow key={item.key} label={item.label} value={item.current} />
+                    <BarRow
+                      key={item.key}
+                      label={item.label}
+                      value={item.current}
+                    />
                   ))}
                 </div>
               </section>
@@ -595,7 +747,8 @@ detail="Total recorded support interactions"
               </section>
 
               <p style={styles.privacy}>
-                This dashboard should only show anonymous organisation-level trends. Individual user reflections should never be visible to managers.
+                This dashboard should only show anonymous organisation-level trends.
+                Individual user reflections should never be visible to managers.
               </p>
             </>
           )}
@@ -780,19 +933,123 @@ const styles = {
     color: "#181818",
   },
 
-  metricRows: {
-    display: "grid",
-    gap: "10px",
+  premiumChartCard: {
+    padding: "30px",
+    borderRadius: "32px",
+    background:
+      "linear-gradient(135deg, rgba(13,20,38,0.98), rgba(30,36,82,0.94))",
+    border: "1px solid rgba(120,132,255,0.42)",
+    boxShadow: "0 28px 80px rgba(10,14,32,0.36)",
+    overflow: "hidden",
   },
 
-  metricRow: {
+  chartHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "18px",
+    marginBottom: "20px",
+    flexWrap: "wrap",
+  },
+
+  chartKicker: {
+    margin: "0 0 8px",
+    color: "rgba(255,255,255,0.62)",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    fontWeight: "800",
+  },
+
+  chartTitle: {
+    margin: "0 0 8px",
+    color: "#FFFFFF",
+    fontSize: "30px",
+  },
+
+  chartHint: {
+    margin: 0,
+    color: "rgba(255,255,255,0.68)",
+    lineHeight: "1.5",
+  },
+
+  chartMiniSummary: {
+    minWidth: "240px",
+    padding: "16px",
+    borderRadius: "20px",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    color: "#FFFFFF",
+  },
+
+  trendBadgeGrid: {
     display: "grid",
-    gridTemplateColumns: "1.2fr 1fr 1.3fr",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "12px",
+    marginBottom: "22px",
+  },
+
+  trendBadge: {
+    display: "flex",
+    alignItems: "center",
     gap: "12px",
     padding: "14px",
     borderRadius: "18px",
-    background: "rgba(255,255,255,0.62)",
-    color: "#2A261F",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    color: "rgba(255,255,255,0.78)",
+  },
+
+  trendBadgeGood: {
+    background: "rgba(34,197,94,0.14)",
+    border: "1px solid rgba(34,197,94,0.32)",
+  },
+
+  trendBadgeWatch: {
+    background: "rgba(249,115,22,0.14)",
+    border: "1px solid rgba(249,115,22,0.32)",
+  },
+
+  trendBadgeSymbol: {
+    fontSize: "24px",
+    fontWeight: "900",
+  },
+
+  svgChart: {
+    width: "100%",
+    height: "auto",
+    display: "block",
+  },
+
+  chartLegend: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "14px",
+    marginTop: "18px",
+  },
+
+  legendItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "13px",
+    color: "rgba(255,255,255,0.82)",
+    fontWeight: "700",
+  },
+
+  legendDot: {
+    width: "11px",
+    height: "11px",
+    borderRadius: "50%",
+  },
+
+  chartInsight: {
+    marginTop: "22px",
+    padding: "18px",
+    borderRadius: "22px",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    color: "rgba(255,255,255,0.82)",
+    lineHeight: "1.7",
   },
 
   barPanel: {
@@ -875,93 +1132,4 @@ const styles = {
     color: "#6F675B",
     lineHeight: "1.6",
   },
-  trendPanel: {
-  display: "grid",
-  gap: "18px",
-},
-
-trendRow: {
-  padding: "18px",
-  borderRadius: "24px",
-  background: "rgba(255,255,255,0.62)",
-  border: "1px solid rgba(255,255,255,0.68)",
-},
-
-trendLabel: {
-  display: "block",
-  marginBottom: "14px",
-  color: "#181818",
-},
-
-trendBars: {
-  display: "grid",
-  gap: "10px",
-},
-
-miniBarWrap: {
-  display: "grid",
-  gridTemplateColumns: "90px 1fr 36px",
-  gap: "10px",
-  alignItems: "center",
-},
-
-miniBarLabel: {
-  fontSize: "13px",
-  color: "#5A554D",
-  fontWeight: "700",
-},
-
-miniBarTrack: {
-  height: "10px",
-  borderRadius: "999px",
-  background: "rgba(24,24,24,0.08)",
-  overflow: "hidden",
-},
-
-miniBarFill: {
-  height: "100%",
-  borderRadius: "999px",
-  background: "#181818",
-},
-
-miniBarValue: {
-  fontSize: "13px",
-  color: "#181818",
-  fontWeight: "800",
-},
-  svgChartWrap: {
-  padding: "20px",
-  borderRadius: "28px",
-  background: "rgba(255,255,255,0.62)",
-  border: "1px solid rgba(255,255,255,0.72)",
-},
-
-svgChart: {
-  width: "100%",
-  height: "auto",
-  display: "block",
-},
-
-chartLegend: {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "14px",
-  marginTop: "18px",
-},
-
-legendItem: {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  fontSize: "13px",
-  color: "#4D463B",
-  fontWeight: "700",
-},
-
-legendDot: {
-  width: "11px",
-  height: "11px",
-  borderRadius: "50%",
-},
-  
 };
