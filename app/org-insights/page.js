@@ -996,13 +996,13 @@ return (
 </section>
 
 <section style={styles.reportActionCard}>
-  <button
-    style={styles.reportButton}
-    onClick={() => window.print()}
-  >
-    Generate Executive Review
-  </button>
-</section>
+ <button
+  style={styles.reportButton}
+  onClick={() => window.open("/executive-review", "_blank")}
+>
+  Generate Executive Review
+</button>
+    </section>
 
 <section style={styles.reportFooter}>
   <div style={styles.footerItem}>
