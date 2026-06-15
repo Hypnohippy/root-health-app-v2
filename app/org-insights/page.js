@@ -648,6 +648,33 @@ const supportInteractions =
   mindEntries.length + journalEntries.length + voiceSessions.length;
 
 const workforceNarrative = buildWorkforceNarrative({
+const confidenceScore = Math.min(
+  100,
+  Math.round(
+    (
+      assessments.length * 8 +
+      supportInteractions * 0.4 +
+      activated * 5
+    )
+  )
+);
+
+const confidenceLabel =
+  confidenceScore >= 80
+    ? "High Confidence"
+    : confidenceScore >= 60
+    ? "Established"
+    : confidenceScore >= 40
+    ? "Developing"
+    : "Early Stage";
+
+const nextReviewFocus = [
+  mostCommonTheme,
+  metricResults.find((m) => m.current >= 6)?.label || "Recovery consistency",
+  engagementScore !== null && engagementScore < 60
+    ? "Employee participation"
+    : "Maintain engagement",
+];
   metricResults,
   mostCommonTheme,
   supportInteractions,
@@ -812,6 +839,32 @@ const workforceNarrative = buildWorkforceNarrative({
 
              <section style={styles.reportCard}>
   <p style={styles.panelLabel}>AI Workforce Insight</p>
+              <section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Board Report Snapshot</p>
+  <h2 style={styles.panelTitle}>Executive Overview</h2>
+
+  <div style={styles.snapshotGrid}>
+    <div style={styles.snapshotItem}>
+      <strong>Wellbeing Score</strong>
+      <span>{currentScore ?? "—"}</span>
+    </div>
+
+    <div style={styles.snapshotItem}>
+      <strong>Strongest Improvement</strong>
+      <span>{mostImproved?.label || "—"}</span>
+    </div>
+
+    <div style={styles.snapshotItem}>
+      <strong>Primary Challenge</strong>
+      <span>{mostCommonTheme}</span>
+    </div>
+
+    <div style={styles.snapshotItem}>
+      <strong>Support Engagement</strong>
+      <span>{supportInteractions}</span>
+    </div>
+  </div>
+</section>
   <h2 style={styles.panelTitle}>What Root is noticing</h2>
 
   <p style={styles.reportText}>
@@ -825,6 +878,25 @@ const workforceNarrative = buildWorkforceNarrative({
 
   <p style={styles.reportText}>
     {workforceNarrative.executiveSummary}
+  </p>
+</section>
+                  <section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Root Confidence Rating</p>
+  <h2 style={styles.panelTitle}>{confidenceLabel}</h2>
+
+  <div style={styles.confidenceTrack}>
+    <div
+      style={{
+        ...styles.confidenceFill,
+        width: `${confidenceScore}%`,
+      }}
+    />
+  </div>
+
+  <p style={styles.reportText}>
+    Based on {assessments.length} assessments,
+    {supportInteractions} support interactions
+    and {activated} activated users.
   </p>
 </section>
 
@@ -872,6 +944,16 @@ const workforceNarrative = buildWorkforceNarrative({
     style={styles.reportButton}
     onClick={() => window.print()}
   >
+      <section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Next Review Focus</p>
+  <h2 style={styles.panelTitle}>Recommended priorities</h2>
+
+  <ul style={styles.reportList}>
+    {nextReviewFocus.map((item) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+</section>
     Generate PDF Report
   </button>
 </section>
@@ -1259,6 +1341,33 @@ chartInsight: {
   paddingLeft: "22px",
   color: "#4D463B",
   lineHeight: "1.9",
+},
+    snapshotGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+  gap: "16px",
+},
+
+snapshotItem: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+  padding: "18px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.35)",
+},
+
+confidenceTrack: {
+  height: "18px",
+  borderRadius: "999px",
+  overflow: "hidden",
+  background: "rgba(24,24,24,0.08)",
+},
+
+confidenceFill: {
+  height: "100%",
+  background: "#181818",
+  borderRadius: "999px",
 },
 
 smallHeading: {
