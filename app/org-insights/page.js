@@ -810,20 +810,71 @@ const workforceNarrative = buildWorkforceNarrative({
                 </section>
               </section>
 
-              <section style={styles.reportCard}>
-                <p style={styles.panelLabel}>Automated executive summary</p>
-                <h2 style={styles.panelTitle}>Draft review narrative</h2>
+             <section style={styles.reportCard}>
+  <p style={styles.panelLabel}>AI Workforce Insight</p>
+  <h2 style={styles.panelTitle}>What Root is noticing</h2>
 
-                <p style={styles.reportText}>{executiveInsight}</p>
+  <p style={styles.reportText}>
+    {workforceNarrative.insight}
+  </p>
+</section>
 
-                <button
-  style={styles.reportButton}
-  onClick={() => window.print()}
->
-  Generate PDF report
-</button>
-              </section>
+<section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Executive Summary</p>
+  <h2 style={styles.panelTitle}>Current organisational picture</h2>
 
+  <p style={styles.reportText}>
+    {workforceNarrative.executiveSummary}
+  </p>
+</section>
+
+<section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Recommended Actions</p>
+  <h2 style={styles.panelTitle}>Immediate opportunities</h2>
+
+  <ul style={styles.reportList}>
+    {workforceNarrative.actions.map((item) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+
+  <h3 style={styles.smallHeading}>Watch areas</h3>
+
+  <ul style={styles.reportList}>
+    {workforceNarrative.watchAreas.map((item) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+</section>
+
+<section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Learning Opportunities</p>
+  <h2 style={styles.panelTitle}>Suggested development themes</h2>
+
+  <ul style={styles.reportList}>
+    {workforceNarrative.learning.map((item) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+</section>
+
+<section style={styles.reportCard}>
+  <p style={styles.panelLabel}>Additional Support Options</p>
+  <h2 style={styles.panelTitle}>Optional organisational support</h2>
+
+  <ul style={styles.reportList}>
+    {workforceNarrative.support.map((item) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+
+  <button
+    style={styles.reportButton}
+    onClick={() => window.print()}
+  >
+    Generate PDF Report
+  </button>
+</section>
               <p style={styles.privacy}>
                 This dashboard should only show anonymous organisation-level trends.
                 Individual user reflections should never be visible to managers.
@@ -1203,6 +1254,19 @@ chartInsight: {
   },
 
   reportText: {
+    reportList: {
+  margin: "12px 0",
+  paddingLeft: "22px",
+  color: "#4D463B",
+  lineHeight: "1.9",
+},
+
+smallHeading: {
+  marginTop: "18px",
+  marginBottom: "10px",
+  color: "#181818",
+  fontSize: "18px",
+},
     lineHeight: "1.8",
     color: "#4D463B",
   },
