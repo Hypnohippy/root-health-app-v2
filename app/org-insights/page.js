@@ -258,7 +258,6 @@ function LineTrendChart({ rows = [] }) {
           </radialGradient>
         </defs>
 
-        <rect x="0" y="0" width={width} height={height} fill="url(#chartGlow)" />
 
         {[0, 2, 4, 6, 8, 10].map((tick) => (
           <g key={tick}>
@@ -932,14 +931,11 @@ const styles = {
     fontSize: "28px",
     color: "#181818",
   },
-  chartPanel: {
-  padding: "28px",
-  borderRadius: "32px",
-  background: "rgba(255,255,255,0.28)",
-  border: "1px solid rgba(255,255,255,0.55)",
-  backdropFilter: "blur(22px)",
-  WebkitBackdropFilter: "blur(22px)",
+ chartPanel: {
+  padding: "0",
   marginBottom: "18px",
+  background: "transparent",
+  border: "none",
 },
 
  
@@ -952,12 +948,14 @@ const styles = {
     color: "rgba(255,255,255,0.82)",
     lineHeight: "1.7",
   },
+  
 premiumChartCard: {
   padding: "30px",
-  borderRadius: "34px",
+  borderRadius: "32px",
   background: "transparent",
-  backdropFilter: "blur(22px)",
-  WebkitBackdropFilter: "blur(22px)",
+  border: "none",
+  boxShadow: "none",
+  overflow: "hidden",
 },
 
 chartHeader: {
