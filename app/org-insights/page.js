@@ -648,7 +648,20 @@ const supportInteractions =
   mindEntries.length + journalEntries.length + voiceSessions.length;
 
 const workforceNarrative = buildWorkforceNarrative({
+  metricResults,
+  mostCommonTheme,
+  supportInteractions,
+  currentScore,
+});
+
 const confidenceScore = Math.min(
+  100,
+  Math.round(
+    assessments.length * 8 +
+      supportInteractions * 0.4 +
+      activated * 5
+  )
+);
   100,
   Math.round(
     (
