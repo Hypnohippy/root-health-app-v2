@@ -145,15 +145,15 @@ function MiniBar({ label, value }) {
   );
 }
 function LineTrendChart({ rows = [] }) {
-  const width = 900;
-  const height = 320;
-  const padding = 46;
+  const width = 1000;
+  const height = 380;
+  const padding = 58;
 
   const series = [
-    { key: "stress", label: "Stress" },
-    { key: "burnout", label: "Burnout" },
-    { key: "sleep", label: "Sleep difficulty" },
-    { key: "recovery", label: "Recovery difficulty" },
+    { key: "stress", label: "Stress", color: "#ef4444" },
+    { key: "burnout", label: "Burnout", color: "#f97316" },
+    { key: "sleep", label: "Sleep difficulty", color: "#3b82f6" },
+    { key: "recovery", label: "Recovery difficulty", color: "#22c55e" },
   ];
 
   const xFor = (index) =>
@@ -175,54 +175,86 @@ function LineTrendChart({ rows = [] }) {
   }
 
   return (
-    <div style={styles.svgChartWrap}>
+    <div style={styles.premiumChartCard}>
+      <div style={styles.chartHeader}>
+        <div>
+          <p style={styles.chartKicker}>Executive trend</p>
+          <h3 style={styles.chartTitle}>Wellbeing movement over time</h3>
+          <p style={styles.chartHint}>Lower scores indicate reduced difficulty.</p>
+        </div>
+      </div>
+
       <svg viewBox={`0 0 ${width} ${height}`} style={styles.svgChart}>
         {[0, 2, 4, 6, 8, 10].map((tick) => (
-          <line
-            key={tick}
-            x1={padding}
-            x2={width - padding}
-            y1={yFor(tick)}
-            y2={yFor(tick)}
-            stroke="rgba(24,24,24,0.08)"
-            strokeWidth="1"
-          />
+          <g key={tick}>
+            <line
+              x1={padding}
+              x2={width - padding}
+              y1={yFor(tick)}
+              y2={yFor(tick)}
+              stroke="rgba(255,255,255,0.10)"
+              strokeWidth="1"
+            />
+            <text
+              x={padding - 22}
+              y={yFor(tick) + 5}
+              fontSize="13"
+              fill="rgba(255,255,255,0.62)"
+              textAnchor="middle"
+            >
+              {tick}
+            </text>
+          </g>
         ))}
 
-        {series.map((item, index) => (
+        {series.map((item) => (
           <path
             key={item.key}
             d={pathFor(item.key)}
             fill="none"
-            stroke={
-              ["#181818", "#6F675B", "#9B8A6A", "#C1A46B"][index]
-            }
+            stroke={item.color}
             strokeWidth="4"
             strokeLinecap="round"
             strokeLinejoin="round"
+            style={{
+              filter: `drop-shadow(0 0 8px ${item.color})`,
+              strokeDasharray: 1400,
+              strokeDashoffset: 1400,
+              animation: "drawLine 1.6s ease forwards",
+            }}
           />
         ))}
 
         {rows.map((row, rowIndex) =>
-          series.map((item, index) => (
-            <circle
-              key={`${item.key}-${rowIndex}`}
-              cx={xFor(rowIndex)}
-              cy={yFor(row[item.key])}
-              r="5"
-              fill={["#181818", "#6F675B", "#9B8A6A", "#C1A46B"][index]}
-            />
-          ))
+          series.map((item) => {
+            const isLast = rowIndex === rows.length - 1;
+
+            return (
+              <circle
+                key={`${item.key}-${rowIndex}`}
+                cx={xFor(rowIndex)}
+                cy={yFor(row[item.key])}
+                r={isLast ? "7" : "5"}
+                fill="#101827"
+                stroke={item.color}
+                strokeWidth={isLast ? "4" : "3"}
+                style={{
+                  filter: isLast ? `drop-shadow(0 0 10px ${item.color})` : "none",
+                  animation: isLast ? "pulseDot 2.4s ease-in-out infinite" : "none",
+                }}
+              />
+            );
+          })
         )}
 
         {rows.map((row, index) => (
           <text
             key={row.label}
             x={xFor(index)}
-            y={height - 12}
+            y={height - 16}
             textAnchor="middle"
             fontSize="13"
-            fill="#5A554D"
+            fill="rgba(255,255,255,0.68)"
           >
             {row.label}
           </text>
@@ -230,24 +262,16 @@ function LineTrendChart({ rows = [] }) {
       </svg>
 
       <div style={styles.chartLegend}>
-        {series.map((item, index) => (
+        {series.map((item) => (
           <span key={item.key} style={styles.legendItem}>
-            <span
-              style={{
-                ...styles.legendDot,
-                background: ["#181818", "#6F675B", "#9B8A6A", "#C1A46B"][
-                  index
-                ],
-              }}
-            />
+            <span style={{ ...styles.legendDot, background: item.color }} />
             {item.label}
           </span>
         ))}
       </div>
     </div>
   );
-}
-function BarRow({ label, value, max = 10 }) {
+}function BarRow({ label, value, max = 10 }) {
   const percent = value === null ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
@@ -514,11 +538,6 @@ detail="Total recorded support interactions"
                 <MetricCard title="Engagement score" value={engagementScore ?? "—"} />
               </section>
 
-             <section style={styles.panel}>
-  <p style={styles.panelLabel}>Trend view</p>
-  <h2 style={styles.panelTitle}>Wellbeing movement over time</h2>
-  <LineTrendChart rows={trendRows} />
-</section>
               <section style={styles.panel}>
   <p style={styles.panelLabel}>Trend view</p>
   <h2 style={styles.panelTitle}>Wellbeing movement over time</h2>
@@ -965,4 +984,5 @@ legendDot: {
   height: "11px",
   borderRadius: "50%",
 },
+  
 };
