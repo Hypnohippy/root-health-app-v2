@@ -223,6 +223,20 @@ export default function ExecutiveReviewPage() {
   useEffect(() => {
     loadData();
   }, []);
+  useEffect(() => {
+  if (!loading) {
+    const params = new URLSearchParams(window.location.search);
+    const shouldPrint = params.get("print") === "1";
+
+    if (shouldPrint) {
+      const timer = setTimeout(() => {
+        window.print();
+      }, 900);
+
+      return () => clearTimeout(timer);
+    }
+  }
+}, [loading]);
 
   const loadData = async () => {
     setLoading(true);
@@ -488,7 +502,7 @@ export default function ExecutiveReviewPage() {
 
 const styles = {
   page: {
-    background: "#f7f3ec",
+    background: "#ffffff",
     color: "#181818",
     padding: "40px",
     fontFamily: "Georgia, serif",
@@ -502,7 +516,7 @@ const styles = {
     border: "1px solid #ddd1c3",
     borderRadius: "28px",
     padding: "60px",
-    background: "#fffaf2",
+    background: "#ffffff",
     pageBreakAfter: "always",
   },
 
@@ -541,7 +555,7 @@ const styles = {
   },
 
   section: {
-    background: "#fffaf2",
+    background: "#ffffff",
     border: "1px solid #ddd1c3",
     borderRadius: "24px",
     padding: "32px",
