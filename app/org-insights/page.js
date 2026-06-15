@@ -662,15 +662,6 @@ const confidenceScore = Math.min(
       activated * 5
   )
 );
-  100,
-  Math.round(
-    (
-      assessments.length * 8 +
-      supportInteractions * 0.4 +
-      activated * 5
-    )
-  )
-);
 
 const confidenceLabel =
   confidenceScore >= 80
@@ -688,13 +679,9 @@ const nextReviewFocus = [
     ? "Employee participation"
     : "Maintain engagement",
 ];
-  metricResults,
-  mostCommonTheme,
-  supportInteractions,
-  currentScore,
-});
-  return (
-    <RootAtmosphere type="coach">
+
+return (
+  <RootAtmosphere type="coach">
       <Nav />
 
       <main style={styles.page}>
