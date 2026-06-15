@@ -274,7 +274,7 @@ function LineTrendChart({ rows = [] }) {
               x={paddingLeft - 28}
               y={yFor(tick) + 5}
               fontSize="13"
-              fill="rgba(255,255,255,0.62)"
+              fill="#4D463B"
               textAnchor="middle"
             >
               {tick}
@@ -288,11 +288,11 @@ function LineTrendChart({ rows = [] }) {
             d={pathFor(item.key)}
             fill="none"
             stroke={item.color}
-            strokeWidth="5"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{
-              filter: `drop-shadow(0 0 10px ${item.color})`,
+              filter: `drop-shadow(0 0 4px ${item.color})`
               strokeDasharray: 1600,
               strokeDashoffset: 1600,
               animation: `drawLine 1.6s ${index * 0.14}s ease forwards`,
@@ -346,7 +346,7 @@ function LineTrendChart({ rows = [] }) {
             y={height - 24}
             textAnchor="middle"
             fontSize="13"
-            fill="rgba(255,255,255,0.72)"
+            fill="#4D463B"
           >
             {row.label}
           </text>
@@ -946,11 +946,9 @@ const styles = {
 premiumChartCard: {
   padding: "30px",
   borderRadius: "34px",
-  background: "rgba(255,255,255,0.58)",
-  border: "1px solid rgba(255,255,255,0.72)",
+  background: "transparent",
   backdropFilter: "blur(22px)",
   WebkitBackdropFilter: "blur(22px)",
-  boxShadow: "0 24px 80px rgba(20,18,15,0.12)",
 },
 
 chartHeader: {
