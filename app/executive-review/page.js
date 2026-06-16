@@ -765,6 +765,34 @@ export default function ExecutiveReviewPage() {
             detail="Current recovery difficulty score"
           />
         </div>
+              <div style={styles.insightPanel}>
+  <h3>Key Trend Observations</h3>
+
+  <h4>Stress</h4>
+
+  <p>
+    Stress demonstrated the strongest positive movement during the review
+    period, reducing by 44%. This suggests employees may be experiencing
+    less day-to-day workplace pressure than at baseline and are beginning
+    to feel more capable of managing existing demands.
+  </p>
+
+  <h4>Burnout</h4>
+
+  <p>
+    Burnout also reduced during the review period, although at a slower
+    pace than stress. This commonly occurs when employees begin adapting
+    to pressure before energy reserves and resilience have fully recovered.
+  </p>
+
+  <h4>Recovery & Sleep</h4>
+
+  <p>
+    Recovery and sleep indicators remained comparatively stable. This may
+    represent the next opportunity area for organisational wellbeing
+    improvement and long-term resilience development.
+  </p>
+</div>
       </section>
             <section className="report-page" style={styles.reportPage}>
   <PageHeader
@@ -803,6 +831,53 @@ export default function ExecutiveReviewPage() {
     </p>
 
     <h3>What organisations typically do next</h3>
+        <h3>Root's Forecast</h3>
+
+<p>
+  Based on current participation and support engagement levels, Root would
+  expect workforce wellbeing stability to continue improving over future
+  review periods. Recovery and energy indicators are likely to become the
+  next meaningful measures of progress.
+</p>
+
+<h3>Executive Recommendation</h3>
+
+<p>
+  Root recommends maintaining current wellbeing engagement activity while
+  increasing focus on recovery behaviours, sustainable performance habits
+  and manager wellbeing awareness. The strongest opportunity appears to
+  lie in helping employees convert reduced workplace pressure into lasting
+  recovery and resilience.
+</p>
+
+<h3>Executive Closing Summary</h3>
+
+<p>
+  Overall, current workforce wellbeing data suggests a positive direction
+  of travel. Employees appear to be managing workplace pressure more
+  effectively than at baseline while continuing to engage with available
+  support resources.
+</p>
+
+<p>
+  While the organisation remains in the early stages of its wellbeing
+  journey, current trends indicate encouraging progress and provide a
+  strong foundation for future improvement.
+</p>
+
+<hr style={{ margin: "40px 0" }} />
+
+<p
+  style={{
+    textAlign: "center",
+    fontSize: "14px",
+    color: "#6B7280",
+  }}
+>
+  Root Health Executive Review<br />
+  Generated from anonymised workforce wellbeing data.<br />
+  End of Report.
+</p>
 
     <p>
       Organisations in this position often shift focus from awareness to
