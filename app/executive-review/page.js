@@ -746,7 +746,7 @@ export default function ExecutiveReviewPage() {
           />
         </div>
       </section>
-             <section className="report-page" style={styles.reportPage}>
+            <section className="report-page" style={styles.reportPage}>
   <PageHeader
     kicker="Executive Intelligence"
     title="Executive Intelligence & Interpretation"
@@ -754,115 +754,51 @@ export default function ExecutiveReviewPage() {
   />
 
   <div style={styles.executiveNarrative}>
+    <h3>What Root has detected</h3>
 
-  <h3>What Root has detected</h3>
+    <p>
+      During this review period, Root identified a positive shift in workforce
+      wellbeing indicators. Stress and burnout scores moved in a healthier
+      direction while employee engagement with support resources remained active.
+      This combination suggests employees may be beginning to feel more capable
+      of managing day-to-day workplace pressures.
+    </p>
 
-  <p>
-    During this review period, Root identified a positive shift in workforce
-    wellbeing indicators. Stress and burnout scores moved in a healthier
-    direction while employee engagement with support resources remained active.
-    This combination often suggests that employees are beginning to feel more
-    capable of managing day-to-day workplace pressures rather than simply
-    reporting temporary improvements.
-  </p>
+    <h3>What this may mean for the organisation</h3>
 
-  <p>
-    The data currently points towards a workforce that is adapting more
-    effectively to existing demands, although some indicators suggest the
-    organisation remains in the early stages of wellbeing recovery rather than
-    having fully established long-term resilience.
-  </p>
+    <p>
+      Organisations displaying similar patterns often see improvements in coping
+      capacity before improvements in energy, recovery and long-term resilience
+      become visible. Employees may be feeling less overwhelmed before they feel
+      fully restored.
+    </p>
 
-  <h3>What this may mean for the organisation</h3>
+    <h3>What Root is watching next</h3>
 
-  <p>
-    Organisations displaying similar patterns frequently experience improvements
-    in coping capacity before improvements in energy, recovery and long-term
-    resilience become visible. Employees often begin feeling less overwhelmed
-    before they feel genuinely restored.
-  </p>
+    <p>
+      The key question for the next review period is whether improvements in
+      stress continue to translate into measurable improvements in recovery. If
+      recovery improves next, confidence in the wellbeing trajectory will
+      strengthen.
+    </p>
 
-  <p>
-    This suggests that current wellbeing initiatives may be helping reduce
-    pressure, however additional focus on recovery and sustainable performance
-    habits may be required to fully consolidate these gains.
-  </p>
+    <h3>What organisations typically do next</h3>
 
-  <h3>What Root is watching next</h3>
+    <p>
+      Organisations in this position often shift focus from awareness to
+      practical recovery, energy management and resilience-building activity.
+      This helps early wellbeing gains become more sustainable.
+    </p>
 
-  <p>
-    The most important question for the next review period is whether
-    improvements in stress continue to translate into measurable improvements in
-    recovery. If recovery indicators begin to improve alongside stress
-    reduction, confidence in the organisation's wellbeing trajectory will
-    increase significantly.
-  </p>
+    <h3>Root's forecast</h3>
 
-  <p>
-    If recovery remains static while stress improves, employees may be coping
-    better but still operating from a position of fatigue.
-  </p>
-
-  <h3>What organisations typically do next</h3>
-
-  <p>
-    Organisations experiencing similar workforce wellbeing patterns often shift
-    their focus away from awareness-based interventions and towards practical
-    recovery, energy management and resilience-building activities.
-  </p>
-
-  <p>
-    This typically includes supporting employees to improve recovery behaviours,
-    strengthen sustainable work habits and build greater capacity for future
-    workplace challenges.
-  </p>
-
-  <h3>Root's forecast</h3>
-
-  <p>
-    Based on current participation levels and support engagement, Root would
-    expect wellbeing stability to continue improving during future review
-    periods. If engagement remains strong, further reductions in burnout and
-    stronger recovery indicators are likely to emerge over time.
-  </p>
-
-</div>
-      <section className="report-page" style={styles.finalPage}>
-        <PageHeader kicker="Executive Summary & Next Steps" title="Conclusion" />
-
-        <h3>What we found</h3>
-        <p style={styles.finalText}>{finalSummary}</p>
-
-        <h3>What it means</h3>
-        <p style={styles.finalText}>
-          Current data suggests the organisation is moving in a positive direction,
-          with early improvements visible in key wellbeing indicators. These results
-          should be interpreted as emerging evidence rather than a final conclusion,
-          as continued participation will strengthen confidence in the trends observed.
-        </p>
-
-        <h3>Recommended next steps</h3>
-        <ol style={styles.orderedList}>
-          <li>Continue monitoring {mostCommonTheme.toLowerCase()}.</li>
-          <li>Encourage regular wellbeing check-ins to strengthen trend reliability.</li>
-          <li>Promote practical wellbeing tools between formal reviews.</li>
-          <li>Consider targeted resilience, recovery and manager awareness learning.</li>
-        </ol>
-
-        <div style={styles.conclusionBox}>
-          <h3>Root conclusion</h3>
-          <p>
-            Continued use of Root Health will allow the organisation to build a clearer
-            evidence picture over time, supporting better decisions around wellbeing,
-            recovery and employee support.
-          </p>
-        </div>
-
-        <footer style={styles.footer}>
-          <strong>Root Health</strong>
-          <span>Confidential · Generated from anonymised workforce data</span>
-        </footer>
-      </section>
+    <p>
+      If engagement remains strong, Root would expect further reductions in
+      burnout and stronger recovery indicators to emerge over future review
+      periods.
+    </p>
+  </div>
+</section>
     </main>
   );
 }
