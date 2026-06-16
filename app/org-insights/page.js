@@ -871,27 +871,34 @@ if (
   <p style={styles.panelLabel}>Board Report Snapshot</p>
   <h2 style={styles.panelTitle}>Executive Overview</h2>
 
-  <div style={styles.snapshotGrid}>
-    <div style={styles.snapshotItem}>
-      <strong>Wellbeing Score</strong>
-      <span>{currentScore ?? "—"}</span>
-    </div>
+ <div style={styles.snapshotItem}>
+  <span style={styles.snapshotLabel}>Wellbeing Score</span>
+  <strong style={styles.snapshotValue}>
+    {currentScore ?? "—"}
+  </strong>
+</div>
 
-    <div style={styles.snapshotItem}>
-      <strong>Strongest Improvement</strong>
-      <span>{mostImproved?.label || "—"}</span>
-    </div>
+<div style={styles.snapshotItem}>
+  <span style={styles.snapshotLabel}>Strongest Improvement</span>
+  <strong style={styles.snapshotValue}>
+    {mostImproved?.label || "—"}
+  </strong>
+</div>
 
-    <div style={styles.snapshotItem}>
-      <strong>Primary Challenge</strong>
-      <span>{mostCommonTheme}</span>
-    </div>
+<div style={styles.snapshotItem}>
+  <span style={styles.snapshotLabel}>Primary Challenge</span>
+  <strong style={styles.snapshotValue}>
+    {mostCommonTheme}
+  </strong>
+</div>
 
-    <div style={styles.snapshotItem}>
-      <strong>Support Engagement</strong>
-      <span>{supportInteractions}</span>
+<div style={styles.snapshotItem}>
+  <span style={styles.snapshotLabel}>Support Engagement</span>
+  <strong style={styles.snapshotValue}>
+    {supportInteractions}
+  </strong>
+</div>
     </div>
-  </div>
 </section>
   <h2 style={styles.panelTitle}>What Root is noticing</h2>
 
@@ -1026,21 +1033,26 @@ if (
     an updated executive review for HR and leadership.
   </p>
 
-  <div style={styles.weeklyReportGrid}>
-    <div>
-      <strong>Latest score</strong>
-      <span>{currentScore ?? "—"}</span>
-    </div>
+ <div style={styles.snapshotItem}>
+  <span style={styles.snapshotLabel}>Latest Score</span>
+  <strong style={styles.snapshotValue}>
+    {currentScore ?? "—"}
+  </strong>
+</div>
 
-    <div>
-      <strong>Confidence</strong>
-      <span>{confidenceLabel}</span>
-    </div>
+<div style={styles.snapshotItem}>
+  <span style={styles.snapshotLabel}>Confidence</span>
+  <strong style={styles.snapshotValue}>
+    {confidenceLabel}
+  </strong>
+</div>
 
-    <div>
-      <strong>Key focus</strong>
-      <span>{mostCommonTheme}</span>
-    </div>
+<div style={styles.snapshotItem}>
+  <span style={styles.snapshotLabel}>Key Focus</span>
+  <strong style={styles.snapshotValue}>
+    {mostCommonTheme}
+  </strong>
+</div>
   </div>
 
   <button
@@ -1084,6 +1096,22 @@ const styles = {
     display: "flex",
     justifyContent: "center",
   },
+  snapshotLabel: {
+  display: "block",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+  color: "#776C5B",
+  fontWeight: "800",
+  marginBottom: "10px",
+},
+
+snapshotValue: {
+  display: "block",
+  fontSize: "24px",
+  color: "#181818",
+  lineHeight: "1.2",
+},
 
   shell: {
     width: "100%",
