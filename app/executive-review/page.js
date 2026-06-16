@@ -748,82 +748,80 @@ export default function ExecutiveReviewPage() {
       </section>
               <section className="report-page" style={styles.reportPage}>
   <PageHeader
-    kicker="Executive Intelligence"
-    title={executiveIntelligence.title}
-    subtitle="Root's interpretation of the pattern behind the numbers."
-  />
+    <div style={styles.executiveNarrative}>
 
-  <div style={styles.intelligenceBlock}>
-    <h3>Pattern identified</h3>
-    <p>{executiveIntelligence.pattern}</p>
-  </div>
+  <h3>What Root has detected</h3>
 
-  <div style={styles.intelligenceBlock}>
-    <h3>Why this matters</h3>
-    <p>{executiveIntelligence.meaning}</p>
-  </div>
+  <p>
+    During this review period, Root identified a positive shift in workforce
+    wellbeing indicators. Stress and burnout scores moved in a healthier
+    direction while employee engagement with support resources remained active.
+    This combination often suggests that employees are beginning to feel more
+    capable of managing day-to-day workplace pressures rather than simply
+    reporting temporary improvements.
+  </p>
 
-  <div style={styles.intelligenceBlock}>
-    <h3>Recommended focus</h3>
-    <p>{executiveIntelligence.recommendation}</p>
-  </div>
+  <p>
+    The data currently points towards a workforce that is adapting more
+    effectively to existing demands, although some indicators suggest the
+    organisation remains in the early stages of wellbeing recovery rather than
+    having fully established long-term resilience.
+  </p>
 
-  <div style={styles.intelligenceBlock}>
-    <h3>Suggested learning pathway</h3>
-    <p>{executiveIntelligence.pathway}</p>
-  </div>
+  <h3>What this may mean for the organisation</h3>
 
-  <div style={styles.intelligenceBlock}>
-    <h3>Expected outcome</h3>
-    <p>{executiveIntelligence.expected}</p>
-  </div>
-</section>
+  <p>
+    Organisations displaying similar patterns frequently experience improvements
+    in coping capacity before improvements in energy, recovery and long-term
+    resilience become visible. Employees often begin feeling less overwhelmed
+    before they feel genuinely restored.
+  </p>
 
-      <section className="report-page" style={styles.reportPage}>
-        <PageHeader kicker="AI Workforce Insight" title="What Root is noticing" />
+  <p>
+    This suggests that current wellbeing initiatives may be helping reduce
+    pressure, however additional focus on recovery and sustainable performance
+    habits may be required to fully consolidate these gains.
+  </p>
 
-        <p style={styles.bodyText}>{narrative.insight}</p>
+  <h3>What Root is watching next</h3>
 
-        <div style={styles.divider} />
+  <p>
+    The most important question for the next review period is whether
+    improvements in stress continue to translate into measurable improvements in
+    recovery. If recovery indicators begin to improve alongside stress
+    reduction, confidence in the organisation's wellbeing trajectory will
+    increase significantly.
+  </p>
 
-        <PageHeader kicker="Executive Summary" title="Review narrative" />
+  <p>
+    If recovery remains static while stress improves, employees may be coping
+    better but still operating from a position of fatigue.
+  </p>
 
-        <p style={styles.bodyText}>{narrative.summary}</p>
-      </section>
+  <h3>What organisations typically do next</h3>
 
-      <section className="report-page" style={styles.reportPage}>
-        <PageHeader kicker="Recommended Actions" title="Immediate opportunities" />
+  <p>
+    Organisations experiencing similar workforce wellbeing patterns often shift
+    their focus away from awareness-based interventions and towards practical
+    recovery, energy management and resilience-building activities.
+  </p>
 
-        <div style={styles.actionList}>
-          {narrative.actions.map((item, index) => (
-            <div key={item} style={styles.actionItem}>
-              <span>{index + 1}</span>
-              <p>{item}</p>
-            </div>
-          ))}
-        </div>
+  <p>
+    This typically includes supporting employees to improve recovery behaviours,
+    strengthen sustainable work habits and build greater capacity for future
+    workplace challenges.
+  </p>
 
-        <div style={styles.twoColumn}>
-          <div>
-            <h3>Learning opportunities</h3>
-            <ul style={styles.list}>
-              {narrative.learning.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
+  <h3>Root's forecast</h3>
 
-          <div>
-            <h3>Organisational development opportunities</h3>
-            <ul style={styles.list}>
-              {narrative.development.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
+  <p>
+    Based on current participation levels and support engagement, Root would
+    expect wellbeing stability to continue improving during future review
+    periods. If engagement remains strong, further reductions in burnout and
+    stronger recovery indicators are likely to emerge over time.
+  </p>
 
+</div>
       <section className="report-page" style={styles.finalPage}>
         <PageHeader kicker="Executive Summary & Next Steps" title="Conclusion" />
 
@@ -1135,5 +1133,12 @@ const styles = {
   borderBottom: "1px solid #E5E7EB",
   lineHeight: "1.7",
 },
+ executiveNarrative: {
+  maxWidth: "850px",
+  margin: "0 auto",
+  fontSize: "17px",
+  lineHeight: "1.9",
+  color: "#1F2937",
+}, 
 
 };
