@@ -447,17 +447,8 @@ export default function ExecutiveReviewPage() {
   if (loading) {
     return <main style={styles.page}>Loading executive review...</main>;
   }
-<img
-  src="/root-logo.png"
-  alt="Root Health"
-  style={{
-    width: "150px",
-    height: "150px",
-    objectFit: "contain",
-    marginBottom: "30px",
-  }}
-/>
-  const organisationName = organisation?.name || "Root Health Trial Company";
+
+      const organisationName = organisation?.name || "Root Health Trial Company";
 
   const baseline = assessments.filter((item) => item.assessment_type === "baseline");
   const latest = assessments.length ? [assessments[assessments.length - 1]] : [];
@@ -599,6 +590,11 @@ export default function ExecutiveReviewPage() {
         <div style={styles.coverTopLine} />
 
         <div>
+        <img
+  src="/root-logo.png"
+  alt="Root Health"
+  style={styles.coverLogo}
+/>
           <p style={styles.brand}>ROOT HEALTH</p>
           <h1 style={styles.coverTitle}>Executive Wellbeing Review</h1>
           <p style={styles.coverSubtitle}>
@@ -1185,5 +1181,11 @@ const styles = {
   lineHeight: "1.9",
   color: "#1F2937",
 }, 
+  coverLogo: {
+  width: "150px",
+  height: "150px",
+  objectFit: "contain",
+  marginBottom: "30px",
+},
 
 };
