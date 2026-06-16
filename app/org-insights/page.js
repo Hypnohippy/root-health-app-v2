@@ -865,48 +865,44 @@ if (
                 </section>
               </section>
 
-             <section style={styles.reportCard}>
+            
+ <section style={styles.reportCard}>
   <p style={styles.panelLabel}>AI Workforce Insight</p>
-              <section style={styles.reportCard}>
-  <p style={styles.panelLabel}>Board Report Snapshot</p>
-  <h2 style={styles.panelTitle}>Executive Overview</h2>
 
- <div style={styles.snapshotItem}>
-  <span style={styles.snapshotLabel}>Wellbeing Score</span>
-  <strong style={styles.snapshotValue}>
-    {currentScore ?? "—"}
-  </strong>
-</div>
+  <section style={styles.reportCard}>
+    <p style={styles.panelLabel}>Board Report Snapshot</p>
 
-<div style={styles.snapshotItem}>
-  <span style={styles.snapshotLabel}>Strongest Improvement</span>
-  <strong style={styles.snapshotValue}>
-    {mostImproved?.label || "—"}
-  </strong>
-</div>
+    <h2 style={styles.panelTitle}>Executive Overview</h2>
 
-<div style={styles.snapshotItem}>
-  <span style={styles.snapshotLabel}>Primary Challenge</span>
-  <strong style={styles.snapshotValue}>
-    {mostCommonTheme}
-  </strong>
-</div>
+    <div style={styles.snapshotGrid}>
+      <div style={styles.snapshotItem}>
+        <span style={styles.snapshotLabel}>Wellbeing Score</span>
+        <strong style={styles.snapshotValue}>{currentScore ?? "—"}</strong>
+      </div>
 
-<div style={styles.snapshotItem}>
-  <span style={styles.snapshotLabel}>Support Engagement</span>
-  <strong style={styles.snapshotValue}>
-    {supportInteractions}
-  </strong>
-</div>
+      <div style={styles.snapshotItem}>
+        <span style={styles.snapshotLabel}>Strongest Improvement</span>
+        <strong style={styles.snapshotValue}>{mostImproved?.label || "—"}</strong>
+      </div>
+
+      <div style={styles.snapshotItem}>
+        <span style={styles.snapshotLabel}>Primary Challenge</span>
+        <strong style={styles.snapshotValue}>{mostCommonTheme}</strong>
+      </div>
+
+      <div style={styles.snapshotItem}>
+        <span style={styles.snapshotLabel}>Support Engagement</span>
+        <strong style={styles.snapshotValue}>{supportInteractions}</strong>
+      </div>
     </div>
-</section>
+  </section>
+
   <h2 style={styles.panelTitle}>What Root is noticing</h2>
 
   <p style={styles.reportText}>
     {workforceNarrative.insight}
   </p>
 </section>
-
 <section style={styles.reportCard}>
                   <section style={styles.reportCard}>
   <p style={styles.panelLabel}>Root Confidence Rating</p>
