@@ -672,22 +672,43 @@ const confidenceLabel =
     ? "Developing"
     : "Early Stage";
 
-const nextReviewFocus = [
-  mostCommonTheme
-    ? `Continue monitoring ${mostCommonTheme.toLowerCase()}`
-    : "Continue monitoring workforce wellbeing",
+const nextReviewFocus = [];
 
-  metricResults.find((m) => m.current >= 6)
-    ? `Improve ${metricResults
-        .find((m) => m.current >= 6)
-        .label.toLowerCase()}`
-    : "Improve recovery consistency",
+if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
+  nextReviewFocus.push(
+    `Monitor ${mostCommonTheme.toLowerCase()} trends`
+  );
+}
 
-  engagementScore !== null && engagementScore < 60
-    ? "Increase employee participation"
-    : "Maintain employee engagement",
-];
-return (
+const highRiskMetric = metricResults
+  .filter((m) => m.current !== null)
+  .sort((a, b) => b.current - a.current)[0];
+
+if (highRiskMetric) {
+  nextReviewFocus.push(
+    `Prioritise ${highRiskMetric.label.toLowerCase()} improvement`
+  );
+}
+
+if (engagementScore !== null && engagementScore < 60) {
+  nextReviewFocus.push("Increase employee participation");
+} else {
+  nextReviewFocus.push("Maintain support engagement");
+}
+
+if (
+  metricResults.find(
+    (m) =>
+      m.label === "Recovery difficulty" &&
+      m.current !== null &&
+      m.current >= 6
+  )
+) {
+  nextReviewFocus.push(
+    "Promote recovery and resilience activity"
+  );
+}
+  return (
   <RootAtmosphere type="coach">
       <Nav />
 
