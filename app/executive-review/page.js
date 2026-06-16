@@ -746,6 +746,38 @@ export default function ExecutiveReviewPage() {
           />
         </div>
       </section>
+              <section className="report-page" style={styles.reportPage}>
+  <PageHeader
+    kicker="Executive Intelligence"
+    title={executiveIntelligence.title}
+    subtitle="Root's interpretation of the pattern behind the numbers."
+  />
+
+  <div style={styles.intelligenceBlock}>
+    <h3>Pattern identified</h3>
+    <p>{executiveIntelligence.pattern}</p>
+  </div>
+
+  <div style={styles.intelligenceBlock}>
+    <h3>Why this matters</h3>
+    <p>{executiveIntelligence.meaning}</p>
+  </div>
+
+  <div style={styles.intelligenceBlock}>
+    <h3>Recommended focus</h3>
+    <p>{executiveIntelligence.recommendation}</p>
+  </div>
+
+  <div style={styles.intelligenceBlock}>
+    <h3>Suggested learning pathway</h3>
+    <p>{executiveIntelligence.pathway}</p>
+  </div>
+
+  <div style={styles.intelligenceBlock}>
+    <h3>Expected outcome</h3>
+    <p>{executiveIntelligence.expected}</p>
+  </div>
+</section>
 
       <section className="report-page" style={styles.reportPage}>
         <PageHeader kicker="AI Workforce Insight" title="What Root is noticing" />
@@ -1098,4 +1130,10 @@ const styles = {
     color: "#4B5563",
     fontSize: "13px",
   },
+  intelligenceBlock: {
+  padding: "18px 0",
+  borderBottom: "1px solid #E5E7EB",
+  lineHeight: "1.7",
+},
+
 };
