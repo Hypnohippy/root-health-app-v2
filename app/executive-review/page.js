@@ -29,7 +29,10 @@ function scoreFromAssessments(items) {
     "focus_score",
   ];
 
-  const values = keys.map((key) => average(items, key)).filter((value) => value !== null);
+  const values = keys
+    .map((key) => average(items, key))
+    .filter((value) => value !== null);
+
   if (!values.length) return null;
 
   const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -39,15 +42,27 @@ function scoreFromAssessments(items) {
 function mapChallengeTheme(theme = "") {
   const value = String(theme).toLowerCase();
 
-  if (value.includes("bullying") || value.includes("job security") || value.includes("work")) {
+  if (
+    value.includes("bullying") ||
+    value.includes("job security") ||
+    value.includes("work")
+  ) {
     return "Workplace Pressure";
   }
 
-  if (value.includes("relationship") || value.includes("trust") || value.includes("commitment")) {
+  if (
+    value.includes("relationship") ||
+    value.includes("trust") ||
+    value.includes("commitment")
+  ) {
     return "Relationship Stress";
   }
 
-  if (value.includes("failure") || value.includes("performance") || value.includes("perfect")) {
+  if (
+    value.includes("failure") ||
+    value.includes("performance") ||
+    value.includes("perfect")
+  ) {
     return "Performance Pressure";
   }
 
@@ -74,7 +89,17 @@ function change(start, current) {
   return current - start;
 }
 
-function buildNarrative({ metricResults, currentScore, mostCommonTheme, supportInteractions }) {
+function changePercent(start, current) {
+  if (!start || current === null || current === undefined) return null;
+  return Math.round(((start - current) / start) * 100);
+}
+
+function buildNarrative({
+  metricResults,
+  currentScore,
+  mostCommonTheme,
+  supportInteractions,
+}) {
   const improved = metricResults
     .filter((item) => item.change !== null && item.change < 0)
     .sort((a, b) => a.change - b.change);
@@ -97,9 +122,9 @@ function buildNarrative({ metricResults, currentScore, mostCommonTheme, supportI
         } Overall, current data suggests early positive movement, although a longer review period will give greater confidence.`
       : "Root is still gathering enough follow-up data to identify reliable workforce movement.",
 
-    summary: `Early workforce wellbeing data indicates a current wellbeing score of ${
+    summary: `Early workforce wellbeing data indicates a current Workforce Wellbeing Index of ${
       currentScore ?? "—"
-    }. ${
+    } / 100. ${
       strongest
         ? `${strongest.label} is currently the strongest area of improvement.`
         : "More follow-up data is needed before improvement patterns can be confirmed."
@@ -128,15 +153,15 @@ function buildNarrative({ metricResults, currentScore, mostCommonTheme, supportI
 }
 
 function LineChart({ rows }) {
-  const width = 900;
-  const height = 320;
-  const pad = 52;
+  const width = 920;
+  const height = 360;
+  const pad = 58;
 
   const series = [
-    { key: "stress", label: "Stress", color: "#d93b3b" },
-    { key: "burnout", label: "Burnout", color: "#e88419" },
-    { key: "sleep", label: "Sleep difficulty", color: "#2563eb" },
-    { key: "recovery", label: "Recovery difficulty", color: "#16a34a" },
+    { key: "stress", label: "Stress", color: "#C43C3C" },
+    { key: "burnout", label: "Burnout", color: "#D97706" },
+    { key: "sleep", label: "Sleep difficulty", color: "#2563EB" },
+    { key: "recovery", label: "Recovery difficulty", color: "#15803D" },
   ];
 
   const safeRows = rows || [];
@@ -149,7 +174,10 @@ function LineChart({ rows }) {
 
   const pathFor = (key) =>
     safeRows
-      .map((row, index) => `${index === 0 ? "M" : "L"} ${xFor(index)} ${yFor(row[key])}`)
+      .map(
+        (row, index) =>
+          `${index === 0 ? "M" : "L"} ${xFor(index)} ${yFor(row[key])}`
+      )
       .join(" ");
 
   if (!safeRows.length) {
@@ -166,10 +194,10 @@ function LineChart({ rows }) {
               x2={width - pad}
               y1={yFor(tick)}
               y2={yFor(tick)}
-              stroke="#e1e1e1"
+              stroke="#E5E7EB"
               strokeWidth="1"
             />
-            <text x={pad - 26} y={yFor(tick) + 4} fontSize="12" fill="#333">
+            <text x={pad - 28} y={yFor(tick) + 4} fontSize="12" fill="#374151">
               {tick}
             </text>
           </g>
@@ -181,7 +209,7 @@ function LineChart({ rows }) {
             d={pathFor(item.key)}
             fill="none"
             stroke={item.color}
-            strokeWidth="3"
+            strokeWidth="3.2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -193,8 +221,8 @@ function LineChart({ rows }) {
               key={`${item.key}-${rowIndex}`}
               cx={xFor(rowIndex)}
               cy={yFor(row[item.key])}
-              r="4"
-              fill="#fff"
+              r="4.5"
+              fill="#ffffff"
               stroke={item.color}
               strokeWidth="3"
             />
@@ -208,7 +236,7 @@ function LineChart({ rows }) {
             y={height - 18}
             textAnchor="middle"
             fontSize="12"
-            fill="#333"
+            fill="#374151"
           >
             {row.label}
           </text>
@@ -242,6 +270,16 @@ function PageHeader({ kicker, title, subtitle }) {
       <p style={styles.kicker}>{kicker}</p>
       <h2 style={styles.pageTitle}>{title}</h2>
       {subtitle ? <p style={styles.subtitle}>{subtitle}</p> : null}
+    </div>
+  );
+}
+
+function MiniMetric({ label, value, detail }) {
+  return (
+    <div style={styles.miniMetric}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{detail}</small>
     </div>
   );
 }
@@ -406,6 +444,19 @@ export default function ExecutiveReviewPage() {
     supportInteractions,
   });
 
+  const stressMetric = metricResults.find((item) => item.label === "Stress");
+  const burnoutMetric = metricResults.find((item) => item.label === "Burnout");
+  const sleepMetric = metricResults.find((item) => item.label === "Sleep difficulty");
+  const recoveryMetric = metricResults.find(
+    (item) => item.label === "Recovery difficulty"
+  );
+
+  const stressChangePercent = changePercent(stressMetric?.start, stressMetric?.current);
+  const burnoutChangePercent = changePercent(
+    burnoutMetric?.start,
+    burnoutMetric?.current
+  );
+
   const today = new Date().toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -423,17 +474,23 @@ export default function ExecutiveReviewPage() {
       <style>{`
         @page {
           size: A4;
-          margin: 14mm;
+          margin: 10mm;
         }
 
         @media print {
-          html, body {
+          html,
+          body {
             background: #ffffff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
           .report-page {
             break-after: page;
             page-break-after: always;
+            height: 257mm;
+            max-height: 257mm;
+            overflow: hidden;
           }
 
           .report-page:last-of-type {
@@ -448,11 +505,14 @@ export default function ExecutiveReviewPage() {
       `}</style>
 
       <section className="report-page" style={styles.coverPage}>
+        <div style={styles.coverTopLine} />
+
         <div>
           <p style={styles.brand}>ROOT HEALTH</p>
           <h1 style={styles.coverTitle}>Executive Wellbeing Review</h1>
           <p style={styles.coverSubtitle}>
-            Generated from anonymised workforce wellbeing data.
+            An anonymised workforce wellbeing review prepared for organisational
+            decision-making.
           </p>
         </div>
 
@@ -473,30 +533,44 @@ export default function ExecutiveReviewPage() {
           </div>
 
           <div>
-            <span>Current wellbeing score</span>
-            <strong>{currentScore ?? "—"}</strong>
+            <span>Workforce Wellbeing Index</span>
+            <strong>{currentScore ?? "—"} / 100</strong>
           </div>
         </div>
 
-        <p style={styles.confidential}>
-          Confidential · For internal organisational review
-        </p>
+        <div style={styles.coverFooter}>
+          <span>Confidential</span>
+          <span>Generated from anonymised workforce data</span>
+        </div>
       </section>
 
       <section className="report-page" style={styles.reportPage}>
         <PageHeader
           kicker="Executive Snapshot"
           title="Current organisational picture"
-          subtitle="A concise overview of the key organisational wellbeing indicators."
+          subtitle="A concise overview of the key workforce wellbeing indicators."
         />
 
-        <div style={styles.snapshotGrid}>
-          <SnapshotCard
-            label="Wellbeing score"
-            value={currentScore ?? "—"}
-            detail={`Baseline ${baselineScore ?? "—"} → Current ${currentScore ?? "—"}`}
-          />
+        <div style={styles.indexFeature}>
+          <div>
+            <span>Workforce Wellbeing Index</span>
+            <strong>{currentScore ?? "—"} / 100</strong>
+            <small>
+              Baseline {baselineScore ?? "—"} → Current {currentScore ?? "—"}
+            </small>
+          </div>
 
+          <div style={styles.indexGauge}>
+            <div
+              style={{
+                ...styles.indexGaugeFill,
+                width: `${currentScore || 0}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={styles.snapshotGrid}>
           <SnapshotCard
             label="Strongest improvement"
             value={mostImproved?.label || "—"}
@@ -547,35 +621,64 @@ export default function ExecutiveReviewPage() {
         <PageHeader
           kicker="Trend Analysis"
           title="Wellbeing movement over time"
-          subtitle="Lower scores indicate reduced difficulty."
+          subtitle="Lower scores indicate reduced difficulty across the review period."
         />
 
         <LineChart rows={trendRows} />
+
+        <div style={styles.trendSummaryGrid}>
+          <MiniMetric
+            label="Stress movement"
+            value={
+              stressChangePercent !== null
+                ? `${stressChangePercent}% reduction`
+                : "Awaiting data"
+            }
+            detail={`Stress ${format(stressMetric?.start)} → ${format(
+              stressMetric?.current
+            )}`}
+          />
+
+          <MiniMetric
+            label="Burnout movement"
+            value={
+              burnoutChangePercent !== null
+                ? `${burnoutChangePercent}% reduction`
+                : "Awaiting data"
+            }
+            detail={`Burnout ${format(burnoutMetric?.start)} → ${format(
+              burnoutMetric?.current
+            )}`}
+          />
+
+          <MiniMetric
+            label="Sleep position"
+            value={format(sleepMetric?.current)}
+            detail="Current sleep difficulty score"
+          />
+
+          <MiniMetric
+            label="Recovery position"
+            value={format(recoveryMetric?.current)}
+            detail="Current recovery difficulty score"
+          />
+        </div>
       </section>
 
       <section className="report-page" style={styles.reportPage}>
-        <PageHeader
-          kicker="AI Workforce Insight"
-          title="What Root is noticing"
-        />
+        <PageHeader kicker="AI Workforce Insight" title="What Root is noticing" />
 
         <p style={styles.bodyText}>{narrative.insight}</p>
 
         <div style={styles.divider} />
 
-        <PageHeader
-          kicker="Executive Summary"
-          title="Review narrative"
-        />
+        <PageHeader kicker="Executive Summary" title="Review narrative" />
 
         <p style={styles.bodyText}>{narrative.summary}</p>
       </section>
 
       <section className="report-page" style={styles.reportPage}>
-        <PageHeader
-          kicker="Recommended Actions"
-          title="Immediate opportunities"
-        />
+        <PageHeader kicker="Recommended Actions" title="Immediate opportunities" />
 
         <div style={styles.actionList}>
           {narrative.actions.map((item, index) => (
@@ -608,18 +711,15 @@ export default function ExecutiveReviewPage() {
       </section>
 
       <section className="report-page" style={styles.finalPage}>
-        <PageHeader
-          kicker="Executive Summary & Next Steps"
-          title="Conclusion"
-        />
+        <PageHeader kicker="Executive Summary & Next Steps" title="Conclusion" />
 
         <h3>What we found</h3>
-        <p style={styles.bodyText}>{finalSummary}</p>
+        <p style={styles.finalText}>{finalSummary}</p>
 
         <h3>What it means</h3>
-        <p style={styles.bodyText}>
+        <p style={styles.finalText}>
           Current data suggests the organisation is moving in a positive direction,
-          with early improvements visible in key wellbeing indicators. The results
+          with early improvements visible in key wellbeing indicators. These results
           should be interpreted as emerging evidence rather than a final conclusion,
           as continued participation will strengthen confidence in the trends observed.
         </p>
@@ -652,108 +752,148 @@ export default function ExecutiveReviewPage() {
 
 const styles = {
   page: {
-    background: "#ffffff",
-    color: "#181818",
+    background: "#f3f4f6",
+    color: "#111827",
     padding: "24px",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
   },
 
   coverPage: {
-    minHeight: "calc(297mm - 38mm)",
-    padding: "46px",
+    height: "257mm",
+    maxHeight: "257mm",
+    boxSizing: "border-box",
+    padding: "34px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    border: "1px solid #dedede",
     background: "#ffffff",
+    border: "1px solid #E5E7EB",
+    overflow: "hidden",
   },
 
   reportPage: {
-    minHeight: "calc(297mm - 38mm)",
+    height: "257mm",
+    maxHeight: "257mm",
+    boxSizing: "border-box",
     padding: "34px",
-    border: "1px solid #e2e2e2",
     background: "#ffffff",
+    border: "1px solid #E5E7EB",
+    overflow: "hidden",
   },
 
   finalPage: {
-    minHeight: "calc(297mm - 38mm)",
+    height: "257mm",
+    maxHeight: "257mm",
+    boxSizing: "border-box",
     padding: "34px",
-    border: "1px solid #e2e2e2",
     background: "#ffffff",
+    border: "1px solid #E5E7EB",
+    overflow: "hidden",
+  },
+
+  coverTopLine: {
+    width: "100%",
+    height: "8px",
+    background: "#111827",
+    marginBottom: "30px",
   },
 
   brand: {
-    margin: "0 0 42px",
-    fontSize: "14px",
-    letterSpacing: "0.16em",
-    fontWeight: "800",
+    margin: "0 0 34px",
+    fontSize: "13px",
+    letterSpacing: "0.18em",
+    fontWeight: "900",
   },
 
   coverTitle: {
     margin: "0",
-    maxWidth: "640px",
-    fontSize: "58px",
-    lineHeight: "1.02",
-    letterSpacing: "-0.04em",
+    maxWidth: "690px",
+    fontSize: "56px",
+    lineHeight: "0.98",
+    letterSpacing: "-0.055em",
   },
 
   coverSubtitle: {
-    marginTop: "20px",
-    maxWidth: "620px",
+    marginTop: "22px",
+    maxWidth: "650px",
     fontSize: "18px",
-    lineHeight: "1.7",
-    color: "#4A4A4A",
+    lineHeight: "1.65",
+    color: "#4B5563",
   },
 
   coverDetails: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "18px",
-    marginTop: "56px",
+    marginTop: "44px",
   },
 
-  confidential: {
-    margin: "42px 0 0",
-    color: "#4A4A4A",
-    fontSize: "14px",
+  coverFooter: {
+    display: "flex",
+    justifyContent: "space-between",
+    borderTop: "1px solid #E5E7EB",
+    paddingTop: "18px",
+    color: "#4B5563",
+    fontSize: "13px",
   },
 
   pageHeader: {
-    marginBottom: "30px",
+    marginBottom: "26px",
   },
 
   kicker: {
     margin: "0 0 10px",
-    fontSize: "12px",
-    fontWeight: "800",
+    fontSize: "11px",
+    fontWeight: "900",
     textTransform: "uppercase",
-    letterSpacing: "0.13em",
-    color: "#6D6258",
+    letterSpacing: "0.15em",
+    color: "#6B7280",
   },
 
   pageTitle: {
     margin: "0",
     fontSize: "34px",
-    letterSpacing: "-0.03em",
+    letterSpacing: "-0.045em",
   },
 
   subtitle: {
     margin: "12px 0 0",
-    color: "#4A4A4A",
-    lineHeight: "1.65",
+    color: "#4B5563",
+    lineHeight: "1.6",
+  },
+
+  indexFeature: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "14px",
+    padding: "24px",
+    background: "#F9FAFB",
+    border: "1px solid #E5E7EB",
+    marginBottom: "18px",
+  },
+
+  indexGauge: {
+    height: "16px",
+    background: "#E5E7EB",
+    overflow: "hidden",
+  },
+
+  indexGaugeFill: {
+    height: "100%",
+    background: "#111827",
   },
 
   snapshotGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(5, 1fr)",
+    gridTemplateColumns: "repeat(4, 1fr)",
     gap: "12px",
   },
 
   snapshotCard: {
-    border: "1px solid #e2e2e2",
-    padding: "18px",
-    minHeight: "122px",
+    border: "1px solid #E5E7EB",
+    padding: "16px",
+    minHeight: "118px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
@@ -763,7 +903,7 @@ const styles = {
   chart: {
     width: "100%",
     height: "auto",
-    marginTop: "28px",
+    marginTop: "16px",
   },
 
   legend: {
@@ -771,88 +911,109 @@ const styles = {
     justifyContent: "center",
     gap: "22px",
     fontSize: "13px",
-    marginTop: "14px",
+    marginTop: "12px",
+  },
+
+  trendSummaryGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: "12px",
+    marginTop: "24px",
+  },
+
+  miniMetric: {
+    padding: "16px",
+    border: "1px solid #E5E7EB",
+    background: "#F9FAFB",
+    display: "grid",
+    gap: "6px",
   },
 
   confidenceBox: {
-    marginTop: "34px",
-    padding: "22px",
-    border: "1px solid #e2e2e2",
-    background: "#fafafa",
+    marginTop: "26px",
+    padding: "20px",
+    border: "1px solid #E5E7EB",
+    background: "#F9FAFB",
   },
 
   confidenceTrack: {
     height: "14px",
-    background: "#e8e8e8",
+    background: "#E5E7EB",
     overflow: "hidden",
     margin: "14px 0",
   },
 
   confidenceFill: {
     height: "100%",
-    background: "#181818",
+    background: "#111827",
   },
 
   bodyText: {
     fontSize: "18px",
-    lineHeight: "1.8",
-    color: "#252525",
+    lineHeight: "1.75",
+    color: "#1F2937",
+  },
+
+  finalText: {
+    fontSize: "16px",
+    lineHeight: "1.68",
+    color: "#1F2937",
   },
 
   divider: {
     height: "1px",
-    background: "#e2e2e2",
-    margin: "34px 0",
+    background: "#E5E7EB",
+    margin: "30px 0",
   },
 
   actionList: {
     display: "grid",
-    gap: "16px",
-    marginBottom: "36px",
+    gap: "14px",
+    marginBottom: "30px",
   },
 
   actionItem: {
     display: "grid",
-    gridTemplateColumns: "42px 1fr",
-    gap: "18px",
+    gridTemplateColumns: "38px 1fr",
+    gap: "16px",
     alignItems: "start",
-    padding: "18px",
-    border: "1px solid #e2e2e2",
+    padding: "16px",
+    border: "1px solid #E5E7EB",
     background: "#ffffff",
   },
 
   twoColumn: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "34px",
+    gap: "30px",
   },
 
   list: {
-    lineHeight: "2",
-    fontSize: "16px",
+    lineHeight: "1.8",
+    fontSize: "15px",
     paddingLeft: "20px",
   },
 
   orderedList: {
-    fontSize: "17px",
-    lineHeight: "2",
-    paddingLeft: "24px",
+    fontSize: "15px",
+    lineHeight: "1.85",
+    paddingLeft: "22px",
   },
 
   conclusionBox: {
-    marginTop: "28px",
-    padding: "24px",
-    background: "#fafafa",
-    border: "1px solid #e2e2e2",
+    marginTop: "20px",
+    padding: "20px",
+    background: "#F9FAFB",
+    border: "1px solid #E5E7EB",
   },
 
   footer: {
-    marginTop: "36px",
-    paddingTop: "18px",
-    borderTop: "1px solid #ddd",
+    marginTop: "26px",
+    paddingTop: "16px",
+    borderTop: "1px solid #E5E7EB",
     display: "flex",
     justifyContent: "space-between",
-    color: "#4A4A4A",
+    color: "#4B5563",
     fontSize: "13px",
   },
 };
