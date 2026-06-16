@@ -671,7 +671,43 @@ const confidenceLabel =
     : confidenceScore >= 40
     ? "Developing"
     : "Early Stage";
+const previousEntry =
+  assessments.length > 1 ? assessments[assessments.length - 2] : null;
 
+const latestEntry =
+  assessments.length > 0 ? assessments[assessments.length - 1] : null;
+
+function weeklyChange(label, key) {
+  if (!previousEntry || !latestEntry) {
+    return `${label}: awaiting comparison data`;
+  }
+
+  const before = Number(previousEntry[key]);
+  const after = Number(latestEntry[key]);
+
+  if (Number.isNaN(before) || Number.isNaN(after)) {
+    return `${label}: awaiting comparison data`;
+  }
+
+  const movement = after - before;
+
+  if (movement > 0) {
+    return `${label} increased by ${movement.toFixed(1)} points`;
+  }
+
+  if (movement < 0) {
+    return `${label} improved by ${Math.abs(movement).toFixed(1)} points`;
+  }
+
+  return `${label} remained stable`;
+}
+
+const weeklyChanges = [
+  weeklyChange("Stress", "stress_score"),
+  weeklyChange("Burnout", "burnout_score"),
+  weeklyChange("Sleep difficulty", "sleep_score"),
+  weeklyChange("Recovery difficulty", "recovery_score"),
+];
 const nextReviewFocus = [];
 
 if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
@@ -1025,7 +1061,7 @@ if (
   <h2 style={styles.panelTitle}>Your latest report is ready</h2>
 
   <p style={styles.reportText}>
-    Root has collected the latest workforce wellbeing movement and prepared
+    Root has reviewed the latest workforce wellbeing movement and prepared
     an updated executive review for HR and leadership.
   </p>
 
@@ -1046,6 +1082,18 @@ if (
     </div>
   </div>
 
+  <div style={styles.changedCard}>
+    <h3 style={styles.smallHeading}>What changed since last review?</h3>
+
+    <div style={styles.changedGrid}>
+      {weeklyChanges.map((item) => (
+        <div key={item} style={styles.changedItem}>
+          {item}
+        </div>
+      ))}
+    </div>
+  </div>
+
   <button
     style={styles.reportButton}
     onClick={() => window.open("/executive-review?print=1", "_blank")}
@@ -1053,7 +1101,7 @@ if (
     Generate Executive Review
   </button>
 </section>
-    <section style={styles.reportFooter}>
+      <section style={styles.reportFooter}>
   <div style={styles.footerItem}>
     <strong>Root Health</strong>
     <span>Organisational Wellbeing Review</span>
@@ -1654,4 +1702,28 @@ weeklyReportGrid: {
   gap: "14px",
   margin: "18px 0",
 },
+changedCard: {
+  marginTop: "20px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.42)",
+  border: "1px solid rgba(255,255,255,0.68)",
+},
+
+changedGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "12px",
+  marginTop: "14px",
+},
+
+changedItem: {
+  padding: "16px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.5)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+  fontWeight: "700",
+  lineHeight: "1.45",
+},  
 };
