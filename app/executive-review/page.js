@@ -627,8 +627,8 @@ export default function ExecutiveReviewPage() {
       </section>
 
       <section className="report-page" style={styles.reportPage}>
-        <PageHeader
-          kicker="Executive Snapshot"
+      <PageHeader
+  kicker="Organisational Wellbeing Overview"
           title="Current organisational picture"
           subtitle="A concise overview of the key workforce wellbeing indicators."
         />
@@ -675,13 +675,33 @@ export default function ExecutiveReviewPage() {
             detail="Recorded support interactions"
           />
 
-          <SnapshotCard
-            label="Root confidence"
-            value={confidenceLabel}
-            detail={`${confidenceScore}% confidence rating`}
-          />
-        </div>
+         <SnapshotCard
+  label="Root confidence"
+  value={confidenceLabel}
+  detail={`${confidenceScore}% confidence rating`}
+/>
+</div>
 
+<div style={styles.insightPanel}>
+  <h3>What the numbers suggest</h3>
+
+  <p>
+    Current workforce wellbeing data suggests encouraging early movement
+    across several indicators. Stress is currently demonstrating the
+    strongest improvement while employee engagement remains active.
+    This combination often indicates that employees are beginning to
+    manage workplace demands more effectively while continuing to utilise
+    available support resources.
+  </p>
+
+  <p>
+    At this stage, the findings should be viewed as an emerging trend
+    rather than a definitive outcome. Additional review periods will
+    increase confidence in the long-term direction of workforce wellbeing
+    and help identify whether current improvements are becoming embedded
+    across the organisation.
+  </p>
+</div>
         <div style={styles.confidenceBox}>
           <h3>Root confidence rating</h3>
           <div style={styles.confidenceTrack}>
