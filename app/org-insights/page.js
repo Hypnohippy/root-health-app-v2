@@ -995,15 +995,40 @@ return (
   </section>
 </section>
 
-<section style={styles.reportActionCard}>
- <button
-  style={styles.reportButton}
-  onClick={() => window.open("/executive-review?print=1", "_blank")}
->
-  Generate Executive Review
-</button>
-    </section>
+<section style={styles.weeklyReportCard}>
+  <p style={styles.panelLabel}>Weekly Executive Review</p>
 
+  <h2 style={styles.panelTitle}>Your latest report is ready</h2>
+
+  <p style={styles.reportText}>
+    Root has collected the latest workforce wellbeing movement and prepared
+    an updated executive review for HR and leadership.
+  </p>
+
+  <div style={styles.weeklyReportGrid}>
+    <div>
+      <strong>Latest score</strong>
+      <span>{currentScore ?? "—"}</span>
+    </div>
+
+    <div>
+      <strong>Confidence</strong>
+      <span>{confidenceLabel}</span>
+    </div>
+
+    <div>
+      <strong>Key focus</strong>
+      <span>{mostCommonTheme}</span>
+    </div>
+  </div>
+
+  <button
+    style={styles.reportButton}
+    onClick={() => window.open("/executive-review?print=1", "_blank")}
+  >
+    Generate Executive Review
+  </button>
+</section>
 <section style={styles.reportFooter}>
   <div style={styles.footerItem}>
     <strong>Root Health</strong>
@@ -1575,4 +1600,18 @@ footerItem: {
     color: "#6F675B",
     lineHeight: "1.6",
   },
+  weeklyReportCard: {
+  padding: "30px",
+  borderRadius: "34px",
+  background: "rgba(255,255,255,0.44)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  marginBottom: "18px",
+},
+
+weeklyReportGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "14px",
+  margin: "18px 0",
+},
 };
