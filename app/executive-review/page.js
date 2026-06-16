@@ -448,7 +448,7 @@ export default function ExecutiveReviewPage() {
     return <main style={styles.page}>Loading executive review...</main>;
   }
 
-      const organisationName = organisation?.name || "Root Health Trial Company";
+      const organisationName = organisation?.name || "Enrolled Organisation";
 
   const baseline = assessments.filter((item) => item.assessment_type === "baseline");
   const latest = assessments.length ? [assessments[assessments.length - 1]] : [];
@@ -603,29 +603,27 @@ export default function ExecutiveReviewPage() {
           </p>
         </div>
 
-        <div style={styles.coverDetails}>
-          <div>
-            <div style={styles.coverDetailRow}>
-  <span>Organisation</span>
-  <strong>{organisationName}</strong>
-</div>
+       <div style={styles.coverDetails}>
+  <div style={styles.coverDetailRow}>
+    <span>Organisation</span>
+    <strong>{organisationName}</strong>
+  </div>
 
-        <div style={styles.coverDetailRow}>
-  <span>Organisation</span>
-  <strong>{organisationName}</strong>
-</div>
+  <div style={styles.coverDetailRow}>
+    <span>Review date</span>
+    <strong>{today}</strong>
+  </div>
 
-       <div style={styles.coverDetailRow}>
-  <span>Organisation</span>
-  <strong>{organisationName}</strong>
-</div>
+  <div style={styles.coverDetailRow}>
+    <span>Review period</span>
+    <strong>Current review period</strong>
+  </div>
 
-          <div style={styles.coverDetailRow}>
-  <span>Organisation</span>
-  <strong>{organisationName}</strong>
+  <div style={styles.coverDetailRow}>
+    <span>Workforce Wellbeing Index</span>
+    <strong>{currentScore ?? "—"} / 100</strong>
+  </div>
 </div>
-        </div>
-
         <div style={styles.coverFooter}>
           <span>Confidential</span>
           <span>Generated from anonymised workforce data</span>
@@ -903,11 +901,14 @@ const styles = {
     padding: "24px",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
-    coverDetailRow: {
+},
+  coverDetailRow: {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  gap: "16px",
+  gap: "18px",
+  padding: "12px 0",
+  borderBottom: "1px solid #E5E7EB",
 },
 
   coverPage: {
