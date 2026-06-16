@@ -746,9 +746,14 @@ export default function ExecutiveReviewPage() {
           />
         </div>
       </section>
-              <section className="report-page" style={styles.reportPage}>
+             <section className="report-page" style={styles.reportPage}>
   <PageHeader
-    <div style={styles.executiveNarrative}>
+    kicker="Executive Intelligence"
+    title="Executive Intelligence & Interpretation"
+    subtitle="Root's interpretation of the organisational wellbeing patterns observed during this review period."
+  />
+
+  <div style={styles.executiveNarrative}>
 
   <h3>What Root has detected</h3>
 
