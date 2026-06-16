@@ -605,24 +605,25 @@ export default function ExecutiveReviewPage() {
 
         <div style={styles.coverDetails}>
           <div>
-            <span>Organisation</span>
-            <strong>{organisationName}</strong>
-          </div>
+            <div style={styles.coverDetailRow}>
+  <span>Organisation</span>
+  <strong>{organisationName}</strong>
+</div>
 
-          <div>
-            <span>Review date</span>
-            <strong>{today}</strong>
-          </div>
+        <div style={styles.coverDetailRow}>
+  <span>Organisation</span>
+  <strong>{organisationName}</strong>
+</div>
 
-          <div>
-            <span>Review period</span>
-            <strong>Trial review period</strong>
-          </div>
+       <div style={styles.coverDetailRow}>
+  <span>Organisation</span>
+  <strong>{organisationName}</strong>
+</div>
 
-          <div>
-            <span>Workforce Wellbeing Index</span>
-            <strong>{currentScore ?? "—"} / 100</strong>
-          </div>
+          <div style={styles.coverDetailRow}>
+  <span>Organisation</span>
+  <strong>{organisationName}</strong>
+</div>
         </div>
 
         <div style={styles.coverFooter}>
@@ -902,7 +903,12 @@ const styles = {
     padding: "24px",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
-  },
+    coverDetailRow: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "16px",
+},
 
   coverPage: {
     height: "257mm",
