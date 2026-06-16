@@ -447,7 +447,16 @@ export default function ExecutiveReviewPage() {
   if (loading) {
     return <main style={styles.page}>Loading executive review...</main>;
   }
-
+<img
+  src="/root-logo.png"
+  alt="Root Health"
+  style={{
+    width: "150px",
+    height: "150px",
+    objectFit: "contain",
+    marginBottom: "30px",
+  }}
+/>
   const organisationName = organisation?.name || "Root Health Trial Company";
 
   const baseline = assessments.filter((item) => item.assessment_type === "baseline");
