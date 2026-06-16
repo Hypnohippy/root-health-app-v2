@@ -94,6 +94,80 @@ function changePercent(start, current) {
   return Math.round(((start - current) / start) * 100);
 }
 
+function buildExecutiveIntelligence({
+  stressMetric,
+  burnoutMetric,
+  sleepMetric,
+  recoveryMetric,
+  mostCommonTheme,
+}) {
+  const stressChange = change(stressMetric?.start, stressMetric?.current);
+  const burnoutChange = change(burnoutMetric?.start, burnoutMetric?.current);
+  const sleepChange = change(sleepMetric?.start, sleepMetric?.current);
+  const recoveryChange = change(recoveryMetric?.start, recoveryMetric?.current);
+
+  if (stressChange < 0 && recoveryChange >= 0) {
+    return {
+      title: "Pressure is reducing faster than recovery",
+      pattern:
+        "Stress has improved, but recovery has not yet followed at the same pace.",
+      meaning:
+        "This can suggest employees are coping better with pressure, while still needing support to rebuild sustainable recovery habits.",
+      recommendation:
+        "Focus the next review period on recovery, sleep quality and energy management.",
+      pathway:
+        "Recommended pathway: Recovery Foundations, Sleep and Energy, Burnout Prevention.",
+      expected:
+        "If recovery improves next, Root would expect burnout to reduce further and wellbeing scores to become more stable.",
+    };
+  }
+
+  if (stressChange < 0 && burnoutChange < 0) {
+    return {
+      title: "Early recovery pattern emerging",
+      pattern:
+        "Stress and burnout both moved in a positive direction during the review period.",
+      meaning:
+        "This may indicate employees are beginning to experience both reduced pressure and improved emotional capacity.",
+      recommendation:
+        "Maintain current engagement while strengthening recovery-focused habits.",
+      pathway:
+        "Recommended pathway: Workplace Resilience, Recovery Habits, Practical Lifestyle Coaching.",
+      expected:
+        "If engagement continues, Root would expect further improvement in recovery and focus during the next review period.",
+    };
+  }
+
+  if (sleepChange > 0) {
+    return {
+      title: "Sleep may be limiting further progress",
+      pattern:
+        "Sleep difficulty increased during the review period and may be affecting wider wellbeing movement.",
+      meaning:
+        "Poor sleep can slow recovery, reduce emotional regulation and limit the impact of stress-focused interventions.",
+      recommendation:
+        "Prioritise sleep education and recovery routines before increasing wider programme demands.",
+      pathway:
+        "Recommended pathway: Sleep and Energy, Recovery Foundations, Evening Reset Habits.",
+      expected:
+        "If sleep improves, Root would expect stronger recovery and more stable mood and focus scores.",
+    };
+  }
+
+  return {
+    title: "Positive movement with more data needed",
+    pattern:
+      "Current wellbeing indicators show early movement, but more review points are needed to confirm the strongest pattern.",
+    meaning:
+      "The organisation appears to be building useful early data. Continued participation will make future recommendations more precise.",
+    recommendation:
+      "Keep check-ins regular and encourage employees to use support tools between formal review points.",
+    pathway:
+      "Recommended pathway: Stress Management, Burnout Prevention, Recovery Foundations.",
+    expected:
+      "If participation increases, Root would expect stronger confidence in future workforce wellbeing trends.",
+  };
+}
 function buildNarrative({
   metricResults,
   currentScore,
@@ -456,7 +530,15 @@ export default function ExecutiveReviewPage() {
     burnoutMetric?.start,
     burnoutMetric?.current
   );
-
+  
+  const executiveIntelligence = buildExecutiveIntelligence({
+  stressMetric,
+  burnoutMetric,
+  sleepMetric,
+  recoveryMetric,
+  mostCommonTheme,
+});
+  
   const today = new Date().toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
