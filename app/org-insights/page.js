@@ -1029,26 +1029,21 @@ if (
     an updated executive review for HR and leadership.
   </p>
 
- <div style={styles.snapshotItem}>
-  <span style={styles.snapshotLabel}>Latest Score</span>
-  <strong style={styles.snapshotValue}>
-    {currentScore ?? "—"}
-  </strong>
-</div>
+  <div style={styles.weeklyReportGrid}>
+    <div style={styles.snapshotItem}>
+      <span style={styles.snapshotLabel}>Latest Score</span>
+      <strong style={styles.snapshotValue}>{currentScore ?? "—"}</strong>
+    </div>
 
-<div style={styles.snapshotItem}>
-  <span style={styles.snapshotLabel}>Confidence</span>
-  <strong style={styles.snapshotValue}>
-    {confidenceLabel}
-  </strong>
-</div>
+    <div style={styles.snapshotItem}>
+      <span style={styles.snapshotLabel}>Confidence</span>
+      <strong style={styles.snapshotValue}>{confidenceLabel}</strong>
+    </div>
 
-<div style={styles.snapshotItem}>
-  <span style={styles.snapshotLabel}>Key Focus</span>
-  <strong style={styles.snapshotValue}>
-    {mostCommonTheme}
-  </strong>
-</div>
+    <div style={styles.snapshotItem}>
+      <span style={styles.snapshotLabel}>Key Focus</span>
+      <strong style={styles.snapshotValue}>{mostCommonTheme}</strong>
+    </div>
   </div>
 
   <button
@@ -1058,7 +1053,7 @@ if (
     Generate Executive Review
   </button>
 </section>
-<section style={styles.reportFooter}>
+    <section style={styles.reportFooter}>
   <div style={styles.footerItem}>
     <strong>Root Health</strong>
     <span>Organisational Wellbeing Review</span>
