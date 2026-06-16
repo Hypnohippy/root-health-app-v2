@@ -4,14 +4,17 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 function average(items, key) {
-  const values = items.map((i) => Number(i[key])).filter((v) => !Number.isNaN(v));
+  const values = items
+    .map((item) => Number(item[key]))
+    .filter((value) => !Number.isNaN(value));
+
   if (!values.length) return null;
-  return values.reduce((a, b) => a + b, 0) / values.length;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function format(v) {
-  if (v === null || v === undefined || Number.isNaN(v)) return "—";
-  return Number(v).toFixed(1);
+function format(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  return Number(value).toFixed(1);
 }
 
 function scoreFromAssessments(items) {
@@ -26,10 +29,10 @@ function scoreFromAssessments(items) {
     "focus_score",
   ];
 
-  const values = keys.map((k) => average(items, k)).filter((v) => v !== null);
+  const values = keys.map((key) => average(items, key)).filter((value) => value !== null);
   if (!values.length) return null;
 
-  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
   return Math.round(100 - avg * 10);
 }
 
@@ -56,6 +59,7 @@ function mapChallengeTheme(theme = "") {
 
 function countBy(items, key) {
   const counts = {};
+
   items.forEach((item) => {
     const value = item[key];
     if (!value) return;
@@ -72,11 +76,11 @@ function change(start, current) {
 
 function buildNarrative({ metricResults, currentScore, mostCommonTheme, supportInteractions }) {
   const improved = metricResults
-    .filter((m) => m.change !== null && m.change < 0)
+    .filter((item) => item.change !== null && item.change < 0)
     .sort((a, b) => a.change - b.change);
 
   const worsened = metricResults
-    .filter((m) => m.change !== null && m.change > 0)
+    .filter((item) => item.change !== null && item.change > 0)
     .sort((a, b) => b.change - a.change);
 
   const strongest = improved[0];
@@ -125,23 +129,32 @@ function buildNarrative({ metricResults, currentScore, mostCommonTheme, supportI
 
 function LineChart({ rows }) {
   const width = 900;
-  const height = 300;
-  const pad = 46;
+  const height = 320;
+  const pad = 52;
 
   const series = [
-    { key: "stress", label: "Stress", color: "#d33" },
+    { key: "stress", label: "Stress", color: "#d93b3b" },
     { key: "burnout", label: "Burnout", color: "#e88419" },
     { key: "sleep", label: "Sleep difficulty", color: "#2563eb" },
     { key: "recovery", label: "Recovery difficulty", color: "#16a34a" },
   ];
 
-  const xFor = (i) => pad + (i / Math.max(rows.length - 1, 1)) * (width - pad * 2);
-  const yFor = (v) => height - pad - (Number(v || 0) / 10) * (height - pad * 2);
+  const safeRows = rows || [];
+
+  const xFor = (index) =>
+    pad + (index / Math.max(safeRows.length - 1, 1)) * (width - pad * 2);
+
+  const yFor = (value) =>
+    height - pad - (Number(value || 0) / 10) * (height - pad * 2);
 
   const pathFor = (key) =>
-    rows
-      .map((row, i) => `${i === 0 ? "M" : "L"} ${xFor(i)} ${yFor(row[key])}`)
+    safeRows
+      .map((row, index) => `${index === 0 ? "M" : "L"} ${xFor(index)} ${yFor(row[key])}`)
       .join(" ");
+
+  if (!safeRows.length) {
+    return <p style={styles.bodyText}>No trend data is available yet.</p>;
+  }
 
   return (
     <div>
@@ -153,46 +166,48 @@ function LineChart({ rows }) {
               x2={width - pad}
               y1={yFor(tick)}
               y2={yFor(tick)}
-              stroke="#ddd"
+              stroke="#e1e1e1"
               strokeWidth="1"
             />
-            <text x={pad - 22} y={yFor(tick) + 4} fontSize="11" fill="#333">
+            <text x={pad - 26} y={yFor(tick) + 4} fontSize="12" fill="#333">
               {tick}
             </text>
           </g>
         ))}
 
-        {series.map((s) => (
+        {series.map((item) => (
           <path
-            key={s.key}
-            d={pathFor(s.key)}
+            key={item.key}
+            d={pathFor(item.key)}
             fill="none"
-            stroke={s.color}
+            stroke={item.color}
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         ))}
 
-        {rows.map((row, rowIndex) =>
-          series.map((s) => (
+        {safeRows.map((row, rowIndex) =>
+          series.map((item) => (
             <circle
-              key={`${s.key}-${rowIndex}`}
+              key={`${item.key}-${rowIndex}`}
               cx={xFor(rowIndex)}
-              cy={yFor(row[s.key])}
+              cy={yFor(row[item.key])}
               r="4"
-              fill={s.color}
+              fill="#fff"
+              stroke={item.color}
+              strokeWidth="3"
             />
           ))
         )}
 
-        {rows.map((row, i) => (
+        {safeRows.map((row, index) => (
           <text
             key={row.label}
-            x={xFor(i)}
-            y={height - 14}
+            x={xFor(index)}
+            y={height - 18}
             textAnchor="middle"
-            fontSize="11"
+            fontSize="12"
             fill="#333"
           >
             {row.label}
@@ -201,12 +216,32 @@ function LineChart({ rows }) {
       </svg>
 
       <div style={styles.legend}>
-        {series.map((s) => (
-          <span key={s.key}>
-            <b style={{ color: s.color }}>●</b> {s.label}
+        {series.map((item) => (
+          <span key={item.key}>
+            <b style={{ color: item.color }}>●</b> {item.label}
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+function SnapshotCard({ label, value, detail }) {
+  return (
+    <div style={styles.snapshotCard}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{detail}</small>
+    </div>
+  );
+}
+
+function PageHeader({ kicker, title, subtitle }) {
+  return (
+    <div style={styles.pageHeader}>
+      <p style={styles.kicker}>{kicker}</p>
+      <h2 style={styles.pageTitle}>{title}</h2>
+      {subtitle ? <p style={styles.subtitle}>{subtitle}</p> : null}
     </div>
   );
 }
@@ -223,20 +258,21 @@ export default function ExecutiveReviewPage() {
   useEffect(() => {
     loadData();
   }, []);
+
   useEffect(() => {
-  if (!loading) {
-    const params = new URLSearchParams(window.location.search);
-    const shouldPrint = params.get("print") === "1";
+    if (!loading) {
+      const params = new URLSearchParams(window.location.search);
+      const shouldPrint = params.get("print") === "1";
 
-    if (shouldPrint) {
-      const timer = setTimeout(() => {
-        window.print();
-      }, 900);
+      if (shouldPrint) {
+        const timer = setTimeout(() => {
+          window.print();
+        }, 900);
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+      }
     }
-  }
-}, [loading]);
+  }, [loading]);
 
   const loadData = async () => {
     setLoading(true);
@@ -296,9 +332,13 @@ export default function ExecutiveReviewPage() {
     setLoading(false);
   };
 
-  if (loading) return <main style={styles.page}>Loading executive review...</main>;
+  if (loading) {
+    return <main style={styles.page}>Loading executive review...</main>;
+  }
 
-  const baseline = assessments.filter((a) => a.assessment_type === "baseline");
+  const organisationName = organisation?.name || "Root Health Trial Company";
+
+  const baseline = assessments.filter((item) => item.assessment_type === "baseline");
   const latest = assessments.length ? [assessments[assessments.length - 1]] : [];
 
   const metrics = [
@@ -317,24 +357,25 @@ export default function ExecutiveReviewPage() {
   });
 
   const mostImproved = metricResults
-    .filter((m) => m.change !== null && m.change < 0)
+    .filter((item) => item.change !== null && item.change < 0)
     .sort((a, b) => a.change - b.change)[0];
 
   const mappedThemes = countBy(
     mindEntries
-      .filter((e) => e.thought_theme)
-      .map((e) => ({ challenge: mapChallengeTheme(e.thought_theme) })),
+      .filter((entry) => entry.thought_theme)
+      .map((entry) => ({ challenge: mapChallengeTheme(entry.thought_theme) })),
     "challenge"
   );
 
   const mostCommonTheme = mappedThemes[0]?.[0] || "No challenge data yet";
+
   const supportInteractions =
     mindEntries.length + journalEntries.length + voiceSessions.length;
 
   const currentScore = scoreFromAssessments(latest);
   const baselineScore = scoreFromAssessments(baseline);
 
-  const activated = members.filter((m) => m.activated_at).length;
+  const activated = members.filter((member) => member.activated_at).length;
 
   const confidenceScore = Math.min(
     100,
@@ -371,130 +412,239 @@ export default function ExecutiveReviewPage() {
     year: "numeric",
   });
 
+  const finalSummary = `During this review period, workforce wellbeing indicators demonstrated encouraging early movement. ${
+    mostImproved
+      ? `${mostImproved.label} showed the strongest positive change.`
+      : "Further check-ins will help clarify where the strongest movement is occurring."
+  } The most common anonymous workforce challenge identified was ${mostCommonTheme}, suggesting this should remain a focus in the next review period. Support engagement currently stands at ${supportInteractions} recorded interactions, providing a useful foundation for continued organisational wellbeing measurement.`;
+
   return (
     <main style={styles.page}>
-      <section style={styles.cover}>
-        <p style={styles.kicker}>Root Health</p>
-        <h1 style={styles.coverTitle}>Executive Wellbeing Review</h1>
-        <p style={styles.coverSubtitle}>Generated from anonymised workforce wellbeing data.</p>
+      <style>{`
+        @page {
+          size: A4;
+          margin: 14mm;
+        }
 
-        <div style={styles.coverGrid}>
-          <div>
-            <strong>Organisation</strong>
-            <span>{organisation?.name || "Root Health Trial Company"}</span>
-          </div>
-          <div>
-            <strong>Review date</strong>
-            <span>{today}</span>
-          </div>
-          <div>
-            <strong>Review period</strong>
-            <span>Trial review period</span>
-          </div>
-          <div>
-            <strong>Current wellbeing score</strong>
-            <span>{currentScore ?? "—"}</span>
-          </div>
+        @media print {
+          html, body {
+            background: #ffffff !important;
+          }
+
+          .report-page {
+            break-after: page;
+            page-break-after: always;
+          }
+
+          .report-page:last-of-type {
+            break-after: auto;
+            page-break-after: auto;
+          }
+
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      <section className="report-page" style={styles.coverPage}>
+        <div>
+          <p style={styles.brand}>ROOT HEALTH</p>
+          <h1 style={styles.coverTitle}>Executive Wellbeing Review</h1>
+          <p style={styles.coverSubtitle}>
+            Generated from anonymised workforce wellbeing data.
+          </p>
         </div>
 
-        <p style={styles.confidential}>Confidential · For internal organisational review</p>
-      </section>
+        <div style={styles.coverDetails}>
+          <div>
+            <span>Organisation</span>
+            <strong>{organisationName}</strong>
+          </div>
 
-      <section style={styles.section}>
-        <p style={styles.kicker}>Executive Snapshot</p>
-        <h2>Current organisational picture</h2>
+          <div>
+            <span>Review date</span>
+            <strong>{today}</strong>
+          </div>
 
-        <div style={styles.snapshotGrid}>
-          <div style={styles.snapshotCard}>
-            <span>Wellbeing score</span>
+          <div>
+            <span>Review period</span>
+            <strong>Trial review period</strong>
+          </div>
+
+          <div>
+            <span>Current wellbeing score</span>
             <strong>{currentScore ?? "—"}</strong>
-            <small>Baseline {baselineScore ?? "—"} → Current {currentScore ?? "—"}</small>
-          </div>
-          <div style={styles.snapshotCard}>
-            <span>Strongest improvement</span>
-            <strong>{mostImproved?.label || "—"}</strong>
-            <small>{mostImproved ? `${Math.abs(mostImproved.change).toFixed(1)} point improvement` : "Awaiting data"}</small>
-          </div>
-          <div style={styles.snapshotCard}>
-            <span>Primary challenge</span>
-            <strong>{mostCommonTheme}</strong>
-            <small>Anonymous workforce theme</small>
-          </div>
-          <div style={styles.snapshotCard}>
-            <span>Support engagement</span>
-            <strong>{supportInteractions}</strong>
-            <small>Recorded support interactions</small>
-          </div>
-          <div style={styles.snapshotCard}>
-            <span>Root confidence</span>
-            <strong>{confidenceLabel}</strong>
-            <small>{confidenceScore}% confidence rating</small>
           </div>
         </div>
-      </section>
 
-      <section style={styles.section}>
-        <p style={styles.kicker}>Trend Analysis</p>
-        <h2>Wellbeing movement over time</h2>
-        <p style={styles.note}>Lower scores indicate reduced difficulty.</p>
-        <LineChart rows={trendRows} />
-      </section>
-
-      <section style={styles.section}>
-        <p style={styles.kicker}>AI Workforce Insight</p>
-        <h2>What Root is noticing</h2>
-        <p style={styles.bodyText}>{narrative.insight}</p>
-      </section>
-
-      <section style={styles.section}>
-        <p style={styles.kicker}>Executive Summary</p>
-        <h2>Review narrative</h2>
-        <p style={styles.bodyText}>{narrative.summary}</p>
-      </section>
-
-      <section style={styles.section}>
-        <p style={styles.kicker}>Root Confidence Rating</p>
-        <h2>{confidenceLabel} Confidence</h2>
-        <div style={styles.confidenceTrack}>
-          <div style={{ ...styles.confidenceFill, width: `${confidenceScore}%` }} />
-        </div>
-        <p style={styles.note}>
-          Based on {assessments.length} assessments, {supportInteractions} support interactions
-          and {activated} activated users.
+        <p style={styles.confidential}>
+          Confidential · For internal organisational review
         </p>
       </section>
 
-      <section style={styles.section}>
-        <p style={styles.kicker}>Recommended Actions</p>
-        <h2>Immediate opportunities</h2>
-        <div style={styles.actionGrid}>
-          {narrative.actions.map((item) => (
-            <div key={item} style={styles.actionCard}>{item}</div>
+      <section className="report-page" style={styles.reportPage}>
+        <PageHeader
+          kicker="Executive Snapshot"
+          title="Current organisational picture"
+          subtitle="A concise overview of the key organisational wellbeing indicators."
+        />
+
+        <div style={styles.snapshotGrid}>
+          <SnapshotCard
+            label="Wellbeing score"
+            value={currentScore ?? "—"}
+            detail={`Baseline ${baselineScore ?? "—"} → Current ${currentScore ?? "—"}`}
+          />
+
+          <SnapshotCard
+            label="Strongest improvement"
+            value={mostImproved?.label || "—"}
+            detail={
+              mostImproved
+                ? `${Math.abs(mostImproved.change).toFixed(1)} point improvement`
+                : "Awaiting follow-up data"
+            }
+          />
+
+          <SnapshotCard
+            label="Primary challenge"
+            value={mostCommonTheme}
+            detail="Most common anonymous workforce theme"
+          />
+
+          <SnapshotCard
+            label="Support engagement"
+            value={supportInteractions}
+            detail="Recorded support interactions"
+          />
+
+          <SnapshotCard
+            label="Root confidence"
+            value={confidenceLabel}
+            detail={`${confidenceScore}% confidence rating`}
+          />
+        </div>
+
+        <div style={styles.confidenceBox}>
+          <h3>Root confidence rating</h3>
+          <div style={styles.confidenceTrack}>
+            <div
+              style={{
+                ...styles.confidenceFill,
+                width: `${confidenceScore}%`,
+              }}
+            />
+          </div>
+          <p>
+            Based on {assessments.length} assessments, {supportInteractions} support
+            interactions and {activated} activated users.
+          </p>
+        </div>
+      </section>
+
+      <section className="report-page" style={styles.reportPage}>
+        <PageHeader
+          kicker="Trend Analysis"
+          title="Wellbeing movement over time"
+          subtitle="Lower scores indicate reduced difficulty."
+        />
+
+        <LineChart rows={trendRows} />
+      </section>
+
+      <section className="report-page" style={styles.reportPage}>
+        <PageHeader
+          kicker="AI Workforce Insight"
+          title="What Root is noticing"
+        />
+
+        <p style={styles.bodyText}>{narrative.insight}</p>
+
+        <div style={styles.divider} />
+
+        <PageHeader
+          kicker="Executive Summary"
+          title="Review narrative"
+        />
+
+        <p style={styles.bodyText}>{narrative.summary}</p>
+      </section>
+
+      <section className="report-page" style={styles.reportPage}>
+        <PageHeader
+          kicker="Recommended Actions"
+          title="Immediate opportunities"
+        />
+
+        <div style={styles.actionList}>
+          {narrative.actions.map((item, index) => (
+            <div key={item} style={styles.actionItem}>
+              <span>{index + 1}</span>
+              <p>{item}</p>
+            </div>
           ))}
         </div>
+
+        <div style={styles.twoColumn}>
+          <div>
+            <h3>Learning opportunities</h3>
+            <ul style={styles.list}>
+              {narrative.learning.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3>Organisational development opportunities</h3>
+            <ul style={styles.list}>
+              {narrative.development.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
-      <section style={styles.twoCol}>
-        <div style={styles.section}>
-          <p style={styles.kicker}>Learning Opportunities</p>
-          <h2>Suggested development themes</h2>
-          <ul style={styles.list}>
-            {narrative.learning.map((item) => <li key={item}>{item}</li>)}
-          </ul>
+      <section className="report-page" style={styles.finalPage}>
+        <PageHeader
+          kicker="Executive Summary & Next Steps"
+          title="Conclusion"
+        />
+
+        <h3>What we found</h3>
+        <p style={styles.bodyText}>{finalSummary}</p>
+
+        <h3>What it means</h3>
+        <p style={styles.bodyText}>
+          Current data suggests the organisation is moving in a positive direction,
+          with early improvements visible in key wellbeing indicators. The results
+          should be interpreted as emerging evidence rather than a final conclusion,
+          as continued participation will strengthen confidence in the trends observed.
+        </p>
+
+        <h3>Recommended next steps</h3>
+        <ol style={styles.orderedList}>
+          <li>Continue monitoring {mostCommonTheme.toLowerCase()}.</li>
+          <li>Encourage regular wellbeing check-ins to strengthen trend reliability.</li>
+          <li>Promote practical wellbeing tools between formal reviews.</li>
+          <li>Consider targeted resilience, recovery and manager awareness learning.</li>
+        </ol>
+
+        <div style={styles.conclusionBox}>
+          <h3>Root conclusion</h3>
+          <p>
+            Continued use of Root Health will allow the organisation to build a clearer
+            evidence picture over time, supporting better decisions around wellbeing,
+            recovery and employee support.
+          </p>
         </div>
 
-        <div style={styles.section}>
-          <p style={styles.kicker}>Organisational Development</p>
-          <h2>Development opportunities</h2>
-          <ul style={styles.list}>
-            {narrative.development.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </div>
-      </section>
-
-      <section style={styles.footer}>
-        <strong>Root Health</strong>
-        <span>Confidential · Generated automatically from anonymised workforce data</span>
+        <footer style={styles.footer}>
+          <strong>Root Health</strong>
+          <span>Confidential · Generated from anonymised workforce data</span>
+        </footer>
       </section>
     </main>
   );
@@ -504,63 +654,94 @@ const styles = {
   page: {
     background: "#ffffff",
     color: "#181818",
-    padding: "40px",
-    fontFamily: "Georgia, serif",
+    padding: "24px",
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
   },
 
-  cover: {
-    minHeight: "88vh",
+  coverPage: {
+    minHeight: "calc(297mm - 38mm)",
+    padding: "46px",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
-    border: "1px solid #ddd1c3",
-    borderRadius: "28px",
-    padding: "60px",
+    justifyContent: "space-between",
+    border: "1px solid #dedede",
     background: "#ffffff",
-    pageBreakAfter: "always",
   },
 
-  kicker: {
-    textTransform: "uppercase",
+  reportPage: {
+    minHeight: "calc(297mm - 38mm)",
+    padding: "34px",
+    border: "1px solid #e2e2e2",
+    background: "#ffffff",
+  },
+
+  finalPage: {
+    minHeight: "calc(297mm - 38mm)",
+    padding: "34px",
+    border: "1px solid #e2e2e2",
+    background: "#ffffff",
+  },
+
+  brand: {
+    margin: "0 0 42px",
+    fontSize: "14px",
     letterSpacing: "0.16em",
-    fontSize: "12px",
     fontWeight: "800",
-    color: "#786c5d",
-    margin: "0 0 12px",
   },
 
   coverTitle: {
-    fontSize: "54px",
-    lineHeight: "1.05",
-    margin: "0 0 18px",
+    margin: "0",
+    maxWidth: "640px",
+    fontSize: "58px",
+    lineHeight: "1.02",
+    letterSpacing: "-0.04em",
   },
 
   coverSubtitle: {
-    fontSize: "20px",
-    color: "#51483d",
+    marginTop: "20px",
     maxWidth: "620px",
+    fontSize: "18px",
     lineHeight: "1.7",
+    color: "#4A4A4A",
   },
 
-  coverGrid: {
-    marginTop: "42px",
+  coverDetails: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "18px",
+    marginTop: "56px",
   },
 
   confidential: {
-    marginTop: "42px",
-    color: "#51483d",
+    margin: "42px 0 0",
+    color: "#4A4A4A",
+    fontSize: "14px",
   },
 
-  section: {
-    background: "#ffffff",
-    border: "1px solid #ddd1c3",
-    borderRadius: "24px",
-    padding: "32px",
-    marginBottom: "24px",
-    breakInside: "avoid",
+  pageHeader: {
+    marginBottom: "30px",
+  },
+
+  kicker: {
+    margin: "0 0 10px",
+    fontSize: "12px",
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: "0.13em",
+    color: "#6D6258",
+  },
+
+  pageTitle: {
+    margin: "0",
+    fontSize: "34px",
+    letterSpacing: "-0.03em",
+  },
+
+  subtitle: {
+    margin: "12px 0 0",
+    color: "#4A4A4A",
+    lineHeight: "1.65",
   },
 
   snapshotGrid: {
@@ -570,17 +751,19 @@ const styles = {
   },
 
   snapshotCard: {
-    border: "1px solid #e1d6c8",
-    borderRadius: "18px",
+    border: "1px solid #e2e2e2",
     padding: "18px",
-    display: "grid",
-    gap: "8px",
+    minHeight: "122px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    background: "#ffffff",
   },
 
   chart: {
     width: "100%",
     height: "auto",
-    marginTop: "20px",
+    marginTop: "28px",
   },
 
   legend: {
@@ -588,64 +771,88 @@ const styles = {
     justifyContent: "center",
     gap: "22px",
     fontSize: "13px",
-    marginTop: "8px",
+    marginTop: "14px",
   },
 
-  bodyText: {
-    fontSize: "18px",
-    lineHeight: "1.8",
-    color: "#2e2a24",
-  },
-
-  note: {
-    color: "#51483d",
-    lineHeight: "1.6",
+  confidenceBox: {
+    marginTop: "34px",
+    padding: "22px",
+    border: "1px solid #e2e2e2",
+    background: "#fafafa",
   },
 
   confidenceTrack: {
-    height: "18px",
-    background: "#e8dfd3",
-    borderRadius: "999px",
+    height: "14px",
+    background: "#e8e8e8",
     overflow: "hidden",
+    margin: "14px 0",
   },
 
   confidenceFill: {
     height: "100%",
     background: "#181818",
-    borderRadius: "999px",
   },
 
-  actionGrid: {
+  bodyText: {
+    fontSize: "18px",
+    lineHeight: "1.8",
+    color: "#252525",
+  },
+
+  divider: {
+    height: "1px",
+    background: "#e2e2e2",
+    margin: "34px 0",
+  },
+
+  actionList: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "14px",
+    gap: "16px",
+    marginBottom: "36px",
   },
 
-  actionCard: {
-    border: "1px solid #e1d6c8",
-    borderRadius: "18px",
+  actionItem: {
+    display: "grid",
+    gridTemplateColumns: "42px 1fr",
+    gap: "18px",
+    alignItems: "start",
     padding: "18px",
-    lineHeight: "1.6",
-    background: "#fff",
+    border: "1px solid #e2e2e2",
+    background: "#ffffff",
   },
 
-  twoCol: {
+  twoColumn: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "24px",
+    gap: "34px",
   },
 
   list: {
     lineHeight: "2",
+    fontSize: "16px",
+    paddingLeft: "20px",
+  },
+
+  orderedList: {
     fontSize: "17px",
+    lineHeight: "2",
+    paddingLeft: "24px",
+  },
+
+  conclusionBox: {
+    marginTop: "28px",
+    padding: "24px",
+    background: "#fafafa",
+    border: "1px solid #e2e2e2",
   },
 
   footer: {
-    marginTop: "40px",
-    padding: "20px 0",
-    borderTop: "1px solid #cfc4b7",
+    marginTop: "36px",
+    paddingTop: "18px",
+    borderTop: "1px solid #ddd",
     display: "flex",
     justifyContent: "space-between",
-    color: "#51483d",
+    color: "#4A4A4A",
+    fontSize: "13px",
   },
 };
