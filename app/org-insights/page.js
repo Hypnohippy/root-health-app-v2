@@ -708,6 +708,37 @@ const weeklyChanges = [
   weeklyChange("Sleep difficulty", "sleep_score"),
   weeklyChange("Recovery difficulty", "recovery_score"),
 ];
+  const stressLatest = latestEntry ? Number(latestEntry.stress_score) : null;
+const burnoutLatest = latestEntry ? Number(latestEntry.burnout_score) : null;
+const recoveryLatest = latestEntry ? Number(latestEntry.recovery_score) : null;
+
+const stressPrevious = previousEntry ? Number(previousEntry.stress_score) : null;
+const burnoutPrevious = previousEntry ? Number(previousEntry.burnout_score) : null;
+
+const stressMovement =
+  stressLatest !== null && stressPrevious !== null
+    ? stressLatest - stressPrevious
+    : null;
+
+const burnoutMovement =
+  burnoutLatest !== null && burnoutPrevious !== null
+    ? burnoutLatest - burnoutPrevious
+    : null;
+
+const rootWeeklyInterpretation =
+  stressMovement !== null &&
+  burnoutMovement !== null &&
+  stressMovement > 0 &&
+  burnoutMovement < 0
+    ? "Root has noticed that stress increased while burnout continued to improve. This may suggest employees are still experiencing pressure, but may be coping with it more effectively than before."
+    : stressMovement !== null &&
+      burnoutMovement !== null &&
+      stressMovement < 0 &&
+      burnoutMovement < 0
+    ? "Root has noticed improvement across both stress and burnout. This may suggest a broader positive wellbeing trend is beginning to develop."
+    : recoveryLatest !== null && recoveryLatest >= 7
+    ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
+    : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
 const nextReviewFocus = [];
 
 if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
@@ -1093,7 +1124,13 @@ if (
       ))}
     </div>
   </div>
+  <div style={styles.interpretationCard}>
+  <h3 style={styles.smallHeading}>Root's interpretation</h3>
 
+  <p style={styles.reportText}>
+    {rootWeeklyInterpretation}
+  </p>
+</div>
   <button
     style={styles.reportButton}
     onClick={() => window.open("/executive-review?print=1", "_blank")}
@@ -1726,4 +1763,11 @@ changedItem: {
   fontWeight: "700",
   lineHeight: "1.45",
 },  
+  interpretationCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(220,230,205,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
 };
