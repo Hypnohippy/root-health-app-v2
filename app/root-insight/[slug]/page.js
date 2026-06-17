@@ -208,6 +208,7 @@ managers: {
     "Support conversations",
   ],
 },
+};
 
 export default function RootInsightPage() {
   const params = useParams();
