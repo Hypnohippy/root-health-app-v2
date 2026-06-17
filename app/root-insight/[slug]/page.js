@@ -120,8 +120,9 @@ const insights = {
       "Resilience support",
     ],
   },
-};
-sleep: {
+    },
+
+    sleep: {
   kicker: "Recommended Insight",
   title: "Why Sleep Is a Performance Issue, Not a Private Issue",
   readTime: "5 minute read",
