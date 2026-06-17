@@ -711,6 +711,7 @@ const weeklyChanges = [
   const stressLatest = latestEntry ? Number(latestEntry.stress_score) : null;
 const burnoutLatest = latestEntry ? Number(latestEntry.burnout_score) : null;
 const recoveryLatest = latestEntry ? Number(latestEntry.recovery_score) : null;
+const sleepLatest = latestEntry ? Number(latestEntry.sleep_score) : null;
 
 const stressPrevious = previousEntry ? Number(previousEntry.stress_score) : null;
 const burnoutPrevious = previousEntry ? Number(previousEntry.burnout_score) : null;
@@ -755,6 +756,35 @@ if (recoveryLatest !== null && recoveryLatest >= 7) {
   };
 }
 
+if (sleepLatest !== null && sleepLatest >= 7) {
+  recommendedInsight = {
+    title: "Why sleep is a performance issue, not a private issue",
+    slug: "sleep",
+    reason:
+      "Sleep difficulty appears elevated, so Root is recommending a short insight on sleep, fatigue and workforce performance.",
+  };
+}
+
+if (burnoutLatest !== null && burnoutLatest >= 7) {
+  recommendedInsight = {
+    title: "The burnout myth most organisations miss",
+    slug: "burnout",
+    reason:
+      "Burnout indicators are elevated, so Root is recommending a short insight on what organisations often miss about burnout.",
+  };
+}
+
+if (
+  mostCommonTheme.includes("Relationship") ||
+  mostCommonTheme.includes("Trust")
+) {
+  recommendedInsight = {
+    title: "Why managers rarely spot burnout early",
+    slug: "managers",
+    reason:
+      "Relationship and trust themes are appearing in the data, so Root is recommending a short insight on manager awareness and early signs.",
+  };
+}
 if (burnoutLatest !== null && burnoutLatest >= 7) {
   recommendedInsight = {
     title: "The burnout myth most organisations miss",
