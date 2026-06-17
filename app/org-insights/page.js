@@ -740,6 +740,36 @@ const rootWeeklyInterpretation =
     : recoveryLatest !== null && recoveryLatest >= 7
     ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
     : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
+  const rootMemory = [];
+
+if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
+  rootMemory.push(
+    `${mostCommonTheme} has remained one of the most visible workforce themes during this review period.`
+  );
+}
+
+if (
+  stressLatest !== null &&
+  burnoutLatest !== null &&
+  stressLatest >= 7 &&
+  burnoutLatest < stressLatest
+) {
+  rootMemory.push(
+    "Burnout appears lower than current stress levels, which may suggest employees are coping with pressure more effectively than before."
+  );
+}
+
+if (recoveryLatest !== null && recoveryLatest >= 6) {
+  rootMemory.push(
+    "Recovery difficulty remains an important area to watch, particularly if pressure continues over future review periods."
+  );
+}
+
+if (rootMemory.length === 0) {
+  rootMemory.push(
+    "Root is beginning to build an organisational memory. As more check-ins are completed, recurring themes and longer-term patterns will become clearer."
+  );
+}
   let recommendedInsight = {
   title: "Why pressure isn't always the problem",
   slug: "pressure",
@@ -1184,6 +1214,21 @@ if (
   <p style={styles.reportText}>
     {rootWeeklyInterpretation}
   </p>
+</div>
+      <div style={styles.memoryCard}>
+  <p style={styles.panelLabel}>Root Memory</p>
+
+  <h3 style={styles.smallHeading}>
+    Root's memory of this organisation
+  </h3>
+
+  <div style={styles.memoryList}>
+    {rootMemory.map((item) => (
+      <div key={item} style={styles.memoryItem}>
+        {item}
+      </div>
+    ))}
+  </div>
 </div>
       <div style={styles.recommendedInsightCard}>
   <p style={styles.panelLabel}>Recommended Insight</p>
@@ -1850,5 +1895,28 @@ changedItem: {
   borderRadius: "24px",
   background: "rgba(255,255,255,0.46)",
   border: "1px solid rgba(255,255,255,0.72)",
+},
+  memoryCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+memoryList: {
+  display: "grid",
+  gap: "12px",
+  marginTop: "14px",
+},
+
+memoryItem: {
+  padding: "16px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.5)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+  lineHeight: "1.6",
+  fontWeight: "650",
 },
 };
