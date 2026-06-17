@@ -119,7 +119,7 @@ const insights = {
       "Workload review",
       "Resilience support",
     ],
-  },
+
     },
 
     sleep: {
