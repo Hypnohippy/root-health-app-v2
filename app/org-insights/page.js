@@ -770,6 +770,42 @@ if (rootMemory.length === 0) {
     "Root is beginning to build an organisational memory. As more check-ins are completed, recurring themes and longer-term patterns will become clearer."
   );
 }
+  const executiveQuestions = [];
+
+if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
+  executiveQuestions.push(
+    `Is ${mostCommonTheme.toLowerCase()} a temporary pressure, or is it becoming part of normal working life?`
+  );
+}
+
+if (recoveryLatest !== null && recoveryLatest >= 6) {
+  executiveQuestions.push(
+    "What may be preventing employees from fully recovering between periods of demand?"
+  );
+}
+
+if (
+  stressLatest !== null &&
+  burnoutLatest !== null &&
+  stressLatest >= 7 &&
+  burnoutLatest < stressLatest
+) {
+  executiveQuestions.push(
+    "What appears to be helping employees cope with pressure, and how can that be strengthened?"
+  );
+}
+
+if (engagementScore !== null && engagementScore < 60) {
+  executiveQuestions.push(
+    "What barriers may be preventing employees from engaging with available support?"
+  );
+}
+
+if (executiveQuestions.length === 0) {
+  executiveQuestions.push(
+    "What would help leaders understand the current workforce wellbeing picture more clearly?"
+  );
+}
   let recommendedInsight = {
   title: "Why pressure isn't always the problem",
   slug: "pressure",
@@ -1225,6 +1261,19 @@ if (
   <div style={styles.memoryList}>
     {rootMemory.map((item) => (
       <div key={item} style={styles.memoryItem}>
+        {item}
+      </div>
+    ))}
+  </div>
+</div>
+    <div style={styles.questionsCard}>
+  <p style={styles.panelLabel}>Executive Questions</p>
+
+  <h3 style={styles.smallHeading}>Questions for leadership</h3>
+
+  <div style={styles.questionList}>
+    {executiveQuestions.map((item) => (
+      <div key={item} style={styles.questionItem}>
         {item}
       </div>
     ))}
@@ -1911,6 +1960,29 @@ memoryList: {
 },
 
 memoryItem: {
+  padding: "16px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.5)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+  lineHeight: "1.6",
+  fontWeight: "650",
+},
+  questionsCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+questionList: {
+  display: "grid",
+  gap: "12px",
+  marginTop: "14px",
+},
+
+questionItem: {
   padding: "16px",
   borderRadius: "18px",
   background: "rgba(255,255,255,0.5)",
