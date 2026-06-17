@@ -739,6 +739,30 @@ const rootWeeklyInterpretation =
     : recoveryLatest !== null && recoveryLatest >= 7
     ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
     : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
+  let recommendedInsight = {
+  title: "Why pressure isn't always the problem",
+  slug: "pressure",
+  reason:
+    "Workplace pressure is currently the strongest organisational theme, so Root is recommending a short insight on pressure, recovery and sustainable performance.",
+};
+
+if (recoveryLatest !== null && recoveryLatest >= 7) {
+  recommendedInsight = {
+    title: "Why recovery is not the same as rest",
+    slug: "recovery",
+    reason:
+      "Recovery appears to be a key pressure point, so Root is recommending a short insight on sustainable recovery.",
+  };
+}
+
+if (burnoutLatest !== null && burnoutLatest >= 7) {
+  recommendedInsight = {
+    title: "The burnout myth most organisations miss",
+    slug: "burnout",
+    reason:
+      "Burnout indicators are elevated, so Root is recommending a short insight on what organisations often miss about burnout.",
+  };
+}
 const nextReviewFocus = [];
 
 if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
@@ -1130,6 +1154,26 @@ if (
   <p style={styles.reportText}>
     {rootWeeklyInterpretation}
   </p>
+</div>
+      <div style={styles.recommendedInsightCard}>
+  <p style={styles.panelLabel}>Recommended Insight</p>
+
+  <h3 style={styles.smallHeading}>
+    {recommendedInsight.title}
+  </h3>
+
+  <p style={styles.reportText}>
+    {recommendedInsight.reason}
+  </p>
+
+  <button
+    style={styles.reportButton}
+    onClick={() =>
+      window.open(`/root-insight/${recommendedInsight.slug}`, "_blank")
+    }
+  >
+    Read 5 minute insight
+  </button>
 </div>
   <button
     style={styles.reportButton}
@@ -1768,6 +1812,13 @@ changedItem: {
   padding: "22px",
   borderRadius: "24px",
   background: "rgba(220,230,205,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+  recommendedInsightCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.46)",
   border: "1px solid rgba(255,255,255,0.72)",
 },
 };
