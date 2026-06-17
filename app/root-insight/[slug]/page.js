@@ -121,6 +121,92 @@ const insights = {
     ],
   },
 };
+sleep: {
+  kicker: "Recommended Insight",
+  title: "Why Sleep Is a Performance Issue, Not a Private Issue",
+  readTime: "5 minute read",
+
+  intro:
+    "Many organisations treat sleep as a personal matter. In reality, sleep may be one of the most important workforce performance factors that leaders never see.",
+
+  sections: [
+    {
+      heading: "Sleep affects more than energy",
+      body: [
+        "Most people associate poor sleep with tiredness. The reality is that sleep influences concentration, decision making, emotional regulation and resilience.",
+        "People can often continue functioning with poor sleep for surprisingly long periods, which is why the problem frequently goes unnoticed.",
+      ],
+    },
+
+    {
+      heading: "What Root often sees",
+      body: [
+        "Root often sees sleep difficulty appearing before other wellbeing indicators deteriorate significantly.",
+        "Employees may continue performing, but reduced recovery capacity can make workplace pressure feel harder to manage over time.",
+      ],
+    },
+
+    {
+      heading: "Why this matters",
+      body: [
+        "Sleep is rarely solved through awareness alone. Organisations that support healthier working rhythms, realistic workloads and recovery habits often see wider wellbeing benefits.",
+      ],
+    },
+  ],
+
+  reflection:
+    "How much of the pressure your workforce experiences may actually be amplified by fatigue rather than workload alone?",
+
+  exploration: [
+    "Sleep awareness",
+    "Recovery education",
+    "Workload review",
+    "Energy management",
+  ],
+},
+managers: {
+  kicker: "Recommended Insight",
+  title: "Why Managers Rarely Spot Burnout Early",
+  readTime: "5 minute read",
+
+  intro:
+    "Most managers care deeply about their people. The challenge is that burnout rarely announces itself clearly in its early stages.",
+
+  sections: [
+    {
+      heading: "Burnout hides in plain sight",
+      body: [
+        "Employees experiencing burnout often continue delivering, attending meetings and appearing productive.",
+        "The signs tend to emerge gradually through reduced enthusiasm, lower patience, emotional exhaustion and difficulty recovering.",
+      ],
+    },
+
+    {
+      heading: "What Root often sees",
+      body: [
+        "Root frequently identifies themes around trust, relationships and communication before burnout becomes obvious.",
+        "These signals may indicate employees are struggling long before performance visibly declines.",
+      ],
+    },
+
+    {
+      heading: "Why this matters",
+      body: [
+        "Managers do not need to become wellbeing specialists. However, recognising early changes in behaviour can create opportunities for supportive conversations before issues escalate.",
+      ],
+    },
+  ],
+
+  reflection:
+    "Would your managers recognise the early signs of burnout, or only notice once performance begins to suffer?",
+
+  exploration: [
+    "Manager awareness",
+    "Leadership briefings",
+    "Burnout education",
+    "Support conversations",
+  ],
+},
 
 export default function RootInsightPage() {
   const params = useParams();
