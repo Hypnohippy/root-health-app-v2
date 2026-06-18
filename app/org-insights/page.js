@@ -806,6 +806,31 @@ if (executiveQuestions.length === 0) {
     "What would help leaders understand the current workforce wellbeing picture more clearly?"
   );
 }
+  let rootHypothesis =
+  "Root is continuing to gather organisational intelligence. Additional review periods will help identify stronger workforce patterns.";
+
+if (recoveryLatest !== null && recoveryLatest >= 6) {
+  rootHypothesis =
+    "Root suspects recovery capacity may be under greater pressure than employees initially recognise. This interpretation is based on elevated recovery difficulty alongside ongoing workforce demand.";
+}
+
+if (
+  stressLatest !== null &&
+  burnoutLatest !== null &&
+  stressLatest >= 7 &&
+  burnoutLatest < stressLatest
+) {
+  rootHypothesis =
+    "Root suspects the organisation may be experiencing sustained workplace pressure rather than a temporary period of stress. Employees appear to be coping, but recovery remains an area to monitor.";
+}
+
+if (
+  mostCommonTheme &&
+  mostCommonTheme.toLowerCase().includes("relationship")
+) {
+  rootHypothesis =
+    "Root suspects interpersonal and communication factors may be contributing to the current wellbeing picture. Relationship themes often influence resilience, engagement and recovery.";
+}
   let recommendedInsight = {
   title: "Why pressure isn't always the problem",
   slug: "pressure",
@@ -1278,6 +1303,17 @@ if (
       </div>
     ))}
   </div>
+</div>
+    <div style={styles.hypothesisCard}>
+  <p style={styles.panelLabel}>Root Hypothesis</p>
+
+  <h3 style={styles.smallHeading}>
+    What Root currently suspects
+  </h3>
+
+  <p style={styles.reportText}>
+    {rootHypothesis}
+  </p>
 </div>
       <div style={styles.recommendedInsightCard}>
   <p style={styles.panelLabel}>Recommended Insight</p>
@@ -1990,5 +2026,12 @@ questionItem: {
   color: "#181818",
   lineHeight: "1.6",
   fontWeight: "650",
+},
+  hypothesisCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(235,245,230,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
 },
 };
