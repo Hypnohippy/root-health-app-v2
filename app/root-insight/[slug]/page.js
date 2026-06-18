@@ -263,6 +263,26 @@ export default function RootInsightPage() {
             </div>
           </section>
 
+          <section style={styles.exploreApproachesBox}>
+  <h2 style={styles.sectionTitle}>
+    Explore Approaches
+  </h2>
+
+  <p style={styles.bodyText}>
+    Every organisation is different. Root can help you
+    explore which approaches may fit the current workforce
+    patterns.
+  </p>
+
+  <button
+    style={styles.exploreButton}
+    onClick={() =>
+      window.open("/explore-approaches", "_self")
+    }
+  >
+    Explore Approaches →
+  </button>
+</section>
           <footer style={styles.authorBox}>
             <p>Written by David Prince</p>
             <span>PhD (c), Preventative Care</span>
@@ -389,4 +409,20 @@ const styles = {
     color: "#5A554D",
     fontSize: "14px",
   },
+  exploreApproachesBox: {
+  marginTop: "28px",
+  padding: "28px",
+  borderRadius: "28px",
+  background: "rgba(255,255,255,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+exploreButton: {
+  marginTop: "18px",
+  border: "none",
+  borderRadius: "14px",
+  padding: "12px 18px",
+  cursor: "pointer",
+  fontWeight: "700",
+},
 };
