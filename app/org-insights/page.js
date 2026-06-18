@@ -1027,6 +1027,7 @@ if (
           {loading ? (
             <p style={styles.loading}>Loading organisation insights...</p>
           ) : (
+            <>
             <section style={styles.executiveBrief}>
   <p style={styles.panelLabel}>Root Executive Brief</p>
 
