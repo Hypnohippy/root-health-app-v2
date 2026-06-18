@@ -1079,7 +1079,7 @@ if (
     View Full Analysis →
   </button>
 </section>
-            <>
+        
               <section id="full-analysis" style={styles.heroCard}>
                 <div>
                   <p style={styles.heroLabel}>Current trial</p>
