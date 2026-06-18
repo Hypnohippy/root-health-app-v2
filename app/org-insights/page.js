@@ -846,6 +846,37 @@ if (recoveryLatest !== null && recoveryLatest >= 7) {
       "Recovery appears to be a key pressure point, so Root is recommending a short insight on sustainable recovery.",
   };
 }
+  let confidenceReasons = [];
+
+if (assessments.length >= 20) {
+  confidenceReasons.push(
+    `${assessments.length} wellbeing assessments have been completed.`
+  );
+}
+
+if (supportInteractions >= 25) {
+  confidenceReasons.push(
+    `${supportInteractions} support interactions have been analysed.`
+  );
+}
+
+if (engagementScore >= 60) {
+  confidenceReasons.push(
+    "Participation levels have remained consistent."
+  );
+}
+
+if (voiceSessions.length >= 5) {
+  confidenceReasons.push(
+    "Multiple workforce support conversations have been recorded."
+  );
+}
+
+if (confidenceReasons.length === 0) {
+  confidenceReasons.push(
+    "Root is continuing to gather workforce intelligence."
+  );
+}
 
 if (sleepLatest !== null && sleepLatest >= 7) {
   recommendedInsight = {
@@ -1314,6 +1345,28 @@ if (
   <p style={styles.reportText}>
     {rootHypothesis}
   </p>
+</div>
+    <div style={styles.confidenceCard}>
+  <p style={styles.panelLabel}>Why Root Believes This</p>
+
+  <h3 style={styles.smallHeading}>
+    Confidence Assessment
+  </h3>
+
+  <p style={styles.reportText}>
+    {confidenceLabel} Confidence
+  </p>
+
+  <div style={styles.confidenceReasonList}>
+    {confidenceReasons.map((reason) => (
+      <div
+        key={reason}
+        style={styles.confidenceReason}
+      >
+        {reason}
+      </div>
+    ))}
+  </div>
 </div>
       <div style={styles.recommendedInsightCard}>
   <p style={styles.panelLabel}>Recommended Insight</p>
@@ -2033,5 +2086,27 @@ questionItem: {
   borderRadius: "24px",
   background: "rgba(235,245,230,0.42)",
   border: "1px solid rgba(255,255,255,0.72)",
+},
+  confidenceCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+confidenceReasonList: {
+  display: "grid",
+  gap: "12px",
+  marginTop: "14px",
+},
+
+confidenceReason: {
+  padding: "14px",
+  borderRadius: "16px",
+  background: "rgba(255,255,255,0.5)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  lineHeight: "1.6",
+  color: "#181818",
 },
 };
