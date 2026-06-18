@@ -209,6 +209,44 @@ function scoreFromAssessments(items) {
 }
 
 function ExecutiveCard({ label, value, detail }) {
+  const executivePrimaryConcern =
+  mostCommonTheme && mostCommonTheme !== "No challenge data yet"
+    ? mostCommonTheme
+    : highRiskMetric?.label || "Workforce wellbeing";
+
+let executiveStatus = {
+  label: "Stable",
+  dot: "🟢",
+  detail: "No immediate organisational concern detected.",
+};
+
+if (highRiskMetric?.current >= 8) {
+  executiveStatus = {
+    label: "Attention Needed",
+    dot: "🔴",
+    detail: `${highRiskMetric.label} is currently elevated.`,
+  };
+} else if (highRiskMetric?.current >= 6 || mostCommonTheme !== "No challenge data yet") {
+  executiveStatus = {
+    label: "Monitor",
+    dot: "🟠",
+    detail: `${executivePrimaryConcern} should remain visible in the next review period.`,
+  };
+}
+
+const executiveRecommendedFocus =
+  executivePrimaryConcern.includes("Workplace")
+    ? "Manager awareness and workload conversations"
+    : executivePrimaryConcern.includes("Relationship")
+    ? "Communication, trust and manager support"
+    : highRiskMetric?.label
+    ? `${highRiskMetric.label} improvement`
+    : "Maintain support engagement";
+
+const executiveEvidence =
+  supportInteractions > 0
+    ? `${supportInteractions} support interactions recorded`
+    : `${assessments.length} assessments completed`;
   return (
     <div style={styles.executiveCard}>
       <p style={styles.metricLabel}>{label}</p>
@@ -989,8 +1027,60 @@ if (
           {loading ? (
             <p style={styles.loading}>Loading organisation insights...</p>
           ) : (
+            <section style={styles.executiveBrief}>
+  <p style={styles.panelLabel}>Root Executive Brief</p>
+
+  <div style={styles.briefTopLine}>
+    <div>
+      <h2 style={styles.briefStatus}>
+        {executiveStatus.dot} {executiveStatus.label}
+      </h2>
+      <p style={styles.reportText}>{executiveStatus.detail}</p>
+    </div>
+
+    <button
+      style={styles.reportButton}
+      onClick={() => window.open("/executive-review?print=1", "_blank")}
+    >
+      Generate Executive Review
+    </button>
+  </div>
+
+  <div style={styles.briefGrid}>
+    <div style={styles.briefItem}>
+      <span>Primary Concern</span>
+      <strong>{executivePrimaryConcern}</strong>
+    </div>
+
+    <div style={styles.briefItem}>
+      <span>Recommended Focus</span>
+      <strong>{executiveRecommendedFocus}</strong>
+    </div>
+
+    <div style={styles.briefItem}>
+      <span>Confidence</span>
+      <strong>{confidenceLabel}</strong>
+    </div>
+
+    <div style={styles.briefItem}>
+      <span>Evidence</span>
+      <strong>{executiveEvidence}</strong>
+    </div>
+  </div>
+
+  <button
+    style={styles.secondaryButton}
+    onClick={() =>
+      document.getElementById("full-analysis")?.scrollIntoView({
+        behavior: "smooth",
+      })
+    }
+  >
+    View Full Analysis →
+  </button>
+</section>
             <>
-              <section style={styles.heroCard}>
+              <section id="full-analysis" style={styles.heroCard}>
                 <div>
                   <p style={styles.heroLabel}>Current trial</p>
                   <h2 style={styles.heroTitle}>
@@ -2108,5 +2198,54 @@ confidenceReason: {
   border: "1px solid rgba(255,255,255,0.72)",
   lineHeight: "1.6",
   color: "#181818",
+},
+  executiveBrief: {
+  padding: "34px",
+  borderRadius: "36px",
+  background: "linear-gradient(135deg, rgba(255,255,255,0.78), rgba(255,255,255,0.46))",
+  border: "1px solid rgba(255,255,255,0.78)",
+  marginBottom: "22px",
+  boxShadow: "0 24px 70px rgba(20,18,15,0.12)",
+},
+
+briefTopLine: {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "20px",
+  alignItems: "flex-start",
+  flexWrap: "wrap",
+},
+
+briefStatus: {
+  margin: "0 0 8px",
+  fontSize: "38px",
+  color: "#181818",
+  letterSpacing: "-0.04em",
+},
+
+briefGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "14px",
+  marginTop: "22px",
+},
+
+briefItem: {
+  padding: "18px",
+  borderRadius: "20px",
+  background: "rgba(255,255,255,0.58)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  display: "grid",
+  gap: "8px",
+},
+
+secondaryButton: {
+  marginTop: "20px",
+  border: "1px solid rgba(24,24,24,0.14)",
+  borderRadius: "999px",
+  padding: "13px 18px",
+  background: "rgba(255,255,255,0.55)",
+  cursor: "pointer",
+  fontWeight: "800",
 },
 };
