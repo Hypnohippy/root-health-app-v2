@@ -1354,7 +1354,7 @@ if (
   </h3>
 
   <p style={styles.reportText}>
-    {confidenceLabel} Confidence
+    {confidenceLabel}
   </p>
 
   <div style={styles.confidenceReasonList}>
