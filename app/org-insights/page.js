@@ -1235,6 +1235,9 @@ if (
   </section>
 
   <h2 style={styles.panelTitle}>What Root is noticing</h2>
+  <p style={styles.panelDescription}>
+  Patterns and changes that stand out in the latest workforce data.
+</p>
 
   <p style={styles.reportText}>
     {workforceNarrative.insight}
@@ -1404,10 +1407,13 @@ if (
       <div style={styles.memoryCard}>
   <p style={styles.panelLabel}>Root Memory</p>
 
+  <p style={styles.panelDescription}>
+    Patterns Root has continued to observe over time.
+  </p>
+
   <h3 style={styles.smallHeading}>
     Root's memory of this organisation
   </h3>
-
   <div style={styles.memoryList}>
     {rootMemory.map((item) => (
       <div key={item} style={styles.memoryItem}>
@@ -1418,6 +1424,9 @@ if (
 </div>
     <div style={styles.questionsCard}>
   <p style={styles.panelLabel}>Executive Questions</p>
+    <p style={styles.panelDescription}>
+  Discussion points leadership may wish to explore.
+</p>
 
   <h3 style={styles.smallHeading}>Questions for leadership</h3>
 
@@ -1431,6 +1440,9 @@ if (
 </div>
     <div style={styles.hypothesisCard}>
   <p style={styles.panelLabel}>Root Hypothesis</p>
+  <p style={styles.panelDescription}>
+  What Root currently suspects may be contributing to the workforce pattern.
+</p>
 
   <h3 style={styles.smallHeading}>
     What Root currently suspects
@@ -1442,6 +1454,9 @@ if (
 </div>
     <div style={styles.confidenceCard}>
   <p style={styles.panelLabel}>Why Root Believes This</p>
+    <p style={styles.panelDescription}>
+  The evidence supporting Root's current assessment.
+</p>
 
   <h3 style={styles.smallHeading}>
     Confidence Assessment
@@ -1464,6 +1479,9 @@ if (
 </div>
       <div style={styles.recommendedInsightCard}>
   <p style={styles.panelLabel}>Recommended Insight</p>
+  <p style={styles.panelDescription}>
+  A short article selected because it relates directly to the current workforce theme.
+</p>
 
   <h3 style={styles.smallHeading}>
     {recommendedInsight.title}
@@ -1706,6 +1724,12 @@ snapshotValue: {
     fontSize: "28px",
     color: "#181818",
   },
+  panelDescription: {
+  margin: "0 0 14px",
+  color: "#5A554D",
+  fontSize: "14px",
+  lineHeight: "1.6",
+},
  chartPanel: {
   padding: "0",
   marginBottom: "18px",
