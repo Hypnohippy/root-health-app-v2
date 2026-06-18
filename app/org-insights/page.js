@@ -209,45 +209,7 @@ function scoreFromAssessments(items) {
 }
 
 function ExecutiveCard({ label, value, detail }) {
-  const executivePrimaryConcern =
-  mostCommonTheme && mostCommonTheme !== "No challenge data yet"
-    ? mostCommonTheme
-    : highRiskMetric?.label || "Workforce wellbeing";
-
-let executiveStatus = {
-  label: "Stable",
-  dot: "🟢",
-  detail: "No immediate organisational concern detected.",
-};
-
-if (highRiskMetric?.current >= 8) {
-  executiveStatus = {
-    label: "Attention Needed",
-    dot: "🔴",
-    detail: `${highRiskMetric.label} is currently elevated.`,
-  };
-} else if (highRiskMetric?.current >= 6 || mostCommonTheme !== "No challenge data yet") {
-  executiveStatus = {
-    label: "Monitor",
-    dot: "🟠",
-    detail: `${executivePrimaryConcern} should remain visible in the next review period.`,
-  };
-}
-
-const executiveRecommendedFocus =
-  executivePrimaryConcern.includes("Workplace")
-    ? "Manager awareness and workload conversations"
-    : executivePrimaryConcern.includes("Relationship")
-    ? "Communication, trust and manager support"
-    : highRiskMetric?.label
-    ? `${highRiskMetric.label} improvement`
-    : "Maintain support engagement";
-
-const executiveEvidence =
-  supportInteractions > 0
-    ? `${supportInteractions} support interactions recorded`
-    : `${assessments.length} assessments completed`;
-  return (
+    return (
     <div style={styles.executiveCard}>
       <p style={styles.metricLabel}>{label}</p>
       <h2 style={styles.executiveValue}>{value}</h2>
@@ -965,8 +927,49 @@ const highRiskMetric = metricResults
   .filter((m) => m.current !== null)
   .sort((a, b) => b.current - a.current)[0];
 
-if (highRiskMetric) {
-  nextReviewFocus.push(
+const executivePrimaryConcern =
+  mostCommonTheme && mostCommonTheme !== "No challenge data yet"
+    ? mostCommonTheme
+    : highRiskMetric?.label || "Workforce wellbeing";
+
+let executiveStatus = {
+  label: "Stable",
+  dot: "🟢",
+  detail: "No immediate organisational concern detected.",
+};
+
+if (highRiskMetric?.current >= 8) {
+  executiveStatus = {
+    label: "Attention Needed",
+    dot: "🔴",
+    detail: `${highRiskMetric.label} is currently elevated.`,
+  };
+} else if (
+  highRiskMetric?.current >= 6 ||
+  mostCommonTheme !== "No challenge data yet"
+) {
+  executiveStatus = {
+    label: "Monitor",
+    dot: "🟠",
+    detail: `${executivePrimaryConcern} should remain visible in the next review period.`,
+  };
+}
+
+const executiveRecommendedFocus =
+  executivePrimaryConcern.includes("Workplace")
+    ? "Manager awareness and workload conversations"
+    : executivePrimaryConcern.includes("Relationship")
+    ? "Communication, trust and manager support"
+    : highRiskMetric?.label
+    ? `${highRiskMetric.label} improvement`
+    : "Maintain support engagement";
+
+const executiveEvidence =
+  supportInteractions > 0
+    ? `${supportInteractions} support interactions recorded`
+    : `${assessments.length} assessments completed`;
+
+if (highRiskMetric) {  nextReviewFocus.push(
     `Prioritise ${highRiskMetric.label.toLowerCase()} improvement`
   );
 }
