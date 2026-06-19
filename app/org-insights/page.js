@@ -2319,4 +2319,33 @@ secondaryButton: {
   cursor: "pointer",
   fontWeight: "800",
 },
+  responsesCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.42)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+responseGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "14px",
+  marginTop: "16px",
+},
+
+responseItem: {
+  padding: "18px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.5)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#181818",
+  lineHeight: "1.55",
+},
+
+responseItemText: {
+  margin: "8px 0 0",
+  color: "#5A554D",
+  lineHeight: "1.6",
+},
 };
