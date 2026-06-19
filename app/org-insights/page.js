@@ -1529,10 +1529,12 @@ if (
     </div>
   </div>
 
-  <button style={styles.reportButton}>
-    Explore This Recommendation
-  </button>
-</div>
+  <button
+  style={styles.reportButton}
+  onClick={() => window.open("/explore-approaches", "_self")}
+>
+  Explore This Recommendation
+</button></div>
   <button
     style={styles.reportButton}
     onClick={() => window.open("/executive-review?print=1", "_blank")}
