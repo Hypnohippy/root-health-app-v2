@@ -1080,11 +1080,11 @@ if (
       })
     }
   >
-    View Full Analysis →
+    Jump To Board Review →
   </button>
 </section>
         
-              <section id="full-analysis" style={styles.heroCard}>
+              <section style={styles.heroCard}>
                 <div>
                   <p style={styles.heroLabel}>Current trial</p>
                   <h2 style={styles.heroTitle}>
@@ -1359,7 +1359,7 @@ if (
   </section>
 </section>
 
-<section style={styles.weeklyReportCard}>
+<section id="full-analysis" style={styles.weeklyReportCard}>
   <p style={styles.panelLabel}>Weekly Executive Review</p>
 
   <h2 style={styles.panelTitle}>Your latest report is ready</h2>
