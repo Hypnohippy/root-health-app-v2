@@ -1248,7 +1248,7 @@ if (
   <p style={styles.panelLabel}>Root Confidence Rating</p>
 
   <h2 style={styles.panelTitle}>
-    {confidenceLabel} Confidence
+    {confidenceLabel} 
   </h2>
 
   <div style={styles.confidenceTrack}>
