@@ -664,12 +664,7 @@ const trialProgress =
   trialStart && trialEnd
     ? Math.min(100, Math.max(0, (daysElapsed / totalTrialDays) * 100))
     : 0;
-  ((today.getTime() - trialStart.getTime()) /
-              (trialEnd.getTime() - trialStart.getTime())) *
-              100
-          )
-        )
-      : 0;
+ 
 
   const executiveInsight =
     assessments.length === 0
