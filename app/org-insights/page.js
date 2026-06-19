@@ -611,23 +611,60 @@ export default function OrgInsightsPage() {
   const mostCommonTheme =
     mappedChallengeCounts[0]?.[0] || "No challenge data yet";
 
-  const trialStart = organisation?.trial_start
-    ? new Date(organisation.trial_start)
-    : null;
+  const fallbackTrialStart = assessments.length
+  ? new Date(assessments[0].created_at)
+  : null;
 
-  const trialEnd = organisation?.trial_end
-    ? new Date(organisation.trial_end)
-    : null;
+const trialStart = organisation?.trial_start
+  ? new Date(organisation.trial_start)
+  : fallbackTrialStart;
 
-  const today = new Date();
+const trialEnd = organisation?.trial_end
+  ? new Date(organisation.trial_end)
+  : trialStart
+  ? new Date(trialStart.getTime() + 60 * 24 * 60 * 60 * 1000)
+  : null;
 
-  const trialProgress =
-    trialStart && trialEnd
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            ((today.getTime() - trialStart.getTime()) /
+const today = new Date();
+
+const totalTrialDays =
+  trialStart && trialEnd
+    ? Math.max(
+        1,
+        Math.ceil(
+          (trialEnd.getTime() - trialStart.getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      )
+    : 60;
+
+const daysElapsed =
+  trialStart
+    ? Math.max(
+        1,
+        Math.ceil(
+          (today.getTime() - trialStart.getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      )
+    : 0;
+
+const daysRemaining =
+  trialEnd
+    ? Math.max(
+        0,
+        Math.ceil(
+          (trialEnd.getTime() - today.getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      )
+    : totalTrialDays;
+
+const trialProgress =
+  trialStart && trialEnd
+    ? Math.min(100, Math.max(0, (daysElapsed / totalTrialDays) * 100))
+    : 0;
+  ((today.getTime() - trialStart.getTime()) /
               (trialEnd.getTime() - trialStart.getTime())) *
               100
           )
