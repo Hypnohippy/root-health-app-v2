@@ -1500,6 +1500,49 @@ if (
     Read 5 minute insight
   </button>
 </div>
+      <div style={styles.responsesCard}>
+  <p style={styles.panelLabel}>
+    Suggested Organisational Responses
+  </p>
+
+  <p style={styles.panelDescription}>
+    Based on the current workforce pattern, organisations often explore the following approaches.
+  </p>
+
+  <div style={styles.responseGrid}>
+    <div style={styles.responseItem}>
+      <strong>Manager Awareness Sessions</strong>
+      <p>
+        Helping managers recognise pressure, workload strain and early warning signs.
+      </p>
+    </div>
+
+    <div style={styles.responseItem}>
+      <strong>Pressure & Performance Briefing</strong>
+      <p>
+        Exploring sustainable performance without increasing burnout risk.
+      </p>
+    </div>
+
+    <div style={styles.responseItem}>
+      <strong>Recovery & Resilience Workshop</strong>
+      <p>
+        Practical strategies employees can use to improve recovery and wellbeing.
+      </p>
+    </div>
+
+    <div style={styles.responseItem}>
+      <strong>Leadership Briefing</strong>
+      <p>
+        A board-level discussion exploring workforce trends and organisational responses.
+      </p>
+    </div>
+  </div>
+
+  <button style={styles.reportButton}>
+    Explore This Recommendation
+  </button>
+</div>
   <button
     style={styles.reportButton}
     onClick={() => window.open("/executive-review?print=1", "_blank")}
