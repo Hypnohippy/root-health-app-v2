@@ -1273,7 +1273,7 @@ if (
   </p>
 </section>
                   <section style={styles.reportCard}>
-  <p style={styles.panelLabel}>Root Confidence Rating</p>
+  <p style={styles.panelLabel}>Evidence Strength</p>
   <h2 style={styles.panelTitle}>{confidenceLabel}</h2>
 
   <div style={styles.confidenceTrack}>
@@ -1286,10 +1286,22 @@ if (
   </div>
 
   <p style={styles.reportText}>
-    Based on {assessments.length} assessments,
-    {supportInteractions} support interactions
-    and {activated} activated users.
-  </p>
+  Root's confidence is based on the volume and consistency of workforce data currently available.
+</p>
+
+<div style={styles.confidenceReasonList}>
+  <div style={styles.confidenceReason}>
+    {assessments.length} assessments analysed
+  </div>
+
+  <div style={styles.confidenceReason}>
+    {supportInteractions} support interactions recorded
+  </div>
+
+  <div style={styles.confidenceReason}>
+    {activated} activated users
+  </div>
+</div>
 </section>
 
 <section style={styles.reportCard}>
