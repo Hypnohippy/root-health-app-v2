@@ -970,13 +970,27 @@ let executiveStatus = {
   detail: "No immediate organisational concern detected.",
 };
 
-if (highRiskMetric?.current >= 8) {
+if (
+  stressLatest !== null &&
+  burnoutLatest !== null &&
+  recoveryLatest !== null &&
+  stressLatest <= 3 &&
+  (burnoutLatest >= 7 || recoveryLatest >= 7)
+) {
+  executiveStatus = {
+    label: "Recovery Risk Identified",
+    dot: "🔴",
+    detail:
+      "Stress has improved significantly, however burnout and recovery indicators remain elevated.",
+  };
+} 
+else if (highRiskMetric?.current >= 8) {
   executiveStatus = {
     label: "Attention Needed",
     dot: "🔴",
     detail: `${highRiskMetric.label} is currently elevated.`,
   };
-} else if (
+}else if (
   highRiskMetric?.current >= 6 ||
   mostCommonTheme !== "No challenge data yet"
 ) {
