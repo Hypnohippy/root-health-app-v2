@@ -1119,9 +1119,9 @@ if (
               <section style={styles.heroCard}>
                 <div>
                   <p style={styles.heroLabel}>Organisation Review Period</p>
-                  <h2 style={styles.heroTitle}>
-                    {organisation?.name || "Root Health Trial Company"}
-                  </h2>
+                 <h2 style={styles.heroTitle}>
+  {organisation?.name || "Workforce Wellbeing Review"}
+</h2>
                   <p style={styles.heroText}>
   Day {daysElapsed} of {totalTrialDays}
 </p>
@@ -1131,7 +1131,7 @@ if (
 </p>
 
 <p style={styles.heroText}>
-  Review progress: {Math.round(trialProgress)}%
+  Review cycle progress: {Math.round(trialProgress)}%
 </p>
                 </div>
 
