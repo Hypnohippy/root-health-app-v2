@@ -1173,12 +1173,32 @@ if (
       Root can prepare the practical materials HR needs to launch this initiative internally.
     </p>
 
-    <div style={styles.launchKitGrid}>
-      <span>Employee Email</span>
-      <span>Manager Briefing</span>
-      <span>Launch Poster</span>
-      <span>Leadership Talking Points</span>
-    </div>
+   <div style={styles.launchKitGrid}>
+  <button
+    style={styles.launchKitButton}
+    onClick={() => alert("Employee Email Generator - Coming Next")}
+  >
+    Employee Email
+  </button>
+
+  <button
+    style={styles.launchKitButton}
+  >
+    Manager Briefing
+  </button>
+
+  <button
+    style={styles.launchKitButton}
+  >
+    Launch Poster
+  </button>
+
+  <button
+    style={styles.launchKitButton}
+  >
+    Leadership Talking Points
+  </button>
+</div>
   </div>
 
   <div style={styles.specialistSupportCard}>
@@ -2500,6 +2520,16 @@ launchKitGrid: {
   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
   gap: "12px",
   marginTop: "14px",
+},
+  launchKitButton: {
+  padding: "14px 18px",
+  borderRadius: "14px",
+  border: "1px solid rgba(255,255,255,0.7)",
+  background: "rgba(255,255,255,0.7)",
+  cursor: "pointer",
+  fontWeight: "700",
+  color: "#181818",
+  transition: "all 0.2s ease",
 },
 
 specialistSupportCard: {
