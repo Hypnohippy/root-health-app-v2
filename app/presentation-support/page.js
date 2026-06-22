@@ -19,16 +19,26 @@ export default function PresentationSupportPage() {
     setError("");
 
     const { error } = await supabase.from("proposal_requests").insert({
-      initiative: "Recovery Reset Month",
-      workshop_title: "Recovery & Resilience Workshop",
-      audience,
-      duration,
-      delivery_preference: delivery,
-      notes,
-      status: "pending",
-      source: "org-insights",
-    });
-
+  initiative: "Recovery Reset Month",
+  workshop_title: "Recovery & Resilience Workshop",
+  audience,
+  duration,
+  delivery_preference: delivery,
+  delivery_format: deliveryFormat,
+  location,
+  estimated_investment:
+    delivery === "Self-delivery pack"
+      ? "Included with subscription"
+      : delivery === "Bespoke presentation development"
+      ? "£395"
+      : deliveryFormat === "Online"
+      ? "From £1,500, no travel expenses"
+      : "From £1,500 plus travel/accommodation expenses",
+  notify_email: "david@fuelgeist.co.uk",
+  notes,
+  status: "pending",
+  source: "org-insights",
+});
     if (error) {
       setError("Something went wrong while sending the request.");
       setSubmitting(false);
@@ -106,6 +116,8 @@ export default function PresentationSupportPage() {
 
 <select
   style={styles.input}
+  value={deliveryFormat}
+  onChange={(e) => setDeliveryFormat(e.target.value)}
 >
   <option>Online</option>
   <option>In person</option>
@@ -115,9 +127,10 @@ export default function PresentationSupportPage() {
 
 <input
   style={styles.input}
+  value={location}
+  onChange={(e) => setLocation(e.target.value)}
   placeholder="Town, city or venue"
 />
-
         <label style={styles.label}>Additional notes</label>
         <textarea
           style={{ ...styles.input, minHeight: "110px" }}
