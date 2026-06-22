@@ -1170,7 +1170,7 @@ if (
   <div style={styles.launchKitCard}>
     <p style={styles.panelLabel}>Root Launch Kit</p>
     <p style={styles.panelDescription}>
-      Root can help create the practical materials HR needs to launch this initiative internally.
+      Root can prepare the practical materials HR needs to launch this initiative internally.
     </p>
 
     <div style={styles.launchKitGrid}>
@@ -1185,7 +1185,7 @@ if (
     <p style={styles.panelLabel}>Specialist Support Available</p>
     <h3 style={styles.smallHeading}>Recovery &amp; Resilience Workshop</h3>
     <p style={styles.reportText}>
-      A bespoke presentation can be created around the workforce pattern Root has identified.
+      A bespoke presentation can be prepared around the workforce pattern Root has identified.
     </p>
 
     <button
