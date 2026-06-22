@@ -1205,7 +1205,7 @@ if (
     <p style={styles.panelLabel}>Specialist Support Available</p>
     <h3 style={styles.smallHeading}>Recovery &amp; Resilience Workshop</h3>
     <p style={styles.reportText}>
-      A bespoke presentation can be prepared around the workforce pattern Root has identified.
+      Root has identified a workforce pattern that may benefit from a targeted workshop or briefing. Request a tailored proposal based on the current organisational data.
     </p>
 
     <button
@@ -1214,7 +1214,8 @@ if (
     window.open("/presentation-support?initiative=recovery-reset", "_self")
   }
 >
-  Request Presentation Details
+  >
+  Request Workshop Proposal
 </button>
   </div>
 </section>
