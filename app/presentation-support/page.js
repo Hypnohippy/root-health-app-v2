@@ -39,11 +39,12 @@ export default function PresentationSupportPage() {
   status: "pending",
   source: "org-insights",
 });
-    if (error) {
-      setError("Something went wrong while sending the request.");
-      setSubmitting(false);
-      return;
-    }
+   if (error) {
+  console.error("Proposal request error:", error);
+  setError(error.message || "Something went wrong while sending the request.");
+  setSubmitting(false);
+  return;
+}
 
     setSubmitted(true);
     setSubmitting(false);
