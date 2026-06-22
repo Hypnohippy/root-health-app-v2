@@ -1209,11 +1209,13 @@ if (
     </p>
 
     <button
-      style={styles.reportButton}
-      onClick={() => window.open("/explore-approaches", "_self")}
-    >
-      Request Presentation Details
-    </button>
+  style={styles.reportButton}
+  onClick={() =>
+    window.open("/presentation-support?initiative=recovery-reset", "_self")
+  }
+>
+  Request Presentation Details
+</button>
   </div>
 </section>
         
