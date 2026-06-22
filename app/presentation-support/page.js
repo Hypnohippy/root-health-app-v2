@@ -14,50 +14,57 @@ export default function PresentationSupportPage() {
   const [deliveryFormat, setDeliveryFormat] = useState("Online");
   const [location, setLocation] = useState("");
 
-  async function submitRequest() {
-    setSubmitting(true);
-    setError("");
+ async function submitRequest() {
+  setSubmitting(true);
+  setError("");
 
+  try {
     const response = await fetch(
-  "https://roothealthops.com/api/proposal-requests",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      initiative: "Recovery Reset Month",
-      workshop_title: "Recovery & Resilience Workshop",
-      audience,
-      duration,
-      delivery_preference: delivery,
-      delivery_format: deliveryFormat,
-      location,
-      estimated_investment:
-        delivery === "Self-delivery pack"
-          ? "Included with subscription"
-          : delivery === "Bespoke presentation development"
-          ? "£395"
-          : deliveryFormat === "Online"
-          ? "From £1,500, no travel expenses"
-          : "From £1,500 plus travel/accommodation expenses",
-      notify_email: "david@fuelgeist.co.uk",
-      notes,
-      source: "root-health-v2",
-    }),
-  }
-);
+      "https://roothealthops.com/api/proposal-requests",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          initiative: "Recovery Reset Month",
+          workshop_title: "Recovery & Resilience Workshop",
+          audience,
+          duration,
+          delivery_preference: delivery,
+          delivery_format: deliveryFormat,
+          location,
+          estimated_investment:
+            delivery === "Self-delivery pack"
+              ? "Included with subscription"
+              : delivery === "Bespoke presentation development"
+              ? "£395"
+              : deliveryFormat === "Online"
+              ? "From £1,500, no travel expenses"
+              : "From £1,500 plus travel/accommodation expenses",
+          notify_email: "david@fuelgeist.co.uk",
+          notes,
+          source: "root-health-v2",
+        }),
+      }
+    );
 
-const result = await response.json();
+    const result = await response.json().catch(() => null);
 
-if (!response.ok || !result?.success) {
-  throw new Error(result?.error || "Something went wrong while sending the request.");
-}
+    if (!response.ok || !result?.success) {
+      throw new Error(
+        result?.error || "The proposal request could not be sent."
+      );
+    }
 
     setSubmitted(true);
+  } catch (e) {
+    console.error("Proposal request failed:", e);
+    setError(e?.message || "The proposal request could not be sent.");
+  } finally {
     setSubmitting(false);
   }
-
+}
   return (
     <main style={styles.page}>
       <section style={styles.card}>
