@@ -18,32 +18,40 @@ export default function PresentationSupportPage() {
     setSubmitting(true);
     setError("");
 
-    const { error } = await supabase.from("proposal_requests").insert({
-  initiative: "Recovery Reset Month",
-  workshop_title: "Recovery & Resilience Workshop",
-  audience,
-  duration,
-  delivery_preference: delivery,
-  delivery_format: deliveryFormat,
-  location,
-  estimated_investment:
-    delivery === "Self-delivery pack"
-      ? "Included with subscription"
-      : delivery === "Bespoke presentation development"
-      ? "£395"
-      : deliveryFormat === "Online"
-      ? "From £1,500, no travel expenses"
-      : "From £1,500 plus travel/accommodation expenses",
-  notify_email: "david@fuelgeist.co.uk",
-  notes,
-  status: "pending",
-  source: "org-insights",
-});
-   if (error) {
-  console.error("Proposal request error:", error);
-  setError(error.message || "Something went wrong while sending the request.");
-  setSubmitting(false);
-  return;
+    const response = await fetch(
+  "https://roothealthops.com/api/proposal-requests",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      initiative: "Recovery Reset Month",
+      workshop_title: "Recovery & Resilience Workshop",
+      audience,
+      duration,
+      delivery_preference: delivery,
+      delivery_format: deliveryFormat,
+      location,
+      estimated_investment:
+        delivery === "Self-delivery pack"
+          ? "Included with subscription"
+          : delivery === "Bespoke presentation development"
+          ? "£395"
+          : deliveryFormat === "Online"
+          ? "From £1,500, no travel expenses"
+          : "From £1,500 plus travel/accommodation expenses",
+      notify_email: "david@fuelgeist.co.uk",
+      notes,
+      source: "root-health-v2",
+    }),
+  }
+);
+
+const result = await response.json();
+
+if (!response.ok || !result?.success) {
+  throw new Error(result?.error || "Something went wrong while sending the request.");
 }
 
     setSubmitted(true);
