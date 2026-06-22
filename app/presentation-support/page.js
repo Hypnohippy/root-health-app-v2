@@ -113,7 +113,7 @@ export default function PresentationSupportPage() {
 
         {submitted ? (
           <div style={styles.success}>
-            Proposal request submitted. Root will prepare the next step for review.
+            Proposal request submitted. Root will review the workforce pattern and prepare a tailored workshop proposal.
           </div>
         ) : (
           <button
