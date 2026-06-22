@@ -1212,9 +1212,8 @@ if (
   style={styles.reportButton}
   onClick={() =>
     window.open("/presentation-support?initiative=recovery-reset", "_self")
-  }
+   }
 >
-  >
   Request Workshop Proposal
 </button>
   </div>
