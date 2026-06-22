@@ -11,6 +11,8 @@ export default function PresentationSupportPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [deliveryFormat, setDeliveryFormat] = useState("Online");
+  const [location, setLocation] = useState("");
 
   async function submitRequest() {
     setSubmitting(true);
@@ -100,6 +102,21 @@ export default function PresentationSupportPage() {
           <option>Bespoke presentation development</option>
           <option>Presentation development and delivery</option>
         </select>
+            <label style={styles.label}>Delivery format</label>
+
+<select
+  style={styles.input}
+>
+  <option>Online</option>
+  <option>In person</option>
+</select>
+
+<label style={styles.label}>Location (if in person)</label>
+
+<input
+  style={styles.input}
+  placeholder="Town, city or venue"
+/>
 
         <label style={styles.label}>Additional notes</label>
         <textarea
