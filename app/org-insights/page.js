@@ -1138,6 +1138,64 @@ if (
     Jump To Board Review →
   </button>
 </section>
+
+<section style={styles.initiativeCard}>
+  <p style={styles.panelLabel}>This Month&apos;s Recommended Initiative</p>
+
+  <h2 style={styles.panelTitle}>Recovery Reset Month</h2>
+
+  <p style={styles.reportText}>
+    Root has identified elevated burnout and recovery difficulty despite improving stress levels.
+    This initiative is designed to help employees recover from accumulated strain and rebuild
+    sustainable energy.
+  </p>
+
+  <div style={styles.initiativeGrid}>
+    <div style={styles.initiativeItem}>
+      <strong>Why Root recommended this</strong>
+      <span>Stress has improved, but recovery and burnout indicators remain elevated.</span>
+    </div>
+
+    <div style={styles.initiativeItem}>
+      <strong>Current status</strong>
+      <span>Ready to launch</span>
+    </div>
+
+    <div style={styles.initiativeItem}>
+      <strong>Expected outcomes</strong>
+      <span>Improved recovery, reduced burnout risk and stronger support engagement.</span>
+    </div>
+  </div>
+
+  <div style={styles.launchKitCard}>
+    <p style={styles.panelLabel}>Root Launch Kit</p>
+    <p style={styles.panelDescription}>
+      Root can help create the practical materials HR needs to launch this initiative internally.
+    </p>
+
+    <div style={styles.launchKitGrid}>
+      <span>Employee Email</span>
+      <span>Manager Briefing</span>
+      <span>Launch Poster</span>
+      <span>Leadership Talking Points</span>
+    </div>
+  </div>
+
+  <div style={styles.specialistSupportCard}>
+    <p style={styles.panelLabel}>Specialist Support Available</p>
+    <h3 style={styles.smallHeading}>Recovery &amp; Resilience Workshop</h3>
+    <p style={styles.reportText}>
+      A bespoke presentation can be created around the workforce pattern Root has identified.
+    </p>
+
+    <button
+      style={styles.reportButton}
+      onClick={() => window.open("/explore-approaches", "_self")}
+    >
+      Request Presentation Details
+    </button>
+  </div>
+</section>
         
               <section style={styles.heroCard}>
                 <div>
@@ -2402,5 +2460,53 @@ responseItemText: {
   margin: "8px 0 0",
   color: "#5A554D",
   lineHeight: "1.6",
+},
+  initiativeCard: {
+  padding: "30px",
+  borderRadius: "34px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  marginBottom: "22px",
+},
+
+initiativeGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "14px",
+  marginTop: "18px",
+},
+
+initiativeItem: {
+  padding: "18px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.5)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  display: "grid",
+  gap: "8px",
+  color: "#181818",
+  lineHeight: "1.55",
+},
+
+launchKitCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(220,230,205,0.34)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+launchKitGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "12px",
+  marginTop: "14px",
+},
+
+specialistSupportCard: {
+  marginTop: "18px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.5)",
+  border: "1px solid rgba(255,255,255,0.72)",
 },
 };
