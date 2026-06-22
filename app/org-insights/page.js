@@ -959,11 +959,19 @@ const highRiskMetric = metricResults
   .filter((m) => m.current !== null)
   .sort((a, b) => b.current - a.current)[0];
 
+const recoveryRiskDetected =
+  stressLatest !== null &&
+  burnoutLatest !== null &&
+  recoveryLatest !== null &&
+  stressLatest <= 3 &&
+  (burnoutLatest >= 7 || recoveryLatest >= 7);
+
 const executivePrimaryConcern =
-  mostCommonTheme && mostCommonTheme !== "No challenge data yet"
+  recoveryRiskDetected
+    ? "Recovery Risk"
+    : mostCommonTheme && mostCommonTheme !== "No challenge data yet"
     ? mostCommonTheme
     : highRiskMetric?.label || "Workforce wellbeing";
-
 let executiveStatus = {
   label: "Stable",
   dot: "🟢",
@@ -1002,14 +1010,15 @@ else if (highRiskMetric?.current >= 8) {
 }
 
 const executiveRecommendedFocus =
-  executivePrimaryConcern.includes("Workplace")
+  recoveryRiskDetected
+    ? "Recovery and resilience activity"
+    : executivePrimaryConcern.includes("Workplace")
     ? "Manager awareness and workload conversations"
     : executivePrimaryConcern.includes("Relationship")
     ? "Communication, trust and manager support"
     : highRiskMetric?.label
     ? `${highRiskMetric.label} improvement`
     : "Maintain support engagement";
-
 const executiveEvidence =
   supportInteractions > 0
     ? `${supportInteractions} support interactions recorded`
