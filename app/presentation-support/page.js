@@ -13,6 +13,10 @@ export default function PresentationSupportPage() {
   const [error, setError] = useState("");
   const [deliveryFormat, setDeliveryFormat] = useState("Online");
   const [location, setLocation] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [wantsDiscussion, setWantsDiscussion] = useState(true);
 
  async function submitRequest() {
   setSubmitting(true);
@@ -42,9 +46,13 @@ export default function PresentationSupportPage() {
               : deliveryFormat === "Online"
               ? "From £1,500, no travel expenses"
               : "From £1,500 plus travel/accommodation expenses",
-          notify_email: "david@fuelgeist.co.uk",
-          notes,
-          source: "root-health-v2",
+         notify_email: "david@fuelgeist.co.uk",
+contact_name: contactName,
+contact_email: contactEmail,
+contact_phone: contactPhone,
+wants_discussion: wantsDiscussion,
+notes,
+source: "root-health-v2",
         }),
       }
     );
@@ -147,6 +155,47 @@ export default function PresentationSupportPage() {
   onChange={(e) => setLocation(e.target.value)}
   placeholder="Town, city or venue"
 />
+        <label style={styles.label}>Contact name</label>
+<input
+  style={styles.input}
+  value={contactName}
+  onChange={(e) => setContactName(e.target.value)}
+  placeholder="Who should we contact?"
+/>
+
+<label style={styles.label}>Work email</label>
+<input
+  style={styles.input}
+  value={contactEmail}
+  onChange={(e) => setContactEmail(e.target.value)}
+  placeholder="name@company.com"
+/>
+
+<label style={styles.label}>Phone number (optional)</label>
+<input
+  style={styles.input}
+  value={contactPhone}
+  onChange={(e) => setContactPhone(e.target.value)}
+  placeholder="Direct number"
+/>
+
+<label
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    marginTop: "18px",
+    color: "#181818",
+    fontWeight: "700",
+  }}
+>
+  <input
+    type="checkbox"
+    checked={wantsDiscussion}
+    onChange={(e) => setWantsDiscussion(e.target.checked)}
+  />
+  I would like to discuss this proposal with a specialist
+</label>
         <label style={styles.label}>Additional notes</label>
         <textarea
           style={{ ...styles.input, minHeight: "110px" }}
