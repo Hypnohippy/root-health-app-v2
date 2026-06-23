@@ -64,7 +64,28 @@ source: "root-health-v2",
         result?.error || "The proposal request could not be sent."
       );
     }
-
+    await fetch("https://formspree.io/f/xkgvgnkw", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  body: JSON.stringify({
+    subject: "New Root Health proposal request",
+    contact_name: contactName,
+    contact_email: contactEmail,
+    contact_phone: contactPhone,
+    initiative: "Recovery Reset Month",
+    workshop: "Recovery & Resilience Workshop",
+    audience,
+    duration,
+    support_option: delivery,
+    delivery_format: deliveryFormat,
+    location,
+    wants_discussion: wantsDiscussion ? "Yes" : "No",
+    notes,
+  }),
+});
     setSubmitted(true);
   } catch (e) {
     console.error("Proposal request failed:", e);
@@ -228,7 +249,7 @@ source: "root-health-v2",
     </p>
 
     <p>
-      <strong>A confirmation has been sent to:</strong>
+      <strong>Your contact email has been recorded as:</strong>
       <br />
       {contactEmail || "your email address"}
     </p>
