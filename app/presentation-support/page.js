@@ -207,10 +207,33 @@ source: "root-health-v2",
         {error ? <p style={styles.error}>{error}</p> : null}
 
         {submitted ? (
-          <div style={styles.success}>
-            Proposal request submitted. Root will review the workforce pattern and prepare a tailored workshop proposal.
-          </div>
-        ) : (
+  <div style={styles.success}>
+    <h3 style={{ marginTop: 0 }}>
+      Proposal request received ✅
+    </h3>
+
+    <p>
+      Thank you. Your request has been received and is now under review.
+    </p>
+
+    <p>
+      We'll assess the workforce pattern identified by Root and prepare a
+      tailored proposal based on your organisation's needs.
+    </p>
+
+    <p>
+      <strong>Expected response:</strong>
+      <br />
+      Within 2 working days.
+    </p>
+
+    <p>
+      <strong>A confirmation has been sent to:</strong>
+      <br />
+      {contactEmail || "your email address"}
+    </p>
+  </div>
+) : (
           <button
             style={styles.button}
             onClick={submitRequest}
