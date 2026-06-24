@@ -15,7 +15,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   const [profile, setProfile] = useState({
-    profile_key: PROFILE_KEY,
+   profile_key: "",
     name: "",
     age: "",
     height: "",
