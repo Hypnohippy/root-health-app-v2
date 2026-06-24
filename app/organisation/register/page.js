@@ -98,16 +98,62 @@ export default function OrganisationRegisterPage() {
               <br />
               <span style={styles.code}>{createdOrg.organisation_code}</span>
             </p>
+      </p>
+  <strong>Employee join link:</strong>
+  <br />
+  https://roothealth.app/organisation/join
+</p>
           </div>
 
           <button
-            style={styles.button}
-            onClick={() =>
-              navigator.clipboard.writeText(createdOrg.organisation_code)
-            }
-          >
-            Copy Organisation Code
-          </button>
+  style={styles.button}
+  onClick={() =>
+    navigator.clipboard.writeText(createdOrg.organisation_code)
+  }
+>
+  Copy Organisation Code
+</button>
+
+<button
+  style={{
+    ...styles.button,
+    marginTop: "12px",
+    background: "#5A554D",
+  }}
+  onClick={() =>
+    navigator.clipboard.writeText(
+      "https://roothealth.app/organisation/join"
+    )
+  }
+>
+  Copy Join Link
+</button>
+
+<button
+  style={{
+    ...styles.button,
+    marginTop: "12px",
+    background: "#776C5B",
+  }}
+  onClick={() =>
+    navigator.clipboard.writeText(
+`Welcome to Root Health.
+
+Our organisation is taking part in an 8-week wellbeing pilot.
+
+To join:
+
+https://roothealth.app/organisation/join
+
+Organisation Code:
+${createdOrg.organisation_code}
+
+Your personal information remains private. The organisation only receives anonymous wellbeing trends.`
+    )
+  }
+>
+  Copy Employee Invitation
+</button>
 
           <p style={styles.smallText}>
             Next step: invite employees to join Root using this organisation code.
