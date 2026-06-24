@@ -104,7 +104,7 @@ export default function OrganisationRegisterPage() {
 <p>
   <strong>Employee join link:</strong>
   <br />
-  https://roothealth.app/organisation/join
+  https://root-health-app-v2.vercel.app/organisation/join
 </p>
           </div>
 
@@ -125,7 +125,7 @@ export default function OrganisationRegisterPage() {
   }}
   onClick={() =>
     navigator.clipboard.writeText(
-      "https://roothealth.app/organisation/join"
+      "https://root-health-app-v2.vercel.app/organisation/join"
     )
   }
 >
@@ -146,7 +146,7 @@ Our organisation is taking part in an 8-week wellbeing pilot.
 
 To join:
 
-https://roothealth.app/organisation/join
+https://root-health-app-v2.vercel.app/organisation/join
 
 Organisation Code:
 ${createdOrg.organisation_code}
