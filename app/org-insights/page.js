@@ -485,9 +485,9 @@ export default function OrgInsightsPage() {
     const orgId = org?.id || null;
 
     const orgFilter = orgId
-      ? `organisation_id.eq.${orgId},organisation_id.is.null`
-      : "organisation_id.is.null";
-
+  ? `organisation_id.eq.${orgId}`
+  : "organisation_id.eq.__never_match__";
+    
     const { data: memberData } = await supabase
       .from("organisation_members")
       .select("*")
