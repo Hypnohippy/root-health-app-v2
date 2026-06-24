@@ -63,15 +63,22 @@ export default function AssessmentPage() {
     setSaving(true);
     setSaved(false);
 
-    const { error } = await supabase.from("wellbeing_assessments").insert([
-      {
-        profile_key: "main",
-        assessment_type: assessmentType,
-        ...scores,
-        notes: notes.trim(),
-      },
-    ]);
+   const profileKey =
+  localStorage.getItem("root_profile_key_v1") || "main";
 
+const organisation = JSON.parse(
+  localStorage.getItem("root_organisation_v1") || "{}"
+);
+
+const { error } = await supabase.from("wellbeing_assessments").insert([
+  {
+    profile_key: profileKey,
+    organisation_id: organisation.organisation_id || null,
+    assessment_type: assessmentType,
+    ...scores,
+    notes: notes.trim(),
+  },
+]);
     if (error) {
       console.error("ASSESSMENT SAVE ERROR:", error);
       alert(error.message || "Something went wrong saving this check-in.");
