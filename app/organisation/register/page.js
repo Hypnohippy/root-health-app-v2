@@ -93,12 +93,15 @@ export default function OrganisationRegisterPage() {
               {createdOrg.trial_end}
             </p>
 
-            <p>
-              <strong>Organisation code:</strong>
-              <br />
-              <span style={styles.code}>{createdOrg.organisation_code}</span>
-            </p>
-      </p>
+          <p>
+  <strong>Organisation code:</strong>
+  <br />
+  <span style={styles.code}>
+    {createdOrg.organisation_code}
+  </span>
+</p>
+
+<p>
   <strong>Employee join link:</strong>
   <br />
   https://roothealth.app/organisation/join
