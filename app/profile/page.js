@@ -5,7 +5,10 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-const PROFILE_KEY = "main";
+const getProfileKey = () => {
+  if (typeof window === "undefined") return "main";
+  return localStorage.getItem("root_profile_key_v1") || "main";
+};
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -32,7 +35,7 @@ export default function ProfilePage() {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("profile_key", PROFILE_KEY)
+      .eq("profile_key", getProfileKey())
       .maybeSingle();
 
     if (error) {
@@ -41,7 +44,7 @@ export default function ProfilePage() {
 
     if (data) {
       setProfile({
-        profile_key: PROFILE_KEY,
+        profile_key: getProfileKey(),
         name: data.name || "",
         age: data.age || "",
         height: data.height || "",
