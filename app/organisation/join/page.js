@@ -65,7 +65,7 @@ export default function OrganisationJoinPage() {
 
           <button
             style={styles.button}
-            onClick={() => (window.location.href = "/orientation")}
+            onClick={() => (window.location.href = "/organisation/profile")}
           >
             Continue to Orientation
           </button>
