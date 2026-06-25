@@ -465,6 +465,7 @@ export default function OrgInsightsPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [voiceSessions, setVoiceSessions] = useState([]);
+  const [showInvite, setShowInvite] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -1108,10 +1109,12 @@ if (
 
     <div style={styles.controlButtons}>
 
-      <button style={styles.controlButton}>
-        👥 Invite Employees
-      </button>
-
+      <button
+  style={styles.controlButton}
+  onClick={() => setShowInvite(!showInvite)}
+>
+  👥 Invite Employees
+</button>
      <button
   style={styles.controlButton}
   onClick={() => {
@@ -1136,7 +1139,35 @@ if (
     </div>
 
   </div>
+{showInvite && (
+  <div style={styles.invitePanel}>
 
+    <h3 style={styles.inviteTitle}>
+      Invite Employees
+    </h3>
+
+    <p style={styles.inviteText}>
+      Copy the message below and send it to your employees.
+    </p>
+
+    <textarea
+      readOnly
+      style={styles.inviteBox}
+      value={`You're invited to join the ${organisation?.name} Root Health Workplace Pilot.
+
+Join here:
+${window.location.origin}/organisation/join
+
+Organisation Code:
+${organisation?.organisation_code}
+
+The pilot takes just a few minutes to begin and your personal wellbeing information always remains private. Your organisation only receives anonymous wellbeing trends.
+
+Welcome to Root.`}
+    />
+
+  </div>
+)}
 </section>
           </div>
 
@@ -2643,4 +2674,30 @@ controlButton: {
   color: "#fff",
   fontWeight: 600,
 }, 
+  invitePanel: {
+  marginTop: 24,
+  padding: 24,
+  borderRadius: 22,
+  background: "rgba(255,255,255,0.12)",
+},
+
+inviteTitle: {
+  marginTop: 0,
+  marginBottom: 12,
+},
+
+inviteText: {
+  opacity: 0.75,
+  marginBottom: 16,
+},
+
+inviteBox: {
+  width: "100%",
+  minHeight: 220,
+  borderRadius: 16,
+  border: "1px solid rgba(255,255,255,0.25)",
+  padding: 18,
+  fontSize: 15,
+  resize: "vertical",
+},
 };
