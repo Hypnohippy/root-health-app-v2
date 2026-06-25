@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
+import { ROOT_PUBLIC_URL } from "../../lib/config";
 
 function average(items, key) {
   const values = items
@@ -1118,7 +1119,7 @@ if (
      <button
   style={styles.controlButton}
   onClick={() => {
-    const joinLink = `${window.location.origin}/organisation/join`;
+    const joinLink = `${ROOT_PUBLIC_URL}/organisation/join`;
 
     navigator.clipboard.writeText(joinLink);
 
@@ -1156,7 +1157,7 @@ if (
       value={`You're invited to join the ${organisation?.name} Root Health Workplace Pilot.
 
 Join here:
-${window.location.origin}/organisation/join
+${ROOT_PUBLIC_URL}/organisation/join
 
 Organisation Code:
 ${organisation?.organisation_code}
