@@ -493,30 +493,33 @@ export default function OrgInsightsPage() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    const { data: assessmentData } = await supabase
-      .from("wellbeing_assessments")
-      .select("*")
-      .or(orgFilter)
-      .order("created_at", { ascending: true });
+    const { data: assessmentData, error: assessmentError } = await supabase
+  .from("wellbeing_assessments")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: true });
+
+console.log("Assessment Error:", assessmentError);
+console.log("Assessment Data:", assessmentData);
 
     const { data: mindData } = await supabase
       .from("mind_entries")
       .select("*")
-      .or(orgFilter)
+      .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: journalData } = await supabase
       .from("journal_entries")
       .select("*")
-      .or(orgFilter)
+      .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: voiceData } = await supabase
       .from("voice_sessions")
       .select("*")
-      .or(orgFilter)
+      .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
