@@ -1154,17 +1154,33 @@ if (
     <textarea
       readOnly
       style={styles.inviteBox}
-      value={`You're invited to join the ${organisation?.name} Root Health Workplace Pilot.
+     value={`You're invited to take part in the ${organisation?.name} Root Health Workplace Wellbeing Pilot.
+
+${organisation?.name} has introduced Root to support the wellbeing of its people by helping everyone better understand themselves, build resilience and develop healthier habits.
+
+Taking part takes just a few minutes to begin and starts with a short orientation and your personal wellbeing baseline.
+
+Throughout the pilot, Root will help you recognise patterns in your wellbeing, understand how stress, sleep, recovery and lifestyle affect you, and gently support you in making small, positive choices that can improve your health and wellbeing over time.
 
 Join here:
+
 ${ROOT_PUBLIC_URL}/organisation/join
 
 Organisation Code:
+
 ${organisation?.organisation_code}
 
-The pilot takes just a few minutes to begin and your personal wellbeing information always remains private. Your organisation only receives anonymous wellbeing trends.
+Root's Promise to You
 
-Welcome to Root.`}
+Everything you share with Root belongs to you.
+
+Your employer will never see your individual responses, conversations or personal health information.
+
+Root only shares anonymous organisational wellbeing trends to help create a healthier, more supportive workplace for everyone.
+
+We look forward to welcoming you.
+
+— The Root Team`}
     />
 
   </div>
