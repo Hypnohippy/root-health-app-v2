@@ -18,64 +18,84 @@ export default function OrganisationProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  async function saveProfile() {
-    setSaving(true);
-    setError("");
+async function saveProfile() {
+  setSaving(true);
+  setError("");
 
-    if (!name.trim()) {
-      setError("Please enter your name.");
-      setSaving(false);
-      return;
-    }
-
-    const organisation = JSON.parse(
-      localStorage.getItem("root_organisation_v1") || "{}"
-    );
-
-    if (!organisation.organisation_id) {
-      setError("Organisation not found. Please join your organisation again.");
-      setSaving(false);
-      return;
-    }
-
-    const profileKey =
-      localStorage.getItem("root_profile_key_v1") || makeProfileKey();
-
-    const { error } = await supabase.from("profiles").upsert(
-      {
-        profile_key: profileKey,
-        name: name.trim(),
-        age: age.trim(),
-        department: department.trim(),
-        organisation_id: organisation.organisation_id,
-        organisation_name: organisation.organisation_name,
-      },
-      { onConflict: "profile_key" }
-    );
-
-    if (error) {
-      setError(error.message || "Could not save profile.");
-      setSaving(false);
-      return;
-    }
-
-    localStorage.setItem("root_profile_key_v1", profileKey);
-
-    localStorage.setItem(
-      "root_profile_v1",
-      JSON.stringify({
-        profile_key: profileKey,
-        name: name.trim(),
-        age: age.trim(),
-        department: department.trim(),
-        organisation_id: organisation.organisation_id,
-        organisation_name: organisation.organisation_name,
-      })
-    );
-
+  if (!name.trim()) {
+    setError("Please enter your name.");
     setSaving(false);
-    window.location.href = "/orientation";
+    return;
   }
+
+  const organisation = JSON.parse(
+    localStorage.getItem("root_organisation_v1") || "{}"
+  );
+
+  if (!organisation.organisation_id) {
+    setError("Organisation not found. Please join your organisation again.");
+    setSaving(false);
+    return;
+  }
+
+  const profileKey =
+    localStorage.getItem("root_profile_key_v1") || makeProfileKey();
+
+  const { error } = await supabase.from("profiles").upsert(
+    {
+      profile_key: profileKey,
+      name: name.trim(),
+      age: age.trim(),
+      department: department.trim(),
+      organisation_id: organisation.organisation_id,
+      organisation_name: organisation.organisation_name,
+    },
+    { onConflict: "profile_key" }
+  );
+
+  if (error) {
+    setError(error.message || "Could not save profile.");
+    setSaving(false);
+    return;
+  }
+
+  const { error: memberError } = await supabase
+    .from("organisation_members")
+    .upsert(
+      {
+        organisation_id: organisation.organisation_id,
+        profile_key: profileKey,
+        name: name.trim(),
+        department: department.trim(),
+        role: "employee",
+        activated_at: new Date().toISOString(),
+      },
+      { onConflict: "organisation_id,profile_key" }
+    );
+
+  if (memberError) {
+    setError(memberError.message || "Could not connect employee to organisation.");
+    setSaving(false);
+    return;
+  }
+
+  localStorage.setItem("root_profile_key_v1", profileKey);
+
+  localStorage.setItem(
+    "root_profile_v1",
+    JSON.stringify({
+      profile_key: profileKey,
+      name: name.trim(),
+      age: age.trim(),
+      department: department.trim(),
+      organisation_id: organisation.organisation_id,
+      organisation_name: organisation.organisation_name,
+    })
+  );
+
+  setSaving(false);
+  window.location.href = "/orientation";
+}
 
   return (
     <main style={styles.page}>
