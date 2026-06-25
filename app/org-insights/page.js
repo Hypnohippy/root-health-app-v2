@@ -527,6 +527,7 @@ console.log("Assessment Data:", assessmentData);
     setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
     console.log("Organisation ID:", orgId);
     console.log("Assessments returned:", assessmentData);
+    console.log("Assessments state:", assessments);
     setMindEntries(Array.isArray(mindData) ? mindData : []);
     setJournalEntries(Array.isArray(journalData) ? journalData : []);
     setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
