@@ -1095,6 +1095,40 @@ if (
               Anonymous wellbeing trends, engagement, support usage and early outcome
               movement for organisational review.
             </p>
+                <section style={styles.controlCentre}>
+
+  <div style={styles.controlHeader}>
+    <div>
+      <h2 style={styles.controlTitle}>HR Action Centre</h2>
+
+      <p style={styles.controlText}>
+        Invite employees, launch initiatives and prepare executive reports.
+      </p>
+    </div>
+
+    <div style={styles.controlButtons}>
+
+      <button style={styles.controlButton}>
+        👥 Invite Employees
+      </button>
+
+      <button style={styles.controlButton}>
+        📋 Copy Join Link
+      </button>
+
+      <button style={styles.controlButton}>
+        📄 Executive Report
+      </button>
+
+      <button style={styles.controlButton}>
+        🚀 Launch Initiative
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
           </div>
 
           {loading ? (
@@ -2556,4 +2590,48 @@ specialistSupportCard: {
   background: "rgba(255,255,255,0.5)",
   border: "1px solid rgba(255,255,255,0.72)",
 },
+ controlCentre: {
+  marginBottom: 32,
+  padding: 28,
+  borderRadius: 28,
+  background: "rgba(255,255,255,0.18)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255,255,255,0.28)",
+},
+
+controlHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: 20,
+},
+
+controlTitle: {
+  margin: 0,
+  fontSize: 24,
+  fontWeight: 700,
+},
+
+controlText: {
+  marginTop: 8,
+  opacity: 0.75,
+  maxWidth: 520,
+},
+
+controlButtons: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 12,
+},
+
+controlButton: {
+  padding: "14px 20px",
+  borderRadius: 18,
+  border: "none",
+  cursor: "pointer",
+  background: "#181818",
+  color: "#fff",
+  fontWeight: 600,
+}, 
 };
