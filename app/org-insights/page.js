@@ -1112,9 +1112,18 @@ if (
         👥 Invite Employees
       </button>
 
-      <button style={styles.controlButton}>
-        📋 Copy Join Link
-      </button>
+     <button
+  style={styles.controlButton}
+  onClick={() => {
+    const joinLink = `${window.location.origin}/organisation/join`;
+
+    navigator.clipboard.writeText(joinLink);
+
+    alert("Employee join link copied.");
+  }}
+>
+  📋 Copy Join Link
+</button>
 
       <button style={styles.controlButton}>
         📄 Executive Report
