@@ -535,12 +535,21 @@ console.log("Assessment Data:", assessmentData);
     setLoading(false);
   };
 
-  const baseline = assessments.filter(
-    (item) => item.assessment_type === "baseline"
-  );
+  const baselineRows = assessments.filter(
+  (item) => item.assessment_type === "baseline"
+);
 
-  const latest = assessments.length > 0 ? [assessments[assessments.length - 1]] : [];
+const baseline =
+  baselineRows.length > 0
+    ? baselineRows
+    : assessments.length > 0
+    ? [assessments[0]]
+    : [];
 
+const latest =
+  assessments.length > 0
+    ? [assessments[assessments.length - 1]]
+    : [];
   const metrics = [
     ["Stress", "stress_score"],
     ["Burnout", "burnout_score"],
