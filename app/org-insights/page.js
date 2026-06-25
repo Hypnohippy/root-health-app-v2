@@ -522,6 +522,8 @@ export default function OrgInsightsPage() {
 
     setMembers(Array.isArray(memberData) ? memberData : []);
     setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
+    console.log("Organisation ID:", orgId);
+    console.log("Assessments returned:", assessmentData);
     setMindEntries(Array.isArray(mindData) ? mindData : []);
     setJournalEntries(Array.isArray(journalData) ? journalData : []);
     setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
