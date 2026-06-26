@@ -1191,6 +1191,50 @@ We look forward to welcoming you.
 </section>
           </div>
 
+          {!loading && (
+  <section style={styles.pilotProgressCard}>
+    <div>
+      <p style={styles.panelLabel}>Pilot Progress</p>
+      <h2 style={styles.panelTitle}>
+        {organisation?.name || "Organisation"} is on Day {daysElapsed} of {totalTrialDays}
+      </h2>
+      <p style={styles.panelDescription}>
+        Root is tracking participation, activation and baseline completion so HR can see whether the pilot is gaining momentum.
+      </p>
+    </div>
+
+    <div style={styles.pilotProgressGrid}>
+      <div style={styles.pilotProgressItem}>
+        <span>Invited</span>
+        <strong>{invited}</strong>
+      </div>
+
+      <div style={styles.pilotProgressItem}>
+        <span>Activated</span>
+        <strong>{activated}</strong>
+      </div>
+
+      <div style={styles.pilotProgressItem}>
+        <span>Baselines</span>
+        <strong>{baselineCompleted}</strong>
+      </div>
+
+      <div style={styles.pilotProgressItem}>
+        <span>Engagement</span>
+        <strong>{engagementScore !== null ? `${engagementScore}%` : "—"}</strong>
+      </div>
+    </div>
+
+    <div style={styles.pilotTrack}>
+      <div
+        style={{
+          ...styles.pilotFill,
+          width: `${engagementScore !== null ? engagementScore : 0}%`,
+        }}
+      />
+    </div>
+  </section>
+)}
           {loading ? (
             <p style={styles.loading}>Loading organisation insights...</p>
           ) : (
@@ -2719,5 +2763,42 @@ inviteBox: {
   padding: 18,
   fontSize: 15,
   resize: "vertical",
+},
+  pilotProgressCard: {
+  marginBottom: "22px",
+  padding: "28px",
+  borderRadius: "32px",
+  background: "rgba(255,255,255,0.54)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+pilotProgressGrid: {
+  marginTop: "18px",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+  gap: "14px",
+},
+
+pilotProgressItem: {
+  padding: "18px",
+  borderRadius: "20px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  display: "grid",
+  gap: "8px",
+},
+
+pilotTrack: {
+  marginTop: "18px",
+  height: "12px",
+  borderRadius: "999px",
+  background: "rgba(24,24,24,0.08)",
+  overflow: "hidden",
+},
+
+pilotFill: {
+  height: "100%",
+  borderRadius: "999px",
+  background: "#181818",
 },
 };
