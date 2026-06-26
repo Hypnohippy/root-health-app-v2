@@ -109,6 +109,12 @@ export default function HRCoachPage() {
       <main style={styles.page}>
         <section style={styles.card}>
           <RootEnso size={90} />
+    <button
+  onClick={() => (window.location.href = "/organisation-insights")}
+  style={styles.backButton}
+>
+  ← Back to Organisation Insights
+</button>
 
           <p style={styles.kicker}>Root Workplace</p>
 
@@ -297,4 +303,14 @@ const styles = {
     background: "rgba(220,230,205,0.42)",
     color: "#181818",
   },
+  backButton: {
+  marginBottom: "24px",
+  padding: "10px 18px",
+  borderRadius: "999px",
+  border: "1px solid rgba(255,255,255,0.5)",
+  background: "rgba(255,255,255,0.45)",
+  cursor: "pointer",
+  fontWeight: 700,
+  color: "#181818",
+},
 };
