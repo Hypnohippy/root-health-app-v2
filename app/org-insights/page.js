@@ -1240,6 +1240,70 @@ We look forward to welcoming you.
           ) : (
             <>
             <section style={styles.executiveBrief}>
+            <section style={styles.participantsCard}>
+
+  <div style={styles.panelHeader}>
+    <div>
+      <p style={styles.panelLabel}>Pilot Participants</p>
+
+      <h2 style={styles.panelTitle}>
+        {members.length} participant{members.length === 1 ? "" : "s"}
+      </h2>
+    </div>
+  </div>
+
+  {members.length === 0 ? (
+
+    <p style={styles.panelDescription}>
+      No employees have joined the pilot yet.
+    </p>
+
+  ) : (
+
+    <div style={styles.participantList}>
+
+      {members.map((member) => (
+
+        <div
+          key={member.id}
+          style={styles.participantRow}
+        >
+
+          <div>
+
+            <strong>
+              {member.name || "Unnamed Participant"}
+            </strong>
+
+            <div style={styles.participantDept}>
+              {member.department || "No department"}
+            </div>
+
+          </div>
+
+          <div style={styles.participantStatus}>
+
+            <span>
+              {member.activated_at ? "🟢 Joined" : "🟡 Invited"}
+            </span>
+
+            <span>
+              {member.baseline_completed_at
+                ? "✅ Baseline Complete"
+                : "⏳ Baseline Outstanding"}
+            </span>
+
+          </div>
+
+        </div>
+
+      ))}
+
+    </div>
+
+  )}
+
+</section>
   <p style={styles.panelLabel}>Root Executive Brief</p>
 
   <div style={styles.briefTopLine}>
@@ -2800,5 +2864,39 @@ pilotFill: {
   height: "100%",
   borderRadius: "999px",
   background: "#181818",
+},
+  participantsCard: {
+  marginBottom: "22px",
+  padding: "28px",
+  borderRadius: "32px",
+  background: "rgba(255,255,255,0.55)",
+  border: "1px solid rgba(255,255,255,0.72)",
+},
+
+participantList: {
+  display: "grid",
+  gap: "16px",
+  marginTop: "24px",
+},
+
+participantRow: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "18px",
+  borderRadius: "18px",
+  background: "rgba(255,255,255,0.45)",
+},
+
+participantDept: {
+  marginTop: "6px",
+  fontSize: "13px",
+  opacity: 0.7,
+},
+
+participantStatus: {
+  display: "grid",
+  gap: "6px",
+  textAlign: "right",
 },
 };
