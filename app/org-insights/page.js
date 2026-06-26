@@ -1255,7 +1255,7 @@ We look forward to welcoming you.
   {members.length === 0 ? (
 
     <p style={styles.panelDescription}>
-      No employees have joined the pilot yet.
+      No pilot participants are showing yet. Once employees complete the organisation profile step, they will appear here with their activation and baseline status.
     </p>
 
   ) : (
