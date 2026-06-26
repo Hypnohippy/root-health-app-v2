@@ -80,10 +80,22 @@ const { error } = await supabase.from("wellbeing_assessments").insert([
   },
 ]);
     if (error) {
-      console.error("ASSESSMENT SAVE ERROR:", error);
-      alert(error.message || "Something went wrong saving this check-in.");
-    } else {
-      setSaved(true);
+  console.error("ASSESSMENT SAVE ERROR:", error);
+  alert(error.message || "Something went wrong saving this check-in.");
+} else {
+  const profileKey = localStorage.getItem("root_profile_key_v1");
+
+  if (profileKey) {
+    await supabase
+      .from("organisation_members")
+      .update({
+        baseline_completed_at: new Date().toISOString(),
+      })
+      .eq("profile_key", profileKey)
+      .is("baseline_completed_at", null);
+  }
+
+  setSaved(true);
       setNotes("");
 
       if (typeof window !== "undefined") {
