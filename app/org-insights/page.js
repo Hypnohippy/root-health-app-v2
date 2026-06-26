@@ -1133,9 +1133,12 @@ if (
         📄 Executive Report
       </button>
 
-      <button style={styles.controlButton}>
-        🚀 Launch Initiative
-      </button>
+      <button
+  style={styles.controlButton}
+  onClick={() => (window.location.href = "/hr-coach")}
+>
+  💬 Ask Root
+</button>
 
     </div>
 
