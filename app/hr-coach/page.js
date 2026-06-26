@@ -160,23 +160,21 @@ export default function HRCoachPage() {
               </div>
 
               <section style={styles.insightBox}>
-                <h2 style={styles.sectionTitle}>What Root is ready to discuss</h2>
+                <h2 style={styles.sectionTitle}>How can Root help you think this through?</h2>
 
                 <p style={styles.text}>
-                  {highestConcern
-                    ? `${highestConcern[0]} currently appears to deserve the most attention, based on the latest wellbeing assessment data.`
-                    : "Root does not yet have enough wellbeing data to identify a clear organisational priority."}
-                </p>
-
+  Root has the latest organisation context ready, but this space is for questions,
+  challenge, planning and conversation — not another report.
+</p>
                 <p style={styles.text}>
                   Where would you like us to begin?
                 </p>
 
                 <div style={styles.promptGrid}>
-                  <button style={styles.promptButton}>📈 Explain today's dashboard</button>
-                  <button style={styles.promptButton}>📄 Prepare a board meeting</button>
-                  <button style={styles.promptButton}>🎯 What should we do next?</button>
-                  <button style={styles.promptButton}>🎤 Talk to Root</button>
+                 <button style={styles.promptButton}>💬 Question Root's findings</button>
+<button style={styles.promptButton}>📄 Prepare for a board meeting</button>
+<button style={styles.promptButton}>🧭 Help me decide what to do next</button>
+<button style={styles.promptButton}>🎤 Start a voice conversation</button>
                 </div>
               </section>
 
