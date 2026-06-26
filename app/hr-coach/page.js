@@ -1,53 +1,195 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 
 export default function HRCoachPage() {
+  const [loading, setLoading] = useState(true);
+  const [organisation, setOrganisation] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [assessments, setAssessments] = useState([]);
+  const [mindEntries, setMindEntries] = useState([]);
+  const [journalEntries, setJournalEntries] = useState([]);
+  const [voiceSessions, setVoiceSessions] = useState([]);
+
+  useEffect(() => {
+    loadContext();
+  }, []);
+
+  async function loadContext() {
+    setLoading(true);
+
+    const { data: orgs } = await supabase
+      .from("organisations")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    const org = Array.isArray(orgs) ? orgs[0] : null;
+    setOrganisation(org || null);
+
+    const orgId = org?.id || null;
+
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: memberData } = await supabase
+      .from("organisation_members")
+      .select("*")
+      .eq("organisation_id", orgId);
+
+    const { data: assessmentData } = await supabase
+      .from("wellbeing_assessments")
+      .select("*")
+      .eq("organisation_id", orgId)
+      .order("created_at", { ascending: true });
+
+    const { data: mindData } = await supabase
+      .from("mind_entries")
+      .select("*")
+      .eq("organisation_id", orgId)
+      .limit(200);
+
+    const { data: journalData } = await supabase
+      .from("journal_entries")
+      .select("*")
+      .eq("organisation_id", orgId)
+      .limit(200);
+
+    const { data: voiceData } = await supabase
+      .from("voice_sessions")
+      .select("*")
+      .eq("organisation_id", orgId)
+      .limit(200);
+
+    setMembers(Array.isArray(memberData) ? memberData : []);
+    setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
+    setMindEntries(Array.isArray(mindData) ? mindData : []);
+    setJournalEntries(Array.isArray(journalData) ? journalData : []);
+    setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
+
+    setLoading(false);
+  }
+
+  const activated = members.filter((m) => m.activated_at).length;
+  const baselineCompleted = members.filter((m) => m.baseline_completed_at).length;
+  const supportInteractions =
+    mindEntries.length + journalEntries.length + voiceSessions.length;
+
+  const latestAssessment =
+    assessments.length > 0 ? assessments[assessments.length - 1] : null;
+
+  const highestConcern = latestAssessment
+    ? [
+        ["Stress", latestAssessment.stress_score],
+        ["Burnout", latestAssessment.burnout_score],
+        ["Sleep difficulty", latestAssessment.sleep_score],
+        ["Recovery difficulty", latestAssessment.recovery_score],
+        ["Mood difficulty", latestAssessment.mood_score],
+        ["Focus difficulty", latestAssessment.focus_score],
+      ].sort((a, b) => Number(b[1]) - Number(a[1]))[0]
+    : null;
+
+  const confidence =
+    assessments.length >= 20
+      ? "High"
+      : assessments.length >= 8
+      ? "Developing"
+      : "Early Stage";
+
   return (
     <RootAtmosphere type="coach">
       <Nav />
 
       <main style={styles.page}>
         <section style={styles.card}>
-
           <RootEnso size={90} />
 
-          <h1 style={styles.title}>
-            Ask Root
-          </h1>
+          <p style={styles.kicker}>Root Workplace</p>
 
-          <p style={styles.subtitle}>
-            Welcome back.
-          </p>
+          <h1 style={styles.title}>Ask Root</h1>
 
-          <p style={styles.text}>
-            This is where your conversation with Root will begin.
-          </p>
+          {loading ? (
+            <p style={styles.text}>Root is reviewing the latest organisation picture...</p>
+          ) : (
+            <>
+              <p style={styles.subtitle}>
+                I've already reviewed {organisation?.name || "your organisation"}.
+              </p>
 
-          <p style={styles.text}>
-            Root will help you understand your organisation,
-            explain workforce trends,
-            answer questions,
-            prepare board reports
-            and recommend the next best actions.
-          </p>
+              <p style={styles.text}>
+                Good decisions begin with good understanding. Let's explore what
+                Root is noticing together.
+              </p>
 
-          <div style={styles.comingSoon}>
+              <div style={styles.snapshotGrid}>
+                <div style={styles.snapshotCard}>
+                  <span>Employees</span>
+                  <strong>{members.length}</strong>
+                </div>
 
-            🚧
+                <div style={styles.snapshotCard}>
+                  <span>Activated</span>
+                  <strong>{activated}</strong>
+                </div>
 
-            <h2>
-              Coming Soon
-            </h2>
+                <div style={styles.snapshotCard}>
+                  <span>Baselines</span>
+                  <strong>{baselineCompleted}</strong>
+                </div>
 
-            <p>
-              The HR Voice Companion is currently under construction.
-            </p>
+                <div style={styles.snapshotCard}>
+                  <span>Assessments</span>
+                  <strong>{assessments.length}</strong>
+                </div>
 
-          </div>
+                <div style={styles.snapshotCard}>
+                  <span>Support interactions</span>
+                  <strong>{supportInteractions}</strong>
+                </div>
 
+                <div style={styles.snapshotCard}>
+                  <span>Confidence</span>
+                  <strong>{confidence}</strong>
+                </div>
+              </div>
+
+              <section style={styles.insightBox}>
+                <h2 style={styles.sectionTitle}>What Root is ready to discuss</h2>
+
+                <p style={styles.text}>
+                  {highestConcern
+                    ? `${highestConcern[0]} currently appears to deserve the most attention, based on the latest wellbeing assessment data.`
+                    : "Root does not yet have enough wellbeing data to identify a clear organisational priority."}
+                </p>
+
+                <p style={styles.text}>
+                  Where would you like us to begin?
+                </p>
+
+                <div style={styles.promptGrid}>
+                  <button style={styles.promptButton}>📈 Explain today's dashboard</button>
+                  <button style={styles.promptButton}>📄 Prepare a board meeting</button>
+                  <button style={styles.promptButton}>🎯 What should we do next?</button>
+                  <button style={styles.promptButton}>🎤 Talk to Root</button>
+                </div>
+              </section>
+
+              <section style={styles.comingSoon}>
+                <h2>Conversation layer coming next</h2>
+                <p>
+                  Soon this page will become the HR voice and text companion:
+                  a place to question Root's findings, prepare reports, build
+                  initiatives and save the conversation into documents or calendars.
+                </p>
+              </section>
+            </>
+          )}
         </section>
       </main>
     </RootAtmosphere>
@@ -55,7 +197,6 @@ export default function HRCoachPage() {
 }
 
 const styles = {
-
   page: {
     minHeight: "100vh",
     display: "flex",
@@ -65,38 +206,97 @@ const styles = {
   },
 
   card: {
-    maxWidth: "760px",
+    maxWidth: "900px",
     width: "100%",
     textAlign: "center",
     padding: "50px",
-    borderRadius: "30px",
-    background: "rgba(255,255,255,0.18)",
-    backdropFilter: "blur(20px)",
-    border: "1px solid rgba(255,255,255,0.25)",
+    borderRadius: "34px",
+    background: "rgba(255,255,255,0.22)",
+    backdropFilter: "blur(22px)",
+    border: "1px solid rgba(255,255,255,0.32)",
+    boxShadow: "0 34px 100px rgba(20,18,15,0.16)",
+  },
+
+  kicker: {
+    marginTop: "14px",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    fontWeight: "800",
+    color: "#6F675B",
   },
 
   title: {
-    fontSize: "40px",
-    marginTop: "20px",
-    marginBottom: "10px",
+    fontSize: "46px",
+    margin: "8px 0 10px",
+    color: "#181818",
   },
 
   subtitle: {
-    fontSize: "20px",
-    opacity: 0.8,
+    fontSize: "22px",
+    fontWeight: "700",
+    color: "#181818",
   },
 
   text: {
-    marginTop: "20px",
+    marginTop: "16px",
     lineHeight: 1.7,
     fontSize: "17px",
+    color: "#4D463B",
+  },
+
+  snapshotGrid: {
+    marginTop: "34px",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+    gap: "14px",
+  },
+
+  snapshotCard: {
+    padding: "20px",
+    borderRadius: "22px",
+    background: "rgba(255,255,255,0.48)",
+    border: "1px solid rgba(255,255,255,0.72)",
+    display: "grid",
+    gap: "8px",
+  },
+
+  insightBox: {
+    marginTop: "30px",
+    padding: "28px",
+    borderRadius: "28px",
+    background: "rgba(255,255,255,0.38)",
+    border: "1px solid rgba(255,255,255,0.62)",
+  },
+
+  sectionTitle: {
+    marginTop: 0,
+    fontSize: "26px",
+    color: "#181818",
+  },
+
+  promptGrid: {
+    marginTop: "24px",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "14px",
+  },
+
+  promptButton: {
+    padding: "16px 18px",
+    borderRadius: "18px",
+    border: "none",
+    cursor: "pointer",
+    background: "#181818",
+    color: "#fff",
+    fontWeight: "700",
   },
 
   comingSoon: {
-    marginTop: "40px",
-    padding: "30px",
-    borderRadius: "20px",
-    background: "rgba(255,255,255,0.12)",
+    marginTop: "30px",
+    padding: "24px",
+    borderRadius: "24px",
+    background: "rgba(220,230,205,0.42)",
+    color: "#181818",
   },
-
 };
