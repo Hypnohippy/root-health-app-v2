@@ -106,7 +106,7 @@ const { error } = await supabase.from("wellbeing_assessments").insert([
           localStorage.setItem("root_orientation_complete_v1", "true");
 
           setTimeout(() => {
-            window.location.href = "/body";
+            window.location.href = "/onboarding-complete";
           }, 900);
         }
       }
