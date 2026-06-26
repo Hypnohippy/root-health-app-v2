@@ -110,7 +110,7 @@ export default function HRCoachPage() {
         <section style={styles.card}>
           <RootEnso size={90} />
     <button
-  onClick={() => (window.location.href = "/organisation-insights")}
+  onClick={() => (window.location.href = "/org-insights")}
   style={styles.backButton}
 >
   ← Back to Organisation Insights
