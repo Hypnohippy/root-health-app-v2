@@ -209,7 +209,7 @@ export default function Home() {
       const { data: assessmentData } = await supabase
         .from("wellbeing_assessments")
         .select("*")
-        ..eq("profile_key", profileKey)
+        .eq("profile_key", profileKey)
         .order("created_at", { ascending: false })
         .limit(20);
 
