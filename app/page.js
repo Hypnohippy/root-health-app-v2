@@ -11,6 +11,7 @@ import { buildProactiveCare } from "../lib/rootProactiveCare";
 import { buildDailyRhythm } from "../lib/rootDailyRhythm";
 import { buildPriorityFeed } from "../lib/rootPriorityFeed";
 import { buildRootMemoryService } from "../lib/rootMemoryService";
+import { getCurrentProfileKey } from "../lib/currentUser";
 
 const progressMetrics = [
   ["stress_score", "Stress"],
@@ -166,13 +167,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const load = async () => {
-      let loadedName = "";
+  const load = async () => {
+    let loadedName = "";
 
+    const profileKey = getCurrentProfileKey();
+
+    if (!profileKey) {
+      console.warn("No profile key found for current user.");
+      return;
+    }
       const { data: profile } = await supabase
         .from("profiles")
         .select("name")
-        .eq("profile_key", "main")
+        ..eq("profile_key", profileKey)
         .maybeSingle();
 
       if (profile?.name) {
@@ -202,7 +209,7 @@ export default function Home() {
       const { data: assessmentData } = await supabase
         .from("wellbeing_assessments")
         .select("*")
-        .eq("profile_key", "main")
+        ..eq("profile_key", profileKey)
         .order("created_at", { ascending: false })
         .limit(20);
 
