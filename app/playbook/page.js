@@ -41,7 +41,7 @@ export default function PlaybookPage() {
     const { data, error } = await supabase
       .from("playbook_entries")
       .select("*")
-      .eq("profile_key", "main")
+      .eq("profile_key", profileKey)
       .order("created_at", { ascending: false });
 
     if (!error) {
