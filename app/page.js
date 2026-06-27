@@ -179,7 +179,7 @@ export default function Home() {
       const { data: profile } = await supabase
         .from("profiles")
         .select("name")
-        ..eq("profile_key", profileKey)
+        .eq("profile_key", profileKey)
         .maybeSingle();
 
       if (profile?.name) {
