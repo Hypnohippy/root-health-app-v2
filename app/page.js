@@ -190,22 +190,22 @@ export default function Home() {
 
       const { data: bodyData } = await supabase
         .from("body_signals")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(40);
-
+.select("*")
+.eq("profile_key", profileKey)
+.order("created_at", { ascending: false })
+.limit(40);
       const { data: journalData } = await supabase
         .from("journal_entries")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(40);
-
+.select("*")
+.eq("profile_key", profileKey)
+.order("created_at", { ascending: false })
+.limit(40);
       const { data: mindData } = await supabase
         .from("mind_entries")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(40);
-
+.select("*")
+.eq("profile_key", profileKey)
+.order("created_at", { ascending: false })
+.limit(40);
       const { data: assessmentData } = await supabase
         .from("wellbeing_assessments")
         .select("*")
