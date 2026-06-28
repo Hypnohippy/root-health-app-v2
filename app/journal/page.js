@@ -165,9 +165,16 @@ export default function JournalPage() {
 
     const pattern = detectPattern(checkIn.label);
 
-    const { error } = await supabase.from("journal_entries").insert([
+const profileKey = getCurrentProfileKey();
+
+if (!profileKey) {
+  alert("Root could not find your profile. Please return to your profile and try again.");
+  return;
+}
+
+const { error } = await supabase.from("journal_entries").insert([
       {
-        profile_key: "main",
+        profile_key: profileKey,
         prompt_type: "quick_check_in",
         title: "Quick emotional check-in",
         content: checkIn.label,
@@ -248,11 +255,18 @@ export default function JournalPage() {
     if (!content.trim()) return;
 
     const pattern = detectPattern(content);
-    setSaving(true);
+const profileKey = getCurrentProfileKey();
 
-    const { error } = await supabase.from("journal_entries").insert([
+if (!profileKey) {
+  alert("Root could not find your profile. Please return to your profile and try again.");
+  return;
+}
+
+setSaving(true);
+
+const { error } = await supabase.from("journal_entries").insert([
       {
-        profile_key: "main",
+        profile_key: profileKey,
         prompt_type: activePrompt,
         title: config.heading,
         content,
