@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
+import { getCurrentProfileKey } from "../../lib/currentUser";
 const quickCheckIns = [
   { emoji: "😔", label: "Heavy" },
   { emoji: "⚡", label: "Wired" },
@@ -122,8 +123,11 @@ export default function JournalPage() {
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
 
-  useEffect(() => {
-  loadEntries();
+ useEffect(() => {
+  const profileKey = getCurrentProfileKey();
+  if (!profileKey) return;
+
+  loadEntries(profileKey);
 
   const stored = localStorage.getItem("root_journey_v1");
 
@@ -149,6 +153,7 @@ export default function JournalPage() {
     const { data } = await supabase
       .from("journal_entries")
       .select("*")
+      .eq("profile_key", profileKey)
       .order("created_at", { ascending: false })
       .limit(8);
 
