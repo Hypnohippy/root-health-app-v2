@@ -6,6 +6,8 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { buildRootReflection } from "../../lib/rootReflectionEngine";
+import { getCurrentProfileKey } from "../../lib/currentUser";
+
 function countBy(items, key) {
   const counts = {};
 
@@ -57,24 +59,35 @@ setRootReflection(reflection);
     console.log(err);
   }
 }, []);
-  const loadInsights = async () => {
-    const { data: bodyData } = await supabase
+ const loadInsights = async () => {
+
+  const profileKey = getCurrentProfileKey();
+
+  if (!profileKey) {
+    setLoading(false);
+    return;
+  }
+
+  const { data: bodyData } = await supabase
       .from("body_signals")
       .select("*")
+      .eq("profile_key", profileKey)
       .order("created_at", { ascending: false })
       .limit(30);
 
     const { data: mindData } = await supabase
-      .from("mind_entries")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(30);
+  .from("mind_entries")
+  .select("*")
+  .eq("profile_key", profileKey)
+  .order("created_at", { ascending: false })
+  .limit(30);
 
     const { data: journalData } = await supabase
-      .from("journal_entries")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(30);
+  .from("journal_entries")
+  .select("*")
+  .eq("profile_key", profileKey)
+  .order("created_at", { ascending: false })
+  .limit(30);
 
     setBodySignals(Array.isArray(bodyData) ? bodyData : []);
     setMindEntries(Array.isArray(mindData) ? mindData : []);
