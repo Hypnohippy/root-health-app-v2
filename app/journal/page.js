@@ -149,7 +149,7 @@ export default function JournalPage() {
   setVoiceSupported(Boolean(SpeechRecognition));
 }, []);
 
-  const loadEntries = async () => {
+  const loadEntries = async (profileKey) => {
     const { data } = await supabase
       .from("journal_entries")
       .select("*")
@@ -190,7 +190,7 @@ const { error } = await supabase.from("journal_entries").insert([
     }
 
     setPatternResult(pattern);
-    await loadEntries();
+   await loadEntries(profileKey);
   };
 
   const updateResponse = (value) => {
@@ -302,7 +302,7 @@ const { error } = await supabase.from("journal_entries").insert([
     setPatternResult(pattern);
     setResponses({});
     setStep(0);
-    await loadEntries();
+    await loadEntries(profileKey);
   };
 
   return (
