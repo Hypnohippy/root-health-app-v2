@@ -671,12 +671,20 @@ message += `\n\nA practical next step could be:`;
 
     setSaving(true);
     resetLearningUI();
+    const profileKey = getCurrentProfileKey();
 
-    const { data: history } = await supabase
-      .from("body_signals")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50);
+if (!profileKey) {
+  setResponse("Root could not identify your profile.");
+  setSaving(false);
+  return;
+}
+  
+  const { data: history } = await supabase
+  .from("body_signals")
+  .select("*")
+  .eq("profile_key", profileKey)
+  .order("created_at", { ascending: false })
+  .limit(50);
 
     const usefulHistory = Array.isArray(history) ? history : [];
     const sameSignalHistory = usefulHistory.filter(
@@ -740,7 +748,9 @@ if (journey) {
     JSON.stringify(updatedJourney)
   );
 }
+
     const entryToSave = {
+      profile_key: profileKey,
       areas: selectedItems.map((item) => item.label),
       system: selectedItems.map((item) => item.system).join(", "),
       signal: selectedSignal,
