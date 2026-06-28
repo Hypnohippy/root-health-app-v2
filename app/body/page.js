@@ -15,6 +15,7 @@ import JointsView from "../../components/body/JointsView";
 import KidneysView from "../../components/body/KidneysView";
 import SensesView from "../../components/body/SensesView";
 import NervousSystemView from "../../components/body/NervousSystemView";
+import { getCurrentProfileKey } from "../../lib/currentUser";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
