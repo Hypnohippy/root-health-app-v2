@@ -871,7 +871,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
       category: pending.category,
       content: assistantTranscript,
     });
-
+    console.log("PLAYBOOK SAVE STARTING");
     await fetch("/api/voice-actions", {
       method: "POST",
       headers: {
@@ -884,6 +884,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
         content: assistantTranscript,
       }),
     });
+    console.log("PLAYBOOK SAVE FINISHED");
 
     pendingPlaybookSaveRef.current = null;
  } else {
