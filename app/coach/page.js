@@ -626,8 +626,10 @@ if (journey && journey.currentStage === "coach") {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-  action: "save_journal",
-  content: pendingJournalSave,
+  action: "save_playbook",
+  title: pending.title,
+  category: pending.category,
+  content: assistantTranscript,
   profileKey: getCurrentProfileKey(),
 }),
     });
