@@ -65,7 +65,7 @@ export async function POST(req) {
 
       const { error } = await supabase.from("playbook_entries").insert([
         {
-          profile_key: "main",
+          profile_key: body.profileKey || "main",
           title,
           category,
           content,
@@ -91,7 +91,7 @@ export async function POST(req) {
 
       const { error } = await supabase.from("journal_entries").insert([
         {
-          profile_key: "main",
+          profile_key: body.profileKey || "main",
           prompt_type: "voice_coach",
           title: "Voice Coach reflection",
           content,
