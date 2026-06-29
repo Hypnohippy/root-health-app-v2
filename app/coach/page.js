@@ -865,7 +865,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     lowerAssistant.includes("pacing") ||
     lowerAssistant.includes("reduce") ||
     lowerAssistant.includes("support");
-  if (!isJustConfirmation && !isOnlyAskingQuestion && looksLikeUsefulPlan) {
+  if (!isJustConfirmation && assistantTranscript.trim()) {
     console.log("SAVING ASSISTANT ANSWER TO PLAYBOOK:", {
       title: pending.title,
       category: pending.category,
