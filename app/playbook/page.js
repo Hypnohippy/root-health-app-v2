@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
+import { getCurrentProfileKey } from "../../lib/currentUser";
 
 const categories = [
   "Nutrition",
@@ -36,6 +37,13 @@ export default function PlaybookPage() {
   }, []);
 
   const loadEntries = async () => {
+    const profileKey = getCurrentProfileKey();
+
+if (!profileKey) {
+  setEntries([]);
+  setLoading(false);
+  return;
+}
     setLoading(true);
 
     const { data, error } = await supabase
@@ -88,7 +96,8 @@ export default function PlaybookPage() {
 
     const { error } = await supabase.from("playbook_entries").insert([
       {
-        profile_key: "main",
+       profile_key: getCurrentProfileKey(),
+      
         title: cleanTitle,
         category,
         content: cleanContent,
@@ -125,7 +134,7 @@ export default function PlaybookPage() {
       .from("playbook_entries")
       .delete()
       .eq("id", entry.id)
-      .eq("profile_key", "main");
+      .eq("profile_key", getCurrentProfileKey());
 
     if (!error) {
       setEntries((current) => current.filter((item) => item.id !== entry.id));
