@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
+import { getCurrentProfileKey } from "../../lib/currentUser";
 
 const signalToCoach = {
   "racing thoughts": "mind",
@@ -619,9 +620,10 @@ if (journey && journey.currentStage === "coach") {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: "save_journal",
-        content: pendingJournalSave,
-      }),
+  action: "save_journal",
+  content: pendingJournalSave,
+  profileKey: getCurrentProfileKey(),
+}),
     });
 
     const json = await res.json();
