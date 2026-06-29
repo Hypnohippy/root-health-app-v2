@@ -835,6 +835,7 @@ dc.onmessage = async (event) => {
   setVoiceTranscript(assistantTranscript);
   latestAssistantTranscriptRef.current = assistantTranscript;
 if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
+  console.log("PLAYBOOK SAVE BLOCK ENTERED");
   const pending = pendingPlaybookSaveRef.current;
   const lowerAssistant = assistantTranscript.toLowerCase();
 
