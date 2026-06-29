@@ -300,6 +300,9 @@ export default function CoachPage() {
   const latestAssistantTranscriptRef = useRef("");
   useEffect(() => {
   const load = async () => {
+  const profileKey = getCurrentProfileKey();
+
+if (!profileKey) return;
   const storedJourney = localStorage.getItem("root_journey_v1");
 
 let parsedJourney = null;
@@ -324,7 +327,7 @@ if (storedJourney) {
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
-        .eq("profile_key", "main")
+        .eq("profile_key", profileKey)
         .maybeSingle();
 
       if (profileData) {
@@ -337,6 +340,7 @@ if (storedJourney) {
       const { data } = await supabase
         .from("body_signals")
         .select("*")
+        .eq("profile_key", profileKey)
         .order("created_at", { ascending: false })
         .limit(20);
 
@@ -346,12 +350,14 @@ if (storedJourney) {
       const { data: mindData } = await supabase
         .from("mind_entries")
         .select("*")
+        .eq("profile_key", profileKey)
         .order("created_at", { ascending: false })
         .limit(5);
 
       const { data: journalData } = await supabase
         .from("journal_entries")
         .select("*")
+        .eq("profile_key", profileKey)
         .order("created_at", { ascending: false })
         .limit(5);
 
