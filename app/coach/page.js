@@ -766,7 +766,7 @@ const startVoiceSession = async () => {
   );
 };
 
-dc.onmessage = (event) => {
+dc.onmessage = async (event) => {
   try {
     const message = JSON.parse(event.data);
 
@@ -872,7 +872,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
       content: assistantTranscript,
     });
 
-    fetch("/api/voice-actions", {
+    await fetch("/api/voice-actions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
