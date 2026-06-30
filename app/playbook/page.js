@@ -27,6 +27,9 @@ export default function PlaybookPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [reviewEntry, setReviewEntry] = useState(null);
+  const [reviewInstruction, setReviewInstruction] = useState("");
+  const [reviewPreview, setReviewPreview] = useState("");
+  const [reviewing, setReviewing] = useState(false);
   const [openEntryId, setOpenEntryId] = useState(null);
 
   const [title, setTitle] = useState("");
@@ -360,19 +363,100 @@ if (!profileKey) {
                 </div>
               );
             })}
-            {reviewEntry && (
+           {reviewEntry && (
   <section style={styles.formCard}>
     <p style={styles.formLabel}>Review with Root Voice</p>
 
     <h2 style={styles.entryTitle}>{reviewEntry.title}</h2>
 
-    <p style={styles.introText}>
-      Root is ready to update this Playbook entry. Next we will add voice input and a save preview here.
-    </p>
+    <textarea
+      style={styles.textarea}
+      value={reviewInstruction}
+      onChange={(e) => setReviewInstruction(e.target.value)}
+      placeholder="Tell Root what to change. Example: replace sweet potato with pasta, add Tesco-style estimated costs, or add another day."
+    />
+
+    <button
+      style={styles.saveButton}
+      disabled={reviewing}
+      onClick={async () => {
+        if (!reviewInstruction.trim()) return;
+
+        setReviewing(true);
+
+        const res = await fetch("/api/playbook-review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: reviewEntry.title,
+            category: reviewEntry.category,
+            currentContent: reviewEntry.content,
+            instruction: reviewInstruction,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (json.ok) {
+          setReviewPreview(json.updatedContent);
+        } else {
+          alert(json.error || "Root could not review this entry.");
+        }
+
+        setReviewing(false);
+      }}
+    >
+      {reviewing ? "Reviewing..." : "Review this entry"}
+    </button>
+
+    {reviewPreview && (
+      <>
+        <p style={styles.formLabel}>Updated preview</p>
+
+        <textarea
+          style={styles.textarea}
+          value={reviewPreview}
+          onChange={(e) => setReviewPreview(e.target.value)}
+        />
+
+        <button
+          style={styles.saveButton}
+          onClick={async () => {
+            const { error } = await supabase
+              .from("playbook_entries")
+              .update({ content: reviewPreview })
+              .eq("id", reviewEntry.id);
+
+            if (error) {
+              alert(error.message || "Could not save update.");
+              return;
+            }
+
+            setEntries((current) =>
+              current.map((item) =>
+                item.id === reviewEntry.id
+                  ? { ...item, content: reviewPreview }
+                  : item
+              )
+            );
+
+            setReviewEntry(null);
+            setReviewInstruction("");
+            setReviewPreview("");
+          }}
+        >
+          Save update
+        </button>
+      </>
+    )}
 
     <button
       style={styles.deleteButton}
-      onClick={() => setReviewEntry(null)}
+      onClick={() => {
+        setReviewEntry(null);
+        setReviewInstruction("");
+        setReviewPreview("");
+      }}
     >
       Close review
     </button>
