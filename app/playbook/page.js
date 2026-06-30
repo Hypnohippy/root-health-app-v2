@@ -26,6 +26,7 @@ export default function PlaybookPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [reviewEntry, setReviewEntry] = useState(null);
   const [openEntryId, setOpenEntryId] = useState(null);
 
   const [title, setTitle] = useState("");
@@ -336,6 +337,16 @@ if (!profileKey) {
                     </button>
 
                     <button
+                 style={styles.smallViewButton}
+                  onClick={() => {
+               setOpenEntryId(entry.id);
+               setReviewEntry(entry);
+               }}
+>
+                 Review with Root Voice
+            </button>
+
+                    <button
                       style={{
                         ...styles.smallDeleteButton,
                         opacity: deletingId === entry.id ? 0.65 : 1,
@@ -386,6 +397,16 @@ if (!profileKey) {
                     >
                       {isOpen ? "Hide full plan" : "View full plan"}
                     </button>
+
+                    <button
+                     style={styles.viewButton}
+                    onClick={() => {
+                   setOpenEntryId(entry.id);
+                   setReviewEntry(entry);
+                      }}
+>
+                       Review with Root Voice
+                        </button>
 
                     <button
                       style={{
