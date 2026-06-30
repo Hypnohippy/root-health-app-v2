@@ -360,6 +360,24 @@ if (!profileKey) {
                 </div>
               );
             })}
+            {reviewEntry && (
+  <section style={styles.formCard}>
+    <p style={styles.formLabel}>Review with Root Voice</p>
+
+    <h2 style={styles.entryTitle}>{reviewEntry.title}</h2>
+
+    <p style={styles.introText}>
+      Root is ready to update this Playbook entry. Next we will add voice input and a save preview here.
+    </p>
+
+    <button
+      style={styles.deleteButton}
+      onClick={() => setReviewEntry(null)}
+    >
+      Close review
+    </button>
+  </section>
+)}
           </section>
         ) : (
           <section style={styles.entryGrid}>
