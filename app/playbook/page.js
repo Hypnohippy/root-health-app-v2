@@ -30,6 +30,7 @@ export default function PlaybookPage() {
   const [reviewInstruction, setReviewInstruction] = useState("");
   const [reviewPreview, setReviewPreview] = useState("");
   const [reviewing, setReviewing] = useState(false);
+  const reviewRef = useRef(null);
   const [openEntryId, setOpenEntryId] = useState(null);
 
   const [title, setTitle] = useState("");
@@ -376,6 +377,12 @@ if (!profileKey) {
                   onClick={() => {
                setOpenEntryId(entry.id);
                setReviewEntry(entry);
+               setTimeout(() => {
+  reviewRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}, 150);
                }}
 >
                  Review with Root Voice
@@ -396,7 +403,10 @@ if (!profileKey) {
               );
             })}
            {reviewEntry && (
-  <section style={styles.formCard}>
+  <section
+  ref={reviewRef}
+  style={styles.formCard}
+>
     <p style={styles.formLabel}>Continue with Root</p>
 
     <h2 style={styles.entryTitle}>{reviewEntry.title}</h2>
@@ -544,6 +554,12 @@ if (!profileKey) {
                     onClick={() => {
                    setOpenEntryId(entry.id);
                    setReviewEntry(entry);
+                   setTimeout(() => {
+  reviewRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}, 150);
                       }}
 >
                        Review with Root Voice
