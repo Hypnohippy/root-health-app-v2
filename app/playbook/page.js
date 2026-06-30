@@ -90,6 +90,38 @@ if (!profileKey) {
     return nextEntries;
   }, [entries, selectedCategory, searchTerm]);
 
+  const startReviewVoiceInput = () => {
+  if (typeof window === "undefined") return;
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Voice input is not supported in this browser yet.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.lang = "en-GB";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  recognition.onresult = (event) => {
+    const transcript =
+      event.results?.[0]?.[0]?.transcript || "";
+
+    if (!transcript.trim()) return;
+
+    setReviewInstruction((current) => {
+      if (!current.trim()) return transcript.trim();
+
+      return `${current.trim()}\n\n${transcript.trim()}`;
+    });
+  };
+
+  recognition.start();
+};
   const saveEntry = async () => {
     const cleanTitle = title.trim();
     const cleanContent = content.trim();
@@ -368,6 +400,13 @@ if (!profileKey) {
     <p style={styles.formLabel}>Continue with Root</p>
 
     <h2 style={styles.entryTitle}>{reviewEntry.title}</h2>
+
+    <button
+  style={styles.saveButton}
+  onClick={startReviewVoiceInput}
+>
+  🎤 Speak your update
+</button>
 
     <textarea
       style={styles.textarea}
