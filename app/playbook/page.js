@@ -365,7 +365,7 @@ if (!profileKey) {
             })}
            {reviewEntry && (
   <section style={styles.formCard}>
-    <p style={styles.formLabel}>Review with Root Voice</p>
+    <p style={styles.formLabel}>Continue with Root</p>
 
     <h2 style={styles.entryTitle}>{reviewEntry.title}</h2>
 
@@ -373,7 +373,7 @@ if (!profileKey) {
       style={styles.textarea}
       value={reviewInstruction}
       onChange={(e) => setReviewInstruction(e.target.value)}
-      placeholder="Tell Root what to change. Example: replace sweet potato with pasta, add Tesco-style estimated costs, or add another day."
+      placeholder="Talk naturally. For example: 'Replace salmon with cod', 'Keep this under £25', 'Add recipes', 'Make it suitable for Type 1 diabetes', or 'Create a shopping list'."
     />
 
     <button
@@ -406,7 +406,7 @@ if (!profileKey) {
         setReviewing(false);
       }}
     >
-      {reviewing ? "Reviewing..." : "Review this entry"}
+      {reviewing ? "Root is thinking..." : "Continue with Root"}
     </button>
 
     {reviewPreview && (
