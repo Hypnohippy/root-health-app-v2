@@ -897,8 +897,35 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
 }
 }
     if (message.type === "response.done") {
-      setVoiceState("listening");
-    }
+
+  if (
+    pendingPlaybookSaveRef.current &&
+    latestAssistantTranscriptRef.current
+  ) {
+
+    const pending = pendingPlaybookSaveRef.current;
+
+    console.log("FINAL PLAYBOOK SAVE");
+
+    await fetch("/api/voice-actions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "save_playbook",
+        title: pending.title,
+        category: pending.category,
+        content: latestAssistantTranscriptRef.current,
+        profileKey: getCurrentProfileKey(),
+      }),
+    });
+
+    pendingPlaybookSaveRef.current = null;
+  }
+
+  setVoiceState("listening");
+}
 
     if (message.type === "error") {
       console.error("Realtime error:", message);
