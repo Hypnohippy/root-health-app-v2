@@ -63,15 +63,34 @@ export async function POST(req) {
       const category = body.category || "General";
       const title = body.title || "Voice Coach Playbook Entry";
 
-      const { error } = await supabase.from("playbook_entries").insert([
-        {
-          profile_key: body.profileKey || "main",
-          title,
-          category,
-          content,
-          source: "Voice Coach",
-        },
-      ]);
+      const profileKey = body.profileKey || "main";
+
+const { data: existingEntry } = await supabase
+  .from("playbook_entries")
+  .select("id")
+  .eq("profile_key", profileKey)
+  .eq("title", title)
+  .eq("category", category)
+  .maybeSingle();
+
+const { error } = existingEntry?.id
+  ? await supabase
+      .from("playbook_entries")
+      .update({
+        content,
+        source: "Voice Coach",
+      })
+      .eq("id", existingEntry.id)
+      .eq("profile_key", profileKey)
+  : await supabase.from("playbook_entries").insert([
+      {
+        profile_key: profileKey,
+        title,
+        category,
+        content,
+        source: "Voice Coach",
+      },
+    ]);
 
       if (error) {
         return Response.json(
