@@ -91,6 +91,32 @@ if (!profileKey) {
     return nextEntries;
   }, [entries, selectedCategory, searchTerm]);
 
+  const runPlaybookReview = async (instructionText) => {
+  if (!reviewEntry || !instructionText.trim()) return;
+
+  setReviewing(true);
+
+  const res = await fetch("/api/playbook-review", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: reviewEntry.title,
+      category: reviewEntry.category,
+      currentContent: reviewEntry.content,
+      instruction: instructionText,
+    }),
+  });
+
+  const json = await res.json();
+
+  if (json.ok) {
+    setReviewPreview(json.updatedContent);
+  } else {
+    alert(json.error || "Root could not review this entry.");
+  }
+
+  setReviewing(false);
+};
   const startReviewVoiceInput = () => {
   if (typeof window === "undefined") return;
 
@@ -114,11 +140,13 @@ if (!profileKey) {
 
     if (!transcript.trim()) return;
 
-    setReviewInstruction((current) => {
-      if (!current.trim()) return transcript.trim();
+    const finalInstruction = transcript.trim();
 
-      return `${current.trim()}\n\n${transcript.trim()}`;
-    });
+setReviewInstruction(finalInstruction);
+
+setTimeout(() => {
+  runPlaybookReview(finalInstruction);
+}, 250);
   };
 
   recognition.start();
@@ -428,33 +456,8 @@ if (!profileKey) {
     <button
       style={styles.saveButton}
       disabled={reviewing}
-      onClick={async () => {
-        if (!reviewInstruction.trim()) return;
-
-        setReviewing(true);
-
-        const res = await fetch("/api/playbook-review", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: reviewEntry.title,
-            category: reviewEntry.category,
-            currentContent: reviewEntry.content,
-            instruction: reviewInstruction,
-          }),
-        });
-
-        const json = await res.json();
-
-        if (json.ok) {
-          setReviewPreview(json.updatedContent);
-        } else {
-          alert(json.error || "Root could not review this entry.");
-        }
-
-        setReviewing(false);
-      }}
-    >
+      onClick={() => runPlaybookReview(reviewInstruction)}
+      >  
       {reviewing ? "Root is thinking..." : "Continue with Root"}
     </button>
 
