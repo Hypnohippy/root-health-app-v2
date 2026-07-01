@@ -135,19 +135,19 @@ if (!profileKey) {
   recognition.continuous = false;
 
   recognition.onresult = (event) => {
-    const transcript =
-      event.results?.[0]?.[0]?.transcript || "";
+  const transcript =
+    event.results?.[0]?.[0]?.transcript || "";
 
-    if (!transcript.trim()) return;
+  if (!transcript.trim()) return;
 
-    const finalInstruction = transcript.trim();
+  const finalInstruction = transcript.trim();
 
-setReviewInstruction(finalInstruction);
+  setReviewInstruction(finalInstruction);
 
-setTimeout(() => {
-  runPlaybookReview(finalInstruction);
-}, 250);
-  };
+  setTimeout(() => {
+    runPlaybookReview(finalInstruction);
+  }, 300);
+};
 
   recognition.start();
 };
