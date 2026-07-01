@@ -91,7 +91,7 @@ if (!profileKey) {
     return nextEntries;
   }, [entries, selectedCategory, searchTerm]);
 
-  const runPlaybookReview = async (instructionText) => {
+  const runPlaybookReview = async (instructionText, entryForReview = reviewEntry) => {
   if (!reviewEntry || !instructionText.trim()) return;
 
   setReviewing(true);
@@ -100,9 +100,9 @@ if (!profileKey) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      title: reviewEntry.title,
-      category: reviewEntry.category,
-      currentContent: reviewEntry.content,
+     title: entryForReview.title,
+    category: entryForReview.category,
+    currentContent: entryForReview.content,
       instruction: instructionText,
     }),
   });
@@ -117,7 +117,7 @@ if (!profileKey) {
 
   setReviewing(false);
 };
-  const startReviewVoiceInput = () => {
+  const startReviewVoiceInput = (entryForReview = reviewEntry) => {
   if (typeof window === "undefined") return;
 
   const SpeechRecognition =
@@ -145,7 +145,7 @@ if (!profileKey) {
   setReviewInstruction(finalInstruction);
 
   setTimeout(() => {
-    runPlaybookReview(finalInstruction);
+    runPlaybookReview(finalInstruction, entryForReview);
   }, 300);
 };
 
@@ -414,7 +414,7 @@ setTimeout(() => {
     block: "start",
   });
 
-  startReviewVoiceInput();
+  startReviewVoiceInput(entry);
 }, 250);
                setTimeout(() => {
   reviewRef.current?.scrollIntoView({
@@ -571,7 +571,7 @@ setTimeout(() => {
     block: "start",
   });
 
-  startReviewVoiceInput();
+  startReviewVoiceInput(entry);
 }, 250);
                    setTimeout(() => {
   reviewRef.current?.scrollIntoView({
