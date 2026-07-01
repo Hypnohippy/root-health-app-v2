@@ -42,11 +42,10 @@ export default function PlaybookPage() {
   }, []);
 
   const loadEntries = async () => {
-    const profileKey = getCurrentProfileKey();
+   const profileKey = getCurrentProfileKey(); 
 
 if (!profileKey) {
-  setEntries([]);
-  setLoading(false);
+  window.location.href = "/organisation/profile";
   return;
 }
     setLoading(true);
