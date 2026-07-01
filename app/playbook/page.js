@@ -405,6 +405,17 @@ setTimeout(() => {
                   onClick={() => {
                setOpenEntryId(entry.id);
                setReviewEntry(entry);
+               setReviewInstruction("");
+                setReviewPreview("");
+
+setTimeout(() => {
+  reviewRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+
+  startReviewVoiceInput();
+}, 250);
                setTimeout(() => {
   reviewRef.current?.scrollIntoView({
     behavior: "smooth",
@@ -439,12 +450,6 @@ setTimeout(() => {
 
     <h2 style={styles.entryTitle}>{reviewEntry.title}</h2>
 
-    <button
-  style={styles.saveButton}
-  onClick={startReviewVoiceInput}
->
-  🎤 Speak your update
-</button>
 
     <textarea
       style={styles.textarea}
@@ -557,6 +562,17 @@ setTimeout(() => {
                     onClick={() => {
                    setOpenEntryId(entry.id);
                    setReviewEntry(entry);
+                   setReviewInstruction("");
+setReviewPreview("");
+
+setTimeout(() => {
+  reviewRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+
+  startReviewVoiceInput();
+}, 250);
                    setTimeout(() => {
   reviewRef.current?.scrollIntoView({
     behavior: "smooth",
