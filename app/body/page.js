@@ -675,8 +675,7 @@ message += `\n\nA practical next step could be:`;
     const profileKey = getCurrentProfileKey();
 
 if (!profileKey) {
-  setResponse("Root could not identify your profile.");
-  setSaving(false);
+  window.location.href = "/reconnect";
   return;
 }
   
