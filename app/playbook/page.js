@@ -45,7 +45,7 @@ export default function PlaybookPage() {
    const profileKey = getCurrentProfileKey(); 
 
 if (!profileKey) {
-  window.location.href = "/organisation/profile";
+  window.location.href = "/reconnect";
   return;
 }
     setLoading(true);
