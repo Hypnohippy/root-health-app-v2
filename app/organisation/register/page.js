@@ -64,8 +64,19 @@ export default function OrganisationRegisterPage() {
       return;
     }
 
-    setCreatedOrg(data);
-    setLoading(false);
+    localStorage.setItem(
+  "root_hr_org_v1",
+  JSON.stringify({
+    organisation_id: data.id,
+    organisation_name: data.name,
+    organisation_code: data.organisation_code,
+    role: "owner",
+  })
+);
+
+setCreatedOrg(data);
+setLoading(false);
+
   }
 
   if (createdOrg) {

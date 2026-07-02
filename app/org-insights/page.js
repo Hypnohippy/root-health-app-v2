@@ -475,25 +475,36 @@ export default function OrgInsightsPage() {
   const loadDashboard = async () => {
     setLoading(true);
 
-    const { data: orgs } = await supabase
-      .from("organisations")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const storedOrg = JSON.parse(
+  localStorage.getItem("root_hr_org_v1") ||
+    localStorage.getItem("root_organisation_v1") ||
+    "{}"
+);
 
-    const org = Array.isArray(orgs) ? orgs[0] : null;
-    setOrganisation(org || null);
+const orgId = storedOrg.organisation_id || null;
 
-    const orgId = org?.id || null;
+if (!orgId) {
+  window.location.href = "/organisation/join";
+  return;
+}
+
+const { data: org } = await supabase
+  .from("organisations")
+  .select("*")
+  .eq("id", orgId)
+  .maybeSingle();
+
+setOrganisation(org || null);
 
     const orgFilter = orgId
   ? `organisation_id.eq.${orgId}`
   : "organisation_id.eq.__never_match__";
     
     const { data: memberData } = await supabase
-      .from("organisation_members")
-      .select("*")
-      .order("created_at", { ascending: false });
+  .from("organisation_members")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: false });
 
     const { data: assessmentData, error: assessmentError } = await supabase
   .from("wellbeing_assessments")

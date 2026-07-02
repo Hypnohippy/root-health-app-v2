@@ -42,6 +42,15 @@ export default function OrganisationJoinPage() {
         joined_at: Date.now(),
       })
     );
+    localStorage.setItem(
+  "root_hr_org_v1",
+  JSON.stringify({
+    organisation_id: data.id,
+    organisation_name: data.name,
+    organisation_code: data.organisation_code,
+    role: "member",
+  })
+);
 
     setOrganisation(data);
     setLoading(false);
