@@ -13,6 +13,7 @@ function makeProfileKey() {
 
 export default function OrganisationProfilePage() {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [age, setAge] = useState("");
   const [department, setDepartment] = useState("");
   const [saving, setSaving] = useState(false);
@@ -22,11 +23,11 @@ async function saveProfile() {
   setSaving(true);
   setError("");
 
-  if (!name.trim()) {
-    setError("Please enter your name.");
-    setSaving(false);
-    return;
-  }
+  if (!name.trim() || !email.trim()) {
+  setError("Please enter your name and work email.");
+  setSaving(false);
+  return;
+}
 
   const organisation = JSON.parse(
     localStorage.getItem("root_organisation_v1") || "{}"
@@ -42,16 +43,17 @@ async function saveProfile() {
     localStorage.getItem("root_profile_key_v1") || makeProfileKey();
 
   const { error } = await supabase.from("profiles").upsert(
-    {
-      profile_key: profileKey,
-      name: name.trim(),
-      age: age.trim(),
-      department: department.trim(),
-      organisation_id: organisation.organisation_id,
-      organisation_name: organisation.organisation_name,
-    },
-    { onConflict: "profile_key" }
-  );
+  {
+    profile_key: profileKey,
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    age: age.trim(),
+    department: department.trim(),
+    organisation_id: organisation.organisation_id,
+    organisation_name: organisation.organisation_name,
+  },
+  { onConflict: "profile_key" }
+);
 
   if (error) {
     setError(error.message || "Could not save profile.");
@@ -66,6 +68,7 @@ async function saveProfile() {
         organisation_id: organisation.organisation_id,
         profile_key: profileKey,
         name: name.trim(),
+        email: email.trim().toLowerCase(),
         department: department.trim(),
         role: "employee",
         activated_at: new Date().toISOString(),
@@ -110,6 +113,13 @@ async function saveProfile() {
           Your organisation only sees anonymous wellbeing trends.
         </p>
 
+<label style={styles.label}>Work email *</label>
+<input
+  style={styles.input}
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  placeholder="e.g. david@company.co.uk"
+/>
         <label style={styles.label}>Your name *</label>
         <input
           style={styles.input}
