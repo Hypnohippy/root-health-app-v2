@@ -45,9 +45,9 @@ async function saveProfile() {
   const { error } = await supabase.from("profiles").upsert(
   {
     profile_key: profileKey,
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-    age: age.trim(),
+name: name.trim(),
+email: email.trim().toLowerCase(),
+age: age.trim(),
     department: department.trim(),
     organisation_id: organisation.organisation_id,
     organisation_name: organisation.organisation_name,
@@ -67,10 +67,10 @@ async function saveProfile() {
       {
         organisation_id: organisation.organisation_id,
         profile_key: profileKey,
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        department: department.trim(),
-        role: "employee",
+email: email.trim().toLowerCase(),
+name: name.trim(),
+department: department.trim(),
+role: "employee",
         activated_at: new Date().toISOString(),
       },
       { onConflict: "organisation_id,profile_key" }
@@ -87,9 +87,10 @@ async function saveProfile() {
   localStorage.setItem(
     "root_profile_v1",
     JSON.stringify({
-      profile_key: profileKey,
-      name: name.trim(),
-      age: age.trim(),
+     profile_key: profileKey,
+name: name.trim(),
+email: email.trim().toLowerCase(),
+age: age.trim(),
       department: department.trim(),
       organisation_id: organisation.organisation_id,
       organisation_name: organisation.organisation_name,
