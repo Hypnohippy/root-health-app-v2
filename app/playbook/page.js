@@ -91,7 +91,7 @@ if (!profileKey) {
   }, [entries, selectedCategory, searchTerm]);
 
   const runPlaybookReview = async (instructionText, entryForReview = reviewEntry) => {
-  if (!reviewEntry || !instructionText.trim()) return;
+  if (!entryForReview || !instructionText.trim()) return;
 
   setReviewing(true);
 
