@@ -6,6 +6,7 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { requireRootProfile } from "../../lib/root-session";
+import { getCurrentProfileKey } from "../../lib/currentUser";
 
 const categories = [
   "Nutrition",
@@ -203,7 +204,7 @@ if (!profileKey) {
       .from("playbook_entries")
       .delete()
       .eq("id", entry.id)
-      .eq("profile_key", session.profileKey)
+      .eq("profile_key", getCurrentProfileKey());
 
     if (!error) {
       setEntries((current) => current.filter((item) => item.id !== entry.id));
