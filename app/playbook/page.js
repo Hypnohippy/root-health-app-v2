@@ -5,7 +5,6 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-import { getCurrentProfileKey } from "../../lib/currentUser";
 import { requireRootProfile } from "../../lib/root-session";
 
 const categories = [
@@ -43,9 +42,11 @@ export default function PlaybookPage() {
   }, []);
 
   const loadEntries = async () => {
-  const profileKey = getCurrentProfileKey();
+ const session = requireRootProfile();
 
-if (!profileKey) return;
+if (!session) return;
+
+const profileKey = session.profileKey;
 
 if (!profileKey) {
   window.location.href = "/reconnect";
@@ -164,7 +165,7 @@ if (!profileKey) {
 
     const { error } = await supabase.from("playbook_entries").insert([
       {
-       profile_key: getCurrentProfileKey(),
+       profile_key: session.profileKey,
       
         title: cleanTitle,
         category,
@@ -202,7 +203,7 @@ if (!profileKey) {
       .from("playbook_entries")
       .delete()
       .eq("id", entry.id)
-      .eq("profile_key", getCurrentProfileKey());
+      .eq("profile_key", session.profileKey)
 
     if (!error) {
       setEntries((current) => current.filter((item) => item.id !== entry.id));
