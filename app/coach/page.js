@@ -908,8 +908,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
 }
     if (message.type === "response.done") {
 
-  if (
-  false &&
+ if (
   pendingPlaybookSaveRef.current &&
   latestAssistantTranscriptRef.current
 ) {
