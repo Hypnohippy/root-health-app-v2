@@ -831,6 +831,11 @@ dc.onmessage = async (event) => {
   message.type === "response.output_audio_transcript.done"
 ) {
   const assistantTranscript = message.transcript || "";
+  console.log(
+  "TRANSCRIPT EVENT:",
+  message.type,
+  assistantTranscript.substring(0, 120)
+);
 
   setVoiceTranscript(assistantTranscript);
   latestAssistantTranscriptRef.current = assistantTranscript;
