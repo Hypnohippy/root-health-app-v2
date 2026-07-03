@@ -909,9 +909,10 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     if (message.type === "response.done") {
 
   if (
-    pendingPlaybookSaveRef.current &&
-    latestAssistantTranscriptRef.current
-  ) {
+  false &&
+  pendingPlaybookSaveRef.current &&
+  latestAssistantTranscriptRef.current
+) {
 
     const pending = pendingPlaybookSaveRef.current;
 
