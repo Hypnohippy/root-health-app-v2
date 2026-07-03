@@ -144,7 +144,6 @@ if (!profileKey) {
   setReviewInstruction(finalInstruction);
 
   setTimeout(() => {
-console.log("AUTO REVIEW RUNNING:", finalInstruction, entryForReview);
 
     runPlaybookReview(finalInstruction, entryForReview);
   }, 300);
