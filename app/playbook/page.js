@@ -6,6 +6,7 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { getCurrentProfileKey } from "../../lib/currentUser";
+import { requireRootProfile } from "../../lib/root-session";
 
 const categories = [
   "Nutrition",
@@ -42,7 +43,9 @@ export default function PlaybookPage() {
   }, []);
 
   const loadEntries = async () => {
-   const profileKey = getCurrentProfileKey(); 
+  const profileKey = getCurrentProfileKey();
+
+if (!profileKey) return;
 
 if (!profileKey) {
   window.location.href = "/reconnect";
