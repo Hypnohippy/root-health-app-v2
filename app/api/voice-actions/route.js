@@ -69,9 +69,7 @@ const { data: existingEntry } = await supabase
   .from("playbook_entries")
   .select("id")
   .eq("profile_key", profileKey)
-  .eq("category", category)
-  .order("created_at", { ascending: false })
-  .limit(1)
+  .eq("title", title)
   .maybeSingle();
   
 const { error } = existingEntry?.id
