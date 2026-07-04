@@ -896,12 +896,15 @@ const hasCompletePlan =
       title: pending.title,
       category: pending.category,
       content: assistantTranscript,
-    });
-    content: assistantTranscript
-  .replace(/^.*?(Title:)/s, "$1")
-  .replace(/we'?ll save this to your playbook now\.?/gi, "")
-  .replace(/i'?ve saved this to your playbook\.?/gi, "")
+      content: assistantTranscript
+  .replace(/^.*?Title:/s, "Title:")
+  .replace(/^\s*(of course|sure|absolutely|thank you).*?\n+/i, "")
+  .replace(/here'?s.*?plan.*?\n+/i, "")
+  .replace(/we'?ll save.*$/is, "")
+  .replace(/i'?ve saved.*$/is, "")
   .trim(),
+    });
+   content: assistantTranscript
     await fetch("/api/voice-actions", {
       method: "POST",
       headers: {
