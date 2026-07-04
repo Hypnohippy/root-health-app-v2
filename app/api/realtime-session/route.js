@@ -241,9 +241,9 @@ Sound like a calm, emotionally regulated human being.
   },
  turn_detection: {
   type: "server_vad",
-  threshold: 0.72,
-  prefix_padding_ms: 700,
-  silence_duration_ms: 2200,
+  threshold: 0.82,
+  prefix_padding_ms: 900,
+  silence_duration_ms: 3200,
   create_response: true,
   interrupt_response: false,
 },
