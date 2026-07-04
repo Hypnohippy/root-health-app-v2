@@ -929,7 +929,6 @@ if (message.type === "error") {
   console.error("Realtime error:", message);
   setVoiceState("ready");
 }
-};
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
