@@ -921,7 +921,7 @@ const hasCompletePlan =
 }
 }
 }
-   if (message.type === "response.done") {
+  if (message.type === "response.done") {
   setVoiceState("listening");
 }
 
@@ -929,6 +929,10 @@ if (message.type === "error") {
   console.error("Realtime error:", message);
   setVoiceState("ready");
 }
+} catch (error) {
+  console.error("Realtime message parse error:", error);
+}
+};
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
