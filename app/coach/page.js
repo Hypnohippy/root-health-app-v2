@@ -897,7 +897,11 @@ const hasCompletePlan =
       category: pending.category,
       content: assistantTranscript,
     });
-    console.log("PLAYBOOK SAVE STARTING");
+    content: assistantTranscript
+  .replace(/^.*?(Title:)/s, "$1")
+  .replace(/we'?ll save this to your playbook now\.?/gi, "")
+  .replace(/i'?ve saved this to your playbook\.?/gi, "")
+  .trim(),
     await fetch("/api/voice-actions", {
       method: "POST",
       headers: {
