@@ -626,7 +626,7 @@ if (journey && journey.currentStage === "coach") {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-  action: "save_playbook",
+  action: "save_journal",
   title: pending.title,
   category: pending.category,
   content: assistantTranscript,
@@ -908,6 +908,7 @@ const hasCompletePlan =
         title: pending.title,
         category: pending.category,
         content: assistantTranscript,
+        profileKey: getCurrentProfileKey(),
       }),
     });
     console.log("PLAYBOOK SAVE FINISHED");
