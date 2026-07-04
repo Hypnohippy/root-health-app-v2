@@ -843,6 +843,21 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
   console.log("PLAYBOOK SAVE BLOCK ENTERED");
   const pending = pendingPlaybookSaveRef.current;
   const lowerAssistant = assistantTranscript.toLowerCase();
+  const isAskingForMoreInfo =
+  assistantTranscript.trim().endsWith("?") ||
+  lowerAssistant.includes("could you tell me") ||
+  lowerAssistant.includes("tell me a bit more") ||
+  lowerAssistant.includes("so we can tailor") ||
+  lowerAssistant.includes("before i create") ||
+  lowerAssistant.includes("before creating");
+
+const hasCompletePlan =
+  lowerAssistant.includes("title:") &&
+  (
+    lowerAssistant.includes("1.") ||
+    lowerAssistant.includes("day 1") ||
+    lowerAssistant.includes("step 1")
+  );
 
   const isJustConfirmation =
     lowerAssistant.includes("done. i’ve recorded that") ||
@@ -873,8 +888,8 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     lowerAssistant.includes("support");
   if (
   !isJustConfirmation &&
-  !isOnlyAskingQuestion &&
-  looksLikeUsefulPlan &&
+  !isAskingForMoreInfo &&
+  hasCompletePlan &&
   assistantTranscript.trim()
 ) {
     console.log("SAVING ASSISTANT ANSWER TO PLAYBOOK:", {
