@@ -420,6 +420,22 @@ export default function Home() {
 
     return "Your overall symptom load is steady. Root will keep watching what changes over time.";
   }, [baselineAssessment, latestAssessment, baselineLoad, latestLoad]);
+  const todaySummary =
+  rootRecognition ||
+  dailyReflection ||
+  livingMessage ||
+  "Root is beginning to learn what helps you. A small check-in today will make your pattern clearer.";
+
+const todayNextStep = rootGuidance?.action || primaryAction;
+
+const todayProgress =
+  latestLoad !== null && baselineLoad !== null
+    ? latestLoad < baselineLoad
+      ? "Your overall wellbeing load is moving in the right direction."
+      : latestLoad > baselineLoad
+      ? "This looks like a heavier period. Today may need gentler support."
+      : "Your wellbeing load is steady. Root will keep watching the pattern."
+    : "Complete a check-in to start building your progress picture.";
 
   return (
     <main style={styles.page}>
@@ -483,225 +499,52 @@ export default function Home() {
             </a>
           </div>
 
-          <section style={styles.insightStack}>
-            {latestAssessment && (
-              <MiniInsightCard
-                id="progress"
-                label="Progress Picture"
-                title={
-                  latestLoad !== null && baselineLoad !== null
-                    ? `Symptom load ${baselineLoad} → ${latestLoad}`
-                    : "Root is tracking your wellbeing scores."
-                }
-                summary={progressSummary}
-                openCard={openCard}
-                setOpenCard={setOpenCard}
-              >
-                <div style={styles.progressGrid}>
-                  {progressMetrics.map(([key, label]) => (
-                    <div key={key} style={styles.progressMetric}>
-                      <span>{label}</span>
-                      <strong>
-                        {scoreValue(baselineAssessment?.[key])} →{" "}
-                        {scoreValue(latestAssessment?.[key])}
-                      </strong>
-                    </div>
-                  ))}
-                </div>
+         <section style={styles.dailyHomeStack}>
+  <section style={styles.dailyCardDark}>
+    <p style={styles.dailyLabel}>Today Root noticed</p>
+    <h2 style={styles.dailyTitle}>Here’s what may matter today.</h2>
+    <p style={styles.dailyTextLight}>{todaySummary}</p>
+  </section>
 
-                <div style={styles.actionRow}>
-                  <a href="/assessment" style={styles.smallButtonDark}>
-                    Add new check-in →
-                  </a>
+  <section style={styles.dailyCard}>
+    <p style={styles.dailyLabel}>Today’s next step</p>
+    <h2 style={styles.dailyTitleDark}>
+      {rootGuidance?.action?.label || todayNextStep.title}
+    </h2>
+    <p style={styles.dailyText}>
+      {rootGuidance?.recommendation ||
+        "A small check-in may help Root understand what support would be most useful today."}
+    </p>
 
-                  <a href="/insights" style={styles.smallButtonLight}>
-                    View insights →
-                  </a>
-                </div>
-              </MiniInsightCard>
-            )}
+    <a href={todayNextStep.href} style={styles.dailyButton}>
+      Begin →
+    </a>
+  </section>
 
-            {rootRecognition && (
-              <MiniInsightCard
-                id="recognition"
-                label="What Root noticed"
-                title="A recent pattern is becoming visible."
-                summary={rootRecognition}
-                openCard={openCard}
-                setOpenCard={setOpenCard}
-                dark
-              >
-               <p style={styles.expandedTextLight}>
-  Root will keep watching this gently as more check-ins, reflections, and body signals are added.
-</p>
-              </MiniInsightCard>
-            )}
+  <section style={styles.dailyCard}>
+    <p style={styles.dailyLabel}>Progress snapshot</p>
+    <h2 style={styles.dailyTitleDark}>{todayProgress}</h2>
+    <p style={styles.dailyText}>{progressSummary}</p>
 
-            {dailyReflection && (
-              <MiniInsightCard
-                id="daily"
-                label="Today’s Root Reflection"
-                title="A quiet note from your recent signals."
-                summary={dailyReflection}
-                openCard={openCard}
-                setOpenCard={setOpenCard}
-              >
-               <p style={styles.expandedText}>
-  This reflection is drawn from your recent Root activity. Use it as a gentle prompt rather than a fixed conclusion.
-</p>
-              </MiniInsightCard>
-            )}
+    <a href="/insights" style={styles.dailyButtonLight}>
+      View full insights →
+    </a>
+  </section>
 
-            {livingMessage && (
-              <MiniInsightCard
-                id="living"
-                label="Today’s Reflection"
-                title="What may matter today."
-                summary={livingMessage}
-                openCard={openCard}
-                setOpenCard={setOpenCard}
-              >
-                <p style={styles.expandedText}>
-  A small next step may be enough today. Root will keep connecting this with your wider pattern over time.
-</p>
-              </MiniInsightCard>
-            )}
+  <section style={styles.dailyCardSoft}>
+    <p style={styles.dailyLabel}>Continue your journey</p>
+    <h2 style={styles.dailyTitleDark}>
+      Root works best when you use it little and often.
+    </h2>
+    <p style={styles.dailyText}>
+      Try one small action today: speak to Root Coach, add a check-in, or review one Playbook plan.
+    </p>
 
-            {rootMemoryNarrative && (
-              <MiniInsightCard
-                id="memory"
-                label="Root’s memory of you"
-                title="Root is building continuity."
-                summary={rootMemoryNarrative}
-                openCard={openCard}
-                setOpenCard={setOpenCard}
-              >
-
-                {rootHypothesis && (
-                  <div style={styles.hypothesisPanel}>
-                    <p style={styles.hypothesisLabel}>
-                      Root’s current hypothesis
-                    </p>
-                    <p style={styles.hypothesisText}>{rootHypothesis}</p>
-
-                    {rootConfidence && (
-                      <p style={styles.confidenceText}>{rootConfidence}</p>
-                    )}
-                  </div>
-                )}
-              </MiniInsightCard>
-            )}
-
-            {rootGuidance && (
-              <MiniInsightCard
-                id="guidance"
-                label={userName ? `${userName}, here’s what may help today` : "Here’s what may help today"}
-                title={rootGuidance.title}
-                summary={rootGuidance.why}
-                openCard={openCard}
-                setOpenCard={setOpenCard}
-                dark
-              >
-
-                <div style={styles.guidancePanel}>
-                  <p style={styles.guidancePanelTitle}>
-                    Why Root is suggesting this
-                  </p>
-
-                  <p style={styles.expandedTextLight}>
-                    {rootGuidance.recommendation}
-                  </p>
-
-                  <p style={styles.guidanceScience}>{rootGuidance.science}</p>
-
-                  {interventionInsight && (
-                    <p style={styles.guidanceEvidence}>
-                      {interventionInsight}
-                    </p>
-                  )}
-                </div>
-
-                <a href={rootGuidance.action.href} style={styles.whiteButton}>
-                  {rootGuidance.action.label}
-                </a>
-              </MiniInsightCard>
-            )}
-
-            {rootReflection && (
-              <MiniInsightCard
-                id="reflection"
-                label="Root Reflection"
-                title={rootReflection.title}
-                summary={rootReflection.reflection}
-                openCard={openCard}
-                setOpenCard={setOpenCard}
-              >
-                <p style={styles.expandedText}>
-  Root is using your body signals, mind entries, and journal reflections together to build a clearer picture.
-</p>
-
-                {rootReflection?.suggestedAction?.href && (
-                  <a
-                    href={rootReflection.suggestedAction.href}
-                    style={styles.smallButtonDark}
-                  >
-                    {rootReflection.suggestedAction.title} →
-                  </a>
-                )}
-              </MiniInsightCard>
-            )}
-
-            <MiniInsightCard
-              id="deep"
-              label="Deeper Root Insights"
-              title="Open the wider pattern map."
-              summary="Body signals, emotional themes, support tools, rhythm, and recent activity live together inside Insights."
-              openCard={openCard}
-              setOpenCard={setOpenCard}
-            >
-              {longitudinalMemory && (
-                <div style={styles.deepPanel}>
-                  <p style={styles.deepLabel}>Root has noticed</p>
-                  <h2 style={styles.deepTitle}>{longitudinalMemory.headline}</h2>
-                  <p style={styles.expandedText}>{longitudinalMemory.reflection}</p>
-                </div>
-              )}
-
-              {proactiveCare && (
-                <div style={styles.deepPanel}>
-                  <p style={styles.deepLabel}>Root suggests</p>
-                  <h2 style={styles.deepTitle}>{proactiveCare.title}</h2>
-                  <p style={styles.expandedText}>{proactiveCare.message}</p>
-                </div>
-              )}
-
-              {dailyRhythm && (
-                <div style={styles.deepPanel}>
-                  <p style={styles.deepLabel}>Daily rhythm awareness</p>
-                  <h2 style={styles.deepTitle}>{dailyRhythm.headline}</h2>
-                  <p style={styles.expandedText}>{dailyRhythm.reflection}</p>
-                </div>
-              )}
-
-              {priorityFeed.length > 0 && (
-                <div style={styles.deepPanel}>
-                  <p style={styles.deepLabel}>Today in Root</p>
-
-                  {priorityFeed.slice(0, 3).map((card, index) => (
-                    <div key={`${card.type}-${index}`} style={styles.feedItem}>
-                      <strong>{card.title}</strong>
-                      <p>{card.text}</p>
-                      <a href={card.href}>{card.action} →</a>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <a href="/insights" style={styles.smallButtonDark}>
-                Open Insights →
-              </a>
-            </MiniInsightCard>
-          </section>
+    <div style={styles.dailyButtonRow}>
+      <a href="/coach" style={styles.dailyButton}>Open Coach →</a>
+      <a href="/playbook" style={styles.dailyButtonLight}>Open Playbook →</a>
+    </div>
+  </section>
         </section>
       </div>
 
@@ -1125,6 +968,107 @@ const styles = {
     color: "rgba(255,255,255,0.78)",
     fontSize: "15px",
   },
+
+  dailyHomeStack: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  maxWidth: "680px",
+},
+
+dailyCard: {
+  borderRadius: "28px",
+  padding: "24px",
+  background: "rgba(255,255,255,0.34)",
+  border: "1px solid rgba(255,255,255,0.42)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+dailyCardDark: {
+  borderRadius: "28px",
+  padding: "26px",
+  background: "linear-gradient(135deg, rgba(44,62,43,0.94), rgba(68,88,66,0.88))",
+  border: "1px solid rgba(255,255,255,0.18)",
+  color: "#FFFFFF",
+  boxShadow: "0 24px 70px rgba(0,0,0,0.16)",
+},
+
+dailyCardSoft: {
+  borderRadius: "28px",
+  padding: "24px",
+  background: "rgba(247,241,232,0.78)",
+  border: "1px solid rgba(255,255,255,0.5)",
+  boxShadow: "0 18px 48px rgba(20,18,15,0.08)",
+},
+
+dailyLabel: {
+  margin: "0 0 10px",
+  fontSize: "11px",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#6D6254",
+  fontWeight: "900",
+},
+
+dailyTitle: {
+  margin: "0 0 12px",
+  fontFamily: "Georgia, serif",
+  fontSize: "28px",
+  lineHeight: "1.18",
+  fontWeight: "500",
+},
+
+dailyTitleDark: {
+  margin: "0 0 12px",
+  fontFamily: "Georgia, serif",
+  fontSize: "26px",
+  lineHeight: "1.2",
+  fontWeight: "500",
+  color: "#1F281D",
+},
+
+dailyText: {
+  margin: "0 0 18px",
+  color: "#4B443A",
+  fontSize: "16px",
+  lineHeight: "1.75",
+},
+
+dailyTextLight: {
+  margin: 0,
+  color: "rgba(255,255,255,0.86)",
+  fontSize: "16px",
+  lineHeight: "1.75",
+},
+
+dailyButton: {
+  display: "inline-flex",
+  textDecoration: "none",
+  background: "#243224",
+  color: "#FFFFFF",
+  borderRadius: "999px",
+  padding: "13px 18px",
+  fontSize: "14px",
+  fontWeight: "800",
+},
+
+dailyButtonLight: {
+  display: "inline-flex",
+  textDecoration: "none",
+  background: "rgba(255,255,255,0.64)",
+  color: "#243224",
+  borderRadius: "999px",
+  padding: "13px 18px",
+  fontSize: "14px",
+  fontWeight: "800",
+},
+
+dailyButtonRow: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "10px",
+},
 
   deepPanel: {
     padding: "18px",
