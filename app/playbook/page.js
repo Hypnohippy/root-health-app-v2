@@ -171,7 +171,7 @@ const profileKey = session.profileKey;
 
     const { error } = await supabase.from("playbook_entries").insert([
       {
-       profile_key: profile_key: profileKey,
+       profile_key: profileKey,
       
         title: cleanTitle,
         category,
