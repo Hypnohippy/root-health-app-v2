@@ -912,6 +912,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     );
   }
 }
+}
   if (message.type === "response.done") {
   setVoiceState("listening");
 }
