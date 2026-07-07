@@ -874,10 +874,12 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     hasCompletePlan &&
     assistantTranscript.trim()
   ) {
-    const cleanPlaybookContent = assistantTranscript
+   const cleanPlaybookContent = assistantTranscript
   .replace(/^[\s\S]*?Title:/i, "Title:")
-  .replace(/that'?s the plan[\s\S]*$/i, "")
-  .replace(/i'?ve saved[\s\S]*$/i, "")
+  .replace(/\n*\s*that[’']?s[\s\S]*$/i, "")
+  .replace(/\n*\s*it[’']?s now recorded[\s\S]*$/i, "")
+  .replace(/\n*\s*i[’']?ve saved[\s\S]*$/i, "")
+  .replace(/\n*\s*we[’']?ll save[\s\S]*$/i, "")
   .trim();
 
     console.log("PLAYBOOK SAVE STARTING");
