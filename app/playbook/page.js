@@ -157,6 +157,11 @@ if (!profileKey) {
   recognition.start();
 };
   const saveEntry = async () => {
+    const session = requireRootProfile();
+
+if (!session) return;
+
+const profileKey = session.profileKey;
     const cleanTitle = title.trim();
     const cleanContent = content.trim();
 
@@ -166,7 +171,7 @@ if (!profileKey) {
 
     const { error } = await supabase.from("playbook_entries").insert([
       {
-       profile_key: session.profileKey,
+       profile_key: profile_key: profileKey,
       
         title: cleanTitle,
         category,
