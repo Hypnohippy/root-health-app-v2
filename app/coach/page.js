@@ -841,70 +841,45 @@ dc.onmessage = async (event) => {
   latestAssistantTranscriptRef.current = assistantTranscript;
 if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
   console.log("PLAYBOOK SAVE BLOCK ENTERED");
+
   const pending = pendingPlaybookSaveRef.current;
   const lowerAssistant = assistantTranscript.toLowerCase();
-  const isAskingForMoreInfo =
-  assistantTranscript.trim().endsWith("?") ||
-  lowerAssistant.includes("could you tell me") ||
-  lowerAssistant.includes("tell me a bit more") ||
-  lowerAssistant.includes("so we can tailor") ||
-  lowerAssistant.includes("before i create") ||
-  lowerAssistant.includes("before creating");
 
-const hasCompletePlan =
-  lowerAssistant.includes("title:") &&
-  (
-    lowerAssistant.includes("1.") ||
-    lowerAssistant.includes("day 1") ||
-    lowerAssistant.includes("step 1")
-  );
+  const isAskingForMoreInfo =
+    assistantTranscript.trim().endsWith("?") ||
+    lowerAssistant.includes("could you tell me") ||
+    lowerAssistant.includes("tell me a bit more") ||
+    lowerAssistant.includes("so we can tailor") ||
+    lowerAssistant.includes("before i create") ||
+    lowerAssistant.includes("before creating");
+
+  const hasCompletePlan =
+    lowerAssistant.includes("title:") &&
+    (
+      lowerAssistant.includes("1.") ||
+      lowerAssistant.includes("day 1") ||
+      lowerAssistant.includes("step 1")
+    );
 
   const isJustConfirmation =
+    lowerAssistant.includes("saved to your playbook") ||
+    lowerAssistant.includes("i’ve saved") ||
+    lowerAssistant.includes("i've saved") ||
     lowerAssistant.includes("done. i’ve recorded that") ||
-    lowerAssistant.includes("done. i've recorded that") ||
-    lowerAssistant.includes("i’ve recorded that") ||
-    lowerAssistant.includes("i've recorded that");
+    lowerAssistant.includes("done. i've recorded that");
 
-  const isOnlyAskingQuestion =
-    lowerAssistant.includes("?") &&
-    assistantTranscript.length < 280;
-
-  const looksLikeUsefulPlan =
-    lowerAssistant.includes("day 1") ||
-    lowerAssistant.includes("day one") ||
-    lowerAssistant.includes("breakfast") ||
-    lowerAssistant.includes("lunch") ||
-    lowerAssistant.includes("dinner") ||
-    lowerAssistant.includes("routine") ||
-    lowerAssistant.includes("strategy") ||
-    lowerAssistant.includes("steps") ||
-    lowerAssistant.includes("plan") ||
-    lowerAssistant.includes("recovery") ||
-    lowerAssistant.includes("burnout") ||
-    lowerAssistant.includes("rest") ||
-    lowerAssistant.includes("energy") ||
-    lowerAssistant.includes("pacing") ||
-    lowerAssistant.includes("reduce") ||
-    lowerAssistant.includes("support");
   if (
-  !isJustConfirmation &&
-  !isAskingForMoreInfo &&
-  hasCompletePlan &&
-  assistantTranscript.trim()
-) {
-    console.log("SAVING ASSISTANT ANSWER TO PLAYBOOK:", {
-      title: pending.title,
-      category: pending.category,
-      content: assistantTranscript,
-      content: assistantTranscript
-  .replace(/^.*?Title:/s, "Title:")
-  .replace(/^\s*(of course|sure|absolutely|thank you).*?\n+/i, "")
-  .replace(/here'?s.*?plan.*?\n+/i, "")
-  .replace(/we'?ll save.*$/is, "")
-  .replace(/i'?ve saved.*$/is, "")
-  .trim(),
-    });
-   content: assistantTranscript
+    !isJustConfirmation &&
+    !isAskingForMoreInfo &&
+    hasCompletePlan &&
+    assistantTranscript.trim()
+  ) {
+    const cleanPlaybookContent = assistantTranscript.includes("Title:")
+      ? `Title:${assistantTranscript.split("Title:").pop()}`.trim()
+      : assistantTranscript.trim();
+
+    console.log("PLAYBOOK SAVE STARTING");
+
     await fetch("/api/voice-actions", {
       method: "POST",
       headers: {
@@ -914,20 +889,28 @@ const hasCompletePlan =
         action: "save_playbook",
         title: pending.title,
         category: pending.category,
-        content: assistantTranscript,
+        content: cleanPlaybookContent,
         profileKey: getCurrentProfileKey(),
       }),
     });
+
     console.log("PLAYBOOK SAVE FINISHED");
 
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "coach",
+        content: "Saved to your Playbook.",
+      },
+    ]);
+
     pendingPlaybookSaveRef.current = null;
- } else {
-  console.log(
-    "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
-    assistantTranscript
-  );
-}
-}
+  } else {
+    console.log(
+      "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
+      assistantTranscript
+    );
+  }
 }
   if (message.type === "response.done") {
   setVoiceState("listening");
