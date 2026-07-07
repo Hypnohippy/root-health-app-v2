@@ -258,6 +258,10 @@ const profileKey = session.profileKey;
 
           <h1 style={styles.title}>My Recovery Playbook</h1>
 
+<p style={styles.welcomeLine}>
+  Root remembered these because they mattered to you.
+</p>
+
           <p style={styles.subtitle}>
             A personal place for the plans, strategies, foods, routines and
             recovery ideas Root helps you collect over time.
@@ -683,6 +687,15 @@ const styles = {
     lineHeight: "1.8",
     color: "#4B443A",
   },
+  welcomeLine: {
+  margin: "10px auto 0",
+  maxWidth: "680px",
+  color: "#4B443A",
+  fontSize: "16px",
+  lineHeight: "1.7",
+  textAlign: "center",
+  opacity: 0.86,
+},
 
   introCard: {
     marginBottom: "24px",
