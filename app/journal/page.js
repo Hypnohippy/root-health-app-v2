@@ -27,25 +27,104 @@ const prompts = [
 function detectPattern(text = "") {
   const lower = text.toLowerCase();
 
-  if (lower.includes("anxious") || lower.includes("anxiety") || lower.includes("panic") || lower.includes("overwhelm") || lower.includes("racing")) {
-    return { emotional_theme: "anxiety", recommended_coach_mode: "Mind & mood", recommended_prompt: "Breathwork or CBT-style reframing" };
+  // Anxiety
+  if (
+    lower.includes("anxious") ||
+    lower.includes("anxiety") ||
+    lower.includes("panic") ||
+    lower.includes("overwhelm") ||
+    lower.includes("racing")
+  ) {
+    return {
+      emotional_theme: "Anxiety",
+      recommended_coach_mode: "Mind & mood",
+      recommended_prompt: "Breathwork or CBT-style reframing",
+    };
   }
 
-  if (lower.includes("guilt") || lower.includes("shame") || lower.includes("pressure") || lower.includes("pressured")) {
-    return { emotional_theme: "guilt & pressure", recommended_coach_mode: "Mind & mood", recommended_prompt: "CBT-style reframing" };
+  // Workplace disappointment
+  if (
+    lower.includes("promotion") ||
+    lower.includes("boss") ||
+    lower.includes("manager") ||
+    lower.includes("work") ||
+    lower.includes("undervalued") ||
+    lower.includes("unmotivated") ||
+    lower.includes("demotivated") ||
+    lower.includes("not appreciated")
+  ) {
+    return {
+      emotional_theme: "Workplace disappointment",
+      recommended_coach_mode: "Reflection",
+      recommended_prompt: "Explore values, boundaries and sustainable next steps",
+    };
   }
 
-  if (lower.includes("grief") || lower.includes("loss") || lower.includes("heavy")) {
-    return { emotional_theme: "grief", recommended_coach_mode: "Mind & mood", recommended_prompt: "Guided journaling" };
+  // Burnout
+  if (
+    lower.includes("burnout") ||
+    lower.includes("exhausted") ||
+    lower.includes("drained") ||
+    lower.includes("can't cope") ||
+    lower.includes("cant cope")
+  ) {
+    return {
+      emotional_theme: "Burnout risk",
+      recommended_coach_mode: "Lifestyle",
+      recommended_prompt: "Recovery planning",
+    };
   }
 
-  if (lower.includes("flat") || lower.includes("foggy") || lower.includes("tired")) {
-    return { emotional_theme: "low energy", recommended_coach_mode: "Lifestyle", recommended_prompt: "Energy and routine review" };
+  // Guilt
+  if (
+    lower.includes("guilt") ||
+    lower.includes("shame") ||
+    lower.includes("pressure") ||
+    lower.includes("pressured")
+  ) {
+    return {
+      emotional_theme: "Guilt & pressure",
+      recommended_coach_mode: "Mind & mood",
+      recommended_prompt: "CBT-style reframing",
+    };
   }
 
-  return { emotional_theme: "general reflection", recommended_coach_mode: "Lifestyle", recommended_prompt: "Guided journaling" };
+  // Genuine grief only
+  if (
+    lower.includes("bereavement") ||
+    lower.includes("funeral") ||
+    lower.includes("died") ||
+    lower.includes("death") ||
+    lower.includes("passed away") ||
+    lower.includes("grieving")
+  ) {
+    return {
+      emotional_theme: "Grief",
+      recommended_coach_mode: "Reflection",
+      recommended_prompt: "Gentle grief reflection",
+    };
+  }
+
+  // Low mood / low energy
+  if (
+    lower.includes("flat") ||
+    lower.includes("foggy") ||
+    lower.includes("tired") ||
+    lower.includes("numb")
+  ) {
+    return {
+      emotional_theme: "Low mood",
+      recommended_coach_mode: "Lifestyle",
+      recommended_prompt: "Recovery and energy review",
+    };
+  }
+
+  return {
+    emotional_theme: "General reflection",
+    recommended_coach_mode: "Lifestyle",
+    recommended_prompt: "Guided journaling",
+  };
 }
-
 function getPromptStructure(type) {
   switch (type) {
     case "guilt":
