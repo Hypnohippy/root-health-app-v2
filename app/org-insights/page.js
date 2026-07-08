@@ -1273,27 +1273,27 @@ We look forward to welcoming you.
 
     <div style={styles.participantList}>
 
-      {members.map((member) => (
+      {members.map((member, index) => (
 
-        <div
-          key={member.id}
-          style={styles.participantRow}
-        >
+  <div
+    key={member.id}
+    style={styles.participantRow}
+  >
 
-          <div>
+    <div>
 
-            <strong>
-              {member.name || "Unnamed Participant"}
-            </strong>
+      <strong>
+        Participant {index + 1}
+      </strong>
 
-            <div style={styles.participantDept}>
-              {member.department || "No department"}
-            </div>
+      <div style={styles.participantDept}>
+        {member.department ? "Department recorded" : "Department not recorded"}
+      </div>
 
-          </div>
+    </div>
 
-          <div style={styles.participantStatus}>
-
+    <div style={styles.participantStatus}>
+      
             <span>
               {member.activated_at ? "🟢 Joined" : "🟡 Invited"}
             </span>
