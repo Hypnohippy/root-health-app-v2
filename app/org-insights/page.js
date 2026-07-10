@@ -549,9 +549,6 @@ console.log("Assessment Data:", assessmentData);
     setLoading(false);
   };
 
-      setLoading(false);
-  };
-
 
   const baselineRows = assessments.filter(
   (item) => item.assessment_type === "baseline"
