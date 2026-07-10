@@ -552,35 +552,6 @@ console.log("Assessment Data:", assessmentData);
       setLoading(false);
   };
 
-const snapshot = buildOrganisationSnapshot({
-  organisation,
-  members,
-  assessments,
-  mindEntries,
-  journalEntries,
-  voiceSessions,
-});
-
-const {
-  invited,
-  activated,
-  baselineCompleted,
-  supportInteractions,
-  engagementScore,
-  baselineScore,
-  currentScore,
-  metricResults,
-  trendRows,
-  mostImproved,
-  mostCommonTheme,
-  mappedChallengeCounts,
-  primaryConcern,
-  recommendedFocus,
-  confidenceScore,
-  confidenceLabel,
-  executiveStatus,
-  initiative,
-} = snapshot;
 
   const baselineRows = assessments.filter(
   (item) => item.assessment_type === "baseline"
