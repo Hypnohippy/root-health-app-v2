@@ -397,6 +397,16 @@ export default function ExecutiveReviewPage() {
 
     const org = Array.isArray(orgs) ? orgs[0] : null;
     const orgId = org?.id || null;
+    if (!orgId) {
+  setOrganisation(null);
+  setAssessments([]);
+  setMindEntries([]);
+  setJournalEntries([]);
+  setVoiceSessions([]);
+  setMembers([]);
+  setLoading(false);
+  return;
+}
 
     const orgFilter = orgId
       ? `organisation_id.eq.${orgId},organisation_id.is.null`
