@@ -6,6 +6,7 @@ import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import { ROOT_PUBLIC_URL } from "../../lib/config";
+import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
 
 function average(items, key) {
   const values = items
@@ -547,6 +548,39 @@ console.log("Assessment Data:", assessmentData);
 
     setLoading(false);
   };
+
+      setLoading(false);
+  };
+
+const snapshot = buildOrganisationSnapshot({
+  organisation,
+  members,
+  assessments,
+  mindEntries,
+  journalEntries,
+  voiceSessions,
+});
+
+const {
+  invited,
+  activated,
+  baselineCompleted,
+  supportInteractions,
+  engagementScore,
+  baselineScore,
+  currentScore,
+  metricResults,
+  trendRows,
+  mostImproved,
+  mostCommonTheme,
+  mappedChallengeCounts,
+  primaryConcern,
+  recommendedFocus,
+  confidenceScore,
+  confidenceLabel,
+  executiveStatus,
+  initiative,
+} = snapshot;
 
   const baselineRows = assessments.filter(
   (item) => item.assessment_type === "baseline"
@@ -1293,7 +1327,7 @@ We look forward to welcoming you.
     </div>
 
     <div style={styles.participantStatus}>
-      
+
             <span>
               {member.activated_at ? "🟢 Joined" : "🟡 Invited"}
             </span>
