@@ -558,6 +558,12 @@ console.log("Assessment Data:", assessmentData);
   voiceSessions,
 });
 
+  const {
+  invited,
+  activated,
+  baselineCompleted,
+} = snapshot;
+
   const baselineRows = assessments.filter(
   (item) => item.assessment_type === "baseline"
 );
@@ -606,10 +612,7 @@ const latest =
     [mindEntries]
   );
 
-  const invited = members.length;
-  const activated = members.filter((m) => m.activated_at).length;
-  const baselineCompleted = members.filter((m) => m.baseline_completed_at).length;
-
+  
   const baselineScore = scoreFromAssessments(baseline);
   const currentScore = scoreFromAssessments(latest);
 
