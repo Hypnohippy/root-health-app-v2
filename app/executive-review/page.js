@@ -412,38 +412,40 @@ export default function ExecutiveReviewPage() {
       ? `organisation_id.eq.${orgId},organisation_id.is.null`
       : "organisation_id.is.null";
 
-    const { data: assessmentData } = await supabase
-      .from("wellbeing_assessments")
-      .select("*")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: true });
+   const { data: assessmentData } = await supabase
+  .from("wellbeing_assessments")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: true });
 
-    const { data: mindData } = await supabase
-      .from("mind_entries")
-      .select("*")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: false })
-      .limit(200);
+const { data: mindData } = await supabase
+  .from("mind_entries")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: false })
+  .limit(200);
 
-    const { data: journalData } = await supabase
-      .from("journal_entries")
-      .select("*")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: false })
-      .limit(200);
+const { data: journalData } = await supabase
+  .from("journal_entries")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: false })
+  .limit(200);
 
-    const { data: voiceData } = await supabase
-      .from("voice_sessions")
-      .select("*")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: false })
-      .limit(200);
+const { data: voiceData } = await supabase
+  .from("voice_sessions")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: false })
+  .limit(200);
 
-    const { data: memberData } = await supabase
-      .eq("organisation_id", orgId)
-      .select("*")
-      .order("created_at", { ascending: false });
+const { data: memberData } = await supabase
+  .from("organisation_members")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: false });
 
+  
     setOrganisation(org || null);
     setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
     setMindEntries(Array.isArray(mindData) ? mindData : []);
