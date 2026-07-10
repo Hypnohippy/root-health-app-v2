@@ -549,6 +549,14 @@ console.log("Assessment Data:", assessmentData);
     setLoading(false);
   };
 
+  const snapshot = buildOrganisationSnapshot({
+  organisation,
+  members,
+  assessments,
+  mindEntries,
+  journalEntries,
+  voiceSessions,
+});
 
   const baselineRows = assessments.filter(
   (item) => item.assessment_type === "baseline"
