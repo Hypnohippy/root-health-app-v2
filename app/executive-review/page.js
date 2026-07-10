@@ -405,32 +405,32 @@ export default function ExecutiveReviewPage() {
     const { data: assessmentData } = await supabase
       .from("wellbeing_assessments")
       .select("*")
-      .or(orgFilter)
+      .eq("organisation_id", orgId)
       .order("created_at", { ascending: true });
 
     const { data: mindData } = await supabase
       .from("mind_entries")
       .select("*")
-      .or(orgFilter)
+      .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: journalData } = await supabase
       .from("journal_entries")
       .select("*")
-      .or(orgFilter)
+      .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: voiceData } = await supabase
       .from("voice_sessions")
       .select("*")
-      .or(orgFilter)
+      .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: memberData } = await supabase
-      .from("organisation_members")
+      .eq("organisation_id", orgId)
       .select("*")
       .order("created_at", { ascending: false });
 
