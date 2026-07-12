@@ -568,6 +568,7 @@ const {
   currentScore,
   metricResults,
   trendRows,
+  mostImproved,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -619,9 +620,6 @@ const latest =
   );
 
 
-  const mostImproved = metricResults
-    .filter((item) => item.change !== null && item.change < 0)
-    .sort((a, b) => a.change - b.change)[0];
 
   const mappedChallengeCounts = countBy(
     mindEntries
