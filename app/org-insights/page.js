@@ -566,6 +566,7 @@ const {
   supportInteractions,
   baselineScore,
   currentScore,
+  metricResults,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -625,13 +626,7 @@ const latest =
     recovery: Number(entry.recovery_score),
   }));
 
-  const metricResults = metrics.map(([label, key]) => {
-    const start = average(baseline, key);
-    const current = average(latest, key);
-    const change = metricChange(start, current);
-    return { label, key, start, current, change };
-  });
-
+  
   const mostImproved = metricResults
     .filter((item) => item.change !== null && item.change < 0)
     .sort((a, b) => a.change - b.change)[0];
