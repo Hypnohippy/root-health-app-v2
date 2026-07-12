@@ -558,7 +558,7 @@ console.log("Assessment Data:", assessmentData);
   voiceSessions,
 });
 
-  const {
+const {
   invited,
   activated,
   baselineCompleted,
