@@ -563,6 +563,7 @@ const {
   activated,
   baselineCompleted,
   engagementScore,
+  supportInteractions,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -714,8 +715,6 @@ const trialProgress =
             ? `${mostImproved.label} is currently showing the strongest improvement.`
             : "More follow-up data is needed before reliable improvement patterns can be shown."
         } The most common anonymous challenge is ${mostCommonTheme}. Continued use over the full trial period will give stronger evidence of direction and help identify where support should be focused next.`;
-const supportInteractions =
-  mindEntries.length + journalEntries.length + voiceSessions.length;
 
 const workforceNarrative = buildWorkforceNarrative({
   metricResults,
