@@ -567,6 +567,7 @@ const {
   baselineScore,
   currentScore,
   metricResults,
+  trendRows,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -617,16 +618,7 @@ const latest =
     [mindEntries]
   );
 
- 
-  const trendRows = assessments.map((entry, index) => ({
-    label: entry.assessment_type === "baseline" ? "Baseline" : `Check-in ${index}`,
-    stress: Number(entry.stress_score),
-    burnout: Number(entry.burnout_score),
-    sleep: Number(entry.sleep_score),
-    recovery: Number(entry.recovery_score),
-  }));
 
-  
   const mostImproved = metricResults
     .filter((item) => item.change !== null && item.change < 0)
     .sort((a, b) => a.change - b.change)[0];
