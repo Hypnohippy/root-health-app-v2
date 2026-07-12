@@ -562,6 +562,7 @@ const {
   invited,
   activated,
   baselineCompleted,
+  engagementScore,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -616,11 +617,7 @@ const latest =
   const baselineScore = scoreFromAssessments(baseline);
   const currentScore = scoreFromAssessments(latest);
 
-  const engagementScore =
-    invited > 0
-      ? Math.round(((activated + baselineCompleted) / (invited * 2)) * 100)
-      : null;
-
+ 
   const trendRows = assessments.map((entry, index) => ({
     label: entry.assessment_type === "baseline" ? "Baseline" : `Check-in ${index}`,
     stress: Number(entry.stress_score),
