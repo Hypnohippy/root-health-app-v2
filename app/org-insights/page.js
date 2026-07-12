@@ -616,10 +616,6 @@ const latest =
     [mindEntries]
   );
 
-  
-  const baselineScore = scoreFromAssessments(baseline);
-  const currentScore = scoreFromAssessments(latest);
-
  
   const trendRows = assessments.map((entry, index) => ({
     label: entry.assessment_type === "baseline" ? "Baseline" : `Check-in ${index}`,
