@@ -564,6 +564,8 @@ const {
   baselineCompleted,
   engagementScore,
   supportInteractions,
+  baselineScore,
+  currentScore,
 } = snapshot;
 
   const baselineRows = assessments.filter(
