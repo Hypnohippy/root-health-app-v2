@@ -1249,85 +1249,89 @@ We look forward to welcoming you.
 </section>
 
 <section style={styles.initiativeCard}>
-  <p style={styles.panelLabel}>This Month&apos;s Recommended Initiative</p>
+  <p style={styles.panelLabel}>
+    This Month&apos;s Recommended Initiative
+  </p>
 
-  <h2 style={styles.panelTitle}>Recovery Reset Month</h2>
+  <h2 style={styles.panelTitle}>{initiative.title}</h2>
 
   <p style={styles.reportText}>
-    Root has identified elevated burnout and recovery difficulty despite improving stress levels.
-    This initiative is designed to help employees recover from accumulated strain and rebuild
-    sustainable energy.
+    {initiative.introduction}
   </p>
 
   <div style={styles.initiativeGrid}>
     <div style={styles.initiativeItem}>
       <strong>Why Root recommended this</strong>
-      <span>Stress has improved, but recovery and burnout indicators remain elevated.</span>
+      <span>{initiative.reason}</span>
     </div>
 
     <div style={styles.initiativeItem}>
       <strong>Current status</strong>
-      <span>Ready to launch</span>
+      <span>{initiative.status}</span>
     </div>
 
     <div style={styles.initiativeItem}>
-      <strong>Expected outcomes</strong>
-      <span>Improved recovery, reduced burnout risk and stronger support engagement.</span>
+      <strong>Expected outcome</strong>
+      <span>{initiative.expectedOutcome}</span>
     </div>
   </div>
 
   <div style={styles.launchKitCard}>
     <p style={styles.panelLabel}>Root Launch Kit</p>
+
     <p style={styles.panelDescription}>
-      Root can prepare the practical materials HR needs to launch this initiative internally.
+      Root can prepare the practical materials HR needs to introduce this
+      initiative internally.
     </p>
 
-   <div style={styles.launchKitGrid}>
-  <button
-    style={styles.launchKitButton}
-    onClick={() => alert("Employee Email Generator - Coming Next")}
-  >
-    Employee Email
-  </button>
+    <div style={styles.launchKitGrid}>
+      <button
+        style={styles.launchKitButton}
+        onClick={() =>
+          alert("Employee Email Generator - Coming Next")
+        }
+      >
+        Employee Email
+      </button>
 
-  <button
-    style={styles.launchKitButton}
-  >
-    Manager Briefing
-  </button>
+      <button style={styles.launchKitButton}>
+        Manager Briefing
+      </button>
 
-  <button
-    style={styles.launchKitButton}
-  >
-    Launch Poster
-  </button>
+      <button style={styles.launchKitButton}>
+        Launch Poster
+      </button>
 
-  <button
-    style={styles.launchKitButton}
-  >
-    Leadership Talking Points
-  </button>
-</div>
+      <button style={styles.launchKitButton}>
+        Leadership Talking Points
+      </button>
+    </div>
   </div>
 
   <div style={styles.specialistSupportCard}>
     <p style={styles.panelLabel}>Specialist Support Available</p>
-    <h3 style={styles.smallHeading}>Recovery &amp; Resilience Workshop</h3>
+
+    <h3 style={styles.smallHeading}>
+      {initiative.workshopTitle}
+    </h3>
+
     <p style={styles.reportText}>
-      Root has identified a workforce pattern that may benefit from a targeted workshop or briefing. Request a tailored proposal based on the current organisational data.
+      {initiative.workshopDescription}
     </p>
 
     <button
-  style={styles.reportButton}
-  onClick={() =>
-    window.open("/presentation-support?initiative=recovery-reset", "_self")
-   }
->
-  Request Workshop Proposal
-</button>
+      style={styles.reportButton}
+      onClick={() =>
+        window.open(
+          `/presentation-support?initiative=${initiative.key}`,
+          "_self"
+        )
+      }
+    >
+      Request Workshop Proposal
+    </button>
   </div>
-</section>
-        
+</section>        
               <section style={styles.heroCard}>
                 <div>
                   <p style={styles.heroLabel}>Organisation Review Period</p>
