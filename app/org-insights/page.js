@@ -570,6 +570,7 @@ const {
   trendRows,
   mostImproved,
   mostCommonTheme,
+  primaryConcern,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -698,30 +699,9 @@ const trialProgress =
             : "More follow-up data is needed before reliable improvement patterns can be shown."
         } The most common anonymous challenge is ${mostCommonTheme}. Continued use over the full trial period will give stronger evidence of direction and help identify where support should be focused next.`;
 
-const workforceNarrative = buildWorkforceNarrative({
-  metricResults,
-  mostCommonTheme,
-  supportInteractions,
-  currentScore,
-});
 
-const confidenceScore = Math.min(
-  100,
-  Math.round(
-    assessments.length * 8 +
-      supportInteractions * 0.4 +
-      activated * 5
-  )
-);
 
-const confidenceLabel =
-  confidenceScore >= 80
-    ? "High Confidence"
-    : confidenceScore >= 60
-    ? "Established"
-    : confidenceScore >= 40
-    ? "Developing"
-    : "Early Stage";
+
 const previousEntry =
   assessments.length > 1 ? assessments[assessments.length - 2] : null;
 
@@ -966,106 +946,7 @@ if (burnoutLatest !== null && burnoutLatest >= 7) {
       "Burnout indicators are elevated, so Root is recommending a short insight on what organisations often miss about burnout.",
   };
 }
-const nextReviewFocus = [];
 
-if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
-  nextReviewFocus.push(
-    `Monitor ${mostCommonTheme.toLowerCase()} trends`
-  );
-}
-
-const highRiskMetric = metricResults
-  .filter((m) => m.current !== null)
-  .sort((a, b) => b.current - a.current)[0];
-
-const recoveryRiskDetected =
-  stressLatest !== null &&
-  burnoutLatest !== null &&
-  recoveryLatest !== null &&
-  stressLatest <= 3 &&
-  (burnoutLatest >= 7 || recoveryLatest >= 7);
-
-const executivePrimaryConcern =
-  recoveryRiskDetected
-    ? "Recovery Risk"
-    : mostCommonTheme && mostCommonTheme !== "No challenge data yet"
-    ? mostCommonTheme
-    : highRiskMetric?.label || "Workforce wellbeing";
-let executiveStatus = {
-  label: "Stable",
-  dot: "🟢",
-  detail: "No immediate organisational concern detected.",
-};
-
-if (
-  stressLatest !== null &&
-  burnoutLatest !== null &&
-  recoveryLatest !== null &&
-  stressLatest <= 3 &&
-  (burnoutLatest >= 7 || recoveryLatest >= 7)
-) {
-  executiveStatus = {
-    label: "Recovery Risk Identified",
-    dot: "🔴",
-    detail:
-      "Stress has improved significantly, however burnout and recovery indicators remain elevated.",
-  };
-} 
-else if (highRiskMetric?.current >= 8) {
-  executiveStatus = {
-    label: "Attention Needed",
-    dot: "🔴",
-    detail: `${highRiskMetric.label} is currently elevated.`,
-  };
-}else if (
-  highRiskMetric?.current >= 6 ||
-  mostCommonTheme !== "No challenge data yet"
-) {
-  executiveStatus = {
-    label: "Monitor",
-    dot: "🟠",
-    detail: `${executivePrimaryConcern} should remain visible in the next review period.`,
-  };
-}
-
-const executiveRecommendedFocus =
-  recoveryRiskDetected
-    ? "Recovery and resilience activity"
-    : executivePrimaryConcern.includes("Workplace")
-    ? "Manager awareness and workload conversations"
-    : executivePrimaryConcern.includes("Relationship")
-    ? "Communication, trust and manager support"
-    : highRiskMetric?.label
-    ? `${highRiskMetric.label} improvement`
-    : "Maintain support engagement";
-const executiveEvidence =
-  supportInteractions > 0
-    ? `${supportInteractions} support interactions recorded`
-    : `${assessments.length} assessments completed`;
-
-if (highRiskMetric) {  nextReviewFocus.push(
-    `Prioritise ${highRiskMetric.label.toLowerCase()} improvement`
-  );
-}
-
-if (engagementScore !== null && engagementScore < 60) {
-  nextReviewFocus.push("Increase employee participation");
-} else {
-  nextReviewFocus.push("Maintain support engagement");
-}
-
-if (
-  metricResults.find(
-    (m) =>
-      m.label === "Recovery difficulty" &&
-      m.current !== null &&
-      m.current >= 6
-  )
-) {
-  nextReviewFocus.push(
-    "Promote recovery and resilience activity"
-  );
-}
   return (
   <RootAtmosphere type="coach">
       <Nav />
@@ -1327,12 +1208,12 @@ We look forward to welcoming you.
   <div style={styles.briefGrid}>
     <div style={styles.briefItem}>
       <span>Primary Concern</span>
-      <strong>{executivePrimaryConcern}</strong>
+      <strong>{primaryConcern}</strong>
     </div>
 
     <div style={styles.briefItem}>
       <span>Recommended Focus</span>
-      <strong>{executiveRecommendedFocus}</strong>
+      <strong>{recommendedFocus}</strong>
     </div>
 
     <div style={styles.briefItem}>
