@@ -580,6 +580,12 @@ const {
   nextReviewFocus,
   workforceNarrative,
   executiveEvidence,
+  organisationMemory: rootMemory,
+  executiveQuestions,
+  rootHypothesis,
+  recommendedInsight,
+  confidenceReasons,
+  boardCase,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -780,182 +786,7 @@ const rootWeeklyInterpretation =
     : recoveryLatest !== null && recoveryLatest >= 7
     ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
     : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
-  const rootMemory = [];
-
-if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
-  rootMemory.push(
-    `${mostCommonTheme} has remained one of the most visible workforce themes during this review period.`
-  );
-}
-
-if (
-  stressLatest !== null &&
-  burnoutLatest !== null &&
-  stressLatest >= 7 &&
-  burnoutLatest < stressLatest
-) {
-  rootMemory.push(
-    "Burnout appears lower than current stress levels, which may suggest employees are coping with pressure more effectively than before."
-  );
-}
-
-if (recoveryLatest !== null && recoveryLatest >= 6) {
-  rootMemory.push(
-    "Recovery difficulty remains an important area to watch, particularly if pressure continues over future review periods."
-  );
-}
-
-if (rootMemory.length === 0) {
-  rootMemory.push(
-    "Root is beginning to build an organisational memory. As more check-ins are completed, recurring themes and longer-term patterns will become clearer."
-  );
-}
-  const executiveQuestions = [];
-
-if (mostCommonTheme && mostCommonTheme !== "No challenge data yet") {
-  executiveQuestions.push(
-    `Is ${mostCommonTheme.toLowerCase()} a temporary pressure, or is it becoming part of normal working life?`
-  );
-}
-
-if (recoveryLatest !== null && recoveryLatest >= 6) {
-  executiveQuestions.push(
-    "What may be preventing employees from fully recovering between periods of demand?"
-  );
-}
-
-if (
-  stressLatest !== null &&
-  burnoutLatest !== null &&
-  stressLatest >= 7 &&
-  burnoutLatest < stressLatest
-) {
-  executiveQuestions.push(
-    "What appears to be helping employees cope with pressure, and how can that be strengthened?"
-  );
-}
-
-if (engagementScore !== null && engagementScore < 60) {
-  executiveQuestions.push(
-    "What barriers may be preventing employees from engaging with available support?"
-  );
-}
-
-if (executiveQuestions.length === 0) {
-  executiveQuestions.push(
-    "What would help leaders understand the current workforce wellbeing picture more clearly?"
-  );
-}
-  let rootHypothesis =
-  "Root is continuing to gather organisational intelligence. Additional review periods will help identify stronger workforce patterns.";
-
-if (recoveryLatest !== null && recoveryLatest >= 6) {
-  rootHypothesis =
-    "Root suspects recovery capacity may be under greater pressure than employees initially recognise. This interpretation is based on elevated recovery difficulty alongside ongoing workforce demand.";
-}
-
-if (
-  stressLatest !== null &&
-  burnoutLatest !== null &&
-  stressLatest >= 7 &&
-  burnoutLatest < stressLatest
-) {
-  rootHypothesis =
-    "Root suspects the organisation may be experiencing sustained workplace pressure rather than a temporary period of stress. Employees appear to be coping, but recovery remains an area to monitor.";
-}
-
-if (
-  mostCommonTheme &&
-  mostCommonTheme.toLowerCase().includes("relationship")
-) {
-  rootHypothesis =
-    "Root suspects interpersonal and communication factors may be contributing to the current wellbeing picture. Relationship themes often influence resilience, engagement and recovery.";
-}
-  let recommendedInsight = {
-  title: "Why pressure isn't always the problem",
-  slug: "pressure",
-  reason:
-    "Workplace pressure is currently the strongest organisational theme, so Root is recommending a short insight on pressure, recovery and sustainable performance.",
-};
-
-if (recoveryLatest !== null && recoveryLatest >= 7) {
-  recommendedInsight = {
-    title: "Why recovery is not the same as rest",
-    slug: "recovery",
-    reason:
-      "Recovery appears to be a key pressure point, so Root is recommending a short insight on sustainable recovery.",
-  };
-}
-  let confidenceReasons = [];
-
-if (assessments.length >= 20) {
-  confidenceReasons.push(
-    `${assessments.length} wellbeing assessments have been completed.`
-  );
-}
-
-if (supportInteractions >= 25) {
-  confidenceReasons.push(
-    `${supportInteractions} support interactions have been analysed.`
-  );
-}
-
-if (engagementScore >= 60) {
-  confidenceReasons.push(
-    "Participation levels have remained consistent."
-  );
-}
-
-if (voiceSessions.length >= 5) {
-  confidenceReasons.push(
-    "Multiple workforce support conversations have been recorded."
-  );
-}
-
-if (confidenceReasons.length === 0) {
-  confidenceReasons.push(
-    "Root is continuing to gather workforce intelligence."
-  );
-}
-
-if (sleepLatest !== null && sleepLatest >= 7) {
-  recommendedInsight = {
-    title: "Why sleep is a performance issue, not a private issue",
-    slug: "sleep",
-    reason:
-      "Sleep difficulty appears elevated, so Root is recommending a short insight on sleep, fatigue and workforce performance.",
-  };
-}
-
-if (burnoutLatest !== null && burnoutLatest >= 7) {
-  recommendedInsight = {
-    title: "The burnout myth most organisations miss",
-    slug: "burnout",
-    reason:
-      "Burnout indicators are elevated, so Root is recommending a short insight on what organisations often miss about burnout.",
-  };
-}
-
-if (
-  mostCommonTheme.includes("Relationship") ||
-  mostCommonTheme.includes("Trust")
-) {
-  recommendedInsight = {
-    title: "Why managers rarely spot burnout early",
-    slug: "managers",
-    reason:
-      "Relationship and trust themes are appearing in the data, so Root is recommending a short insight on manager awareness and early signs.",
-  };
-}
-if (burnoutLatest !== null && burnoutLatest >= 7) {
-  recommendedInsight = {
-    title: "The burnout myth most organisations miss",
-    slug: "burnout",
-    reason:
-      "Burnout indicators are elevated, so Root is recommending a short insight on what organisations often miss about burnout.",
-  };
-}
-
+  
   return (
   <RootAtmosphere type="coach">
       <Nav />
