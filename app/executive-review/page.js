@@ -463,7 +463,7 @@ const { data: memberData } = await supabase
     return <main style={styles.page}>Loading executive review...</main>;
   }
 
-    recorded interactions, providing a useful foundation for continued organisational wellbeing measurement.`;
+   
 
   return (
     <main style={styles.page}>
