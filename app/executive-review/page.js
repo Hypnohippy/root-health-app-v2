@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
 
 function average(items, key) {
   const values = items
@@ -389,15 +390,15 @@ export default function ExecutiveReviewPage() {
   const loadData = async () => {
     setLoading(true);
 
-    const { data: orgs } = await supabase
-      .from("organisations")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const storedOrg = JSON.parse(
+  localStorage.getItem("root_hr_org_v1") ||
+    localStorage.getItem("root_organisation_v1") ||
+    "{}"
+);
 
-    const org = Array.isArray(orgs) ? orgs[0] : null;
-    const orgId = org?.id || null;
-    if (!orgId) {
+const orgId = storedOrg.organisation_id || null;
+
+if (!orgId) {
   setOrganisation(null);
   setAssessments([]);
   setMindEntries([]);
@@ -408,9 +409,11 @@ export default function ExecutiveReviewPage() {
   return;
 }
 
-    const orgFilter = orgId
-      ? `organisation_id.eq.${orgId},organisation_id.is.null`
-      : "organisation_id.is.null";
+const { data: org } = await supabase
+  .from("organisations")
+  .select("*")
+  .eq("id", orgId)
+  .maybeSingle();
 
    const { data: assessmentData } = await supabase
   .from("wellbeing_assessments")
@@ -460,108 +463,7 @@ const { data: memberData } = await supabase
     return <main style={styles.page}>Loading executive review...</main>;
   }
 
-      const organisationName = organisation?.name || "Enrolled Organisation";
-
-  const baseline = assessments.filter((item) => item.assessment_type === "baseline");
-  const latest = assessments.length ? [assessments[assessments.length - 1]] : [];
-
-  const metrics = [
-    ["Stress", "stress_score"],
-    ["Burnout", "burnout_score"],
-    ["Sleep difficulty", "sleep_score"],
-    ["Recovery difficulty", "recovery_score"],
-    ["Mood difficulty", "mood_score"],
-    ["Focus difficulty", "focus_score"],
-  ];
-
-  const metricResults = metrics.map(([label, key]) => {
-    const start = average(baseline, key);
-    const current = average(latest, key);
-    return { label, key, start, current, change: change(start, current) };
-  });
-
-  const mostImproved = metricResults
-    .filter((item) => item.change !== null && item.change < 0)
-    .sort((a, b) => a.change - b.change)[0];
-
-  const mappedThemes = countBy(
-    mindEntries
-      .filter((entry) => entry.thought_theme)
-      .map((entry) => ({ challenge: mapChallengeTheme(entry.thought_theme) })),
-    "challenge"
-  );
-
-  const mostCommonTheme = mappedThemes[0]?.[0] || "No challenge data yet";
-
-  const supportInteractions =
-    mindEntries.length + journalEntries.length + voiceSessions.length;
-
-  const currentScore = scoreFromAssessments(latest);
-  const baselineScore = scoreFromAssessments(baseline);
-
-  const activated = members.filter((member) => member.activated_at).length;
-
-  const confidenceScore = Math.min(
-    100,
-    Math.round(assessments.length * 8 + supportInteractions * 0.4 + activated * 5)
-  );
-
-  const confidenceLabel =
-    confidenceScore >= 80
-      ? "High"
-      : confidenceScore >= 60
-      ? "Established"
-      : confidenceScore >= 40
-      ? "Developing"
-      : "Early";
-
-  const trendRows = assessments.map((entry, index) => ({
-    label: entry.assessment_type === "baseline" ? "Baseline" : `Check-in ${index}`,
-    stress: Number(entry.stress_score),
-    burnout: Number(entry.burnout_score),
-    sleep: Number(entry.sleep_score),
-    recovery: Number(entry.recovery_score),
-  }));
-
-  const narrative = buildNarrative({
-    metricResults,
-    currentScore,
-    mostCommonTheme,
-    supportInteractions,
-  });
-
-  const stressMetric = metricResults.find((item) => item.label === "Stress");
-  const burnoutMetric = metricResults.find((item) => item.label === "Burnout");
-  const sleepMetric = metricResults.find((item) => item.label === "Sleep difficulty");
-  const recoveryMetric = metricResults.find(
-    (item) => item.label === "Recovery difficulty"
-  );
-
-  const stressChangePercent = changePercent(stressMetric?.start, stressMetric?.current);
-  const burnoutChangePercent = changePercent(
-    burnoutMetric?.start,
-    burnoutMetric?.current
-  );
-  
-  const executiveIntelligence = buildExecutiveIntelligence({
-  stressMetric,
-  burnoutMetric,
-  sleepMetric,
-  recoveryMetric,
-  mostCommonTheme,
-});
-  
-  const today = new Date().toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const finalSummary = `During this review period, workforce wellbeing indicators demonstrated encouraging early movement. ${
-    mostImproved
-      ? `${mostImproved.label} showed the strongest positive change.`
-      : "Further check-ins will help clarify where the strongest movement is occurring."
-  } The most common anonymous workforce challenge identified was ${mostCommonTheme}, suggesting this should remain a focus in the next review period. Support engagement currently stands at ${supportInteractions} recorded interactions, providing a useful foundation for continued organisational wellbeing measurement.`;
+    recorded interactions, providing a useful foundation for continued organisational wellbeing measurement.`;
 
   return (
     <main style={styles.page}>
