@@ -463,7 +463,8 @@ const { data: memberData } = await supabase
     return <main style={styles.page}>Loading executive review...</main>;
   }
 
-   
+   const organisationName =
+  organisation?.name || "Enrolled Organisation";
 
   return (
     <main style={styles.page}>
