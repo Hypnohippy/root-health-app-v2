@@ -569,8 +569,17 @@ const {
   metricResults,
   trendRows,
   mostImproved,
+  highRiskMetric,
   mostCommonTheme,
   primaryConcern,
+  recommendedFocus,
+  confidenceScore,
+  confidenceLabel,
+  executiveStatus,
+  initiative,
+  nextReviewFocus,
+  workforceNarrative,
+  executiveEvidence,
 } = snapshot;
 
   const baselineRows = assessments.filter(
