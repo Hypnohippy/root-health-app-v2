@@ -303,7 +303,7 @@ function LineTrendChart({ rows = [] }) {
         </div>
 
         <div style={styles.chartMiniSummary}>
-          <span>Current snapshot</span>
+          <span>Current snapshot </span>
           <strong>
             Stress {last.stress} · Burnout {last.burnout} · Sleep {last.sleep} · Recovery{" "}
             {last.recovery}
