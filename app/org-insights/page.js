@@ -569,6 +569,7 @@ const {
   metricResults,
   trendRows,
   mostImproved,
+  mostCommonTheme,
 } = snapshot;
 
   const baselineRows = assessments.filter(
@@ -630,9 +631,7 @@ const latest =
     "challenge"
   );
 
-  const mostCommonTheme =
-    mappedChallengeCounts[0]?.[0] || "No challenge data yet";
-
+ 
   const fallbackTrialStart = assessments.length
   ? new Date(assessments[0].created_at)
   : null;
