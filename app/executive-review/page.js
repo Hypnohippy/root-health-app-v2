@@ -470,7 +470,14 @@ const snapshot = buildOrganisationSnapshot({
   voiceSessions,
 });
 
-const { analysisStage } = snapshot;
+const {
+  analysisStage = {
+    level: 1,
+    title: "Baseline Established",
+    description:
+      "Root has established the organisation's starting wellbeing profile. Recommendations are based on the current workforce picture rather than measured change.",
+  },
+} = snapshot;
 
 const organisationName = organisation?.name || "Enrolled Organisation";
 
