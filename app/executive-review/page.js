@@ -477,6 +477,34 @@ const {
     description:
       "Root has established the organisation's starting wellbeing profile. Recommendations are based on the current workforce picture rather than measured change.",
   },
+  executiveNarrative = {
+    overview:
+      "Root is establishing the organisation's current wellbeing picture.",
+    numbersSuggest:
+      "Further assessment data is needed before Root can provide a detailed interpretation.",
+    stressCommentary:
+      "Stress information is still being reviewed.",
+    burnoutCommentary:
+      "Burnout information is still being reviewed.",
+    recoverySleepCommentary:
+      "Sleep and recovery information is still being reviewed.",
+    additionalCommentary:
+      "Mood and focus information is still being reviewed.",
+    detected:
+      "Root is still establishing the organisation's initial wellbeing profile.",
+    meaning:
+      "Further evidence is needed before a stronger organisational interpretation can be supported.",
+    watchingNext:
+      "Root will review future check-ins for genuine movement.",
+    typicalNextStep:
+      "Continue regular check-ins and communicate available support.",
+    forecast:
+      "Future check-ins will allow Root to compare results with the baseline.",
+    recommendation:
+      "Continue gathering evidence while responding to the highest current difficulty areas.",
+    closingSummary:
+      "This report establishes the organisation's initial wellbeing position.",
+  },
 } = snapshot;
 
 const organisationName = organisation?.name || "Enrolled Organisation";
@@ -729,22 +757,10 @@ const organisationName = organisation?.name || "Enrolled Organisation";
 <div style={styles.insightPanel}>
   <h3>What the numbers suggest</h3>
 
-  <p>
-    Current workforce wellbeing data suggests encouraging early movement
-    across several indicators. Stress is currently demonstrating the
-    strongest improvement while employee engagement remains active.
-    This combination often indicates that employees are beginning to
-    manage workplace demands more effectively while continuing to utilise
-    available support resources.
-  </p>
+  <p>{executiveNarrative.overview}</p>
 
-  <p>
-    At this stage, the findings should be viewed as an emerging trend
-    rather than a definitive outcome. Additional review periods will
-    increase confidence in the long-term direction of workforce wellbeing
-    and help identify whether current improvements are becoming embedded
-    across the organisation.
-  </p>
+  <p>{executiveNarrative.numbersSuggest}</p>
+
 </div>
         <div style={styles.confidenceBox}>
           <h3>Root confidence rating</h3>
@@ -819,28 +835,18 @@ const organisationName = organisation?.name || "Enrolled Organisation";
         />
 
         <div style={styles.executiveNarrative}>
-          <h3>Stress</h3>
-          <p>
-            Stress demonstrated the strongest positive movement during the review
-            period, reducing by 44%. This suggests employees may be experiencing
-            less day-to-day workplace pressure than at baseline and are beginning
-            to feel more capable of managing existing demands.
-          </p>
+  <h3>Stress</h3>
+  <p>{executiveNarrative.stressCommentary}</p>
 
-          <h3>Burnout</h3>
-          <p>
-            Burnout also reduced during the review period, although at a slower
-            pace than stress. This commonly occurs when employees begin adapting
-            to pressure before energy reserves and resilience have fully recovered.
-          </p>
+  <h3>Burnout</h3>
+  <p>{executiveNarrative.burnoutCommentary}</p>
 
-          <h3>Recovery & Sleep</h3>
-          <p>
-            Recovery and sleep indicators remained comparatively stable. This may
-            represent the next opportunity area for organisational wellbeing
-            improvement and long-term resilience development.
-          </p>
-        </div>
+  <h3>Recovery &amp; Sleep</h3>
+  <p>{executiveNarrative.recoverySleepCommentary}</p>
+
+  <h3>Mood &amp; Focus</h3>
+  <p>{executiveNarrative.additionalCommentary}</p>
+</div>
       </section>
 
       <section className="report-page" style={styles.reportPage}>
@@ -851,31 +857,16 @@ const organisationName = organisation?.name || "Enrolled Organisation";
         />
 
         <div style={styles.executiveNarrative}>
-          <h3>What Root has detected</h3>
-          <p>
-            During this review period, Root identified a positive shift in workforce
-            wellbeing indicators. Stress and burnout scores moved in a healthier
-            direction while employee engagement with support resources remained active.
-            This combination suggests employees may be beginning to feel more capable
-            of managing day-to-day workplace pressures.
-          </p>
+  <h3>What Root has detected</h3>
+  <p>{executiveNarrative.detected}</p>
 
-          <h3>What this may mean for the organisation</h3>
-          <p>
-            Organisations displaying similar patterns often see improvements in coping
-            capacity before improvements in energy, recovery and long-term resilience
-            become visible. Employees may be feeling less overwhelmed before they feel
-            fully restored.
-          </p>
+  <h3>What this may mean for the organisation</h3>
+  <p>{executiveNarrative.meaning}</p>
 
-          <h3>What Root is watching next</h3>
-          <p>
-            The key question for the next review period is whether improvements in
-            stress continue to translate into measurable improvements in recovery.
-            If recovery improves next, confidence in the wellbeing trajectory will
-            strengthen.
-          </p>
-        </div>
+  <h3>What Root is watching next</h3>
+  <p>{executiveNarrative.watchingNext}</p>
+  
+</div>
       </section>
 
       <section className="report-page" style={styles.reportPage}>
