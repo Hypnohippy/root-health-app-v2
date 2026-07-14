@@ -691,295 +691,85 @@ const organisationName = organisation?.name || "Enrolled Organisation";
         </div>
       </section>
 
-      <section className="report-page" style={styles.reportPage}>
-      <PageHeader
-  kicker="Organisational Wellbeing Overview"
-          title="Current organisational picture"
-          subtitle="A concise overview of the key workforce wellbeing indicators."
-        />
-        <div style={styles.insightPanel}>
-  <h3>Root Analysis Stage</h3>
-  <p>
-    <strong>
-      Stage {analysisStage.level} – {analysisStage.title}
-    </strong>
-  </p>
-  <p>{analysisStage.description}</p>
-</div>
+     <section className="report-page" style={styles.reportPage}>
+  <PageHeader
+    kicker="Forecast & Recommendations"
+    title="What Root would do next"
+    subtitle="A suggested next-step focus based on current workforce wellbeing evidence."
+  />
 
-<div style={styles.guidePanel}>
-  <h3>How to read this report</h3>
+  <div style={styles.executiveNarrative}>
+    <h3>What organisations typically do next</h3>
+    <p>{executiveNarrative.typicalNextStep}</p>
 
-  <div style={styles.guideGrid}>
-    <div style={styles.guideItem}>
-      <strong>Difficulty scores: 0–10</strong>
-      <p>
-        Lower scores indicate fewer reported difficulties. Higher scores
-        indicate greater difficulty and may require closer attention.
+    <h3>Root&apos;s Forecast</h3>
+    <p>{executiveNarrative.forecast}</p>
+
+    <div style={styles.recommendationFeature}>
+      <p style={styles.recommendationLabel}>
+        Executive Recommendation
       </p>
+
+      <h2 style={styles.recommendationTitle}>
+        {executiveNarrative.recommendation}
+      </h2>
     </div>
 
-    <div style={styles.guideItem}>
-      <strong>Workforce Wellbeing Index: 0–100</strong>
-      <p>
-        Higher scores indicate a healthier overall wellbeing position. The
-        index summarises stress, burnout, sleep, recovery, mood and focus.
-      </p>
+    <div style={styles.decisionCard}>
+      <h3>Why Root recommends this</h3>
+      <p>{executiveNarrative.recommendationReason}</p>
     </div>
 
-    <div style={styles.guideItem}>
-      <strong>Baseline versus movement</strong>
-      <p>
-        A baseline describes the organisation&apos;s starting position.
-        Improvement or deterioration is only reported after a later check-in
-        is available for comparison.
-      </p>
-    </div>
-
-    <div style={styles.guideItem}>
-      <strong>How Root recommends action</strong>
-      <p>
-        Root considers current severity, measured movement, participation,
-        anonymous themes and support engagement before recommending a response.
-      </p>
+    <div style={styles.decisionCard}>
+      <h3>Potential business impact if unchanged</h3>
+      <p>{executiveNarrative.businessImpact}</p>
     </div>
   </div>
-</div>
+</section>
 
-        <div style={styles.indexFeature}>
-          <div>
-            <span>Workforce Wellbeing Index </span>
-            <strong>{currentScore ?? "—"} / 100 </strong>
-            <small>
-  {analysisStage.level === 1
-    ? `Initial baseline: ${currentScore ?? "—"} / 100. Higher is healthier.`
-    : `Baseline ${baselineScore ?? "—"} → Current ${
-        currentScore ?? "—"
-      }. Higher is healthier.`}
-</small>
-          </div>
+<section className="report-page" style={styles.reportPage}>
+  <PageHeader
+    kicker="Board Decision Support"
+    title="The case for action"
+    subtitle="The expected outcome, approval rationale and measures the organisation can use to judge success."
+  />
 
-          <div style={styles.indexGauge}>
-            <div
-              style={{
-                ...styles.indexGaugeFill,
-                width: `${currentScore || 0}%`,
-              }}
-            />
-          </div>
-        </div>
+  <div style={styles.decisionPageContent}>
+    <div style={styles.decisionCard}>
+      <h3>Expected outcome</h3>
+      <p>{executiveNarrative.expectedOutcome}</p>
+    </div>
 
-        <div style={styles.snapshotGrid}>
-          <SnapshotCard
-            label="Strongest improvement"
-            value={mostImproved?.label || "—"}
-            detail={
-              mostImproved
-                ? `${Math.abs(mostImproved.change).toFixed(1)} point improvement`
-                : "Awaiting follow-up data"
-            }
-          />
+    <div style={styles.decisionCard}>
+      <h3>Why board approval is recommended</h3>
+      <p>{executiveNarrative.boardApproval}</p>
+    </div>
 
-          <SnapshotCard
-            label="Primary challenge"
-            value={mostCommonTheme}
-            detail="Most common anonymous workforce theme"
-          />
+    <div style={styles.decisionCard}>
+      <h3>How success will be measured</h3>
 
-          <SnapshotCard
-            label="Support engagement"
-            value={supportInteractions}
-            detail="Recorded support interactions"
-          />
+      <ul style={styles.decisionList}>
+        {(executiveNarrative.successMeasures || []).map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
 
-         <SnapshotCard
-  label="Root confidence"
-  value={confidenceLabel}
-  detail={`${confidenceScore}% confidence rating`}
-/>
-</div>
+    <div style={styles.closingCard}>
+      <h3>Executive Closing Summary</h3>
+      <p>{executiveNarrative.closingSummary}</p>
+    </div>
 
-<div style={styles.insightPanel}>
-  <h3>What the numbers suggest</h3>
+    <div style={styles.reportEnd}>
+      <strong>
+        Root Health Executive Wellbeing &amp; Decision Review
+      </strong>
 
-  <p>{executiveNarrative.overview}</p>
-
-  <p>{executiveNarrative.numbersSuggest}</p>
-
-</div>
-        <div style={styles.confidenceBox}>
-          <h3>Root confidence rating</h3>
-          <div style={styles.confidenceTrack}>
-            <div
-              style={{
-                ...styles.confidenceFill,
-                width: `${confidenceScore}%`,
-              }}
-            />
-          </div>
-          <p>
-            Based on {assessments.length} assessments, {supportInteractions} support
-            interactions and {activated} activated users.
-          </p>
-        </div>
-      </section>
-
-      <section className="report-page" style={styles.reportPage}>
-        <PageHeader
-  kicker={analysisStage.level === 1 ? "Baseline Analysis" : "Trend Analysis"}
-  title={
-    analysisStage.level === 1
-      ? "Current wellbeing baseline"
-      : "Wellbeing movement over time"
-  }
-  subtitle={
-    analysisStage.level === 1
-      ? "Difficulty scores run from 0–10. Lower scores indicate fewer reported difficulties."
-      : "Lower scores indicate reduced difficulty across the review period."
-  }
-/>
-
-        <LineChart rows={trendRows} />
-
-        <div style={styles.trendSummaryGrid}>
-          <MiniMetric
-            label="Stress movement"
-            value={
-              stressChangePercent !== null
-                ? `${stressChangePercent}% reduction`
-                : "Awaiting data"
-            }
-            detail={`Stress ${format(stressMetric?.start)} → ${format(
-              stressMetric?.current
-            )}`}
-          />
-
-          <MiniMetric
-            label="Burnout movement"
-            value={
-              burnoutChangePercent !== null
-                ? `${burnoutChangePercent}% reduction`
-                : "Awaiting data"
-            }
-            detail={`Burnout ${format(burnoutMetric?.start)} → ${format(
-              burnoutMetric?.current
-            )}`}
-          />
-
-          <MiniMetric
-            label="Sleep position"
-            value={format(sleepMetric?.current)}
-            detail="Current sleep difficulty score"
-          />
-
-          <MiniMetric
-            label="Recovery position"
-            value={format(recoveryMetric?.current)}
-            detail="Current recovery difficulty score"
-          />
-        </div>
-                   </section>
-
-      <section className="report-page" style={styles.reportPage}>
-        <PageHeader
-          kicker="Trend Commentary"
-          title="Key Trend Observations"
-          subtitle="Interpretation of the most significant wellbeing movements."
-        />
-
-        <div style={styles.executiveNarrative}>
-  <h3>Stress</h3>
-  <p>{executiveNarrative.stressCommentary}</p>
-
-  <h3>Burnout</h3>
-  <p>{executiveNarrative.burnoutCommentary}</p>
-
-  <h3>Recovery &amp; Sleep</h3>
-  <p>{executiveNarrative.recoverySleepCommentary}</p>
-
-  <h3>Mood &amp; Focus</h3>
-  <p>{executiveNarrative.additionalCommentary}</p>
-</div>
-      </section>
-
-      <section className="report-page" style={styles.reportPage}>
-        <PageHeader
-          kicker="Executive Intelligence"
-          title="Executive Intelligence & Interpretation"
-          subtitle="Root's interpretation of the organisational wellbeing patterns observed during this review period."
-        />
-
-        <div style={styles.executiveNarrative}>
-  <h3>What Root has detected</h3>
-  <p>{executiveNarrative.detected}</p>
-
-  <h3>What this may mean for the organisation</h3>
-  <p>{executiveNarrative.meaning}</p>
-
-  <h3>What Root is watching next</h3>
-  <p>{executiveNarrative.watchingNext}</p>
-
-</div>
-      </section>
-
-      <section className="report-page" style={styles.reportPage}>
-        <PageHeader
-          kicker="Forecast & Recommendations"
-          title="What Root would do next"
-          subtitle="A suggested next-step focus based on current workforce wellbeing patterns."
-        />
-
-        <div style={styles.executiveNarrative}>
-  <h3>What organisations typically do next</h3>
-  <p>{executiveNarrative.typicalNextStep}</p>
-
-  <h3>Root&apos;s Forecast</h3>
-  <p>{executiveNarrative.forecast}</p>
-
-  <h3>Executive Recommendation</h3>
-<p>{executiveNarrative.recommendation}</p>
-
-<div style={styles.decisionPanel}>
-  <h3>Why Root recommends this</h3>
-  <p>{executiveNarrative.recommendationReason}</p>
-
-  <h3>Potential business impact if unchanged</h3>
-  <p>{executiveNarrative.businessImpact}</p>
-
-  <h3>Expected outcome</h3>
-  <p>{executiveNarrative.expectedOutcome}</p>
-
-  <h3>Why board approval is recommended</h3>
-  <p>{executiveNarrative.boardApproval}</p>
-
-  <h3>How success will be measured</h3>
-  <ul style={styles.decisionList}>
-    {(executiveNarrative.successMeasures || []).map((item) => (
-      <li key={item}>{item}</li>
-    ))}
-  </ul>
-</div>
-
-<h3>Executive Closing Summary</h3>
-<p>{executiveNarrative.closingSummary}</p>
-
-          <hr style={{ margin: "40px 0" }} />
-
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "14px",
-              color: "#6B7280",
-            }}
-          >
-            Root Health Executive Wellbeing &amp; Decision Review
-            <br />
-            Generated from anonymised workforce wellbeing data.
-            <br />
-            End of Report.
-          </p>
-        </div>
-      </section>
+      <span>Generated from anonymised workforce wellbeing data.</span>
+      <span>End of Report.</span>
+    </div>
+  </div>
+</section>
     </main>
   );
 }
@@ -1307,17 +1097,68 @@ guideItem: {
   lineHeight: "1.55",
 },
 
-decisionPanel: {
-  margin: "24px 0",
+recommendationFeature: {
+  margin: "26px 0",
   padding: "24px",
   border: "2px solid #111827",
   background: "#F9FAFB",
-  lineHeight: "1.75",
+  breakInside: "avoid",
+  pageBreakInside: "avoid",
+},
+
+recommendationLabel: {
+  margin: "0 0 10px",
+  fontSize: "11px",
+  fontWeight: "900",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#6B7280",
+},
+
+recommendationTitle: {
+  margin: 0,
+  fontSize: "24px",
+  lineHeight: 1.4,
+  letterSpacing: "-0.025em",
+},
+
+decisionPageContent: {
+  display: "grid",
+  gap: "16px",
+  fontSize: "15px",
+  lineHeight: 1.65,
+},
+
+decisionCard: {
+  padding: "20px",
+  border: "1px solid #D1D5DB",
+  background: "#F9FAFB",
+  breakInside: "avoid",
+  pageBreakInside: "avoid",
 },
 
 decisionList: {
   margin: "10px 0 0",
   paddingLeft: "22px",
-  lineHeight: "1.8",
+  lineHeight: 1.75,
+},
+
+closingCard: {
+  padding: "20px",
+  border: "2px solid #111827",
+  background: "#FFFFFF",
+  breakInside: "avoid",
+  pageBreakInside: "avoid",
+},
+
+reportEnd: {
+  marginTop: "18px",
+  paddingTop: "16px",
+  borderTop: "1px solid #D1D5DB",
+  display: "grid",
+  gap: "5px",
+  textAlign: "center",
+  color: "#6B7280",
+  fontSize: "12px",
 },
 };
