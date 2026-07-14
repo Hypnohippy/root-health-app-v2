@@ -229,23 +229,51 @@ function MetricCard({ title, value }) {
   );
 }
 
-function TrendBadge({ label, start, current }) {
-  const trend = trendLabel(start, current);
+function TrendBadge({ label, start, current, hasComparison }) {
+  const severity =
+    current >= 8
+      ? {
+          label: "High concern",
+          symbol: "!",
+          tone: "watch",
+        }
+      : current >= 6
+      ? {
+          label: "Elevated",
+          symbol: "↑",
+          tone: "watch",
+        }
+      : current >= 4
+      ? {
+          label: "Moderate",
+          symbol: "•",
+          tone: "neutral",
+        }
+      : {
+          label: "Lower difficulty",
+          symbol: "✓",
+          tone: "good",
+        };
+
+  const display = hasComparison
+    ? trendLabel(start, current)
+    : severity;
 
   return (
     <div
       style={{
         ...styles.trendBadge,
-        ...(trend.tone === "good" ? styles.trendBadgeGood : {}),
-        ...(trend.tone === "watch" ? styles.trendBadgeWatch : {}),
+        ...(display.tone === "good" ? styles.trendBadgeGood : {}),
+        ...(display.tone === "watch" ? styles.trendBadgeWatch : {}),
       }}
     >
-      <span style={styles.trendBadgeSymbol}>{trend.symbol}</span>
+      <span style={styles.trendBadgeSymbol}>{display.symbol}</span>
+
       <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-  <strong>{label}</strong>
-  <span>{trend.label}</span>
-</div>
+        <strong>{label}</strong>
+        <span>{display.label}</span>
       </div>
+    </div>
   );
 }
 
@@ -288,8 +316,9 @@ function LineTrendChart({ rows = [] }) {
     return <p style={styles.empty}>No trend data recorded yet.</p>;
   }
 
-  const first = safeRows[0];
-  const last = safeRows[safeRows.length - 1];
+ const first = safeRows[0];
+const last = safeRows[safeRows.length - 1];
+const hasComparison = safeRows.length > 1;
 
   return (
     <div style={styles.premiumChartCard}>
@@ -312,10 +341,33 @@ function LineTrendChart({ rows = [] }) {
       </div>
 
       <div style={styles.trendBadgeGrid}>
-        <TrendBadge label="Stress" start={first.stress} current={last.stress} />
-        <TrendBadge label="Burnout" start={first.burnout} current={last.burnout} />
-        <TrendBadge label="Sleep" start={first.sleep} current={last.sleep} />
-        <TrendBadge label="Recovery" start={first.recovery} current={last.recovery} />
+        <TrendBadge
+  label="Stress"
+  start={first.stress}
+  current={last.stress}
+  hasComparison={hasComparison}
+/>
+
+<TrendBadge
+  label="Burnout"
+  start={first.burnout}
+  current={last.burnout}
+  hasComparison={hasComparison}
+/>
+
+<TrendBadge
+  label="Sleep"
+  start={first.sleep}
+  current={last.sleep}
+  hasComparison={hasComparison}
+/>
+
+<TrendBadge
+  label="Recovery"
+  start={first.recovery}
+  current={last.recovery}
+  hasComparison={hasComparison}
+/>
       </div>
 
       <svg viewBox={`0 0 ${width} ${height}`} style={styles.svgChart}>
