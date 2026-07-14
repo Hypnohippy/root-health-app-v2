@@ -655,7 +655,9 @@ const organisationName = organisation?.name || "Enrolled Organisation";
   style={styles.coverLogo}
 />
           <p style={styles.brand}>ROOT HEALTH</p>
-          <h1 style={styles.coverTitle}>Executive Wellbeing Review</h1>
+          <h1 style={styles.coverTitle}>
+  Executive Wellbeing &amp; Decision Review
+</h1>
           <p style={styles.coverSubtitle}>
             An anonymised workforce wellbeing review prepared for organisational
             decision-making.
@@ -705,13 +707,56 @@ const organisationName = organisation?.name || "Enrolled Organisation";
   <p>{analysisStage.description}</p>
 </div>
 
+<div style={styles.guidePanel}>
+  <h3>How to read this report</h3>
+
+  <div style={styles.guideGrid}>
+    <div style={styles.guideItem}>
+      <strong>Difficulty scores: 0–10</strong>
+      <p>
+        Lower scores indicate fewer reported difficulties. Higher scores
+        indicate greater difficulty and may require closer attention.
+      </p>
+    </div>
+
+    <div style={styles.guideItem}>
+      <strong>Workforce Wellbeing Index: 0–100</strong>
+      <p>
+        Higher scores indicate a healthier overall wellbeing position. The
+        index summarises stress, burnout, sleep, recovery, mood and focus.
+      </p>
+    </div>
+
+    <div style={styles.guideItem}>
+      <strong>Baseline versus movement</strong>
+      <p>
+        A baseline describes the organisation&apos;s starting position.
+        Improvement or deterioration is only reported after a later check-in
+        is available for comparison.
+      </p>
+    </div>
+
+    <div style={styles.guideItem}>
+      <strong>How Root recommends action</strong>
+      <p>
+        Root considers current severity, measured movement, participation,
+        anonymous themes and support engagement before recommending a response.
+      </p>
+    </div>
+  </div>
+</div>
+
         <div style={styles.indexFeature}>
           <div>
             <span>Workforce Wellbeing Index </span>
             <strong>{currentScore ?? "—"} / 100 </strong>
             <small>
-              Baseline {baselineScore ?? "—"} → Current {currentScore ?? "—"}
-            </small>
+  {analysisStage.level === 1
+    ? `Initial baseline: ${currentScore ?? "—"} / 100. Higher is healthier.`
+    : `Baseline ${baselineScore ?? "—"} → Current ${
+        currentScore ?? "—"
+      }. Higher is healthier.`}
+</small>
           </div>
 
           <div style={styles.indexGauge}>
@@ -781,10 +826,18 @@ const organisationName = organisation?.name || "Enrolled Organisation";
 
       <section className="report-page" style={styles.reportPage}>
         <PageHeader
-          kicker="Trend Analysis"
-          title="Wellbeing movement over time"
-          subtitle="Lower scores indicate reduced difficulty across the review period."
-        />
+  kicker={analysisStage.level === 1 ? "Baseline Analysis" : "Trend Analysis"}
+  title={
+    analysisStage.level === 1
+      ? "Current wellbeing baseline"
+      : "Wellbeing movement over time"
+  }
+  subtitle={
+    analysisStage.level === 1
+      ? "Difficulty scores run from 0–10. Lower scores indicate fewer reported difficulties."
+      : "Lower scores indicate reduced difficulty across the review period."
+  }
+/>
 
         <LineChart rows={trendRows} />
 
@@ -884,10 +937,31 @@ const organisationName = organisation?.name || "Enrolled Organisation";
   <p>{executiveNarrative.forecast}</p>
 
   <h3>Executive Recommendation</h3>
-  <p>{executiveNarrative.recommendation}</p>
+<p>{executiveNarrative.recommendation}</p>
 
-  <h3>Executive Closing Summary</h3>
-  <p>{executiveNarrative.closingSummary}</p>
+<div style={styles.decisionPanel}>
+  <h3>Why Root recommends this</h3>
+  <p>{executiveNarrative.recommendationReason}</p>
+
+  <h3>Potential business impact if unchanged</h3>
+  <p>{executiveNarrative.businessImpact}</p>
+
+  <h3>Expected outcome</h3>
+  <p>{executiveNarrative.expectedOutcome}</p>
+
+  <h3>Why board approval is recommended</h3>
+  <p>{executiveNarrative.boardApproval}</p>
+
+  <h3>How success will be measured</h3>
+  <ul style={styles.decisionList}>
+    {(executiveNarrative.successMeasures || []).map((item) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+</div>
+
+<h3>Executive Closing Summary</h3>
+<p>{executiveNarrative.closingSummary}</p>
 
           <hr style={{ margin: "40px 0" }} />
 
@@ -898,7 +972,7 @@ const organisationName = organisation?.name || "Enrolled Organisation";
               color: "#6B7280",
             }}
           >
-            Root Health Executive Review
+            Root Health Executive Wellbeing &amp; Decision Review
             <br />
             Generated from anonymised workforce wellbeing data.
             <br />
@@ -1207,6 +1281,43 @@ insightPanel: {
   padding: "24px",
   border: "1px solid #E5E7EB",
   background: "#FAFAF8",
+  lineHeight: "1.8",
+},
+
+guidePanel: {
+  marginTop: "18px",
+  marginBottom: "18px",
+  padding: "22px",
+  border: "1px solid #D1D5DB",
+  background: "#FFFFFF",
+},
+
+guideGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: "14px",
+  marginTop: "16px",
+},
+
+guideItem: {
+  padding: "15px",
+  border: "1px solid #E5E7EB",
+  background: "#F9FAFB",
+  fontSize: "13px",
+  lineHeight: "1.55",
+},
+
+decisionPanel: {
+  margin: "24px 0",
+  padding: "24px",
+  border: "2px solid #111827",
+  background: "#F9FAFB",
+  lineHeight: "1.75",
+},
+
+decisionList: {
+  margin: "10px 0 0",
+  paddingLeft: "22px",
   lineHeight: "1.8",
 },
 };
