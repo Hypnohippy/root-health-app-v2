@@ -877,32 +877,17 @@ const organisationName = organisation?.name || "Enrolled Organisation";
         />
 
         <div style={styles.executiveNarrative}>
-          <h3>What organisations typically do next</h3>
-          <p>
-            Organisations in this position often shift focus from awareness to
-            practical recovery, energy management and resilience-building activity.
-            This helps early wellbeing gains become more sustainable.
-          </p>
+  <h3>What organisations typically do next</h3>
+  <p>{executiveNarrative.typicalNextStep}</p>
 
-          <h3>Root's Forecast</h3>
-          <p>
-            Based on current participation and support engagement levels, Root would
-            expect workforce wellbeing stability to continue improving over future
-            review periods. Recovery and energy indicators are likely to become the
-            next meaningful measures of progress.
-          </p>
+  <h3>Root&apos;s Forecast</h3>
+  <p>{executiveNarrative.forecast}</p>
 
-          <h3>Executive Recommendation</h3>
-          <p>
-            Root recommends maintaining current wellbeing engagement activity while
-            increasing focus on recovery behaviours, sustainable performance habits
-            and manager wellbeing awareness. The strongest opportunity appears to lie
-            in helping employees convert reduced workplace pressure into lasting
-            recovery and resilience.
-          </p>
+  <h3>Executive Recommendation</h3>
+  <p>{executiveNarrative.recommendation}</p>
 
-          <h3>Executive Closing Summary</h3>
-          <p>{finalSummary}</p>
+  <h3>Executive Closing Summary</h3>
+  <p>{executiveNarrative.closingSummary}</p>
 
           <hr style={{ margin: "40px 0" }} />
 
