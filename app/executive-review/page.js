@@ -679,13 +679,13 @@ const organisationName = organisation?.name || "Enrolled Organisation";
   </div>
 
   <div style={styles.coverDetailRow}>
-    <span>Workforce Wellbeing Index</span>
-    <strong>{currentScore ?? "—"} / 100</strong>
+    <span>Workforce Wellbeing Index </span>
+    <strong> {currentScore ?? "—"} / 100 </strong>
   </div>
 </div>
         <div style={styles.coverFooter}>
           <span>Confidential</span>
-          <span>Generated from anonymised workforce data</span>
+          <span>Generated from anonymised workforce data </span>
         </div>
       </section>
 
@@ -707,8 +707,8 @@ const organisationName = organisation?.name || "Enrolled Organisation";
 
         <div style={styles.indexFeature}>
           <div>
-            <span>Workforce Wellbeing Index</span>
-            <strong>{currentScore ?? "—"} / 100</strong>
+            <span>Workforce Wellbeing Index </span>
+            <strong>{currentScore ?? "—"} / 100 </strong>
             <small>
               Baseline {baselineScore ?? "—"} → Current {currentScore ?? "—"}
             </small>
@@ -865,7 +865,7 @@ const organisationName = organisation?.name || "Enrolled Organisation";
 
   <h3>What Root is watching next</h3>
   <p>{executiveNarrative.watchingNext}</p>
-  
+
 </div>
       </section>
 
