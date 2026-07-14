@@ -1392,17 +1392,68 @@ guideItem: {
   lineHeight: "1.55",
 },
 
-decisionPanel: {
-  margin: "24px 0",
+recommendationFeature: {
+  margin: "26px 0",
   padding: "24px",
   border: "2px solid #111827",
   background: "#F9FAFB",
-  lineHeight: "1.75",
+  breakInside: "avoid",
+  pageBreakInside: "avoid",
+},
+
+recommendationLabel: {
+  margin: "0 0 10px",
+  fontSize: "11px",
+  fontWeight: "900",
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "#6B7280",
+},
+
+recommendationTitle: {
+  margin: 0,
+  fontSize: "23px",
+  lineHeight: 1.42,
+  letterSpacing: "-0.025em",
+},
+
+decisionPageContent: {
+  display: "grid",
+  gap: "16px",
+  fontSize: "15px",
+  lineHeight: 1.65,
+},
+
+decisionCard: {
+  padding: "20px",
+  border: "1px solid #D1D5DB",
+  background: "#F9FAFB",
+  breakInside: "avoid",
+  pageBreakInside: "avoid",
 },
 
 decisionList: {
   margin: "10px 0 0",
   paddingLeft: "22px",
-  lineHeight: "1.8",
+  lineHeight: 1.75,
+},
+
+closingCard: {
+  padding: "20px",
+  border: "2px solid #111827",
+  background: "#FFFFFF",
+  breakInside: "avoid",
+  pageBreakInside: "avoid",
+},
+
+reportEnd: {
+  marginTop: "18px",
+  paddingTop: "16px",
+  borderTop: "1px solid #D1D5DB",
+  display: "grid",
+  gap: "5px",
+  textAlign: "center",
+  color: "#6B7280",
+  fontSize: "12px",
 },
 };
