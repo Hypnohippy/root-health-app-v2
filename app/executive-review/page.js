@@ -1065,8 +1065,9 @@ return (
         </div>
       </div>
     </section>
-  </main>
+    </main>
 );
+}
 
 const styles = {
   page: {
