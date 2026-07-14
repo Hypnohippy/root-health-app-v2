@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
 
 function average(items, key) {
   const values = items
@@ -456,11 +457,22 @@ const { data: memberData } = await supabase
     setLoading(false);
   };
 
-  if (loading) {
-    return <main style={styles.page}>Loading executive review...</main>;
-  }
+ if (loading) {
+  return <main style={styles.page}>Loading executive review...</main>;
+}
 
-      const organisationName = organisation?.name || "Enrolled Organisation";
+const snapshot = buildOrganisationSnapshot({
+  organisation,
+  members,
+  assessments,
+  mindEntries,
+  journalEntries,
+  voiceSessions,
+});
+
+const { analysisStage } = snapshot;
+
+const organisationName = organisation?.name || "Enrolled Organisation";
 
   const baseline = assessments.filter((item) => item.assessment_type === "baseline");
   const latest = assessments.length ? [assessments[assessments.length - 1]] : [];
@@ -648,6 +660,15 @@ const { data: memberData } = await supabase
           title="Current organisational picture"
           subtitle="A concise overview of the key workforce wellbeing indicators."
         />
+        <div style={styles.insightPanel}>
+  <h3>Root Analysis Stage</h3>
+  <p>
+    <strong>
+      Stage {analysisStage.level} – {analysisStage.title}
+    </strong>
+  </p>
+  <p>{analysisStage.description}</p>
+</div>
 
         <div style={styles.indexFeature}>
           <div>
