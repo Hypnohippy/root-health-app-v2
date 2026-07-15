@@ -1,5 +1,6 @@
 "use client";
 
+import { requireHRMembership } from "../../lib/authGuard";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
@@ -390,14 +391,35 @@ export default function ExecutiveReviewPage() {
   const loadData = async () => {
     setLoading(true);
 
-    const { data: orgs } = await supabase
-      .from("organisations")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const access = await requireHRMembership();
 
-    const org = Array.isArray(orgs) ? orgs[0] : null;
-    const orgId = org?.id || null;
+if (!access.allowed) {
+  window.location.href = access.redirectTo;
+  return;
+}
+
+const membership = access.membership;
+
+localStorage.setItem(
+  "root_hr_org_v1",
+  JSON.stringify({
+    organisation_id: membership.organisation_id,
+    role: membership.role,
+  })
+);
+
+localStorage.setItem(
+  "root_profile_key_v1",
+  membership.profile_key
+);
+
+const orgId = membership.organisation_id;
+
+const { data: org } = await supabase
+  .from("organisations")
+  .select("*")
+  .eq("id", orgId)
+  .single();
     if (!orgId) {
   setOrganisation(null);
   setAssessments([]);
