@@ -1,5 +1,6 @@
 "use client";
 
+import { requireHRMembership } from "../../lib/authGuard";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
@@ -22,21 +23,39 @@ export default function HRCoachPage() {
   async function loadContext() {
     setLoading(true);
 
-    const { data: orgs } = await supabase
-      .from("organisations")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1);
+const access = await requireHRMembership();
 
-    const org = Array.isArray(orgs) ? orgs[0] : null;
-    setOrganisation(org || null);
+if (!access.allowed) {
+  window.location.href = access.redirectTo;
+  return;
+}
 
-    const orgId = org?.id || null;
+const membership = access.membership;
+const orgId = membership.organisation_id;
 
-    if (!orgId) {
-      setLoading(false);
-      return;
-    }
+localStorage.setItem(
+  "root_hr_org_v1",
+  JSON.stringify({
+    organisation_id: membership.organisation_id,
+    role: membership.role,
+  })
+);
+
+localStorage.setItem("root_profile_key_v1", membership.profile_key);
+
+const { data: org, error: orgError } = await supabase
+  .from("organisations")
+  .select("*")
+  .eq("id", orgId)
+  .maybeSingle();
+
+if (orgError || !org) {
+  setOrganisation(null);
+  setLoading(false);
+  return;
+}
+
+setOrganisation(org);
 
     const { data: memberData } = await supabase
       .from("organisation_members")
