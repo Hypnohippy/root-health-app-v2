@@ -26,168 +26,154 @@ export default function OrganisationRegisterPage() {
   const [createdOrg, setCreatedOrg] = useState(null);
 
   async function startPilot() {
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    if (!name.trim() || !contactName.trim() || !contactEmail.trim()) {
-      setError("Please complete organisation name, contact name and work email.");
-      setLoading(false);
-      return;
-    }
-
-    const trialStart = new Date();
-    const trialEnd = new Date();
-    trialEnd.setDate(trialEnd.getDate() + 56);
-
-    const organisationCode = makeCode(name);
-
-    const { data, error } = await supabase
-      .from("organisations")
-      .insert({
-        name: name.trim(),
-        contact_name: contactName.trim(),
-        contact_email: contactEmail.trim(),
-        employee_count: employeeCount,
-        industry,
-        organisation_code: organisationCode,
-        trial_start: trialStart.toISOString().slice(0, 10),
-        trial_end: trialEnd.toISOString().slice(0, 10),
-        status: "trial",
-        subscription_status: "trial",
-      })
-      .select()
-      .single();
-
-    if (error) {
-      setError(error.message || "Could not start pilot.");
-      setLoading(false);
-      return;
-    }
-
-    localStorage.setItem(
-  "root_hr_org_v1",
-  JSON.stringify({
-    organisation_id: data.id,
-    organisation_name: data.name,
-    organisation_code: data.organisation_code,
-    role: "owner",
-  })
-);
-
-setCreatedOrg(data);
-setLoading(false);
-
+  if (!name.trim() || !contactName.trim() || !contactEmail.trim()) {
+    setError(
+      "Please complete organisation name, contact name and work email."
+    );
+    setLoading(false);
+    return;
   }
 
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    window.location.href = "/login";
+    return;
+  }
+
+  const normalisedEmail = contactEmail.trim().toLowerCase();
+
+  const { data: existingApplication, error: existingError } = await supabase
+    .from("organisation_applications")
+    .select(
+      "id, organisation_name, contact_name, contact_email, employee_count, industry, status, created_at"
+    )
+    .eq("user_id", user.id)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (existingError) {
+    setError("Root could not check your existing application.");
+    setLoading(false);
+    return;
+  }
+
+  if (existingApplication) {
+    setCreatedOrg(existingApplication);
+    setLoading(false);
+    return;
+  }
+
+  const { data: application, error: applicationError } = await supabase
+    .from("organisation_applications")
+    .insert({
+      user_id: user.id,
+      organisation_name: name.trim(),
+      contact_name: contactName.trim(),
+      contact_email: normalisedEmail,
+      employee_count: employeeCount,
+      industry,
+      status: "pending",
+    })
+    .select(
+      "id, organisation_name, contact_name, contact_email, employee_count, industry, status, created_at"
+    )
+    .single();
+
+  if (applicationError || !application) {
+    setError(
+      applicationError?.message ||
+        "Root could not submit your Workplace Programme application."
+    );
+    setLoading(false);
+    return;
+  }
+
+  localStorage.removeItem("root_hr_org_v1");
+
+  setCreatedOrg(application);
+  setLoading(false);
+}
   if (createdOrg) {
-    return (
-      <main style={styles.page}>
-        <section style={styles.card}>
-          <p style={styles.kicker}>Root Workplace</p>
+  return (
+    <main style={styles.page}>
+      <section style={styles.card}>
+        <p style={styles.kicker}>Root Workplace</p>
 
-          <h1 style={styles.title}>Your pilot is ready ✅</h1>
+        <h1 style={styles.title}>Application received ✅</h1>
 
-          <p style={styles.text}>
-            Your free 8-week Root Health workplace pilot has been created.
+        <p style={styles.text}>
+          Thank you for applying to join the Root Workplace Programme.
+        </p>
+
+        <p style={styles.text}>
+          Root will review the organisation details before creating workplace
+          access. Submitting this application does not create an organisation
+          dashboard or grant HR permissions.
+        </p>
+
+        <div style={styles.successBox}>
+          <p>
+            <strong>Organisation</strong>
+            <br />
+            {createdOrg.organisation_name}
           </p>
-
-          <div style={styles.successBox}>
-            <p>
-              <strong>Organisation:</strong>
-              <br />
-              {createdOrg.name}
-            </p>
-
-            <p>
-              <strong>Pilot ends:</strong>
-              <br />
-              {createdOrg.trial_end}
-            </p>
 
           <p>
-  <strong>Organisation code:</strong>
-  <br />
-  <span style={styles.code}>
-    {createdOrg.organisation_code}
-  </span>
-</p>
-
-<p>
-  <strong>Employee join link:</strong>
-  <br />
-  https://root-health-app-v2.vercel.app/organisation/join
-</p>
-          </div>
-
-          <button
-  style={styles.button}
-  onClick={() =>
-    navigator.clipboard.writeText(createdOrg.organisation_code)
-  }
->
-  Copy Organisation Code
-</button>
-
-<button
-  style={{
-    ...styles.button,
-    marginTop: "12px",
-    background: "#5A554D",
-  }}
-  onClick={() =>
-    navigator.clipboard.writeText(
-      "https://root-health-app-v2.vercel.app/organisation/join"
-    )
-  }
->
-  Copy Join Link
-</button>
-
-<button
-  style={{
-    ...styles.button,
-    marginTop: "12px",
-    background: "#776C5B",
-  }}
-  onClick={() =>
-    navigator.clipboard.writeText(
-`Welcome to Root Health.
-
-Our organisation is taking part in an 8-week wellbeing pilot.
-
-To join:
-
-https://root-health-app-v2.vercel.app/organisation/join
-
-Organisation Code:
-${createdOrg.organisation_code}
-
-Your personal information remains private. The organisation only receives anonymous wellbeing trends.`
-    )
-  }
->
-  Copy Employee Invitation
-</button>
-
-          <p style={styles.smallText}>
-            Next step: invite employees to join Root using this organisation code.
+            <strong>Contact</strong>
+            <br />
+            {createdOrg.contact_name}
           </p>
-        </section>
-      </main>
-    );
-  }
+
+          <p>
+            <strong>Work email</strong>
+            <br />
+            {createdOrg.contact_email}
+          </p>
+
+          <p>
+            <strong>Application status</strong>
+            <br />
+            Pending review
+          </p>
+        </div>
+
+        <p style={styles.smallText}>
+          Once approved, the authorised organisation contact will receive
+          secure instructions for setting up Root Workplace and inviting
+          employees.
+        </p>
+
+        <button
+          style={styles.button}
+          onClick={() => {
+            window.location.href = "/";
+          }}
+        >
+          Return to Root
+        </button>
+      </section>
+    </main>
+  );
+}
 
   return (
     <main style={styles.page}>
       <section style={styles.card}>
         <p style={styles.kicker}>Root Workplace</p>
 
-        <h1 style={styles.title}>Start your free 8-week workplace pilot</h1>
+        <h1 style={styles.title}>Apply for the Root Workplace Programme</h1>
 
         <p style={styles.text}>
-          Understand what your workforce may be experiencing, identify emerging
-          patterns and receive practical recommendations for action.
-        </p>
+  Help your organisation recognise what matters early, understand emerging
+  wellbeing patterns and turn evidence into meaningful action.
+</p>
 
         <label style={styles.label}>Organisation name</label>
         <input
@@ -243,7 +229,7 @@ Your personal information remains private. The organisation only receives anonym
         {error ? <p style={styles.error}>{error}</p> : null}
 
         <button style={styles.button} onClick={startPilot} disabled={loading}>
-          {loading ? "Starting pilot..." : "Start Free 8 Week Pilot"}
+          {loading ? "Submitting application..." : "Apply for Root Workplace"}
         </button>
       </section>
     </main>
