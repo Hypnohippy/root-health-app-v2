@@ -527,19 +527,49 @@ export default function OrgInsightsPage() {
 
   const loadDashboard = async () => {
     setLoading(true);
+    const {
+  data: { user },
+  error: authError,
+} = await supabase.auth.getUser();
 
-    const storedOrg = JSON.parse(
-  localStorage.getItem("root_hr_org_v1") ||
-    localStorage.getItem("root_organisation_v1") ||
-    "{}"
-);
-
-const orgId = storedOrg.organisation_id || null;
-
-if (!orgId) {
-  window.location.href = "/organisation/join";
+if (authError || !user) {
+  window.location.href = "/login";
   return;
 }
+
+const { data: membership, error: membershipError } = await supabase
+  .from("organisation_members")
+  .select(
+    "id, organisation_id, profile_key, email, name, department, role"
+  )
+  .eq("user_id", user.id)
+  .maybeSingle();
+
+if (membershipError || !membership) {
+  await supabase.auth.signOut();
+  window.location.href = "/login";
+  return;
+}
+
+const allowedRoles = ["hr_admin", "organisation_admin"];
+
+if (!allowedRoles.includes(membership.role)) {
+  window.location.href = "/";
+  return;
+}
+
+const orgId = membership.organisation_id;
+
+localStorage.setItem("root_profile_key_v1", membership.profile_key);
+
+localStorage.setItem(
+  "root_hr_org_v1",
+  JSON.stringify({
+    organisation_id: membership.organisation_id,
+    role: membership.role,
+  })
+);
+
 
 const { data: org } = await supabase
   .from("organisations")
