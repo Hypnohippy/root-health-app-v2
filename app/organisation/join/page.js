@@ -9,53 +9,129 @@ export default function OrganisationJoinPage() {
   const [error, setError] = useState("");
   const [organisation, setOrganisation] = useState(null);
 
-  async function joinOrganisation() {
-    setLoading(true);
-    setError("");
+ async function joinOrganisation() {
+  setLoading(true);
+  setError("");
 
-    const cleanCode = code.trim().toUpperCase();
+  const cleanCode = code.trim().toUpperCase();
 
-    if (!cleanCode) {
-      setError("Please enter your organisation code.");
-      setLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("organisations")
-      .select("*")
-      .eq("organisation_code", cleanCode)
-      .single();
-
-    if (error || !data) {
-      setError("We couldn't find an organisation with that code.");
-      setLoading(false);
-      return;
-    }
-
-    localStorage.setItem(
-      "root_organisation_v1",
-      JSON.stringify({
-        organisation_id: data.id,
-        organisation_name: data.name,
-        organisation_code: data.organisation_code,
-        joined_at: Date.now(),
-      })
-    );
-    localStorage.setItem(
-  "root_hr_org_v1",
-  JSON.stringify({
-    organisation_id: data.id,
-    organisation_name: data.name,
-    organisation_code: data.organisation_code,
-    role: "member",
-  })
-);
-
-    setOrganisation(data);
+  if (!cleanCode) {
+    setError("Please enter your organisation code.");
     setLoading(false);
+    return;
   }
 
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    window.location.href = "/login";
+    return;
+  }
+
+  const { data: organisationData, error: organisationError } = await supabase
+    .from("organisations")
+    .select("id, name, organisation_code")
+    .eq("organisation_code", cleanCode)
+    .maybeSingle();
+
+  if (organisationError || !organisationData) {
+    setError("We couldn't find an organisation with that code.");
+    setLoading(false);
+    return;
+  }
+
+  const { data: existingMembership, error: existingMembershipError } =
+    await supabase
+      .from("organisation_members")
+      .select(
+        "id, organisation_id, user_id, profile_key, email, name, department, role"
+      )
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+  if (existingMembershipError) {
+    setError("Root could not verify your existing account.");
+    setLoading(false);
+    return;
+  }
+
+  if (
+    existingMembership &&
+    existingMembership.organisation_id !== organisationData.id
+  ) {
+    setError(
+      "This account is already connected to another organisation. Please contact Root support before joining a different organisation."
+    );
+    setLoading(false);
+    return;
+  }
+
+  let membership = existingMembership;
+
+  if (!membership) {
+    const profileKey = crypto.randomUUID();
+
+    const { data: newMembership, error: membershipError } = await supabase
+      .from("organisation_members")
+      .insert({
+        organisation_id: organisationData.id,
+        user_id: user.id,
+        profile_key: profileKey,
+        email: user.email || null,
+        name: user.user_metadata?.name || null,
+        department: null,
+        role: "employee",
+        invited_at: new Date().toISOString(),
+        activated_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      })
+      .select(
+        "id, organisation_id, user_id, profile_key, email, name, department, role"
+      )
+      .single();
+
+    if (membershipError || !newMembership) {
+      setError(
+        "Root could not connect your account to this organisation. Please try again."
+      );
+      setLoading(false);
+      return;
+    }
+
+    membership = newMembership;
+  }
+
+  localStorage.setItem("root_profile_key_v1", membership.profile_key);
+
+  localStorage.setItem(
+    "root_profile_v1",
+    JSON.stringify({
+      profile_key: membership.profile_key,
+      email: membership.email || user.email || "",
+      name: membership.name || "",
+      department: membership.department || "",
+    })
+  );
+
+  localStorage.setItem(
+    "root_organisation_v1",
+    JSON.stringify({
+      organisation_id: organisationData.id,
+      organisation_name: organisationData.name,
+      organisation_code: organisationData.organisation_code,
+      role: "employee",
+      joined_at: Date.now(),
+    })
+  );
+
+  localStorage.removeItem("root_hr_org_v1");
+
+  setOrganisation(organisationData);
+  setLoading(false);
+}
   if (organisation) {
     return (
       <main style={styles.page}>
