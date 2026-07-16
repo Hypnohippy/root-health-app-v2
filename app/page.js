@@ -136,12 +136,20 @@ export default function Home() {
     return;
   }
 
-  const completed = localStorage.getItem("root_orientation_complete_v1");
+  const profileKey = localStorage.getItem("root_profile_key_v1");
 
-  if (!completed) {
+if (profileKey) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("orientation_completed")
+    .eq("profile_key", profileKey)
+    .single();
+
+  if (!profile?.orientation_completed) {
     window.location.href = "/orientation";
     return;
   }
+}
 
   const storedJourney = localStorage.getItem("root_journey_v1");
 
