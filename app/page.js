@@ -126,12 +126,58 @@ export default function Home() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const completed = localStorage.getItem("root_orientation_complete_v1");
+    const checkUser = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!completed) {
-      window.location.href = "/orientation";
-      return;
+  if (!user) {
+    window.location.href = "/login";
+    return;
+  }
+
+  const completed = localStorage.getItem("root_orientation_complete_v1");
+
+  if (!completed) {
+    window.location.href = "/orientation";
+    return;
+  }
+
+  const storedJourney = localStorage.getItem("root_journey_v1");
+
+  if (storedJourney) {
+    try {
+      const parsed = JSON.parse(storedJourney);
+
+      setJourney(parsed);
+
+      if (parsed.completedInsights) {
+        setAdaptiveGreeting("Welcome back to Root");
+
+        if (parsed.focus === "anxiety") {
+          setAdaptiveTitle("Continue gently\nwith your\nnervous system.");
+          setAdaptiveSubtitle(
+            "Root is continuing to notice how stress,\nbody signals, and recovery patterns connect."
+          );
+        } else if (parsed.focus === "sleep") {
+          setAdaptiveTitle("Support your\nrecovery and\nrest.");
+          setAdaptiveSubtitle(
+            "Root is helping you understand sleep,\nrecovery load, and nervous system balance."
+          );
+        } else {
+          setAdaptiveTitle("Your Root\njourney is\ncontinuing.");
+          setAdaptiveSubtitle(
+            "Root is gently learning from your body,\nreflections, and emotional patterns over time."
+          );
+        }
+      }
+    } catch (error) {
+      console.log(error);
     }
+  }
+};
+
+checkUser();
 
     const storedJourney = localStorage.getItem("root_journey_v1");
 
