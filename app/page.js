@@ -132,9 +132,9 @@ export default function Home() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    window.location.href = "/login";
-    return;
-  }
+  window.location.href = "/welcome";
+  return;
+}
 
   const profileKey = localStorage.getItem("root_profile_key_v1");
 
