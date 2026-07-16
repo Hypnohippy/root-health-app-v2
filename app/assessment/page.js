@@ -103,12 +103,21 @@ const { error } = await supabase.from("wellbeing_assessments").insert([
         const fromOrientation = params.get("from") === "orientation";
 
         if (fromOrientation) {
-          localStorage.setItem("root_orientation_complete_v1", "true");
+  localStorage.setItem("root_orientation_complete_v1", "true");
 
-          setTimeout(() => {
-            window.location.href = "/onboarding-complete";
-          }, 900);
-        }
+  if (profileKey) {
+    await supabase
+      .from("profiles")
+      .update({
+        orientation_completed: true,
+      })
+      .eq("profile_key", profileKey);
+  }
+
+  setTimeout(() => {
+    window.location.href = "/onboarding-complete";
+  }, 900);
+}
       }
     }
 
