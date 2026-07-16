@@ -673,6 +673,11 @@ message += `\n\nA practical next step could be:`;
     setSaving(true);
     resetLearningUI();
     const profileKey = getCurrentProfileKey();
+    console.log("Profile Key:", profileKey);
+
+const { data: auth } = await supabase.auth.getUser();
+
+console.log("Authenticated User:", auth?.user);
 
 if (!profileKey) {
   window.location.href = "/reconnect";
