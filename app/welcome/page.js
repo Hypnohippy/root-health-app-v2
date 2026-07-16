@@ -8,12 +8,12 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setStage(1), 100),
-      setTimeout(() => setStage(2), 450),
-      setTimeout(() => setStage(3), 850),
-      setTimeout(() => setStage(4), 1250),
-      setTimeout(() => setStage(5), 1700),
-    ];
+  setTimeout(() => setStage(1), 700),
+  setTimeout(() => setStage(2), 1700),
+  setTimeout(() => setStage(3), 3200),
+  setTimeout(() => setStage(4), 4800),
+  setTimeout(() => setStage(5), 6600),
+];
 
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -22,8 +22,8 @@ export default function WelcomePage() {
     return {
       opacity: stage >= requiredStage ? 1 : 0,
       transform: stage >= requiredStage ? "translate(0, 0)" : transform,
-      transition:
-        "opacity 1.15s cubic-bezier(0.22, 1, 0.36, 1), transform 1.15s cubic-bezier(0.22, 1, 0.36, 1)",
+     transition:
+  "opacity 1.7s cubic-bezier(0.22, 1, 0.36, 1), transform 1.7s cubic-bezier(0.22, 1, 0.36, 1)",
       willChange: "opacity, transform",
     };
   }
