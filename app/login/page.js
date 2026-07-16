@@ -140,15 +140,37 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <button
-          type="button"
-          style={styles.secondaryButton}
-          onClick={() => {
-            window.location.href = "/organisation/join";
-          }}
-        >
-          Joining an organisation for the first time?
-        </button>
+        <div style={styles.actions}>
+  <button
+    type="button"
+    style={styles.secondaryButton}
+    onClick={() => {
+      window.location.href = "/organisation/join";
+    }}
+  >
+    Join your employer's Workplace Programme
+  </button>
+
+  <button
+    type="button"
+    style={styles.secondaryButton}
+    onClick={() => {
+      window.location.href = "/organisation/register";
+    }}
+  >
+    Apply for Root Workplace
+  </button>
+
+  <button
+    type="button"
+    style={styles.linkButton}
+    onClick={() => {
+      window.location.href = "/forgot-password";
+    }}
+  >
+    Forgot your password?
+  </button>
+</div>
       </section>
     </main>
   );
@@ -251,4 +273,18 @@ const styles = {
     fontWeight: "700",
     cursor: "pointer",
   },
+  actions: {
+  display: "grid",
+  gap: "12px",
+  marginTop: "20px",
+},
+
+linkButton: {
+  border: "none",
+  background: "transparent",
+  color: "#5A6D55",
+  cursor: "pointer",
+  fontWeight: "700",
+  textDecoration: "underline",
+},
 };
