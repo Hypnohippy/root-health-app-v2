@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
@@ -72,21 +73,36 @@ export default function OrientationPage() {
 
   const atmosphere = selected?.atmosphere || "coach";
 
-  const beginJourney = () => {
-    if (!selected) return;
+  const beginJourney = async () => {
+  if (!selected) return;
 
-    localStorage.setItem(
-      "root_journey_v1",
-      JSON.stringify({
-        focus: selected.id,
-        title: selected.title,
-        startedAt: Date.now(),
-        nextStep: "body",
+  localStorage.setItem(
+    "root_journey_v1",
+    JSON.stringify({
+      focus: selected.id,
+      title: selected.title,
+      startedAt: Date.now(),
+      nextStep: "body",
+    })
+  );
+
+  const profileKey = localStorage.getItem("root_profile_key_v1");
+
+  if (profileKey) {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        orientation_completed: true,
       })
-    );
+      .eq("profile_key", profileKey);
 
-    window.location.href = "/assessment?from=orientation";
-  };
+    if (error) {
+      console.error("Orientation completion error:", error);
+    }
+  }
+
+  window.location.href = "/assessment?from=orientation";
+};
 
   return (
     <RootAtmosphere type={atmosphere}>
