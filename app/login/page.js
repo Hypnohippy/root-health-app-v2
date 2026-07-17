@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import {
+  getRootIdentity,
+  getStoredRootIdentity,
+} from "../../lib/rootIdentity";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -76,24 +80,31 @@ export default function LoginPage() {
       })
     );
 
-    if (
-      membership.role === "hr_admin" ||
-      membership.role === "organisation_admin"
-    ) {
-      localStorage.setItem(
-        "root_hr_org_v1",
-        JSON.stringify({
-          organisation_id: membership.organisation_id,
-          role: membership.role,
-        })
-      );
+    await getRootIdentity();
 
-      window.location.href = "/org-insights";
-      return;
-    }
+const identity = getStoredRootIdentity();
 
-    localStorage.removeItem("root_hr_org_v1");
-    window.location.href = "/";
+if (!identity) {
+  window.location.href = "/";
+  return;
+}
+
+if (!identity.capabilities.canUseWorkplace) {
+  window.location.href = "/";
+  return;
+}
+
+if (identity.activeExperience === "workplace") {
+  window.location.href = "/org-insights";
+  return;
+}
+
+if (identity.activeExperience === "personal") {
+  window.location.href = "/";
+  return;
+}
+
+window.location.href = "/choose-experience";
   };
 
   return (
