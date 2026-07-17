@@ -136,7 +136,7 @@ export default function Home() {
   return;
 }
 
-  const profileKey = localStorage.getItem("root_profile_key_v1");
+  const profileKey = getCurrentProfileKey();
 
 if (profileKey) {
   const { data: profile } = await supabase
