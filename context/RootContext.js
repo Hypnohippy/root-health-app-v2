@@ -20,16 +20,18 @@ export function RootProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   async function refreshIdentity() {
-    setLoading(true);
+  setLoading(true);
 
-    const latest = await getRootIdentity();
+  const latest = await getRootIdentity();
 
-    setIdentity(latest);
+  console.log("ROOT IDENTITY:", latest);
 
-    setLoading(false);
+  setIdentity(latest);
 
-    return latest;
-  }
+  setLoading(false);
+
+  return latest;
+}
 
   async function switchExperience(experience) {
     setActiveExperience(experience);
