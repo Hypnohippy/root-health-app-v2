@@ -61,13 +61,16 @@ export default function ProfilePage() {
   };
 
   const saveProfile = async () => {
-    setSaving(true);
+  setSaving(true);
+
+  try {
+    const profileKey = getProfileKey();
 
     const { error } = await supabase
       .from("profiles")
       .upsert(
         {
-          profile_key: PROFILE_KEY,
+          profile_key: profileKey,
           name: profile.name,
           age: profile.age,
           height: profile.height,
@@ -81,8 +84,6 @@ export default function ProfilePage() {
         { onConflict: "profile_key" }
       );
 
-    setSaving(false);
-
     if (error) {
       console.error("Save profile error:", error);
       alert(error.message);
@@ -90,7 +91,13 @@ export default function ProfilePage() {
     }
 
     alert("Profile saved");
-  };
+  } catch (error) {
+    console.error(error);
+    alert("Unexpected error saving profile.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const update = (key, value) => {
     setProfile((prev) => ({
@@ -130,9 +137,17 @@ export default function ProfilePage() {
             <input style={styles.input} placeholder="Diet style" value={profile.diet} onChange={(e) => update("diet", e.target.value)} />
           </div>
 
-          <button style={styles.button} onClick={saveProfile}>
-            {saving ? "Saving..." : "Save profile"}
-          </button>
+          <button
+  style={{
+    ...styles.button,
+    opacity: saving ? 0.65 : 1,
+    cursor: saving ? "not-allowed" : "pointer",
+  }}
+  onClick={saveProfile}
+  disabled={saving}
+>
+  {saving ? "Saving..." : "Save profile"}
+</button>
         </section>
          </main>
 </RootAtmosphere>
