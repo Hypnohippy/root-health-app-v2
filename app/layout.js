@@ -1,4 +1,5 @@
 import { RootProvider } from "../context/RootContext";
+import AuthGate from "../components/AuthGate";
 
 export const metadata = {
   title: "Root Health",
@@ -10,7 +11,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body style={{ margin: 0 }}>
         <RootProvider>
-          {children}
+          <AuthGate>
+            {children}
+          </AuthGate>
         </RootProvider>
       </body>
     </html>
