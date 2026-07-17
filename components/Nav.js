@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRoot } from "../context/RootContext";
+import ExperienceSwitcher from "./ExperienceSwitcher";
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
 
-  const links = [
+  const { activeExperience } = useRoot();
+
+  const personalLinks = [
     { href: "/", label: "Home" },
     { href: "/coach", label: "Coach" },
     { href: "/assessment", label: "Check-In" },
@@ -16,6 +20,15 @@ export default function Nav() {
     { href: "/insights", label: "Insights" },
     { href: "/profile", label: "You" },
   ];
+
+  const workplaceLinks = [
+    { href: "/org-insights", label: "Dashboard" },
+  ];
+
+  const links =
+    activeExperience === "workplace"
+      ? workplaceLinks
+      : personalLinks;
 
   return (
     <>
@@ -30,17 +43,28 @@ export default function Nav() {
               {link.label}
             </a>
           ))}
+
+          <ExperienceSwitcher />
         </div>
 
-        <button style={styles.menuButton} onClick={() => setOpen(!open)}>
+        <button
+          style={styles.menuButton}
+          onClick={() => setOpen(!open)}
+        >
           {open ? "×" : "☰"}
         </button>
       </nav>
 
       {open && (
         <div style={styles.mobilePanel}>
+          <ExperienceSwitcher />
+
           {links.map((link) => (
-            <a key={link.href} href={link.href} style={styles.mobileLink}>
+            <a
+              key={link.href}
+              href={link.href}
+              style={styles.mobileLink}
+            >
               {link.label}
             </a>
           ))}
@@ -96,9 +120,10 @@ const styles = {
 
   desktopLinks: {
     display: "flex",
-    gap: "4px",
+    gap: "6px",
     flexWrap: "wrap",
     justifyContent: "flex-end",
+    alignItems: "center",
   },
 
   link: {
