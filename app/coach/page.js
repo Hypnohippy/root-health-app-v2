@@ -561,15 +561,16 @@ if (!previousUserMessage) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userName: name,
-          profile,
-          message: clean,
-          history,
-          mindEntries,
-          journalEntries,
-          conversation: nextMessages.slice(-10),
-          coachMode,
-        }),
+  profileKey,
+  userName: name,
+  profile,
+  message: clean,
+  history,
+  mindEntries,
+  journalEntries,
+  conversation: nextMessages.slice(-10),
+  coachMode,
+}),
       });
 
      const json = await res.json();
