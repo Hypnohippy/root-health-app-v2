@@ -5,7 +5,8 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-import { useRoot } from "../../contexts/RootContext";
+import { useRoot } from "../../context/RootContext";
+
 
 const categories = [
   "Nutrition",
