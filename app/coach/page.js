@@ -884,31 +884,45 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
 
     console.log("PLAYBOOK SAVE STARTING");
 
-    await fetch("/api/voice-actions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "save_playbook",
-        title: pending.title,
-        category: pending.category,
-        content: cleanPlaybookContent,
-        profileKey,
-      }),
-    });
+   const saveResponse = await fetch("/api/voice-actions", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    action: "save_playbook",
+    title: pending.title,
+    category: pending.category,
+    content: cleanPlaybookContent,
+    profileKey,
+  }),
+});
 
-    console.log("PLAYBOOK SAVE FINISHED");
+const saveResult = await saveResponse.json();
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "coach",
-        content: "Saved to your Playbook.",
-      },
-    ]);
+console.log("PLAYBOOK SAVE RESPONSE:", {
+  status: saveResponse.status,
+  profileKey,
+  result: saveResult,
+});
 
-    pendingPlaybookSaveRef.current = null;
+if (!saveResponse.ok || !saveResult.ok) {
+  throw new Error(
+    saveResult.error || `Playbook save failed with status ${saveResponse.status}`
+  );
+}
+
+console.log("PLAYBOOK SAVE FINISHED");
+
+setMessages((prev) => [
+  ...prev,
+  {
+    role: "coach",
+    content: "Saved to your Playbook.",
+  },
+]);
+
+pendingPlaybookSaveRef.current = null;
   } else {
     console.log(
       "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
@@ -926,7 +940,16 @@ if (message.type === "error") {
   setVoiceState("ready");
 }
 } catch (error) {
-  console.error("Realtime message parse error:", error);
+  console.error("VOICE OR PLAYBOOK ERROR:", error);
+
+  setMessages((prev) => [
+    ...prev,
+    {
+      role: "coach",
+      content:
+        "I created that entry, but I couldn’t save it to your Playbook.",
+    },
+  ]);
 }
 };
 
