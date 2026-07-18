@@ -890,6 +890,9 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
   .replace(/\n*\s*it[’']?s now recorded[\s\S]*$/i, "")
   .replace(/\n*\s*i[’']?ve saved[\s\S]*$/i, "")
   .replace(/\n*\s*we[’']?ll save[\s\S]*$/i, "")
+  .replace(/\n*\s*(this|your|the)\s+(plan|guide|programme|program|entry)[\s\S]{0,80}(saved|ready|added|available)[\s\S]{0,80}playbook\.?\s*$/i,
+  ""
+)
   .trim();
 
     console.log("PLAYBOOK SAVE STARTING");
