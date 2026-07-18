@@ -1,0 +1,397 @@
+const ALLOWED_CATEGORIES = [
+  "emotional_wellbeing",
+  "nervous_system",
+  "sleep_and_recovery",
+  "physical_wellbeing",
+  "nutrition_and_metabolism",
+  "relationships_and_connection",
+  "work_and_environment",
+  "identity_and_purpose",
+  "habits_and_behaviour",
+  "protective_factors",
+];
+
+const ALLOWED_VALENCES = ["challenge", "protective", "neutral"];
+
+const ALLOWED_DIRECTIONS = [
+  "improving",
+  "worsening",
+  "stable",
+  "new",
+  "unclear",
+];
+
+function clampNumber(value, minimum, maximum) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return null;
+  }
+
+  return Math.min(maximum, Math.max(minimum, number));
+}
+
+function cleanText(value, maximumLength = 120) {
+  const text = String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) {
+    return null;
+  }
+
+  return text.slice(0, maximumLength);
+}
+
+function cleanCategory(value) {
+  const category = String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[\s-]+/g, "_");
+
+  return ALLOWED_CATEGORIES.includes(category)
+    ? category
+    : "emotional_wellbeing";
+}
+
+function cleanValence(value) {
+  const valence = String(value || "").toLowerCase().trim();
+
+  return ALLOWED_VALENCES.includes(valence) ? valence : "neutral";
+}
+
+function cleanDirection(value) {
+  const direction = String(value || "").toLowerCase().trim();
+
+  return ALLOWED_DIRECTIONS.includes(direction)
+    ? direction
+    : "unclear";
+}
+
+function prepareConversation({
+  conversation = [],
+  message = "",
+  reply = "",
+}) {
+  const prepared = [];
+
+  if (Array.isArray(conversation)) {
+    for (const entry of conversation.slice(-20)) {
+      const role = entry?.role === "assistant" ? "assistant" : "user";
+      const content = cleanText(entry?.content, 2500);
+
+      if (content) {
+        prepared.push({
+          role,
+          content,
+        });
+      }
+    }
+  }
+
+  const currentMessage = cleanText(message, 2500);
+  const currentReply = cleanText(reply, 2500);
+
+  /*
+   * Add the latest exchange only when it is not already present
+   * in the supplied conversation array.
+   */
+  if (
+    currentMessage &&
+    prepared.at(-1)?.content !== currentMessage
+  ) {
+    prepared.push({
+      role: "user",
+      content: currentMessage,
+    });
+  }
+
+  if (
+    currentReply &&
+    prepared.at(-1)?.content !== currentReply
+  ) {
+    prepared.push({
+      role: "assistant",
+      content: currentReply,
+    });
+  }
+
+  return prepared;
+}
+
+function validateSignals(rawSignals) {
+  if (!Array.isArray(rawSignals)) {
+    return [];
+  }
+
+  return rawSignals
+    .slice(0, 8)
+    .map((signal) => {
+      const theme = cleanText(signal?.theme, 80);
+
+      if (!theme) {
+        return null;
+      }
+
+      const intensity = clampNumber(signal?.intensity, 0, 10);
+      const confidence = clampNumber(signal?.confidence, 0, 1);
+
+      /*
+       * Low-confidence guesses are deliberately discarded.
+       * Root should record evidence, not speculation.
+       */
+      if (confidence === null || confidence < 0.65) {
+        return null;
+      }
+
+      return {
+        category: cleanCategory(signal?.category),
+        theme,
+        valence: cleanValence(signal?.valence),
+        intensity:
+          intensity === null ? null : Math.round(intensity),
+        confidence: Number(confidence.toFixed(3)),
+        change_direction: cleanDirection(
+          signal?.change_direction
+        ),
+        recommended_mode: cleanText(
+          signal?.recommended_mode,
+          80
+        ),
+        intervention: cleanText(signal?.intervention, 160),
+        follow_up: Boolean(signal?.follow_up),
+      };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * Analyses a completed coaching exchange and returns structured
+ * wellbeing signals.
+ *
+ * This function does not save the conversation or the signals.
+ * Database storage is handled separately.
+ *
+ * Failures return an empty array so Coach Intelligence can never
+ * interrupt the user's coaching conversation.
+ */
+export async function buildCoachSignals({
+  apiKey,
+  conversation = [],
+  message = "",
+  reply = "",
+  coachMode = "auto",
+}) {
+  if (!apiKey) {
+    console.warn(
+      "COACH INTELLIGENCE: OpenAI API key was not supplied."
+    );
+
+    return [];
+  }
+
+  const completedConversation = prepareConversation({
+    conversation,
+    message,
+    reply,
+  });
+
+  if (completedConversation.length < 2) {
+    return [];
+  }
+
+  const intelligencePrompt = `
+You are Root Coach Intelligence.
+
+Analyse the supplied coaching conversation and extract only structured wellbeing signals that are directly supported by the user's own words.
+
+Your purpose is to help Root understand:
+1. what may be causing difficulty;
+2. what appears to support recovery;
+3. what intervention or action was explored;
+4. whether a useful follow-up may be appropriate;
+5. whether there is genuine evidence of improvement, worsening or stability.
+
+Important privacy and evidence rules:
+
+- Do not produce a conversation summary.
+- Do not quote the user.
+- Do not include names, employers, locations, diagnoses or identifying details.
+- Do not store the user's story.
+- Do not infer trauma, abuse, grief, relationship problems, medical conditions or causes unless the user directly stated them.
+- Do not diagnose.
+- Do not treat the assistant's suggestions as evidence that the user has a condition.
+- Extract a signal only when it is supported by the user's words.
+- Record both challenges and protective or recovery factors.
+- Protective factors may include hope, connection, purpose, confidence, rest, movement, self-awareness, resilience, support, progress or helpful routines.
+- Prefer no signal over a speculative signal.
+- Use confidence below 0.65 when evidence is weak.
+- Use "unclear" for change_direction unless the conversation genuinely compares the present with an earlier state.
+- Return no more than 8 distinct signals.
+- Merge duplicate or closely overlapping themes.
+- Return valid JSON only.
+
+Allowed category values:
+
+- emotional_wellbeing
+- nervous_system
+- sleep_and_recovery
+- physical_wellbeing
+- nutrition_and_metabolism
+- relationships_and_connection
+- work_and_environment
+- identity_and_purpose
+- habits_and_behaviour
+- protective_factors
+
+Allowed valence values:
+
+- challenge
+- protective
+- neutral
+
+Allowed change_direction values:
+
+- improving
+- worsening
+- stable
+- new
+- unclear
+
+Intensity:
+
+- Integer from 0 to 10.
+- Represents the apparent strength or importance of the theme.
+- It is not a medical score.
+- Use null when intensity cannot be reasonably assessed.
+
+Confidence:
+
+- Number from 0 to 1.
+- Represents confidence that the signal is explicitly supported.
+
+follow_up:
+
+- true only when Root could usefully and sensitively revisit the theme later.
+- false for incidental or resolved details.
+
+recommended_mode:
+
+Use one of these where appropriate:
+- grounding
+- sleep
+- reflection
+- nutrition
+- mind
+- trauma
+- movement
+- lifestyle
+- null
+
+intervention:
+
+Record a short, general description of an intervention that was actually discussed or used.
+Do not include private narrative details.
+Use null when no intervention was explored.
+
+Required JSON structure:
+
+{
+  "signals": [
+    {
+      "category": "emotional_wellbeing",
+      "theme": "stress",
+      "valence": "challenge",
+      "intensity": 8,
+      "confidence": 0.94,
+      "change_direction": "unclear",
+      "recommended_mode": "grounding",
+      "intervention": "paced breathing",
+      "follow_up": true
+    },
+    {
+      "category": "protective_factors",
+      "theme": "social connection",
+      "valence": "protective",
+      "intensity": 6,
+      "confidence": 0.88,
+      "change_direction": "improving",
+      "recommended_mode": "reflection",
+      "intervention": "spending time with a trusted person",
+      "follow_up": false
+    }
+  ]
+}
+
+When there are no reliable signals, return:
+
+{
+  "signals": []
+}
+
+Active coaching mode:
+${cleanText(coachMode, 40) || "auto"}
+`;
+
+  try {
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0,
+          response_format: {
+            type: "json_object",
+          },
+          messages: [
+            {
+              role: "system",
+              content: intelligencePrompt,
+            },
+            {
+              role: "user",
+              content: JSON.stringify({
+                conversation: completedConversation,
+              }),
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      console.error(
+        "COACH INTELLIGENCE API ERROR:",
+        response.status,
+        errorText
+      );
+
+      return [];
+    }
+
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return [];
+    }
+
+    const parsed = JSON.parse(content);
+
+    return validateSignals(parsed?.signals);
+  } catch (error) {
+    console.error(
+      "COACH INTELLIGENCE BUILD ERROR:",
+      error
+    );
+
+    return [];
+  }
+}
