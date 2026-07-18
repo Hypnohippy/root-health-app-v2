@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-import { getCurrentProfileKey } from "../../lib/currentUser";
+import { useRoot } from "../../context/RootContext";
 
 const signalToCoach = {
   "racing thoughts": "mind",
@@ -259,6 +259,8 @@ function inferPlaybookMeta(transcript = "", coachMode = "") {
 }
 
 export default function CoachPage() {
+  const { identity } = useRoot();
+  const profileKey = identity?.personal?.profileKey;
   const [latestVoiceTranscript, setLatestVoiceTranscript] = useState("");
   const [name, setName] = useState("");
   const [profile, setProfile] = useState(null);
@@ -300,9 +302,7 @@ export default function CoachPage() {
   const latestAssistantTranscriptRef = useRef("");
   useEffect(() => {
   const load = async () => {
-  const profileKey = getCurrentProfileKey();
-
-if (!profileKey) return;
+  if (!profileKey) return;
   const storedJourney = localStorage.getItem("root_journey_v1");
 
 let parsedJourney = null;
@@ -434,7 +434,7 @@ if (
     };
 
     load();
-  }, []);
+    }, [profileKey]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -627,10 +627,10 @@ if (journey && journey.currentStage === "coach") {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
   action: "save_journal",
-  title: pending.title,
-  category: pending.category,
-  content: assistantTranscript,
-  profileKey: getCurrentProfileKey(),
+  title: "Root Coach Reflection",
+  category: "Reflection",
+  content: pendingJournalSave,
+  profileKey,
 }),
     });
 
@@ -894,7 +894,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
         title: pending.title,
         category: pending.category,
         content: cleanPlaybookContent,
-        profileKey: getCurrentProfileKey(),
+        profileKey,
       }),
     });
 
