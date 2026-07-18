@@ -884,6 +884,9 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
 
     console.log("PLAYBOOK SAVE STARTING");
 
+    console.log("========== ABOUT TO SAVE ==========");
+console.log("PROFILE:", profileKey);
+console.log("PENDING:", pending);
    const saveResponse = await fetch("/api/voice-actions", {
   method: "POST",
   headers: {
@@ -899,6 +902,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
 });
 
 const saveResult = await saveResponse.json();
+console.log("SAVE RESULT:", saveResult);
 
 console.log("PLAYBOOK SAVE RESPONSE:", {
   status: saveResponse.status,
