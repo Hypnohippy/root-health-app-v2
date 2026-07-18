@@ -217,7 +217,12 @@ checkUser();
   const load = async () => {
     let loadedName = "";
 
-    const profileKey = getCurrentProfileKey();
+   const profileKey = identity?.personal?.profileKey;
+
+   if (!profileKey) {
+  console.warn("No profile key found for current user.");
+  return;
+}
 
     if (!profileKey) {
       console.warn("No profile key found for current user.");
