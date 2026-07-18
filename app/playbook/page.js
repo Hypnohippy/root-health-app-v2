@@ -5,8 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-import { requireRootProfile } from "../../lib/root-session";
-import { getCurrentProfileKey } from "../../lib/currentUser";
+import { useRoot } from "../../contexts/RootContext";
 
 const categories = [
   "Nutrition",
@@ -21,6 +20,8 @@ const categories = [
 ];
 
 export default function PlaybookPage() {
+  const { identity } = useRoot();
+const profileKey = identity?.personal?.profileKey;
   const [entries, setEntries] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,17 +44,8 @@ export default function PlaybookPage() {
   }, []);
 
   const loadEntries = async () => {
- const session = requireRootProfile();
+ if (!profileKey) return;
 
-if (!session) return;
-
-const profileKey = session.profileKey;
-console.log("PLAYBOOK LOADING PROFILE:", profileKey);
-
-if (!profileKey) {
-  window.location.href = "/reconnect";
-  return;
-}
     setLoading(true);
 
     const { data, error } = await supabase
@@ -210,7 +202,7 @@ const profileKey = session.profileKey;
       .from("playbook_entries")
       .delete()
       .eq("id", entry.id)
-      .eq("profile_key", getCurrentProfileKey());
+      .eq("profile_key", profileKey);
 
     if (!error) {
       setEntries((current) => current.filter((item) => item.id !== entry.id));
