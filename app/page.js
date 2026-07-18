@@ -11,7 +11,7 @@ import { buildProactiveCare } from "../lib/rootProactiveCare";
 import { buildDailyRhythm } from "../lib/rootDailyRhythm";
 import { buildPriorityFeed } from "../lib/rootPriorityFeed";
 import { buildRootMemoryService } from "../lib/rootMemoryService";
-import { getCurrentProfileKey } from "../lib/currentUser";
+import { useRoot } from "../context/RootContext";
 
 const progressMetrics = [
   ["stress_score", "Stress"],
@@ -79,6 +79,7 @@ function MiniInsightCard({
 }
 
 export default function Home() {
+  const { identity } = useRoot();
   const [journey, setJourney] = useState(null);
   const [userName, setUserName] = useState("");
 
@@ -136,19 +137,11 @@ export default function Home() {
   return;
 }
 
-  const profileKey = getCurrentProfileKey();
+  const profileKey = identity?.personal?.profileKey;
 
-if (profileKey) {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("orientation_completed")
-    .eq("profile_key", profileKey)
-    .single();
-
-  if (!profile?.orientation_completed) {
-    window.location.href = "/orientation";
-    return;
-  }
+if (!identity?.personal?.orientationCompleted) {
+  window.location.href = "/orientation";
+  return;
 }
 
   const storedJourney = localStorage.getItem("root_journey_v1");
