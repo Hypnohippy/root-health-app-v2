@@ -48,6 +48,7 @@ export default function PlaybookPage() {
 if (!session) return;
 
 const profileKey = session.profileKey;
+console.log("PLAYBOOK LOADING PROFILE:", profileKey);
 
 if (!profileKey) {
   window.location.href = "/reconnect";
