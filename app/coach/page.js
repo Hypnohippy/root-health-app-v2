@@ -854,12 +854,22 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     lowerAssistant.includes("before creating");
 
   const hasCompletePlan =
-    lowerAssistant.includes("title:") &&
-    (
-      lowerAssistant.includes("1.") ||
-      lowerAssistant.includes("day 1") ||
-      lowerAssistant.includes("step 1")
-    );
+  lowerAssistant.includes("title:") &&
+  (
+    lowerAssistant.includes("day 1") ||
+    lowerAssistant.includes("1-day") ||
+    lowerAssistant.includes("2-day") ||
+    lowerAssistant.includes("3-day") ||
+    lowerAssistant.includes("4-day") ||
+    lowerAssistant.includes("5-day") ||
+    lowerAssistant.includes("6-day") ||
+    lowerAssistant.includes("7-day") ||
+    lowerAssistant.includes("breakfast") ||
+    lowerAssistant.includes("lunch") ||
+    lowerAssistant.includes("dinner") ||
+    lowerAssistant.includes("step 1") ||
+    lowerAssistant.includes("1.")
+  );
 
   const isJustConfirmation =
     lowerAssistant.includes("saved to your playbook") ||
