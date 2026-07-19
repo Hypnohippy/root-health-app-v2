@@ -4,13 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 import Nav from "../components/Nav";
-import { buildRootReflection } from "../lib/rootReflectionEngine";
-import { buildLongitudinalMemory } from "../lib/rootLongitudinalEngine";
-import { buildRelationalMemory } from "../lib/rootRelationalMemory";
-import { buildProactiveCare } from "../lib/rootProactiveCare";
-import { buildDailyRhythm } from "../lib/rootDailyRhythm";
-import { buildPriorityFeed } from "../lib/rootPriorityFeed";
-import { buildRootMemoryService } from "../lib/rootMemoryService";
+import { buildRootKnowledge } from "../lib/rootKnowledgeBuilder";
 import { useRoot } from "../context/RootContext";
 
 const progressMetrics = [
@@ -280,52 +274,28 @@ checkUser();
       setLatestAssessment(latestSavedAssessment);
       setBaselineAssessment(baselineSavedAssessment);
 
-      const reflection = buildRootReflection({
+      const knowledge = buildRootKnowledge({
+        name: loadedName,
         bodySignals: safeBody,
         journalEntries: safeJournal,
         mindEntries: safeMind,
+        assessments: safeAssessments,
         journey,
       });
 
+      const reflection = knowledge.reflection;
+      const memory = knowledge.longitudinal;
+      const relational = knowledge.relationalMemory;
+      const proactive = knowledge.proactiveCare;
+      const rhythm = knowledge.dailyRhythm;
+      const feed = knowledge.priorityFeed;
+      const rootMemory = knowledge.memory;
+
       setRootReflection(reflection);
-
-      const memory = buildLongitudinalMemory({
-        bodySignals: safeBody,
-        journalEntries: safeJournal,
-        mindEntries: safeMind,
-      });
-
       setLongitudinalMemory(memory);
-
-      const relational = buildRelationalMemory({
-        bodySignals: safeBody,
-        journalEntries: safeJournal,
-        mindEntries: safeMind,
-      });
-
       setRelationalMemory(relational);
-
-      const proactive = buildProactiveCare({
-        longitudinalMemory: memory,
-        relationalMemory: relational,
-      });
-
       setProactiveCare(proactive);
-
-      const rhythm = buildDailyRhythm({
-        bodySignals: safeBody,
-      });
-
       setDailyRhythm(rhythm);
-
-      const feed = buildPriorityFeed({
-        rootReflection: reflection,
-        longitudinalMemory: memory,
-        relationalMemory: relational,
-        proactiveCare: proactive,
-        dailyRhythm: rhythm,
-      });
-
       setPriorityFeed(feed);
 
       if (reflection?.suggestedAction) {
@@ -350,18 +320,11 @@ checkUser();
         });
       }
 
-      const rootMemory = buildRootMemoryService({
-        name: loadedName,
-        bodySignals: safeBody,
-        journalEntries: safeJournal,
-        mindEntries: safeMind,
-      });
-
-      setRootRecognition(rootMemory.recognition || "");
-      setRootMemoryNarrative(rootMemory.memory || "");
-      setInterventionInsight(rootMemory.interventionInsight || "");
-      setRootHypothesis(rootMemory.hypothesis || "");
-      setDailyReflection(rootMemory.dailyReflection || "");
+      setRootRecognition(rootMemory?.recognition || "");
+      setRootMemoryNarrative(rootMemory?.memory || "");
+      setInterventionInsight(rootMemory?.interventionInsight || "");
+      setRootHypothesis(rootMemory?.hypothesis || "");
+      setDailyReflection(rootMemory?.dailyReflection || "");
 
       const recentMindEmotion = safeMind[0]?.emotion;
       const recentBodySignal = safeBody[0]?.signal;
