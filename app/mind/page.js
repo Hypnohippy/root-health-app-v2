@@ -434,6 +434,8 @@ export default function MindPage() {
   const [activeState, setActiveState] = useState(null);
   const [baselineScore, setBaselineScore] = useState("");
   const [baselineSaved, setBaselineSaved] = useState(false);
+  const [postInterventionScore, setPostInterventionScore] = useState("");
+  const [postInterventionSaving, setPostInterventionSaving] = useState(false);
   const [recentStates, setRecentStates] = useState([]);
   const [recoveryEntries, setRecoveryEntries] = useState([]);
   const [speakingText, setSpeakingText] = useState("");
@@ -727,6 +729,9 @@ const generatedReframe = buildReframe({
   setActiveState(state);
   setBaselineScore("");
   setBaselineSaved(false);
+  setPostInterventionScore("");
+  setPostInterventionSaving(false);
+  setRecoverySavedMessage("");
 }}
           style={{
             ...styles.stateCard,
@@ -760,30 +765,101 @@ const generatedReframe = buildReframe({
   </p>
 
   <div style={styles.scoreRow}>
-    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
-      <button
-        key={score}
-        type="button"
-        onClick={() => {
-          setBaselineScore(String(score));
-          setBaselineSaved(false);
-        }}
-        style={{
-          ...styles.scoreButton,
-          background:
-            baselineScore === String(score)
-              ? "#181818"
-              : "rgba(255,255,255,0.7)",
-          color:
-            baselineScore === String(score)
-              ? "#FFFFFF"
-              : "#333333",
-        }}
-      >
-        {score}
-      </button>
-    ))}
-  </div>
+  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+    <button
+      key={score}
+      type="button"
+      disabled={postInterventionSaving}
+      style={{
+        ...styles.scoreButton,
+        background:
+          postInterventionScore === String(score)
+            ? "#181818"
+            : "rgba(255,255,255,0.7)",
+        color:
+          postInterventionScore === String(score)
+            ? "#FFFFFF"
+            : "#333333",
+        opacity:
+          postInterventionSaving &&
+          postInterventionScore !== String(score)
+            ? 0.45
+            : 1,
+        cursor: postInterventionSaving
+          ? "not-allowed"
+          : "pointer",
+      }}
+      onClick={async () => {
+        if (postInterventionSaving) {
+          return;
+        }
+
+        const beforeScore = Number(baselineScore);
+        const afterScore = Number(score);
+        const improvement = beforeScore - afterScore;
+
+        setPostInterventionScore(String(score));
+        setPostInterventionSaving(true);
+        setRecoverySavedMessage("Saving your measurement…");
+
+        try {
+          await saveEntry({
+            tool: "Root Measurement — After",
+            situation:
+              activeState?.title || "Emotional experience",
+            automatic_thought: "",
+            emotion: activeState?.id || "panic",
+            intensity: String(afterScore),
+            reframe:
+              "The user completed the Panic Reset journey.",
+            next_step: `Before: ${beforeScore}/10. After: ${afterScore}/10. Improvement: ${improvement} points.`,
+          });
+
+          if (improvement > 0) {
+            setRecoverySavedMessage(
+              `Root measured a ${improvement}-point reduction: ${beforeScore} → ${afterScore}.`
+            );
+          } else if (improvement === 0) {
+            setRecoverySavedMessage(
+              `Root measured no immediate change: ${beforeScore} → ${afterScore}.`
+            );
+          } else {
+            setRecoverySavedMessage(
+              `Root measured an increase of ${Math.abs(
+                improvement
+              )} points: ${beforeScore} → ${afterScore}.`
+            );
+          }
+
+          setTimeout(() => {
+            setActiveJourney(null);
+            setJourneyStep(0);
+            setJourneyComplete(false);
+            setActiveState(null);
+            setBaselineScore("");
+            setBaselineSaved(false);
+            setPostInterventionScore("");
+            setPostInterventionSaving(false);
+          }, 4000);
+        } catch (err) {
+          console.log(
+            "Post-intervention measurement failed:",
+            err
+          );
+
+          setRecoverySavedMessage(
+            "Root could not save that measurement. Please try again."
+          );
+
+          setPostInterventionScore("");
+          setPostInterventionSaving(false);
+        }
+      }}
+    >
+      {score}
+    </button>
+  ))}
+</div>
 
   <button
     type="button"
