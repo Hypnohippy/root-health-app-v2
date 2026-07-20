@@ -769,91 +769,58 @@ const generatedReframe = buildReframe({
     <button
       key={score}
       type="button"
-      disabled={postInterventionSaving}
-      style={{
-        ...styles.scoreButton,
-        background:
-          postInterventionScore === String(score)
-            ? "#181818"
-            : "rgba(255,255,255,0.7)",
-        color:
-          postInterventionScore === String(score)
-            ? "#FFFFFF"
-            : "#333333",
-        opacity:
-          postInterventionSaving &&
-          postInterventionScore !== String(score)
-            ? 0.45
-            : 1,
-        cursor: postInterventionSaving
-          ? "not-allowed"
-          : "pointer",
-      }}
+      disabled={baselineSaved}
       onClick={async () => {
-        if (postInterventionSaving) {
+        if (baselineSaved) {
           return;
         }
 
-        const beforeScore = Number(baselineScore);
-        const afterScore = Number(score);
-        const improvement = beforeScore - afterScore;
+        setBaselineScore(String(score));
 
-        setPostInterventionScore(String(score));
-        setPostInterventionSaving(true);
-        setRecoverySavedMessage("Saving your measurement…");
+        const { error } = await supabase
+          .from("mind_entries")
+          .insert([
+            {
+              profile_key: "main",
+              tool: "Root Measurement — Before",
+              situation: activeState.title,
+              automatic_thought: "",
+              emotion: activeState.id,
+              intensity: String(score),
+              reframe: activeState.suggestion,
+              next_step: activeState.pathways.join(", "),
+              outcome_label: "before_intervention",
+              outcome_score: Number(score),
+            },
+          ]);
 
-        try {
-          await saveEntry({
-            tool: "Root Measurement — After",
-            situation:
-              activeState?.title || "Emotional experience",
-            automatic_thought: "",
-            emotion: activeState?.id || "panic",
-            intensity: String(afterScore),
-            reframe:
-              "The user completed the Panic Reset journey.",
-            next_step: `Before: ${beforeScore}/10. After: ${afterScore}/10. Improvement: ${improvement} points.`,
-          });
-
-          if (improvement > 0) {
-            setRecoverySavedMessage(
-              `Root measured a ${improvement}-point reduction: ${beforeScore} → ${afterScore}.`
-            );
-          } else if (improvement === 0) {
-            setRecoverySavedMessage(
-              `Root measured no immediate change: ${beforeScore} → ${afterScore}.`
-            );
-          } else {
-            setRecoverySavedMessage(
-              `Root measured an increase of ${Math.abs(
-                improvement
-              )} points: ${beforeScore} → ${afterScore}.`
-            );
-          }
-
-          setTimeout(() => {
-            setActiveJourney(null);
-            setJourneyStep(0);
-            setJourneyComplete(false);
-            setActiveState(null);
-            setBaselineScore("");
-            setBaselineSaved(false);
-            setPostInterventionScore("");
-            setPostInterventionSaving(false);
-          }, 4000);
-        } catch (err) {
-          console.log(
-            "Post-intervention measurement failed:",
-            err
-          );
-
-          setRecoverySavedMessage(
-            "Root could not save that measurement. Please try again."
-          );
-
-          setPostInterventionScore("");
-          setPostInterventionSaving(false);
+        if (error) {
+          alert(error.message);
+          setBaselineScore("");
+          return;
         }
+
+        setRecentStates((prev) => {
+          return [activeState.id, ...prev].slice(0, 12);
+        });
+
+        setBaselineSaved(true);
+      }}
+      style={{
+        ...styles.scoreButton,
+        background:
+          baselineScore === String(score)
+            ? "#181818"
+            : "rgba(255,255,255,0.7)",
+        color:
+          baselineScore === String(score)
+            ? "#FFFFFF"
+            : "#333333",
+        opacity:
+          baselineSaved && baselineScore !== String(score)
+            ? 0.45
+            : 1,
+        cursor: baselineSaved ? "default" : "pointer",
       }}
     >
       {score}
@@ -861,48 +828,15 @@ const generatedReframe = buildReframe({
   ))}
 </div>
 
-  <button
-    type="button"
-    style={styles.mainButton}
-    disabled={baselineScore === "" || baselineSaved}
-    onClick={async () => {
-      const { error } = await supabase.from("mind_entries").insert([
-        {
-          profile_key: "main",
-          tool: "Root Measurement — Before",
-          situation: activeState.title,
-          automatic_thought: "",
-          emotion: activeState.id,
-          intensity: baselineScore,
-          reframe: activeState.suggestion,
-          next_step: activeState.pathways.join(", "),
-          outcome_label: "before_intervention",
-          outcome_score: Number(baselineScore),
-        },
-      ]);
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      setRecentStates((prev) => {
-        return [activeState.id, ...prev].slice(0, 12);
-      });
-
-      setBaselineSaved(true);
-    }}
-  >
-    {baselineSaved ? "Starting score saved ✓" : "Save starting score"}
-  </button>
-
-  {baselineSaved && (
-    <p style={styles.outcomeSaved}>
-      Root has recorded {activeState.title.toLowerCase()} at{" "}
-      {baselineScore} out of 10. Complete an intervention and Root will
-      measure the same experience again.
-    </p>
-  )}
+{baselineSaved && (
+  <p style={styles.outcomeSaved}>
+    Starting measurement saved:{" "}
+    <strong>
+      {activeState.title} — {baselineScore}/10
+    </strong>
+    . Now choose the support you would like to try.
+  </p>
+)}
 </div>
 
 {baselineSaved && (
