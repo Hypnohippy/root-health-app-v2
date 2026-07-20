@@ -432,6 +432,8 @@ export default function MindPage() {
   const [recoverySavedMessage, setRecoverySavedMessage] = useState("");
   const [showInsights, setShowInsights] = useState(false);
   const [activeState, setActiveState] = useState(null);
+  const [baselineScore, setBaselineScore] = useState("");
+  const [baselineSaved, setBaselineSaved] = useState(false);
   const [recentStates, setRecentStates] = useState([]);
   const [recoveryEntries, setRecoveryEntries] = useState([]);
   const [speakingText, setSpeakingText] = useState("");
@@ -721,26 +723,10 @@ const generatedReframe = buildReframe({
       {emotionalStates.map((state) => (
         <button
           key={state.id}
-         onClick={async () => {
+        onClick={() => {
   setActiveState(state);
-
-  setRecentStates((prev) => {
-    const updated = [state.id, ...prev].slice(0, 12);
-    return updated;
-  });
-
-  await supabase.from("mind_entries").insert([
-    {
-      profile_key: "main",
-      tool: "Emotional check-in",
-      situation: state.title,
-      automatic_thought: "",
-      emotion: state.id,
-      intensity: "",
-      reframe: state.suggestion,
-      next_step: state.pathways.join(", "),
-    },
-  ]);
+  setBaselineScore("");
+  setBaselineSaved(false);
 }}
           style={{
             ...styles.stateCard,
@@ -758,16 +744,101 @@ const generatedReframe = buildReframe({
         <p style={styles.recommendationLabel}>Root gently suggests</p>
         <h3 style={styles.recommendationTitle}>{activeState.suggestion}</h3>
         <p style={styles.recommendationText}>
-          The goal is not to force change immediately — only to help the nervous system feel slightly safer, steadier, and more supported.
-        </p>
-      <div style={styles.pathwayList}>
-  {activeState.pathways.map((pathway) => (
-    <div key={pathway} style={styles.pathwayItem}>
-      <span style={styles.pathwayDot} />
-      <span>{pathway}</span>
-    </div>
-  ))}
+  Before choosing support, give Root a starting measurement. This allows
+  Root to compare how this feels before and after an intervention.
+</p>
+
+<div style={styles.recoveryCard}>
+  <p style={styles.recoveryLabel}>Starting measurement</p>
+
+  <h3 style={styles.recoveryTitle}>
+    How intense does {activeState.title.toLowerCase()} feel right now?
+  </h3>
+
+  <p style={styles.recommendationText}>
+    0 means not present. 10 means as intense as it could be.
+  </p>
+
+  <div style={styles.scoreRow}>
+    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+      <button
+        key={score}
+        type="button"
+        onClick={() => {
+          setBaselineScore(String(score));
+          setBaselineSaved(false);
+        }}
+        style={{
+          ...styles.scoreButton,
+          background:
+            baselineScore === String(score)
+              ? "#181818"
+              : "rgba(255,255,255,0.7)",
+          color:
+            baselineScore === String(score)
+              ? "#FFFFFF"
+              : "#333333",
+        }}
+      >
+        {score}
+      </button>
+    ))}
+  </div>
+
+  <button
+    type="button"
+    style={styles.mainButton}
+    disabled={baselineScore === "" || baselineSaved}
+    onClick={async () => {
+      const { error } = await supabase.from("mind_entries").insert([
+        {
+          profile_key: "main",
+          tool: "Root Measurement — Before",
+          situation: activeState.title,
+          automatic_thought: "",
+          emotion: activeState.id,
+          intensity: baselineScore,
+          reframe: activeState.suggestion,
+          next_step: activeState.pathways.join(", "),
+          outcome_label: "before_intervention",
+          outcome_score: Number(baselineScore),
+        },
+      ]);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      setRecentStates((prev) => {
+        return [activeState.id, ...prev].slice(0, 12);
+      });
+
+      setBaselineSaved(true);
+    }}
+  >
+    {baselineSaved ? "Starting score saved ✓" : "Save starting score"}
+  </button>
+
+  {baselineSaved && (
+    <p style={styles.outcomeSaved}>
+      Root has recorded {activeState.title.toLowerCase()} at{" "}
+      {baselineScore} out of 10. Complete an intervention and Root will
+      measure the same experience again.
+    </p>
+  )}
 </div>
+
+{baselineSaved && (
+  <div style={styles.pathwayList}>
+  {activeState.pathways.map((pathway) => (
+  <div key={pathway} style={styles.pathwayItem}>
+    <span style={styles.pathwayDot} />
+    <span>{pathway}</span>
+  </div>
+))}
+  </div>
+)}
   {activeState.journey && (
   <button
     style={styles.journeyButton}
