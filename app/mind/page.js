@@ -159,6 +159,13 @@ const calmingTechniques = [
   { label: "No change", score: 0 },
   { label: "Worse", score: -1 },
 ];
+
+const recoveryScores = {
+  Calmer: 2,
+  "Slightly calmer": 1,
+  Unchanged: 0,
+  "Still overwhelmed": -1,
+};
 const groundingTechniques = [
   {
     title: "5-4-3-2-1 Grounding",
@@ -237,6 +244,11 @@ const tools = [
     id: "cbt",
     title: "Challenge the thought",
     subtitle: "Look at the situation differently.",
+  },
+  {
+    id: "values",
+    title: "Reconnect with what matters",
+    subtitle: "Choose one small values-led action.",
   },
 ];
 function detectThoughtTheme({ situation = "", automaticThought = "", emotion = "" }) {
@@ -760,19 +772,10 @@ const generatedReframe = buildReframe({
   <button
     style={styles.journeyButton}
     onClick={() => {
-      setActiveJourney(journeys[activeState.journey]);
-      setJourneyStep(0);
-      setJourneyComplete(false);
-      
-      setRecoverySavedMessage(
-  `Root noticed: you felt ${option.toLowerCase()} after the Panic Reset.`
-);
-      setTimeout(() => {
-  setActiveJourney(null);
+  setActiveJourney(journeys[activeState.journey]);
   setJourneyStep(0);
   setJourneyComplete(false);
-}, 1800);
-    }}
+}}
   >
     Begin {journeys[activeState.journey].title}
   </button>
