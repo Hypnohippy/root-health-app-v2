@@ -964,52 +964,75 @@ const generatedReframe = buildReframe({
       zIndex: 30,
     }}
   >
-    <p style={styles.recoveryLabel}>Recovery check-in</p>
+    <p style={styles.recoveryLabel}>After-intervention measurement</p>
 
-    <h3 style={styles.recoveryTitle}>
-      How does your nervous system feel now?
-    </h3>
+<h3 style={styles.recoveryTitle}>
+  How intense does {activeState?.title.toLowerCase() || "this experience"} feel now?
+</h3>
 
-    <div style={styles.recoveryOptions}>
-      {["Calmer", "Slightly calmer", "Unchanged", "Still overwhelmed"].map(
-        (option) => (
-          <button
-            key={option}
-            style={styles.recoveryButton}
-          onClick={async () => {
-  try {
-    await saveEntry({
-      tool: "Panic Reset Journey",
-      situation: `Recovery response: ${option}`,
-      automatic_thought: "",
-      emotion: activeState?.id || "panic",
-      intensity: String(recoveryScores[option]),
-      reframe: "The user completed the Panic Reset journey.",
-      next_step: `Reported outcome: ${option}`,
-    });
+<p style={styles.recommendationText}>
+  Measure the same experience again. 0 means not present. 10 means as
+  intense as it could be.
+</p>
 
-    setRecoverySavedMessage(
-      `Root noticed: you felt ${option.toLowerCase()} after the Panic Reset.`
-    );
-  } catch (err) {
-    console.log("Recovery save failed:", err);
-    setRecoverySavedMessage(
-      "Root noticed your response, but could not confirm the save."
-    );
-  }
+<div style={styles.scoreRow}>
+  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+    <button
+      key={score}
+      type="button"
+      style={styles.scoreButton}
+      onClick={async () => {
+        const beforeScore = Number(baselineScore);
+        const afterScore = Number(score);
+        const improvement = beforeScore - afterScore;
 
-  setTimeout(() => {
-    setActiveJourney(null);
-    setJourneyStep(0);
-    setJourneyComplete(false);
-  }, 1400);
-}}
-            >
-            {option}
-          </button>
-        )
-      )}
-    </div>
+        try {
+          await saveEntry({
+            tool: "Root Measurement — After",
+            situation: activeState?.title || "Emotional experience",
+            automatic_thought: "",
+            emotion: activeState?.id || "panic",
+            intensity: String(afterScore),
+            reframe: "The user completed the Panic Reset journey.",
+            next_step: `Before: ${beforeScore}/10. After: ${afterScore}/10. Improvement: ${improvement} points.`,
+          });
+
+          if (improvement > 0) {
+            setRecoverySavedMessage(
+              `Root measured a ${improvement}-point reduction: ${beforeScore} → ${afterScore}.`
+            );
+          } else if (improvement === 0) {
+            setRecoverySavedMessage(
+              `Root measured no immediate change: ${beforeScore} → ${afterScore}.`
+            );
+          } else {
+            setRecoverySavedMessage(
+              `Root measured an increase of ${Math.abs(
+                improvement
+              )} points: ${beforeScore} → ${afterScore}.`
+            );
+          }
+        } catch (err) {
+          console.log("Post-intervention measurement failed:", err);
+          setRecoverySavedMessage(
+            "Root recorded your response but could not confirm the save."
+          );
+        }
+
+        setTimeout(() => {
+          setActiveJourney(null);
+          setJourneyStep(0);
+          setJourneyComplete(false);
+          setActiveState(null);
+          setBaselineScore("");
+          setBaselineSaved(false);
+        }, 2200);
+      }}
+    >
+      {score}
+    </button>
+  ))}
+</div>
   </div>
 )}
   </div>
