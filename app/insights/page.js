@@ -8,6 +8,7 @@ import RootAtmosphere from "../../components/RootAtmosphere";
 import { buildRootReflection } from "../../lib/rootReflectionEngine";
 import { getCurrentProfileKey } from "../../lib/currentUser";
 import { getInsightsPageModel } from "../../lib/rootCore/rootInsightEngine";
+import { getRecentCompletedMeasurements } from "../../lib/rootMeasurementEngine";
 
 function countBy(items, key) {
   const counts = {};
