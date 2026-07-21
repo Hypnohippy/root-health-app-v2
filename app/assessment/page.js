@@ -63,22 +63,86 @@ export default function AssessmentPage() {
     setSaving(true);
     setSaved(false);
 
-   const profileKey =
-  localStorage.getItem("root_profile_key_v1") || "main";
+  const activeExperience =
+  localStorage.getItem("root_active_experience_v1") ||
+  "personal";
 
 const organisation = JSON.parse(
   localStorage.getItem("root_organisation_v1") || "{}"
 );
 
-const { error } = await supabase.from("wellbeing_assessments").insert([
-  {
-    profile_key: profileKey,
-    organisation_id: organisation.organisation_id || null,
-    assessment_type: assessmentType,
-    ...scores,
-    notes: notes.trim(),
-  },
-]);
+let profileKey = null;
+let organisationId =
+  organisation.organisation_id || null;
+
+if (activeExperience === "workplace") {
+  profileKey =
+    organisation.profile_key ||
+    localStorage.getItem("root_profile_key_v1") ||
+    null;
+} else {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    console.error(
+      "ASSESSMENT IDENTITY ERROR:",
+      userError
+    );
+
+    alert(
+      "Root could not confirm your personal profile."
+    );
+
+    setSaving(false);
+    return;
+  }
+
+  const {
+    data: personalProfile,
+    error: profileError,
+  } = await supabase
+    .from("profiles")
+    .select("profile_key, organisation_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (profileError || !personalProfile?.profile_key) {
+    console.error(
+      "PERSONAL PROFILE ERROR:",
+      profileError
+    );
+
+    alert(
+      "Root could not find your personal profile."
+    );
+
+    setSaving(false);
+    return;
+  }
+
+  profileKey = personalProfile.profile_key;
+
+  organisationId =
+    personalProfile.organisation_id ||
+    organisation.organisation_id ||
+    null;
+}
+
+const { error } = await supabase
+  .from("wellbeing_assessments")
+  .insert([
+    {
+      profile_key: profileKey,
+      organisation_id: organisationId,
+      assessment_type: assessmentType,
+      ...scores,
+      notes: notes.trim(),
+    },
+  ]);
+  
     if (error) {
   console.error("ASSESSMENT SAVE ERROR:", error);
   alert(error.message || "Something went wrong saving this check-in.");
