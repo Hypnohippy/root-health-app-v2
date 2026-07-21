@@ -242,6 +242,70 @@ setLoading(false);
     total: measurements.length,
   };
 }, [measurements]);
+const wellbeingProgress = useMemo(() => {
+  if (assessments.length < 2) {
+    return {
+      rows: [],
+      improved: 0,
+      unchanged: 0,
+      worsened: 0,
+    };
+  }
+
+  const first = assessments[0];
+  const latest = assessments[assessments.length - 1];
+
+  const measures = [
+    ["Stress", "stress"],
+    ["Sleep difficulties", "sleep"],
+    ["Recovery difficulty", "recovery"],
+    ["Energy difficulty", "energy"],
+    ["Low mood", "mood"],
+    ["Focus difficulty", "focus"],
+    ["Burnout", "burnout"],
+  ];
+
+  let improved = 0;
+  let unchanged = 0;
+  let worsened = 0;
+
+  const rows = measures.map(([label, key]) => {
+    const start = Number(first?.[key]);
+    const current = Number(latest?.[key]);
+
+    if (
+      Number.isNaN(start) ||
+      Number.isNaN(current)
+    ) {
+      return [label, "No data"];
+    }
+
+    const difference = current - start;
+
+    if (difference < 0) improved += 1;
+    if (difference === 0) unchanged += 1;
+    if (difference > 0) worsened += 1;
+
+    const direction =
+      difference < 0
+        ? "Improved"
+        : difference > 0
+          ? "Worsened"
+          : "Unchanged";
+
+    return [
+      label,
+      `${start} → ${current} · ${direction}`,
+    ];
+  });
+
+  return {
+    rows,
+    improved,
+    unchanged,
+    worsened,
+  };
+}, [assessments]);
 
     const insights = useMemo(() => {
     const commonSignals = countBy(bodySignals, "signal");
@@ -388,18 +452,10 @@ setLoading(false);
               rows={insights.emotionalThemes}
             />
 
-            <InsightCard
-  title="Measured outcomes"
-  empty="No completed measurement cycles yet."
-  rows={countBy(
-    measurements.map((m) => ({
-      outcome:
-        m.construct_label ||
-        m.construct_key ||
-        "Unknown",
-    })),
-    "outcome"
-  )}
+            <ProgressCard
+  title="Your wellbeing progress"
+  assessments={assessments}
+  progress={wellbeingProgress}
 />
           </div>
 
@@ -497,6 +553,43 @@ setLoading(false);
 );
 }
 
+function ProgressCard({
+  title,
+  assessments,
+  progress,
+}) {
+  if (assessments.length < 2) {
+    return (
+      <div style={styles.card}>
+        <h2 style={styles.cardTitle}>{title}</h2>
+
+        <p style={styles.emptyText}>
+          Complete at least two check-ins to see
+          your progress.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.card}>
+      <h2 style={styles.cardTitle}>{title}</h2>
+
+      <p style={styles.progressSummary}>
+        {progress.improved} improved ·{" "}
+        {progress.unchanged} unchanged ·{" "}
+        {progress.worsened} worsened
+      </p>
+
+      {progress.rows.map(([label, result]) => (
+        <div key={label} style={styles.progressRow}>
+          <span>{label}</span>
+          <strong>{result}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
 function InsightCard({ title, rows, empty }) {
   return (
     <div style={styles.card}>
@@ -651,6 +744,22 @@ logoWrap: {
     color: "#777",
     lineHeight: "1.6",
   },
+  progressSummary: {
+  margin: "0 0 14px",
+  color: "#666",
+  lineHeight: "1.6",
+  fontWeight: "700",
+},
+
+progressRow: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px",
+  padding: "10px 0",
+  borderBottom: "1px solid #F0EDE7",
+  color: "#333",
+},
+
 
   timelinePanel: {
   background: "rgba(255,255,255,0.20)",
