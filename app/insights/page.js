@@ -37,6 +37,7 @@ export default function InsightsPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [measurements, setMeasurements] = useState([]);
+  const [assessments, setAssessments] = useState([]);
   const [journey, setJourney] = useState(null);
   const [rootReflection, setRootReflection] = useState(null);
   const [rootCoreModel, setRootCoreModel] = useState(null);
@@ -72,13 +73,57 @@ useEffect(() => {
   mindEntries,
 ]);
  const loadInsights = async () => {
+  let profileKey = getCurrentProfileKey();
 
-  const profileKey = getCurrentProfileKey();
+  const activeExperience =
+    localStorage.getItem("root_active_experience_v1") ||
+    "personal";
+
+  if (activeExperience === "personal") {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error(
+        "INSIGHTS USER IDENTITY ERROR:",
+        userError
+      );
+    }
+
+    if (user) {
+      const {
+        data: personalProfile,
+        error: profileError,
+      } = await supabase
+        .from("profiles")
+        .select("profile_key")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error(
+          "INSIGHTS PERSONAL PROFILE ERROR:",
+          profileError
+        );
+      }
+
+      if (personalProfile?.profile_key) {
+        profileKey = personalProfile.profile_key;
+      }
+    }
+  }
 
   if (!profileKey) {
     setLoading(false);
     return;
   }
+
+  console.log(
+    "INSIGHTS ACTIVE PROFILE:",
+    profileKey
+  );
 
   const { data: bodyData } = await supabase
       .from("body_signals")
@@ -100,10 +145,47 @@ useEffect(() => {
   .eq("profile_key", profileKey)
   .order("created_at", { ascending: false })
   .limit(30);
+  const {
+  data: assessmentData,
+  error: assessmentError,
+} = await supabase
+  .from("wellbeing_assessments")
+  .select(`
+    id,
+    created_at,
+    assessment_type,
+    stress,
+    sleep,
+    recovery,
+    energy,
+    mood,
+    focus,
+    burnout
+  `)
+  .eq("profile_key", profileKey)
+  .order("created_at", { ascending: true })
+  .limit(100);
 
-    setBodySignals(Array.isArray(bodyData) ? bodyData : []);
-    setMindEntries(Array.isArray(mindData) ? mindData : []);
-    setJournalEntries(Array.isArray(journalData) ? journalData : []);
+if (assessmentError) {
+  console.error(
+    "INSIGHTS ASSESSMENT LOAD ERROR:",
+    assessmentError
+  );
+}
+
+setBodySignals(Array.isArray(bodyData) ? bodyData : []);
+setMindEntries(Array.isArray(mindData) ? mindData : []);
+setJournalEntries(Array.isArray(journalData) ? journalData : []);
+setAssessments(
+  Array.isArray(assessmentData)
+    ? assessmentData
+    : []
+);
+
+console.log(
+  "INSIGHTS WELLBEING HISTORY:",
+  assessmentData
+);
     try {
   const measurementHistory = await getRootMeasurementHistory({
     limit: 50,
