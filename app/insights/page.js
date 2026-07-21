@@ -49,20 +49,28 @@ export default function InsightsPage() {
   if (!stored) return;
 
   try {
-    const parsed = JSON.parse(stored);
-    setJourney(parsed);
-    const reflection = buildRootReflection({ 
-  bodySignals: bodySignals || [],
-  journalEntries: journalEntries || [],
-  mindEntries: mindEntries || [],
-  journey: parsed || null,
-});
-
-setRootReflection(reflection);
+    setJourney(JSON.parse(stored));
   } catch (err) {
     console.log(err);
   }
 }, []);
+useEffect(() => {
+  if (!journey) return;
+
+  setRootReflection(
+    buildRootReflection({
+      bodySignals,
+      journalEntries,
+      mindEntries,
+      journey,
+    })
+  );
+}, [
+  journey,
+  bodySignals,
+  journalEntries,
+  mindEntries,
+]);
  const loadInsights = async () => {
 
   const profileKey = getCurrentProfileKey();
