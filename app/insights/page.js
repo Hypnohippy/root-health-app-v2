@@ -432,12 +432,16 @@ const wellbeingProgress = useMemo(() => {
          {rootReflection && (
   <div style={styles.heroCard}>
     <p style={styles.heroLabel}>
-      Root reflection
-    </p>
+  Root has noticed...
+</p>
 
     <h2 style={styles.heroTitle}>
-      {rootReflection.title}
-    </h2>
+  {rootReflection.title}
+</h2>
+
+<p style={styles.heroConfidence}>
+  Based on your recent body signals, reflections and wellbeing check-ins.
+</p>
 
     <p style={styles.heroText}>
       {rootReflection.reflection}
@@ -721,6 +725,12 @@ logoWrap: {
     fontSize: "28px",
     lineHeight: "1.35",
   },
+  heroConfidence: {
+  margin: "0 0 18px",
+  fontSize: "13px",
+  color: "rgba(255,255,255,0.68)",
+  letterSpacing: "0.02em",
+},
 
   heroSub: {
     margin: 0,
