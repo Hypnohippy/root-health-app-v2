@@ -7,7 +7,7 @@ const ALLOWED_CATEGORIES = [
   "relationships_and_connection",
   "work_and_environment",
   "identity_and_purpose",
-  "habits_and_behaviour",
+  "habits_and_behaviour", 
   "protective_factors",
 ];
 
