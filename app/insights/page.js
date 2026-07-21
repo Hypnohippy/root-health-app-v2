@@ -451,23 +451,7 @@ const wellbeingProgress = useMemo(() => {
     </a>
   </div>
 )}
-{rootCoreModel && (
-  <div style={styles.heroCard}>
-    <p style={styles.kicker}>
-      Root Core · Live
-    </p>
 
-    <h2 style={styles.cardTitle}>
-      {rootCoreModel.allInsights?.[0]?.title ||
-        rootCoreModel.headline}
-    </h2>
-
-    <p style={styles.heroSub}>
-      {rootCoreModel.allInsights?.[0]?.text ||
-        rootCoreModel.introduction}
-    </p>
-  </div>
-)}
           <div style={styles.grid}>
             <InsightCard
               title="Body signals"
@@ -793,7 +777,7 @@ logoWrap: {
     color: "#777",
     lineHeight: "1.6",
   },
-  
+
   progressSummary: {
   margin: "0 0 8px",
   color: "#666",
