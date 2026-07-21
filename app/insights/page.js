@@ -145,7 +145,7 @@ useEffect(() => {
   .eq("profile_key", profileKey)
   .order("created_at", { ascending: false })
   .limit(30);
-  const {
+ const {
   data: assessmentData,
   error: assessmentError,
 } = await supabase
