@@ -435,9 +435,13 @@ const wellbeingProgress = useMemo(() => {
   Root has noticed...
 </p>
 
-    <h2 style={styles.heroTitle}>
+   <h2 style={styles.heroTitle}>
   {rootReflection.title}
 </h2>
+
+<p style={styles.heroConfidence}>
+  Based on your recent body signals, reflections and wellbeing check-ins.
+</p>
 
 <p style={styles.heroConfidence}>
   Based on your recent body signals, reflections and wellbeing check-ins.
