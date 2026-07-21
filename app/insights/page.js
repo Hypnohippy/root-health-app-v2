@@ -443,9 +443,6 @@ const wellbeingProgress = useMemo(() => {
   Based on your recent body signals, reflections and wellbeing check-ins.
 </p>
 
-<p style={styles.heroConfidence}>
-  Based on your recent body signals, reflections and wellbeing check-ins.
-</p>
 
     <p style={styles.heroText}>
       {rootReflection.reflection}
