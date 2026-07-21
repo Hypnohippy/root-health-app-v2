@@ -94,8 +94,22 @@ setRootReflection(reflection);
   .limit(30);
 
     setBodySignals(Array.isArray(bodyData) ? bodyData : []);
-setMindEntries(Array.isArray(mindData) ? mindData : []);
-setJournalEntries(Array.isArray(journalData) ? journalData : []);
+    setMindEntries(Array.isArray(mindData) ? mindData : []);
+    setJournalEntries(Array.isArray(journalData) ? journalData : []);
+    try {
+  const measurementHistory = await getRootMeasurementHistory({
+    limit: 50,
+  });
+
+  setMeasurements(
+    Array.isArray(measurementHistory)
+      ? measurementHistory
+      : []
+  );
+} catch (error) {
+  console.error("Measurement history could not load:", error);
+  setMeasurements([]);
+}
 
 try {
   const rootModel = await getInsightsPageModel({
