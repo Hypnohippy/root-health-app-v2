@@ -7,6 +7,7 @@ import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { buildRootReflection } from "../../lib/rootReflectionEngine";
 import { getCurrentProfileKey } from "../../lib/currentUser";
+import { getInsightsPageModel } from "../../lib/rootCore/rootInsightEngine";
 
 function countBy(items, key) {
   const counts = {};
@@ -36,6 +37,7 @@ export default function InsightsPage() {
   const [journalEntries, setJournalEntries] = useState([]);
   const [journey, setJourney] = useState(null);
   const [rootReflection, setRootReflection] = useState(null);
+  const [rootCoreModel, setRootCoreModel] = useState(null);
 
  useEffect(() => {
   loadInsights();
@@ -90,9 +92,22 @@ setRootReflection(reflection);
   .limit(30);
 
     setBodySignals(Array.isArray(bodyData) ? bodyData : []);
-    setMindEntries(Array.isArray(mindData) ? mindData : []);
-    setJournalEntries(Array.isArray(journalData) ? journalData : []);
-    setLoading(false);
+setMindEntries(Array.isArray(mindData) ? mindData : []);
+setJournalEntries(Array.isArray(journalData) ? journalData : []);
+
+try {
+  const rootModel = await getInsightsPageModel({
+    limit: 1,
+    includeRecentlyShown: true,
+  });
+
+  setRootCoreModel(rootModel);
+} catch (error) {
+  console.error("Root Insight Engine could not load:", error);
+  setRootCoreModel(null);
+}
+
+setLoading(false);
   };
 
   const insights = useMemo(() => {
@@ -202,6 +217,23 @@ setRootReflection(reflection);
     >
       {rootReflection.suggestedAction.title} →
     </a>
+  </div>
+)}
+{rootCoreModel && (
+  <div style={styles.heroCard}>
+    <p style={styles.kicker}>
+      Root Core · Live
+    </p>
+
+    <h2 style={styles.cardTitle}>
+      {rootCoreModel.allInsights?.[0]?.title ||
+        rootCoreModel.headline}
+    </h2>
+
+    <p style={styles.heroSub}>
+      {rootCoreModel.allInsights?.[0]?.text ||
+        rootCoreModel.introduction}
+    </p>
   </div>
 )}
           <div style={styles.grid}>
