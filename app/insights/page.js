@@ -36,6 +36,7 @@ export default function InsightsPage() {
   const [bodySignals, setBodySignals] = useState([]);
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
+  const [measurements, setMeasurements] = useState([]);
   const [journey, setJourney] = useState(null);
   const [rootReflection, setRootReflection] = useState(null);
   const [rootCoreModel, setRootCoreModel] = useState(null);
