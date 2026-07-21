@@ -280,10 +280,18 @@ setLoading(false);
             />
 
             <InsightCard
-              title="Tools used"
-              empty="No mind tools used yet."
-              rows={insights.toolsUsed}
-            />
+  title="Measured outcomes"
+  empty="No completed measurement cycles yet."
+  rows={countBy(
+    measurements.map((m) => ({
+      outcome:
+        m.construct_label ||
+        m.construct_key ||
+        "Unknown",
+    })),
+    "outcome"
+  )}
+/>
           </div>
 
           <div style={styles.timelinePanel}>
