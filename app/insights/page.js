@@ -623,22 +623,18 @@ function ProgressCard({
   </p>
 ) : (
   progress.rows.map(
-    ([label, movement, direction]) => (
-      <div key={label} style={styles.progressRow}>
-        <span style={styles.progressLabel}>
-          {label}
-        </span>
+  ([label, movement, direction]) => (
+    <div key={label} style={styles.progressRow}>
+      <span style={styles.progressLabel}>
+        {label}
+      </span>
 
-        <span style={styles.progressMovement}>
-          {movement}
-        </span>
-
-        <strong style={styles.progressDirection}>
-          {direction}
-        </strong>
-      </div>
-    )
+      <span style={styles.progressResult}>
+        {movement} · {direction}
+      </span>
+    </div>
   )
+)
 )}
     </div>
   );
@@ -797,40 +793,41 @@ logoWrap: {
     color: "#777",
     lineHeight: "1.6",
   },
+  
   progressSummary: {
-  margin: "0 0 14px",
+  margin: "0 0 8px",
   color: "#666",
-  lineHeight: "1.6",
+  fontSize: "12px",
+  lineHeight: "1.4",
   fontWeight: "700",
 },
 
 progressRow: {
-  display: "grid",
-  gridTemplateColumns:
-    "minmax(120px, 1fr) auto auto",
+  display: "flex",
+  justifyContent: "space-between",
   alignItems: "center",
-  gap: "12px",
-  padding: "9px 0",
+  gap: "10px",
+  padding: "7px 0",
   borderBottom: "1px solid #F0EDE7",
   color: "#333",
+  width: "100%",
+  minWidth: 0,
 },
 
 progressLabel: {
   minWidth: 0,
-  fontSize: "14px",
-},
-
-progressMovement: {
-  color: "#555",
-  fontSize: "14px",
-  whiteSpace: "nowrap",
-},
-
-progressDirection: {
   fontSize: "13px",
-  whiteSpace: "nowrap",
+  lineHeight: "1.35",
 },
 
+progressResult: {
+  flexShrink: 0,
+  color: "#555",
+  fontSize: "12px",
+  lineHeight: "1.35",
+  textAlign: "right",
+  whiteSpace: "nowrap",
+},
 
   timelinePanel: {
   background: "rgba(255,255,255,0.20)",
