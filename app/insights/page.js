@@ -150,18 +150,7 @@ useEffect(() => {
   error: assessmentError,
 } = await supabase
   .from("wellbeing_assessments")
-  .select(`
-    id,
-    created_at,
-    assessment_type,
-    stress,
-    sleep,
-    recovery,
-    energy,
-    mood,
-    focus,
-    burnout
-  `)
+  .select("*")
   .eq("profile_key", profileKey)
   .order("created_at", { ascending: true })
   .limit(100);
@@ -169,7 +158,11 @@ useEffect(() => {
 if (assessmentError) {
   console.error(
     "INSIGHTS ASSESSMENT LOAD ERROR:",
-    assessmentError
+    JSON.stringify(
+      assessmentError,
+      null,
+      2
+    )
   );
 }
 
