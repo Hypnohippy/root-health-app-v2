@@ -108,6 +108,10 @@ useEffect(() => {
   const measurementHistory = await getRootMeasurementHistory({
     limit: 50,
   });
+  console.log(
+  "INSIGHTS MEASUREMENT HISTORY:",
+  measurementHistory
+);
 
   setMeasurements(
     Array.isArray(measurementHistory)
