@@ -134,7 +134,30 @@ try {
 setLoading(false);
   };
 
-  const insights = useMemo(() => {
+    const measurementSummary = useMemo(() => {
+  if (!measurements.length) return null;
+
+  const improved = measurements.filter(
+    (m) => Number(m.improvement_score) > 0
+  ).length;
+
+  const unchanged = measurements.filter(
+    (m) => Number(m.improvement_score) === 0
+  ).length;
+
+  const worsened = measurements.filter(
+    (m) => Number(m.improvement_score) < 0
+  ).length;
+
+  return {
+    improved,
+    unchanged,
+    worsened,
+    total: measurements.length,
+  };
+}, [measurements]);
+
+    const insights = useMemo(() => {
     const commonSignals = countBy(bodySignals, "signal");
     const commonContexts = countBy(bodySignals, "context");
     const emotionalThemes = countBy(journalEntries, "emotional_theme");
