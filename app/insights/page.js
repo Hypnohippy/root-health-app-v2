@@ -246,51 +246,93 @@ const wellbeingProgress = useMemo(() => {
   }
 
   const first = assessments[0];
-  const latest = assessments[assessments.length - 1];
+  const latest =
+    assessments[assessments.length - 1];
 
   const measures = [
-    ["Stress", "stress"],
-    ["Sleep difficulties", "sleep"],
-    ["Recovery difficulty", "recovery"],
-    ["Energy difficulty", "energy"],
-    ["Low mood", "mood"],
-    ["Focus difficulty", "focus"],
-    ["Burnout", "burnout"],
+    {
+      label: "Stress",
+      keys: ["stress", "stress_score"],
+    },
+    {
+      label: "Sleep difficulties",
+      keys: ["sleep", "sleep_score"],
+    },
+    {
+      label: "Recovery difficulty",
+      keys: ["recovery", "recovery_score"],
+    },
+    {
+      label: "Energy difficulty",
+      keys: ["energy", "energy_score"],
+    },
+    {
+      label: "Low mood",
+      keys: ["mood", "mood_score"],
+    },
+    {
+      label: "Focus difficulty",
+      keys: ["focus", "focus_score"],
+    },
+    {
+      label: "Burnout",
+      keys: ["burnout", "burnout_score"],
+    },
   ];
+
+  const readScore = (assessment, keys) => {
+    for (const key of keys) {
+      const value = assessment?.[key];
+
+      if (
+        value !== null &&
+        value !== undefined &&
+        value !== ""
+      ) {
+        const number = Number(value);
+
+        if (Number.isFinite(number)) {
+          return number;
+        }
+      }
+    }
+
+    return null;
+  };
 
   let improved = 0;
   let unchanged = 0;
   let worsened = 0;
 
-  const rows = measures.map(([label, key]) => {
-    const start = Number(first?.[key]);
-    const current = Number(latest?.[key]);
+  const rows = measures
+    .map(({ label, keys }) => {
+      const start = readScore(first, keys);
+      const current = readScore(latest, keys);
 
-    if (
-      Number.isNaN(start) ||
-      Number.isNaN(current)
-    ) {
-      return [label, "No data"];
-    }
+      if (start === null || current === null) {
+        return null;
+      }
 
-    const difference = current - start;
+      const difference = current - start;
 
-    if (difference < 0) improved += 1;
-    if (difference === 0) unchanged += 1;
-    if (difference > 0) worsened += 1;
+      if (difference < 0) improved += 1;
+      if (difference === 0) unchanged += 1;
+      if (difference > 0) worsened += 1;
 
-    const direction =
-      difference < 0
-        ? "Improved"
-        : difference > 0
-          ? "Worsened"
-          : "Unchanged";
+      const direction =
+        difference < 0
+          ? "Improved"
+          : difference > 0
+            ? "Worsened"
+            : "Unchanged";
 
-    return [
-      label,
-      `${start} → ${current} · ${direction}`,
-    ];
-  });
+      return [
+        label,
+        `${start} → ${current}`,
+        direction,
+      ];
+    })
+    .filter(Boolean);
 
   return {
     rows,
@@ -574,12 +616,30 @@ function ProgressCard({
         {progress.worsened} worsened
       </p>
 
-      {progress.rows.map(([label, result]) => (
-        <div key={label} style={styles.progressRow}>
-          <span>{label}</span>
-          <strong>{result}</strong>
-        </div>
-      ))}
+      {progress.rows.length === 0 ? (
+  <p style={styles.emptyText}>
+    Root found your check-ins but could not read
+    their scores yet.
+  </p>
+) : (
+  progress.rows.map(
+    ([label, movement, direction]) => (
+      <div key={label} style={styles.progressRow}>
+        <span style={styles.progressLabel}>
+          {label}
+        </span>
+
+        <span style={styles.progressMovement}>
+          {movement}
+        </span>
+
+        <strong style={styles.progressDirection}>
+          {direction}
+        </strong>
+      </div>
+    )
+  )
+)}
     </div>
   );
 }
@@ -745,12 +805,30 @@ logoWrap: {
 },
 
 progressRow: {
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-  padding: "10px 0",
+  display: "grid",
+  gridTemplateColumns:
+    "minmax(120px, 1fr) auto auto",
+  alignItems: "center",
+  gap: "12px",
+  padding: "9px 0",
   borderBottom: "1px solid #F0EDE7",
   color: "#333",
+},
+
+progressLabel: {
+  minWidth: 0,
+  fontSize: "14px",
+},
+
+progressMovement: {
+  color: "#555",
+  fontSize: "14px",
+  whiteSpace: "nowrap",
+},
+
+progressDirection: {
+  fontSize: "13px",
+  whiteSpace: "nowrap",
 },
 
 
