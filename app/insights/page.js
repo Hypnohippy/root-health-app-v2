@@ -125,26 +125,71 @@ useEffect(() => {
     profileKey
   );
 
-  const { data: bodyData } = await supabase
-      .from("body_signals")
-      .select("*")
-      .eq("profile_key", profileKey)
-      .order("created_at", { ascending: false })
-      .limit(30);
+  const {
+  data: bodyData,
+  error: bodyError,
+} = await supabase
+  .from("body_signals")
+  .select("*")
+  .eq("profile_key", profileKey)
+  .order("created_at", { ascending: false })
+  .limit(30);
 
-    const { data: mindData } = await supabase
+if (bodyError) {
+  console.error(
+    "INSIGHTS BODY SIGNALS ERROR:",
+    bodyError
+  );
+}
+
+console.log(
+  "INSIGHTS BODY SIGNALS:",
+  bodyData
+);
+
+const {
+  data: mindData,
+  error: mindError,
+} = await supabase
   .from("mind_entries")
   .select("*")
   .eq("profile_key", profileKey)
   .order("created_at", { ascending: false })
   .limit(30);
 
-    const { data: journalData } = await supabase
+if (mindError) {
+  console.error(
+    "INSIGHTS MIND ENTRIES ERROR:",
+    mindError
+  );
+}
+
+console.log(
+  "INSIGHTS MIND ENTRIES:",
+  mindData
+);
+
+const {
+  data: journalData,
+  error: journalError,
+} = await supabase
   .from("journal_entries")
   .select("*")
   .eq("profile_key", profileKey)
   .order("created_at", { ascending: false })
   .limit(30);
+
+if (journalError) {
+  console.error(
+    "INSIGHTS JOURNAL ENTRIES ERROR:",
+    journalError
+  );
+}
+
+console.log(
+  "INSIGHTS JOURNAL ENTRIES:",
+  journalData
+);
  const {
   data: assessmentData,
   error: assessmentError,
