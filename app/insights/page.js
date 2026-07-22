@@ -75,44 +75,7 @@ useEffect(() => {
  const loadInsights = async () => {
   let profileKey = getCurrentProfileKey();
 
-  const activeExperience =
-    localStorage.getItem("root_active_experience_v1") ||
-    "personal";
-
-  if (activeExperience === "personal") {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError) {
-      console.error(
-        "INSIGHTS USER IDENTITY ERROR:",
-        userError
-      );
-    }
-
-    if (user) {
-      const {
-        data: personalProfile,
-        error: profileError,
-      } = await supabase
-        .from("profiles")
-        .select("profile_key")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error(
-          "INSIGHTS PERSONAL PROFILE ERROR:",
-          profileError
-        );
-      }
-
-      if (personalProfile?.profile_key) {
-        profileKey = personalProfile.profile_key;
-      }
-    }
+  
   }
 
   if (!profileKey) {
