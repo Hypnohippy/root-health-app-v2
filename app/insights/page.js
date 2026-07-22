@@ -636,12 +636,26 @@ function InsightCard({ title, rows, empty }) {
       {rows.length === 0 ? (
         <p style={styles.emptyText}>{empty}</p>
       ) : (
-        rows.map(([label, count]) => (
-          <div key={label} style={styles.row}>
-            <span>{label}</span>
-            <strong>{count}</strong>
-          </div>
-        ))
+        <>
+          <p style={styles.insightHeadline}>
+            {rows[0][0]}
+          </p>
+
+          <p style={styles.insightNarrative}>
+            {rows[0][0]} has appeared {rows[0][1]}{" "}
+            {rows[0][1] === 1 ? "time" : "times"} recently.
+          </p>
+
+          {rows.length > 1 && (
+            <p style={styles.insightSecondary}>
+              Also noticed:{" "}
+              {rows
+                .slice(1)
+                .map(([label]) => label)
+                .join(", ")}.
+            </p>
+          )}
+        </>
       )}
     </div>
   );
@@ -788,6 +802,27 @@ logoWrap: {
     color: "#777",
     lineHeight: "1.6",
   },
+
+  insightHeadline: {
+  margin: "4px 0 10px",
+  fontSize: "20px",
+  fontWeight: "700",
+  color: "#1A1A1A",
+  textTransform: "capitalize",
+},
+
+insightNarrative: {
+  margin: "0 0 10px",
+  lineHeight: "1.7",
+  color: "#555",
+},
+
+insightSecondary: {
+  margin: 0,
+  fontSize: "13px",
+  color: "#777",
+  lineHeight: "1.6",
+},
 
   progressSummary: {
   margin: "0 0 8px",
