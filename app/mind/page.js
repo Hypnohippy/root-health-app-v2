@@ -5,6 +5,8 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
+import { getRootIdentity } from "../../lib/rootLongitudinalEngine";
+
 const emotionalStates = [
   {
     id: "overthinking",
@@ -425,6 +427,8 @@ function buildNextStep({ situation, automaticThought, emotion }) {
   return `For the next few minutes, treat ${emotion.toLowerCase()} as information rather than instruction. Slow down, reduce pressure, and choose one small grounded action.`;
 }
 export default function MindPage() {
+  const [mindIdentity, setMindIdentity] = useState(null);
+  const [identityLoading, setIdentityLoading] = useState(true);
   const [activeTool, setActiveTool] = useState(null);
   const [activeJourney, setActiveJourney] = useState(null);
   const [journeyStep, setJourneyStep] = useState(0);
@@ -442,6 +446,69 @@ export default function MindPage() {
   const [calmingIndex, setCalmingIndex] = useState(0);
   const [groundingIndex, setGroundingIndex] = useState(0);
   const [bodyIndex, setBodyIndex] = useState(0);
+  
+  useEffect(() => {
+  const loadMindIdentity = async () => {
+    try {
+      const identity = await getRootIdentity();
+
+      if (!identity?.personal?.profileKey) {
+        console.error("MIND IDENTITY ERROR: No personal profile was found.");
+        setMindIdentity(null);
+        setIdentityLoading(false);
+        return;
+      }
+
+      const activeExperience =
+        localStorage.getItem("root_active_experience_v1") || "personal";
+
+      const rememberedOrganisationId =
+        localStorage.getItem("root_active_organisation_v1");
+
+      const allMemberships = Array.isArray(identity.organisations)
+        ? identity.organisations
+        : [];
+
+      const selectedMembership =
+        allMemberships.find(
+          (membership) =>
+            membership.organisation_id === rememberedOrganisationId
+        ) ||
+        identity?.workplace?.activeOrganisation ||
+        allMemberships[0] ||
+        null;
+
+      const profileKey =
+        activeExperience === "workplace" &&
+        selectedMembership?.profile_key
+          ? selectedMembership.profile_key
+          : identity.personal.profileKey;
+
+      const organisationId =
+        selectedMembership?.organisation_id || null;
+
+      setMindIdentity({
+        profileKey,
+        organisationId,
+        activeExperience,
+      });
+
+      console.log("MIND ACTIVE IDENTITY:", {
+        profileKey,
+        organisationId,
+        activeExperience,
+      });
+    } catch (error) {
+      console.error("MIND IDENTITY LOAD ERROR:", error);
+      setMindIdentity(null);
+    } finally {
+      setIdentityLoading(false);
+    }
+  };
+
+  loadMindIdentity();
+}, []);
+
   useEffect(() => {
   const loadRecentStates = async () => {
     const { data } = await supabase
