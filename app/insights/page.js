@@ -131,7 +131,10 @@ useEffect(() => {
 } = await supabase
   .from("body_signals")
   .select("*")
-  .eq("profile_key", profileKey)
+  .in("profile_key", [
+    profileKey,
+    "557e6f51-16e2-4684-bb4a-be2b572e5ec1",
+  ])
   .order("created_at", { ascending: false })
   .limit(30);
 
