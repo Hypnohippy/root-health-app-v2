@@ -88,17 +88,15 @@ useEffect(() => {
     profileKey
   );
 
-  const {
+ const {
   data: bodyData,
   error: bodyError,
 } = await supabase
   .from("body_signals")
   .select("*")
-  .from("body_signals")
-.select("*")
-.eq("profile_key", profileKey)
-.order("created_at", { ascending: false })
-.limit(30);
+  .eq("profile_key", profileKey)
+  .order("created_at", { ascending: false })
+  .limit(30);
 
 if (bodyError) {
   console.error(
