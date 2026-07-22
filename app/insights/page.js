@@ -169,6 +169,53 @@ console.log(
   mindData
 );
 
+const workplaceProfileKey =
+  "557e6f51-16e2-4684-bb4a-be2b572e5ec1";
+
+const {
+  data: workplaceBodyData,
+  error: workplaceBodyError,
+} = await supabase
+  .from("body_signals")
+  .select("*")
+  .eq("profile_key", workplaceProfileKey)
+  .order("created_at", { ascending: false })
+  .limit(30);
+
+const {
+  data: workplaceMindData,
+  error: workplaceMindError,
+} = await supabase
+  .from("mind_entries")
+  .select("*")
+  .eq("profile_key", workplaceProfileKey)
+  .order("created_at", { ascending: false })
+  .limit(30);
+
+console.log(
+  "INSIGHTS WORKPLACE BODY SIGNALS:",
+  workplaceBodyData
+);
+
+console.log(
+  "INSIGHTS WORKPLACE MIND ENTRIES:",
+  workplaceMindData
+);
+
+if (workplaceBodyError) {
+  console.error(
+    "INSIGHTS WORKPLACE BODY ERROR:",
+    workplaceBodyError
+  );
+}
+
+if (workplaceMindError) {
+  console.error(
+    "INSIGHTS WORKPLACE MIND ERROR:",
+    workplaceMindError
+  );
+}
+
 const {
   data: journalData,
   error: journalError,
@@ -190,6 +237,58 @@ console.log(
   "INSIGHTS JOURNAL ENTRIES:",
   journalData
 );
+
+const workplaceProfileKey =
+  rootIdentity?.workplace?.activeOrganisation?.profile_key;
+
+if (
+  workplaceProfileKey &&
+  workplaceProfileKey !== profileKey
+) {
+  const {
+    data: workplaceBodyData,
+    error: workplaceBodyError,
+  } = await supabase
+    .from("body_signals")
+    .select("*")
+    .eq("profile_key", workplaceProfileKey)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  const {
+    data: workplaceMindData,
+    error: workplaceMindError,
+  } = await supabase
+    .from("mind_entries")
+    .select("*")
+    .eq("profile_key", workplaceProfileKey)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  console.log(
+    "INSIGHTS WORKPLACE BODY SIGNALS:",
+    workplaceBodyData
+  );
+
+  console.log(
+    "INSIGHTS WORKPLACE MIND ENTRIES:",
+    workplaceMindData
+  );
+
+  if (workplaceBodyError) {
+    console.error(
+      "INSIGHTS WORKPLACE BODY ERROR:",
+      workplaceBodyError
+    );
+  }
+
+  if (workplaceMindError) {
+    console.error(
+      "INSIGHTS WORKPLACE MIND ERROR:",
+      workplaceMindError
+    );
+  }
+}
  const {
   data: assessmentData,
   error: assessmentError,
