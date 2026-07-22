@@ -510,23 +510,40 @@ export default function MindPage() {
 }, []);
 
   useEffect(() => {
+  if (!mindIdentity?.profileKey) return;
+
   const loadRecentStates = async () => {
-    const { data } = await supabase
+    const { data, error: recentError } = await supabase
       .from("mind_entries")
       .select("emotion")
+      .eq("profile_key", mindIdentity.profileKey)
       .eq("tool", "Emotional check-in")
       .order("created_at", { ascending: false })
       .limit(12);
-const { data: recoveryData } = await supabase
-  .from("mind_entries")
-  .select("*")
-  .eq("tool", "Panic Reset Journey")
-  .order("created_at", { ascending: false })
-  .limit(20);
 
-if (Array.isArray(recoveryData)) {
-  setRecoveryEntries(recoveryData);
-}
+    if (recentError) {
+      console.error("MIND RECENT STATES ERROR:", recentError);
+    }
+
+    const {
+      data: recoveryData,
+      error: recoveryError,
+    } = await supabase
+      .from("mind_entries")
+      .select("*")
+      .eq("profile_key", mindIdentity.profileKey)
+      .eq("tool", "Panic Reset Journey")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (recoveryError) {
+      console.error("MIND RECOVERY HISTORY ERROR:", recoveryError);
+    }
+
+    if (Array.isArray(recoveryData)) {
+      setRecoveryEntries(recoveryData);
+    }
+
     if (Array.isArray(data)) {
       setRecentStates(
         data
@@ -537,7 +554,7 @@ if (Array.isArray(recoveryData)) {
   };
 
   loadRecentStates();
-}, []);
+}, [mindIdentity]);
 
   const [situation, setSituation] = useState("");
   const [automaticThought, setAutomaticThought] = useState("");
@@ -683,27 +700,42 @@ const generatedReframe = buildReframe({
   };
 
   const saveEntry = async (entry) => {
-    setSaving(true);
+  if (!mindIdentity?.profileKey) {
+    alert(
+      "Root could not identify the active profile. Please refresh the page and try again."
+    );
+    return false;
+  }
 
-    const { error } = await supabase.from("mind_entries").insert([
-     {
-  profile_key: "main",
-  outcome_label: entry.outcome_label || "",
-  outcome_score:
-    typeof entry.outcome_score === "number" ? entry.outcome_score : null,
-  ...entry,
-}
+  setSaving(true);
+
+  const { error } = await supabase
+    .from("mind_entries")
+    .insert([
+      {
+        ...entry,
+        profile_key: mindIdentity.profileKey,
+        organisation_id:
+          mindIdentity.organisationId || null,
+        outcome_label: entry.outcome_label || "",
+        outcome_score:
+          typeof entry.outcome_score === "number"
+            ? entry.outcome_score
+            : null,
+      },
     ]);
 
-    setSaving(false);
+  setSaving(false);
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+  if (error) {
+    console.error("MIND SAVE ERROR:", error);
+    alert(error.message);
+    return false;
+  }
 
-    setSaved(true);
-  };
+  setSaved(true);
+  return true;
+};
 
   const saveCbt = async () => {
   if (!reframe) return;
@@ -844,22 +876,32 @@ const generatedReframe = buildReframe({
 
         setBaselineScore(String(score));
 
-        const { error } = await supabase
-          .from("mind_entries")
-          .insert([
-            {
-              profile_key: "main",
-              tool: "Root Measurement — Before",
-              situation: activeState.title,
-              automatic_thought: "",
-              emotion: activeState.id,
-              intensity: String(score),
-              reframe: activeState.suggestion,
-              next_step: activeState.pathways.join(", "),
-              outcome_label: "before_intervention",
-              outcome_score: Number(score),
-            },
-          ]);
+       if (!mindIdentity?.profileKey) {
+  alert(
+    "Root could not identify the active profile. Please refresh the page and try again."
+  );
+  setBaselineScore("");
+  return;
+}
+
+const { error } = await supabase
+  .from("mind_entries")
+  .insert([
+    {
+      profile_key: mindIdentity.profileKey,
+      organisation_id:
+        mindIdentity.organisationId || null,
+      tool: "Root Measurement — Before",
+      situation: activeState.title,
+      automatic_thought: "",
+      emotion: activeState.id,
+      intensity: String(score),
+      reframe: activeState.suggestion,
+      next_step: activeState.pathways.join(", "),
+      outcome_label: "before_intervention",
+      outcome_score: Number(score),
+    },
+  ]);
 
         if (error) {
           alert(error.message);
