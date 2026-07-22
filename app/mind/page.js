@@ -450,56 +450,100 @@ export default function MindPage() {
   useEffect(() => {
   const loadMindIdentity = async () => {
     try {
-      const identity = await getRootIdentity();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      if (!identity?.personal?.profileKey) {
-        console.error("MIND IDENTITY ERROR: No personal profile was found.");
+      if (userError) {
+        throw userError;
+      }
+
+      if (!user) {
+        console.error("MIND IDENTITY ERROR: No signed-in user.");
         setMindIdentity(null);
-        setIdentityLoading(false);
+        return;
+      }
+
+      const storedProfileKey =
+        localStorage.getItem("root_profile_key_v1");
+
+      if (!storedProfileKey || storedProfileKey === "main") {
+        console.error(
+          "MIND IDENTITY ERROR: No valid active profile key.",
+          storedProfileKey
+        );
+        setMindIdentity(null);
         return;
       }
 
       const activeExperience =
-        localStorage.getItem("root_active_experience_v1") || "personal";
+        localStorage.getItem("root_active_experience_v1") ||
+        "personal";
 
       const rememberedOrganisationId =
         localStorage.getItem("root_active_organisation_v1");
 
-      const allMemberships = Array.isArray(identity.organisations)
-        ? identity.organisations
-        : [];
+      const {
+        data: memberships,
+        error: membershipError,
+      } = await supabase
+        .from("organisation_members")
+        .select("organisation_id, profile_key, role")
+        .eq("user_id", user.id);
+
+      if (membershipError) {
+        console.error(
+          "MIND MEMBERSHIP ERROR:",
+          membershipError
+        );
+      }
+
+      const membershipList =
+        Array.isArray(memberships)
+          ? memberships
+          : [];
+
+      const matchingProfileMembership =
+        membershipList.find(
+          (membership) =>
+            membership.profile_key === storedProfileKey
+        ) || null;
+
+      const rememberedMembership =
+        membershipList.find(
+          (membership) =>
+            membership.organisation_id ===
+            rememberedOrganisationId
+        ) || null;
 
       const selectedMembership =
-        allMemberships.find(
-          (membership) =>
-            membership.organisation_id === rememberedOrganisationId
-        ) ||
-        identity?.workplace?.activeOrganisation ||
-        allMemberships[0] ||
+        matchingProfileMembership ||
+        rememberedMembership ||
+        membershipList[0] ||
         null;
-
-      const profileKey =
-        activeExperience === "workplace" &&
-        selectedMembership?.profile_key
-          ? selectedMembership.profile_key
-          : identity.personal.profileKey;
 
       const organisationId =
         selectedMembership?.organisation_id || null;
 
       setMindIdentity({
-        profileKey,
+        userId: user.id,
+        profileKey: storedProfileKey,
         organisationId,
         activeExperience,
       });
 
       console.log("MIND ACTIVE IDENTITY:", {
-        profileKey,
+        userId: user.id,
+        profileKey: storedProfileKey,
         organisationId,
         activeExperience,
       });
     } catch (error) {
-      console.error("MIND IDENTITY LOAD ERROR:", error);
+      console.error(
+        "MIND IDENTITY LOAD ERROR:",
+        error
+      );
       setMindIdentity(null);
     } finally {
       setIdentityLoading(false);
