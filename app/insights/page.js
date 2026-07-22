@@ -75,9 +75,6 @@ useEffect(() => {
  const loadInsights = async () => {
   let profileKey = getCurrentProfileKey();
 
-  
-  }
-
   if (!profileKey) {
     setLoading(false);
     return;
