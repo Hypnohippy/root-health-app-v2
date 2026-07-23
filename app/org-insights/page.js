@@ -1791,12 +1791,65 @@ We look forward to welcoming you.
     </div>
   </div>
 
-  <button
+ <button
   style={styles.reportButton}
-  onClick={() => window.open("/explore-approaches", "_self")}
+  onClick={() => {
+    const readText = (value) => {
+      if (!value) return "";
+
+      if (typeof value === "string") {
+        return value;
+      }
+
+      return (
+        value.title ||
+        value.label ||
+        value.name ||
+        value.summary ||
+        value.text ||
+        ""
+      );
+    };
+
+    const theme = readText(
+      snapshot?.recommendedFocus ||
+        snapshot?.primaryConcern ||
+        snapshot?.dominantTheme ||
+        snapshot?.priorityTheme
+    );
+
+    const confidence = readText(
+      snapshot?.confidenceLevel ||
+        snapshot?.confidence
+    );
+
+    const evidence = readText(
+      snapshot?.rootHypothesis ||
+        snapshot?.recommendedInsight ||
+        snapshot?.executiveSummary
+    );
+
+    const organisationName = readText(
+      organisation?.name ||
+        snapshot?.organisationName
+    );
+
+    const params = new URLSearchParams({
+      theme: theme || "baseline",
+      confidence: confidence || "developing",
+      evidence,
+      organisation: organisationName,
+    });
+
+    window.open(
+      `/explore-approaches?${params.toString()}`,
+      "_self"
+    );
+  }}
 >
   Explore This Recommendation
-</button></div>
+</button>
+</div>
   <button
     style={styles.reportButton}
     onClick={() => window.open("/executive-review?print=1", "_blank")}
