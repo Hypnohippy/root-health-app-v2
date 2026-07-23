@@ -1117,7 +1117,7 @@ We look forward to welcoming you.
         <div style={styles.participantRow}>
           <div>
             <div style={styles.participantDept}>
-              Followed up
+              Repeat Check-ins
             </div>
 
             <strong style={{ fontSize: "26px" }}>
@@ -1125,10 +1125,10 @@ We look forward to welcoming you.
             </strong>
 
             <div style={styles.participantDept}>
-              {snapshot.participation.followUpRate !== null
-                ? `${snapshot.participation.followUpRate}% follow-up`
-                : "No completed baselines"}
-            </div>
+  {snapshot.participation.followUpRate !== null
+    ? `${snapshot.participation.followUpRate}% returned for another check-in`
+    : "No repeat check-ins yet"}
+</div>
           </div>
         </div>
 
