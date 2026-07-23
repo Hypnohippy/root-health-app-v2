@@ -491,6 +491,10 @@ const snapshot = buildOrganisationSnapshot({
   journalEntries,
   voiceSessions,
 });
+const organisationName =
+  snapshot?.organisation?.name ||
+  organisation?.name ||
+  "Enrolled Organisation";
 
 const {
   analysisStage = {
