@@ -560,7 +560,72 @@ const recommendation =
 const maturity =
   communication.maturity || {};
 
-const hasComparison = assessments.length > 1;
+const {
+  participation = {},
+  baselineScore = null,
+  currentScore = null,
+  metricResults = [],
+  trendRows = [],
+  mostImproved = null,
+  highRiskMetric = null,
+  mostCommonTheme = "No challenge data yet",
+  supportInteractions = 0,
+  confidenceScore = 0,
+  confidenceLabel = "Early",
+} = snapshot;
+
+const activated =
+  Number(
+    participation.activated ??
+      snapshot.activated ??
+      members.filter((member) => member.activated_at).length
+  ) || 0;
+
+const stressMetric = metricResults.find(
+  (item) => item.label === "Stress"
+);
+
+const burnoutMetric = metricResults.find(
+  (item) => item.label === "Burnout"
+);
+
+const sleepMetric = metricResults.find(
+  (item) => item.label === "Sleep difficulty"
+);
+
+const recoveryMetric = metricResults.find(
+  (item) => item.label === "Recovery difficulty"
+);
+
+const stressChangePercent = changePercent(
+  stressMetric?.matchedStart ?? stressMetric?.start,
+  stressMetric?.matchedCurrent ?? stressMetric?.current
+);
+
+const burnoutChangePercent = changePercent(
+  burnoutMetric?.matchedStart ?? burnoutMetric?.start,
+  burnoutMetric?.matchedCurrent ?? burnoutMetric?.current
+);
+
+const highestMeasured =
+  highRiskMetric ||
+  [...metricResults]
+    .filter(
+      (item) =>
+        item.current !== null &&
+        item.current !== undefined &&
+        !Number.isNaN(Number(item.current))
+    )
+    .sort(
+      (a, b) =>
+        Number(b.current) - Number(a.current)
+    )[0] ||
+  null;
+
+const hasComparison =
+  Number(participation.matchedParticipants || 0) > 0 ||
+  assessments.length > 1;
+
 return (
   <main style={styles.page}>
     <style>{`
