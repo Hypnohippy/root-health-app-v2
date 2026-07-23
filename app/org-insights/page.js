@@ -209,7 +209,333 @@ function scoreFromAssessments(items) {
 
   return Math.round(100 - avgLoad * 10);
 }
+function normaliseOrganisationTheme(value = "") {
+  const text = String(value).trim().toLowerCase();
 
+  if (
+    text.includes("burnout") ||
+    text.includes("exhaust") ||
+    text.includes("overwhelm")
+  ) {
+    return "burnout";
+  }
+
+  if (
+    text.includes("sleep") ||
+    text.includes("fatigue") ||
+    text.includes("tired")
+  ) {
+    return "sleep";
+  }
+
+  if (
+    text.includes("recovery") ||
+    text.includes("recover")
+  ) {
+    return "recovery";
+  }
+
+  if (
+    text.includes("mood") ||
+    text.includes("emotion") ||
+    text.includes("emotional")
+  ) {
+    return "mood";
+  }
+
+  if (
+    text.includes("focus") ||
+    text.includes("concentration") ||
+    text.includes("mental load")
+  ) {
+    return "focus";
+  }
+
+  if (
+    text.includes("energy") ||
+    text.includes("drained")
+  ) {
+    return "energy";
+  }
+
+  if (
+    text.includes("stress") ||
+    text.includes("pressure") ||
+    text.includes("strain") ||
+    text.includes("workplace")
+  ) {
+    return "stress";
+  }
+
+  return "baseline";
+}
+
+const ORGANISATIONAL_RESPONSES = {
+  stress: [
+    {
+      title: "Manager Awareness Session",
+      description:
+        "Helping managers recognise pressure, workload strain and early warning signs.",
+    },
+    {
+      title: "Pressure & Performance Briefing",
+      description:
+        "Exploring sustainable performance without increasing burnout risk.",
+    },
+    {
+      title: "Workforce Resilience Workshop",
+      description:
+        "Practical approaches employees can use to manage pressure and maintain recovery.",
+    },
+    {
+      title: "Leadership Briefing",
+      description:
+        "A leadership discussion exploring workforce pressure, organisational risk and proportionate responses.",
+    },
+  ],
+
+  burnout: [
+    {
+      title: "Recovery & Resilience Workshop",
+      description:
+        "Helping employees recognise cumulative strain and build practical recovery habits.",
+    },
+    {
+      title: "Burnout Prevention Session",
+      description:
+        "Exploring the early signs of burnout and how sustained pressure develops over time.",
+    },
+    {
+      title: "Manager Early-Warning Training",
+      description:
+        "Helping managers notice changes in capacity, energy and sustainable performance.",
+    },
+    {
+      title: "Leadership Risk Briefing",
+      description:
+        "Examining burnout risk, workload conditions and appropriate organisational responses.",
+    },
+  ],
+
+  recovery: [
+    {
+      title: "Recovery & Resilience Workshop",
+      description:
+        "Practical strategies supporting restoration, energy and sustainable wellbeing.",
+    },
+    {
+      title: "Manager Awareness Session",
+      description:
+        "Helping managers understand how limited recovery can affect workforce capacity.",
+    },
+    {
+      title: "Wellbeing Education",
+      description:
+        "Building practical understanding of recovery, pressure and nervous-system regulation.",
+    },
+    {
+      title: "Internal Recovery Initiative",
+      description:
+        "A focused internal campaign encouraging realistic recovery practices.",
+    },
+  ],
+
+  sleep: [
+    {
+      title: "Sleep & Recovery Workshop",
+      description:
+        "Exploring the relationship between sleep, fatigue, pressure and recovery.",
+    },
+    {
+      title: "Fatigue Awareness Session",
+      description:
+        "Helping employees and managers recognise fatigue and its effect on performance.",
+    },
+    {
+      title: "Manager Briefing",
+      description:
+        "Supporting managers to identify patterns associated with depleted capacity.",
+    },
+    {
+      title: "Workforce Wellbeing Education",
+      description:
+        "Practical education around healthier and more realistic recovery habits.",
+    },
+  ],
+
+  mood: [
+    {
+      title: "Emotional Resilience Workshop",
+      description:
+        "Helping employees understand emotional load and develop practical regulation strategies.",
+    },
+    {
+      title: "Manager Awareness Session",
+      description:
+        "Helping managers recognise emotional strain and respond appropriately.",
+    },
+    {
+      title: "Wellbeing Education",
+      description:
+        "Improving understanding of mood, resilience and psychological recovery.",
+    },
+    {
+      title: "Leadership Briefing",
+      description:
+        "Exploring anonymous mood patterns and proportionate organisational support.",
+    },
+  ],
+
+  energy: [
+    {
+      title: "Energy & Recovery Workshop",
+      description:
+        "Exploring the relationship between workload, energy and sustainable performance.",
+    },
+    {
+      title: "Pressure & Performance Briefing",
+      description:
+        "Helping employees maintain performance without allowing pressure to become depletion.",
+    },
+    {
+      title: "Manager Awareness Session",
+      description:
+        "Helping managers recognise reduced capacity and accumulating strain.",
+    },
+    {
+      title: "Internal Wellbeing Initiative",
+      description:
+        "A focused initiative encouraging practical energy and recovery habits.",
+    },
+  ],
+
+  focus: [
+    {
+      title: "Mental Load & Focus Session",
+      description:
+        "Exploring cognitive load, competing priorities and practical ways to restore clarity.",
+    },
+    {
+      title: "Manager Development",
+      description:
+        "Helping managers understand how workload and pressure can affect concentration.",
+    },
+    {
+      title: "Pressure & Performance Briefing",
+      description:
+        "Supporting sustainable performance during periods of high mental demand.",
+    },
+    {
+      title: "Leadership Briefing",
+      description:
+        "Examining workload, prioritisation and organisational conditions affecting focus.",
+    },
+  ],
+
+  baseline: [
+    {
+      title: "Workforce Insight Briefing",
+      description:
+        "Reviewing participation, measurement and the development of a reliable wellbeing baseline.",
+    },
+    {
+      title: "Participation Initiative",
+      description:
+        "Encouraging sufficient anonymous engagement to strengthen organisational insight.",
+    },
+    {
+      title: "Manager Awareness Session",
+      description:
+        "Helping managers understand the purpose of anonymous wellbeing measurement.",
+    },
+    {
+      title: "Leadership Briefing",
+      description:
+        "Clarifying what the current evidence supports and what should be measured next.",
+    },
+  ],
+};
+
+function buildOrganisationalRecommendation({
+  primaryConcern,
+  recommendedFocus,
+  mostCommonTheme,
+  confidenceLabel,
+  confidenceReasons,
+  rootHypothesis,
+  recommendedInsight,
+  initiative,
+}) {
+  const rawTheme =
+    recommendedFocus ||
+    primaryConcern ||
+    mostCommonTheme ||
+    "Developing Workforce Baseline";
+
+  const themeKey = normaliseOrganisationTheme(rawTheme);
+
+  const fallbackExplanation =
+    themeKey === "baseline"
+      ? "Root is still gathering sufficient repeat evidence to identify a reliable workforce pattern."
+      : `${rawTheme} is currently emerging as the strongest anonymous workforce pattern. Continued check-ins will help Root determine whether this represents sustained organisational movement.`;
+
+  const insight = {
+    title:
+      recommendedInsight?.title ||
+      "Building a reliable workforce wellbeing baseline",
+
+    reason:
+      recommendedInsight?.reason ||
+      fallbackExplanation,
+
+    slug:
+      recommendedInsight?.slug ||
+      "building-a-reliable-workforce-wellbeing-baseline",
+  };
+
+  return {
+    themeKey,
+    themeLabel: rawTheme,
+    confidence: confidenceLabel || "Developing",
+
+    explanation:
+      insight.reason ||
+      rootHypothesis ||
+      fallbackExplanation,
+
+    hypothesis:
+      rootHypothesis ||
+      "Root is continuing to gather evidence before forming a stronger organisational hypothesis.",
+
+    evidence:
+      Array.isArray(confidenceReasons)
+        ? confidenceReasons
+        : [],
+
+    insight,
+
+    initiative: {
+      key: initiative?.key || themeKey,
+
+      title:
+        initiative?.title ||
+        ORGANISATIONAL_RESPONSES[themeKey]?.[0]?.title ||
+        "Workforce Insight Briefing",
+
+      reason:
+        initiative?.reason ||
+        fallbackExplanation,
+
+      expectedOutcome:
+        initiative?.expectedOutcome ||
+        "Greater clarity, stronger participation and more confident organisational decision-making.",
+    },
+
+    responses:
+      ORGANISATIONAL_RESPONSES[themeKey] ||
+      ORGANISATIONAL_RESPONSES.baseline,
+  };
+}
 function ExecutiveCard({ label, value, detail }) {
     return (
     <div style={styles.executiveCard}>
