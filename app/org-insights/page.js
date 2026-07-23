@@ -1045,70 +1045,166 @@ We look forward to welcoming you.
           ) : (
             <>
             <section style={styles.executiveBrief}>
-            <section style={styles.participantsCard}>
-
+          <section style={styles.participantsCard}>
   <div style={styles.panelHeader}>
     <div>
-      <p style={styles.panelLabel}>Pilot Participants</p>
+      <p style={styles.panelLabel}>Anonymous Participation</p>
 
       <h2 style={styles.panelTitle}>
-        {members.length} participant{members.length === 1 ? "" : "s"}
+        Workforce participation overview
       </h2>
     </div>
   </div>
 
-  {members.length === 0 ? (
-
+  {!snapshot?.participation ? (
     <p style={styles.panelDescription}>
-      No pilot participants are showing yet. Once employees complete the organisation profile step, they will appear here with their activation and baseline status.
+      Participation information is still being prepared.
     </p>
-
   ) : (
-
     <div style={styles.participantList}>
+      <div style={styles.participantRow}>
+        <div>
+          <strong>Invited</strong>
 
-      {members.map((member, index) => (
-
-  <div
-    key={member.id}
-    style={styles.participantRow}
-  >
-
-    <div>
-
-      <strong>
-        Participant {index + 1}
-      </strong>
-
-      <div style={styles.participantDept}>
-        {member.department ? "Department recorded" : "Department not recorded"}
-      </div>
-
-    </div>
-
-    <div style={styles.participantStatus}>
-
-            <span>
-              {member.activated_at ? "🟢 Joined" : "🟡 Invited"}
-            </span>
-
-            <span>
-              {member.baseline_completed_at
-                ? "✅ Baseline Complete"
-                : "⏳ Baseline Outstanding"}
-            </span>
-
+          <div style={styles.participantDept}>
+            Employees invited to participate
           </div>
-
         </div>
 
-      ))}
+        <div style={styles.participantStatus}>
+          <strong>{snapshot.participation.invited}</strong>
+        </div>
+      </div>
 
+      <div style={styles.participantRow}>
+        <div>
+          <strong>Joined</strong>
+
+          <div style={styles.participantDept}>
+            Employees who activated their Root profile
+          </div>
+        </div>
+
+        <div style={styles.participantStatus}>
+          <strong>{snapshot.participation.joined}</strong>
+
+          <span>
+            {snapshot.participation.participationRate !== null
+              ? `${snapshot.participation.participationRate}% participation`
+              : "Awaiting invitations"}
+          </span>
+        </div>
+      </div>
+
+      <div style={styles.participantRow}>
+        <div>
+          <strong>Baseline completed</strong>
+
+          <div style={styles.participantDept}>
+            Participants with a completed starting assessment
+          </div>
+        </div>
+
+        <div style={styles.participantStatus}>
+          <strong>{snapshot.participation.baselineCompleted}</strong>
+
+          <span>
+            {snapshot.participation.baselineCompletionRate !== null
+              ? `${snapshot.participation.baselineCompletionRate}% completion`
+              : "Awaiting participation"}
+          </span>
+        </div>
+      </div>
+
+      <div style={styles.participantRow}>
+        <div>
+          <strong>Follow-up journeys</strong>
+
+          <div style={styles.participantDept}>
+            Participants with a baseline and latest check-in
+          </div>
+        </div>
+
+        <div style={styles.participantStatus}>
+          <strong>{snapshot.participation.matchedParticipants}</strong>
+
+          <span>
+            {snapshot.participation.followUpRate !== null
+              ? `${snapshot.participation.followUpRate}% followed up`
+              : "No completed baselines yet"}
+          </span>
+        </div>
+      </div>
+
+      <div style={styles.participantRow}>
+        <div>
+          <strong>Awaiting follow-up</strong>
+
+          <div style={styles.participantDept}>
+            Participants currently represented by baseline data only
+          </div>
+        </div>
+
+        <div style={styles.participantStatus}>
+          <strong>
+            {snapshot.participation.baselineOnlyParticipants}
+          </strong>
+        </div>
+      </div>
+
+      <div style={styles.participantRow}>
+        <div>
+          <strong>Departments represented</strong>
+
+          <div style={styles.participantDept}>
+            Anonymous organisational coverage
+          </div>
+        </div>
+
+        <div style={styles.participantStatus}>
+          <strong>
+            {snapshot.participation.departmentsRepresented}
+          </strong>
+        </div>
+      </div>
+
+      <div style={styles.participantRow}>
+        <div>
+          <strong>Participant movement</strong>
+
+          <div style={styles.participantDept}>
+            Anonymous baseline-to-follow-up outcomes
+          </div>
+        </div>
+
+        <div style={styles.participantStatus}>
+          {snapshot.participation.outcomeSuppressed ? (
+            <span>
+              Available once at least{" "}
+              {snapshot.participation.privacyMinimum} matched journeys
+              have been completed
+            </span>
+          ) : (
+            <>
+              <span>
+                ↑ {snapshot.participation.improvedParticipants} improved
+              </span>
+
+              <span>
+                → {snapshot.participation.stableParticipants} stable
+              </span>
+
+              <span>
+                ↓ {snapshot.participation.worsenedParticipants} worsened
+              </span>
+            </>
+          )}
+        </div>
+      </div>
     </div>
-
   )}
-
 </section>
+
   <p style={styles.panelLabel}>Root Executive Brief</p>
 
   <div style={styles.briefTopLine}>
