@@ -499,6 +499,7 @@ const {
     description:
       "Root has established the organisation's starting wellbeing profile. Recommendations are based on the current workforce picture rather than measured change.",
   },
+
   executiveNarrative = {
     overview:
       "Root is establishing the organisation's current wellbeing picture.",
@@ -527,7 +528,27 @@ const {
     closingSummary:
       "This report establishes the organisation's initial wellbeing position.",
   },
+
+  communication = {},
 } = snapshot;
+
+const executive =
+  communication.executive || {};
+
+const currentPicture =
+  communication.currentPicture || "";
+
+const movement =
+  communication.movement || {};
+
+const interpretation =
+  communication.interpretation || {};
+
+const recommendation =
+  communication.recommendation || {};
+
+const maturity =
+  communication.maturity || {};
 
 const organisationName = organisation?.name || "Enrolled Organisation";
 
@@ -817,8 +838,15 @@ return (
 
       <div style={styles.insightPanel}>
         <h3>Executive summary</h3>
-        <p>{executiveNarrative.overview}</p>
-        <p>{executiveNarrative.numbersSuggest}</p>
+
+<p>
+  {executive.summary || executiveNarrative.overview}
+</p>
+
+<p>
+  {executive.evidenceStrength ||
+    executiveNarrative.numbersSuggest}
+</p>
       </div>
     </section>
 
