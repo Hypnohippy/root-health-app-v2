@@ -1273,9 +1273,14 @@ const rootWeeklyInterpretation =
   📋 Copy Join Link
 </button>
 
-      <button style={styles.controlButton}>
-        📄 Executive Report
-      </button>
+      <button
+  style={styles.controlButton}
+  onClick={() =>
+    window.open("/executive-review?print=1", "_blank")
+  }
+>
+  📄 View Executive Report
+</button>
 
       <button
   style={styles.controlButton}
