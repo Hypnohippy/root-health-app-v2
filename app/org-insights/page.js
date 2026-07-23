@@ -499,7 +499,9 @@ function buildOrganisationalRecommendation({
     confidence: confidenceLabel || "Developing",
 
     explanation:
-      insight.reason ||
+      themeKey !== "baseline"
+    ? fallbackExplanation
+    : insight.reason ||
       rootHypothesis ||
       fallbackExplanation,
 
