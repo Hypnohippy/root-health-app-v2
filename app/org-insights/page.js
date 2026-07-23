@@ -1061,128 +1061,125 @@ We look forward to welcoming you.
       Participation information is still being prepared.
     </p>
   ) : (
-    <div style={styles.participantList}>
-      <div style={styles.participantRow}>
-        <div>
-          <strong>Invited</strong>
+    <>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+          gap: "12px",
+          marginTop: "20px",
+        }}
+      >
+        <div style={styles.participantRow}>
+          <div>
+            <div style={styles.participantDept}>Invited</div>
 
-          <div style={styles.participantDept}>
-            Employees invited to participate
+            <strong style={{ fontSize: "26px" }}>
+              {snapshot.participation.invited}
+            </strong>
           </div>
         </div>
 
-        <div style={styles.participantStatus}>
-          <strong>{snapshot.participation.invited}</strong>
+        <div style={styles.participantRow}>
+          <div>
+            <div style={styles.participantDept}>Joined</div>
+
+            <strong style={{ fontSize: "26px" }}>
+              {snapshot.participation.joined}
+            </strong>
+
+            <div style={styles.participantDept}>
+              {snapshot.participation.participationRate !== null
+                ? `${snapshot.participation.participationRate}% participation`
+                : "Awaiting invitations"}
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div>
+            <div style={styles.participantDept}>
+              Baseline complete
+            </div>
+
+            <strong style={{ fontSize: "26px" }}>
+              {snapshot.participation.baselineCompleted}
+            </strong>
+
+            <div style={styles.participantDept}>
+              {snapshot.participation.baselineCompletionRate !== null
+                ? `${snapshot.participation.baselineCompletionRate}% completion`
+                : "Awaiting participation"}
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div>
+            <div style={styles.participantDept}>
+              Followed up
+            </div>
+
+            <strong style={{ fontSize: "26px" }}>
+              {snapshot.participation.matchedParticipants}
+            </strong>
+
+            <div style={styles.participantDept}>
+              {snapshot.participation.followUpRate !== null
+                ? `${snapshot.participation.followUpRate}% follow-up`
+                : "No completed baselines"}
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div>
+            <div style={styles.participantDept}>
+              Awaiting follow-up
+            </div>
+
+            <strong style={{ fontSize: "26px" }}>
+              {snapshot.participation.baselineOnlyParticipants}
+            </strong>
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div>
+            <div style={styles.participantDept}>
+              Departments
+            </div>
+
+            <strong style={{ fontSize: "26px" }}>
+              {snapshot.participation.departmentsRepresented}
+            </strong>
+          </div>
         </div>
       </div>
 
-      <div style={styles.participantRow}>
-        <div>
-          <strong>Joined</strong>
+      <div
+        style={{
+          marginTop: "16px",
+          padding: "16px",
+          borderRadius: "14px",
+          border: "1px solid rgba(255, 255, 255, 0.10)",
+        }}
+      >
+        <strong>Participant movement</strong>
 
-          <div style={styles.participantDept}>
-            Employees who activated their Root profile
-          </div>
-        </div>
-
-        <div style={styles.participantStatus}>
-          <strong>{snapshot.participation.joined}</strong>
-
-          <span>
-            {snapshot.participation.participationRate !== null
-              ? `${snapshot.participation.participationRate}% participation`
-              : "Awaiting invitations"}
-          </span>
-        </div>
-      </div>
-
-      <div style={styles.participantRow}>
-        <div>
-          <strong>Baseline completed</strong>
-
-          <div style={styles.participantDept}>
-            Participants with a completed starting assessment
-          </div>
-        </div>
-
-        <div style={styles.participantStatus}>
-          <strong>{snapshot.participation.baselineCompleted}</strong>
-
-          <span>
-            {snapshot.participation.baselineCompletionRate !== null
-              ? `${snapshot.participation.baselineCompletionRate}% completion`
-              : "Awaiting participation"}
-          </span>
-        </div>
-      </div>
-
-      <div style={styles.participantRow}>
-        <div>
-          <strong>Follow-up journeys</strong>
-
-          <div style={styles.participantDept}>
-            Participants with a baseline and latest check-in
-          </div>
-        </div>
-
-        <div style={styles.participantStatus}>
-          <strong>{snapshot.participation.matchedParticipants}</strong>
-
-          <span>
-            {snapshot.participation.followUpRate !== null
-              ? `${snapshot.participation.followUpRate}% followed up`
-              : "No completed baselines yet"}
-          </span>
-        </div>
-      </div>
-
-      <div style={styles.participantRow}>
-        <div>
-          <strong>Awaiting follow-up</strong>
-
-          <div style={styles.participantDept}>
-            Participants currently represented by baseline data only
-          </div>
-        </div>
-
-        <div style={styles.participantStatus}>
-          <strong>
-            {snapshot.participation.baselineOnlyParticipants}
-          </strong>
-        </div>
-      </div>
-
-      <div style={styles.participantRow}>
-        <div>
-          <strong>Departments represented</strong>
-
-          <div style={styles.participantDept}>
-            Anonymous organisational coverage
-          </div>
-        </div>
-
-        <div style={styles.participantStatus}>
-          <strong>
-            {snapshot.participation.departmentsRepresented}
-          </strong>
-        </div>
-      </div>
-
-      <div style={styles.participantRow}>
-        <div>
-          <strong>Participant movement</strong>
-
-          <div style={styles.participantDept}>
-            Anonymous baseline-to-follow-up outcomes
-          </div>
-        </div>
-
-        <div style={styles.participantStatus}>
+        <div
+          style={{
+            marginTop: "8px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "14px",
+          }}
+        >
           {snapshot.participation.outcomeSuppressed ? (
-            <span>
-              Available once at least{" "}
+            <span style={styles.participantDept}>
+              Protected until at least{" "}
               {snapshot.participation.privacyMinimum} matched journeys
-              have been completed
+              have been completed.
             </span>
           ) : (
             <>
@@ -1201,7 +1198,7 @@ We look forward to welcoming you.
           )}
         </div>
       </div>
-    </div>
+    </>
   )}
 </section>
 
