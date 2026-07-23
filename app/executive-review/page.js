@@ -496,6 +496,12 @@ const organisationName =
   organisation?.name ||
   "Enrolled Organisation";
 
+const today = new Date().toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 const {
   analysisStage = {
     level: 1,
