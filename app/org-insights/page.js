@@ -669,6 +669,17 @@ const {
   confidenceReasons,
   boardCase,
 } = snapshot;
+const organisationalRecommendation =
+  buildOrganisationalRecommendation({
+    primaryConcern,
+    recommendedFocus,
+    mostCommonTheme,
+    confidenceLabel,
+    confidenceReasons,
+    rootHypothesis,
+    recommendedInsight,
+    initiative,
+  });
 
   const baselineRows = assessments.filter(
   (item) => item.assessment_type === "baseline"
@@ -1692,163 +1703,139 @@ We look forward to welcoming you.
 </div>
     <div style={styles.hypothesisCard}>
   <p style={styles.panelLabel}>Root Hypothesis</p>
+
   <p style={styles.panelDescription}>
-  What Root currently suspects may be contributing to the workforce pattern.
-</p>
+    What Root currently suspects may be contributing to the
+    workforce pattern.
+  </p>
 
   <h3 style={styles.smallHeading}>
     What Root currently suspects
   </h3>
 
   <p style={styles.reportText}>
-    {rootHypothesis}
+    {organisationalRecommendation.hypothesis}
   </p>
 </div>
-    <div style={styles.confidenceCard}>
-  <p style={styles.panelLabel}>Why Root Believes This</p>
-    <p style={styles.panelDescription}>
-  The evidence supporting Root's current assessment.
-</p>
+
+<div style={styles.confidenceCard}>
+  <p style={styles.panelLabel}>
+    Why Root Believes This
+  </p>
+
+  <p style={styles.panelDescription}>
+    The evidence supporting Root&apos;s current assessment.
+  </p>
 
   <h3 style={styles.smallHeading}>
     Confidence Assessment
   </h3>
 
   <p style={styles.reportText}>
-    {confidenceLabel}
+    {organisationalRecommendation.confidence}
   </p>
 
   <div style={styles.confidenceReasonList}>
-    {confidenceReasons.map((reason) => (
-      <div
-        key={reason}
-        style={styles.confidenceReason}
-      >
-        {reason}
+    {organisationalRecommendation.evidence.length > 0 ? (
+      organisationalRecommendation.evidence.map((reason) => (
+        <div
+          key={reason}
+          style={styles.confidenceReason}
+        >
+          {reason}
+        </div>
+      ))
+    ) : (
+      <div style={styles.confidenceReason}>
+        Root is still gathering sufficient repeat evidence.
       </div>
-    ))}
+    )}
   </div>
 </div>
-      <div style={styles.recommendedInsightCard}>
-  <p style={styles.panelLabel}>Recommended Insight</p>
+
+<div style={styles.recommendedInsightCard}>
+  <p style={styles.panelLabel}>
+    Recommended Insight
+  </p>
+
   <p style={styles.panelDescription}>
-  A short article selected because it relates directly to the current workforce theme.
-</p>
+    A short article selected because it relates directly to the
+    current workforce theme.
+  </p>
 
   <h3 style={styles.smallHeading}>
-    {recommendedInsight.title}
+    {organisationalRecommendation.insight.title}
   </h3>
 
   <p style={styles.reportText}>
-    {recommendedInsight.reason}
+    {organisationalRecommendation.insight.reason}
   </p>
 
   <button
     style={styles.reportButton}
     onClick={() =>
-      window.open(`/root-insight/${recommendedInsight.slug}`, "_blank")
+      window.open(
+        `/root-insight/${organisationalRecommendation.insight.slug}`,
+        "_blank"
+      )
     }
   >
     Read 5 minute insight
   </button>
 </div>
-      <div style={styles.responsesCard}>
+
+<div style={styles.responsesCard}>
   <p style={styles.panelLabel}>
     Suggested Organisational Responses
   </p>
 
   <p style={styles.panelDescription}>
-    Based on the current workforce pattern, organisations often explore the following approaches.
+    Based on the current workforce pattern, organisations often
+    explore the following approaches.
   </p>
 
   <div style={styles.responseGrid}>
-    <div style={styles.responseItem}>
-      <strong>Manager Awareness Sessions</strong>
-      <p>
-        Helping managers recognise pressure, workload strain and early warning signs.
-      </p>
-    </div>
+    {organisationalRecommendation.responses.map((response) => (
+      <div
+        key={response.title}
+        style={styles.responseItem}
+      >
+        <strong>{response.title}</strong>
 
-    <div style={styles.responseItem}>
-      <strong>Pressure & Performance Briefing</strong>
-      <p>
-        Exploring sustainable performance without increasing burnout risk.
-      </p>
-    </div>
-
-    <div style={styles.responseItem}>
-      <strong>Recovery & Resilience Workshop</strong>
-      <p>
-        Practical strategies employees can use to improve recovery and wellbeing.
-      </p>
-    </div>
-
-    <div style={styles.responseItem}>
-      <strong>Leadership Briefing</strong>
-      <p>
-        A board-level discussion exploring workforce trends and organisational responses.
-      </p>
-    </div>
+        <p>{response.description}</p>
+      </div>
+    ))}
   </div>
 
- <button
-  style={styles.reportButton}
-  onClick={() => {
-    const readText = (value) => {
-      if (!value) return "";
+  <button
+    style={styles.reportButton}
+    onClick={() => {
+      const params = new URLSearchParams({
+        theme:
+          organisationalRecommendation.themeKey ||
+          "baseline",
 
-      if (typeof value === "string") {
-        return value;
-      }
+        confidence:
+          organisationalRecommendation.confidence ||
+          "Developing",
 
-      return (
-        value.title ||
-        value.label ||
-        value.name ||
-        value.summary ||
-        value.text ||
-        ""
+        evidence:
+          organisationalRecommendation.explanation ||
+          organisationalRecommendation.hypothesis ||
+          "",
+
+        organisation:
+          organisation?.name || "",
+      });
+
+      window.open(
+        `/explore-approaches?${params.toString()}`,
+        "_self"
       );
-    };
-
-    const theme = readText(
-      snapshot?.recommendedFocus ||
-        snapshot?.primaryConcern ||
-        snapshot?.dominantTheme ||
-        snapshot?.priorityTheme
-    );
-
-    const confidence = readText(
-      snapshot?.confidenceLevel ||
-        snapshot?.confidence
-    );
-
-    const evidence = readText(
-      snapshot?.rootHypothesis ||
-        snapshot?.recommendedInsight ||
-        snapshot?.executiveSummary
-    );
-
-    const organisationName = readText(
-      organisation?.name ||
-        snapshot?.organisationName
-    );
-
-    const params = new URLSearchParams({
-      theme: theme || "baseline",
-      confidence: confidence || "developing",
-      evidence,
-      organisation: organisationName,
-    });
-
-    window.open(
-      `/explore-approaches?${params.toString()}`,
-      "_self"
-    );
-  }}
->
-  Explore This Recommendation
-</button>
+    }}
+  >
+    Explore This Recommendation
+  </button>
 </div>
   <button
     style={styles.reportButton}
