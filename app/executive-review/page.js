@@ -449,13 +449,21 @@ function LineChart({ rows }) {
   const yFor = (value) =>
     height - pad - (Number(value || 0) / 10) * (height - pad * 2);
 
-  const pathFor = (key) =>
-    safeRows
-      .map(
-        (row, index) =>
-          `${index === 0 ? "M" : "L"} ${xFor(index)} ${yFor(row[key])}`
-      )
-      .join(" ");
+  const pathFor = (key) => {
+  if (safeRows.length === 1) {
+    const x = xFor(0);
+    const y = yFor(safeRows[0][key]);
+
+    return `M ${x} ${y} L ${x + 0.01} ${y}`;
+  }
+
+  return safeRows
+    .map(
+      (row, index) =>
+        `${index === 0 ? "M" : "L"} ${xFor(index)} ${yFor(row[key])}`
+    )
+    .join(" ");
+};
 
   if (!safeRows.length) {
     return <p style={styles.bodyText}>No trend data is available yet.</p>;
