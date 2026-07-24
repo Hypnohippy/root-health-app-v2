@@ -21,6 +21,47 @@ function format(value) {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
   return value.toFixed(1);
 }
+function openEmployeeEmail({ organisation, initiative }) {
+  const organisationName =
+    organisation?.name || "our organisation";
+
+  const initiativeTitle =
+    initiative?.title || "Workplace Wellbeing Initiative";
+
+  const subject = `Introducing ${initiativeTitle}`;
+
+  const body = `Hello everyone,
+
+We are pleased to introduce ${initiativeTitle} as part of our ongoing commitment to supporting employee wellbeing at ${organisationName}.
+
+Why are we introducing this?
+
+${initiative?.reason || "Root has identified this as a useful area of focus based on anonymous workforce wellbeing trends."}
+
+What will this involve?
+
+${initiative?.introduction || "Over the coming weeks, employees will receive practical information and opportunities to support their wellbeing, resilience and recovery."}
+
+What we hope to achieve
+
+${initiative?.expectedOutcome || "The aim is to support healthier working practices, greater awareness and sustainable wellbeing across the organisation."}
+
+Your privacy
+
+Root only provides anonymous organisational trends. Your employer cannot see your individual responses, personal reflections, conversations or health information.
+
+Further information about the initiative will be shared shortly.
+
+Kind regards,
+
+${organisationName}`;
+
+  const mailtoLink = `mailto:?subject=${encodeURIComponent(
+    subject
+  )}&body=${encodeURIComponent(body)}`;
+
+  window.location.href = mailtoLink;
+}
 
 function mapChallengeTheme(theme = "") {
   const value = String(theme).toLowerCase();
@@ -1637,16 +1678,16 @@ We look forward to welcoming you.
 
     <div style={styles.launchKitGrid}>
   <button
-    style={styles.launchKitButton}
-    onClick={() =>
-      window.open(
-        "/launch-kit?type=employee-email",
-        "_self"
-      )
-    }
-  >
-    Employee Email
-  </button>
+  style={styles.launchKitButton}
+  onClick={() =>
+    openEmployeeEmail({
+      organisation,
+      initiative,
+    })
+  }
+>
+  Send Employee Email
+</button>
 
   <button
     style={styles.launchKitButton}
