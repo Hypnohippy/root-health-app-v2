@@ -407,8 +407,8 @@ function buildExecutiveReasoning({
   );
 
   confidenceBuilders.push(
-    `Consistent evidence that ${primaryConcern.toLowerCase()} is changing in the expected direction.`
-  );
+  `Consistent evidence that ${primaryConcern.toLowerCase()} is reducing across future review periods.`
+);
 
   return {
     knows,
@@ -844,6 +844,18 @@ const confidenceDisplay = `${confidenceLabel}${
     : ""
 }`;
 
+const executiveDecision = String(
+  executiveReasoning.recommendedAction || ""
+)
+  .replace(/^Root recommends\s+/i, "")
+  .replace(/^progressing\s+/i, "Proceed with ")
+  .replace(/^preparing and launching\s+/i, "Prepare and launch ")
+  .replace(/^preparing and implementing\s+/i, "Prepare and implement ")
+  .replace(/^launching\s+/i, "Launch ")
+  .replace(/^implementing\s+/i, "Implement ")
+  .replace(/^considering\s+/i, "Consider ")
+  .replace(/^\w/, (letter) => letter.toUpperCase());
+
 const visibleTrendRows = hasComparison
   ? trendRows
   : trendRows.length
@@ -950,15 +962,19 @@ return (
         </div>
 
         <div style={styles.glanceCard}>
-          <span>
-            Evidence Maturity
-          </span>
+  <span>
+    Evidence Maturity
+  </span>
 
-          <strong>
-            Stage {maturity.level} –{" "}
-            {maturity.label}
-          </strong>
-        </div>
+  <strong>
+    Stage {maturity.level} –{" "}
+    {maturity.label}
+  </strong>
+
+  <small>
+    Organisational learning stage, not released trend confidence
+  </small>
+</div>
 
         <div style={styles.glanceCard}>
           <span>Confidence</span>
@@ -977,31 +993,9 @@ return (
             {
               executiveReasoning.priority
             }
-          </strong>
-        </div>
-
-        <div
-          style={
-            styles.glanceCardWide
-          }
-        >
-          <span>
-            Recommended Action
-          </span>
-
-          <strong>
-            {String(
-              executiveReasoning.recommendedAction
-            )
-              .replace(
-                /^Root recommends\s+/i,
-                ""
-              )
-              .replace(
-                /^progressing\s+/i,
-                "Proceed with "
-              )}
-          </strong>
+        <strong>
+  {executiveDecision}
+</strong> 
         </div>
       </div>
 
@@ -1479,14 +1473,8 @@ return (
           Recommended Executive Decision
           </p>
 
-          <h2 style={styles.recommendationTitle}>
-  {String(executiveNarrative.recommendation || "")
-    .replace(/^Root recommends\s+/i, "")
-    .replace(/^progressing\s+/i, "Proceed with ")
-    .replace(
-      /\band reviewing its effect\b/i,
-      "and review its effect"
-    )}
+         <h2 style={styles.recommendationTitle}>
+  {executiveDecision}
 </h2>
         </div>
 
