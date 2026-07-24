@@ -864,10 +864,24 @@ const executiveDecision = String(
   .replace(/^considering\s+/i, "Consider ")
   .replace(/^\w/, (letter) => letter.toUpperCase());
 
+const baselineRow =
+  trendRows.length > 0
+    ? trendRows[0]
+    : null;
+
 const visibleTrendRows = hasComparison
   ? trendRows
-  : trendRows.length
-  ? [trendRows[0]]
+  : baselineRow
+  ? [
+      {
+        ...baselineRow,
+        label: "Baseline",
+      },
+      {
+        ...baselineRow,
+        label: "Current baseline",
+      },
+    ]
   : [];
 
 return (
@@ -1386,6 +1400,14 @@ return (
       />
 
       <LineChart rows={visibleTrendRows} />
+      {!hasComparison ? (
+  <p style={styles.baselineChartNote}>
+    The horizontal markers show the current
+    baseline only. They do not represent
+    improvement, deterioration or movement
+    over time.
+  </p>
+) : null}
 
       <div style={styles.trendSummaryGrid}>
         <MiniMetric
@@ -2156,5 +2178,14 @@ reportEnd: {
   textAlign: "center",
   color: "#6B7280",
   fontSize: "12px",
+},
+
+baselineChartNote: {
+  margin: "12px auto 0",
+  maxWidth: "720px",
+  textAlign: "center",
+  fontSize: "12px",
+  lineHeight: "1.55",
+  color: "#6B7280",
 },
 };
