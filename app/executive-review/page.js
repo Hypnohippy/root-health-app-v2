@@ -886,6 +886,13 @@ return (
           overflow: hidden;
         }
 
+        .report-page.report-page-flexible {
+  height: auto;
+  max-height: none;
+  min-height: 257mm;
+  overflow: visible;
+}
+
         .report-page:last-of-type {
           break-after: auto;
           page-break-after: auto;
@@ -977,27 +984,25 @@ return (
 </div>
 
         <div style={styles.glanceCard}>
-          <span>Confidence</span>
+  <span>
+    Current Priority
+  </span>
 
-          <strong>
-            {confidenceDisplay}
-          </strong>
-        </div>
+  <strong>
+    {executiveReasoning.priority}
+  </strong>
+</div>
 
-        <div style={styles.glanceCard}>
-          <span>
-            Current Priority
-          </span>
+<div style={styles.glanceCardWide}>
+  <span>
+    Recommended Action
+  </span>
 
-          <strong>
-            {
-              executiveReasoning.priority
-            }
-        <strong>
-  {executiveDecision}
-</strong> 
-        </div>
-      </div>
+  <strong>
+    {executiveDecision}
+  </strong>
+</div>
+</div>
 
       <div
         style={styles.positionSection}
@@ -1454,7 +1459,16 @@ return (
     </section>
 
     {/* PAGE 6 — RECOMMENDATION */}
-    <section className="report-page" style={styles.reportPage}>
+<section
+  className="report-page report-page-flexible"
+  style={{
+    ...styles.reportPage,
+    height: "auto",
+    maxHeight: "none",
+    minHeight: "257mm",
+    overflow: "visible",
+  }}
+>
       <PageHeader
         kicker="Forecast & Recommendations"
         title="Recommended next action"
