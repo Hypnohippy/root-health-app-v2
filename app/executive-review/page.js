@@ -266,6 +266,169 @@ function buildNarrative({
   };
 }
 
+function buildExecutiveReasoning({
+  snapshot,
+  currentScore,
+  highRiskMetric,
+  mostCommonTheme,
+  supportInteractions,
+  participation,
+  hasComparison,
+}) {
+  const initiative =
+    snapshot?.initiative || {};
+
+  const narrative =
+    snapshot?.executiveNarrative || {};
+
+  const matchedParticipants = Number(
+    participation?.matchedParticipants || 0
+  );
+
+  const privacyMinimum = Number(
+    snapshot?.privacyMinimum || 5
+  );
+
+  const primaryConcern =
+    highRiskMetric?.label ||
+    snapshot?.primaryConcern ||
+    "Workforce wellbeing";
+
+  const knows = [];
+
+  if (
+    currentScore !== null &&
+    currentScore !== undefined
+  ) {
+    knows.push(
+      `The current Workforce Wellbeing Index is ${currentScore} out of 100.`
+    );
+  }
+
+  if (
+    highRiskMetric?.current !== null &&
+    highRiskMetric?.current !== undefined
+  ) {
+    knows.push(
+      `${primaryConcern} is currently the highest measured difficulty at ${format(
+        highRiskMetric.current
+      )} out of 10.`
+    );
+  }
+
+  if (
+    mostCommonTheme &&
+    mostCommonTheme !==
+      "No challenge data yet"
+  ) {
+    knows.push(
+      `${mostCommonTheme} is the most visible anonymous workforce theme.`
+    );
+  }
+
+  knows.push(
+    `${supportInteractions} anonymous support interaction${
+      supportInteractions === 1
+        ? " has"
+        : "s have"
+    } been recorded during the current evidence period.`
+  );
+
+  const suspects = [
+    narrative.meaning ||
+      snapshot?.rootHypothesis ||
+      initiative.reason ||
+      "Current evidence suggests that the organisation would benefit from a focused response to its highest measured difficulty.",
+  ].filter(Boolean);
+
+  const unknowns = [];
+
+  if (!hasComparison) {
+    unknowns.push(
+      "Root cannot yet confirm whether the current position represents improvement, deterioration or stability because a reliable matched comparison is not yet available."
+    );
+  } else if (
+    matchedParticipants > 0 &&
+    matchedParticipants < privacyMinimum
+  ) {
+    unknowns.push(
+      `Root has received ${matchedParticipants} matched follow-up check-in${
+        matchedParticipants === 1
+          ? ""
+          : "s"
+      }, but movement remains suppressed until the anonymous reporting threshold of ${privacyMinimum} participants is reached.`
+    );
+  } else {
+    unknowns.push(
+      "Root cannot yet confirm whether the current movement will remain stable across future review periods."
+    );
+  }
+
+  unknowns.push(
+    "The current evidence does not by itself establish whether the main drivers sit within workload, leadership, organisational change, external pressure or individual circumstances."
+  );
+
+  const alternatives = [
+    "Seasonal workload or temporary operational pressure.",
+    "Recent organisational or leadership change.",
+    "External financial, family or social pressure affecting employees.",
+    "Greater willingness to report difficulty as trust in Root develops.",
+    "Normal variation within an early or still-developing evidence base.",
+  ];
+
+  const confidenceBuilders = [];
+
+  if (
+    matchedParticipants < privacyMinimum
+  ) {
+    const remaining = Math.max(
+      privacyMinimum -
+        matchedParticipants,
+      0
+    );
+
+    confidenceBuilders.push(
+      `${remaining} more matched follow-up check-in${
+        remaining === 1 ? "" : "s"
+      } to reach the anonymous movement threshold.`
+    );
+  } else {
+    confidenceBuilders.push(
+      "Another matched review period showing whether the current movement continues."
+    );
+  }
+
+  confidenceBuilders.push(
+    "Broader participation across teams and roles."
+  );
+
+  confidenceBuilders.push(
+    "Continued anonymous support engagement between formal review points."
+  );
+
+  confidenceBuilders.push(
+    `Consistent evidence that ${primaryConcern.toLowerCase()} is changing in the expected direction.`
+  );
+
+  return {
+    knows,
+    suspects,
+    unknowns,
+    alternatives,
+    confidenceBuilders,
+
+    priority:
+      initiative.title ||
+      snapshot?.recommendedFocus ||
+      primaryConcern,
+
+    recommendedAction:
+      narrative.recommendation ||
+      initiative.reason ||
+      "Continue gathering evidence while responding to the highest current difficulty.",
+  };
+}
+
 function LineChart({ rows }) {
   const width = 920;
   const height = 360;
@@ -654,8 +817,28 @@ const highestMeasured =
   null;
 
 const hasComparison =
-  Number(participation.matchedParticipants || 0) > 0 ||
+  Number(
+    participation.matchedParticipants ||
+      0
+  ) > 0 ||
   assessments.length > 1;
+
+const executiveReasoning =
+  buildExecutiveReasoning({
+    snapshot,
+    currentScore,
+    highRiskMetric: highestMeasured,
+    mostCommonTheme,
+    supportInteractions,
+    participation,
+    hasComparison,
+  });
+
+const confidenceDisplay = `${confidenceLabel}${
+  confidenceScore
+    ? ` (${confidenceScore}%)`
+    : ""
+}`;
 
 return (
   <main style={styles.page}>
@@ -692,173 +875,395 @@ return (
       }
     `}</style>
 
-    {/* PAGE 1 — COVER */}
-    <section className="report-page" style={styles.coverPage}>
-      <div style={styles.coverTopLine} />
+        {/* PAGE 1 — EXECUTIVE BRIEF */}
+    <section
+      className="report-page"
+      style={styles.executiveBriefPage}
+    >
+      <div style={styles.briefTop}>
+        <div>
+          <img
+            src="/root-logo.png"
+            alt="Root Health"
+            style={styles.briefLogo}
+          />
 
-      <div>
-        <img
-          src="/root-logo.png"
-          alt="Root Health"
-          style={styles.coverLogo}
-        />
+          <p style={styles.brand}>
+            ROOT
+          </p>
 
-        <p style={styles.brand}>ROOT HEALTH</p>
+          <h1 style={styles.briefTitle}>
+            Organisational Intelligence
+            Review
+          </h1>
 
-        <h1 style={styles.coverTitle}>
-          Executive Wellbeing &amp; Decision Review
-        </h1>
-
-        <p style={styles.coverSubtitle}>
-          An anonymised workforce wellbeing review prepared for organisational
-          decision-making.
-        </p>
-      </div>
-
-      <div style={styles.coverDetails}>
-        <div style={styles.coverDetailRow}>
-          <span>Organisation</span>
-          <strong>{organisationName}</strong>
+          <p
+            style={
+              styles.briefPreparedFor
+            }
+          >
+            Prepared for{" "}
+            <strong>
+              {organisationName}
+            </strong>
+          </p>
         </div>
 
-        <div style={styles.coverDetailRow}>
+        <div style={styles.briefDate}>
           <span>Review date</span>
           <strong>{today}</strong>
         </div>
-
-        <div style={styles.coverDetailRow}>
-          <span>Review period</span>
-          <strong>Current review period</strong>
-        </div>
-
-        <div style={styles.coverDetailRow}>
-          <span>Workforce Wellbeing Index</span>
-          <strong>{currentScore ?? "—"} / 100</strong>
-        </div>
       </div>
 
-      <div style={styles.coverFooter}>
-        <span>Confidential</span>
-        <span>Generated from anonymised workforce data</span>
-      </div>
-    </section>
-
-    {/* PAGE 2 — EXECUTIVE OVERVIEW */}
-    <section className="report-page" style={styles.reportPage}>
-      <PageHeader
-        kicker="Executive Overview"
-        title="Current organisational picture"
-        subtitle="The essential workforce wellbeing position and the strength of evidence currently available."
-      />
-
-      <div style={styles.insightPanel}>
-        <h3>Organisational Learning</h3>
-
+      <div style={styles.briefSummary}>
         <p>
+          Root has analysed the
+          organisation&apos;s current
+          evidence to identify what is
+          known, what is emerging, where
+          confidence is strongest and
+          where leadership attention is
+          most likely to have the greatest
+          impact.
+        </p>
+      </div>
+
+      <div style={styles.glanceGrid}>
+        <div style={styles.glanceCard}>
+          <span>
+            Workforce Wellbeing Index
+          </span>
+
           <strong>
-            Stage {maturity.level} of 5 – {maturity.label}
-         </strong>
+            {currentScore ?? "—"} / 100
+          </strong>
+        </div>
+
+        <div style={styles.glanceCard}>
+          <span>
+            Evidence Maturity
+          </span>
+
+          <strong>
+            Stage {maturity.level} –{" "}
+            {maturity.label}
+          </strong>
+        </div>
+
+        <div style={styles.glanceCard}>
+          <span>Confidence</span>
+
+          <strong>
+            {confidenceDisplay}
+          </strong>
+        </div>
+
+        <div style={styles.glanceCard}>
+          <span>
+            Current Priority
+          </span>
+
+          <strong>
+            {
+              executiveReasoning.priority
+            }
+          </strong>
+        </div>
+
+        <div
+          style={
+            styles.glanceCardWide
+          }
+        >
+          <span>
+            Recommended Action
+          </span>
+
+          <strong>
+            {String(
+              executiveReasoning.recommendedAction
+            )
+              .replace(
+                /^Root recommends\s+/i,
+                ""
+              )
+              .replace(
+                /^progressing\s+/i,
+                "Proceed with "
+              )}
+          </strong>
+        </div>
+      </div>
+
+      <div
+        style={styles.positionSection}
+      >
+        <p style={styles.kicker}>
+          Root&apos;s Position
         </p>
 
-       <p>
-  This stage reflects the amount and quality of organisational evidence
-  available, including participation, completed baselines, matched follow-up
-  reviews, repeated measurement and anonymous support engagement. It describes
-  how much Root has learned about the organisation, not whether the wellbeing
-  results are good or bad.
-</p>
-      </div>
-
-      <div style={styles.indexFeature}>
-        <div>
-          <span>Workforce Wellbeing Index</span>
-          <strong>{currentScore ?? "—"} / 100</strong>
-
-          <small>
-            {analysisStage.level === 1
-              ? `Initial baseline: ${
-                  currentScore ?? "—"
-                } / 100. Higher scores indicate a healthier overall position.`
-              : `Baseline ${baselineScore ?? "—"} → Current ${
-                  currentScore ?? "—"
-                }. Higher scores indicate a healthier overall position.`}
-          </small>
-        </div>
-
-        <div style={styles.indexGauge}>
+        <div
+          style={styles.positionGrid}
+        >
           <div
-            style={{
-              ...styles.indexGaugeFill,
-              width: `${currentScore || 0}%`,
-            }}
-          />
+            style={styles.positionCard}
+          >
+            <span
+              style={
+                styles.positionSymbol
+              }
+            >
+              ✓
+            </span>
+
+            <div>
+              <strong>
+                Root Knows
+              </strong>
+
+              <p>
+                {executiveReasoning
+                  .knows[1] ||
+                  executiveReasoning
+                    .knows[0]}
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={styles.positionCard}
+          >
+            <span
+              style={
+                styles.positionSymbol
+              }
+            >
+              ?
+            </span>
+
+            <div>
+              <strong>
+                Root Suspects
+              </strong>
+
+              <p>
+                {
+                  executiveReasoning
+                    .suspects[0]
+                }
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={styles.positionCard}
+          >
+            <span
+              style={
+                styles.positionSymbol
+              }
+            >
+              ○
+            </span>
+
+            <div>
+              <strong>
+                Root Is Still Learning
+              </strong>
+
+              <p>
+                {
+                  executiveReasoning
+                    .unknowns[0]
+                }
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style={styles.snapshotGrid}>
-        <SnapshotCard
-          label={
-            hasComparison
-              ? "Strongest improvement"
-              : "Highest measured difficulty"
-          }
-          value={
-            hasComparison
-              ? mostImproved?.label || "No clear improvement yet"
-              : highestMeasured?.label || "Awaiting data"
-          }
-          detail={
-            hasComparison && mostImproved
-              ? `${Math.abs(mostImproved.change).toFixed(
-                  1
-                )} point improvement`
-              : highestMeasured
-              ? `${format(highestMeasured.current)} / 10`
-              : "Further evidence required"
-          }
-        />
+      <div style={styles.briefFooter}>
+        <span>Confidential</span>
 
-        <SnapshotCard
-          label="Anonymous workforce theme"
-          value={
-            mostCommonTheme === "No challenge data yet"
-              ? "Not established yet"
-              : mostCommonTheme
-          }
-          detail="Drawn only from anonymised reflection themes"
-        />
-
-        <SnapshotCard
-          label="Support engagement"
-          value={supportInteractions}
-          detail="Recorded anonymous support interactions"
-        />
-
-        <SnapshotCard
-  label="Confidence in findings"
-  value={confidenceLabel}
-  detail={`${confidenceScore}% confidence rating`}
-/>
-      </div>
-
-      <div style={styles.insightPanel}>
-        <h3>Executive summary</h3>
-
-<p>
-  {executive.summary || executiveNarrative.overview}
-</p>
-
-<p>
-  <strong>Organisational learning:</strong>{" "}
-  Stage {maturity.level} of 5 – {maturity.label}.
-  The confidence rating reflects the strength of the current
-  findings, while evidence maturity reflects how far the
-  organisation has progressed through repeated measurement.
-</p>
-
+        <span>
+          Built from anonymous,
+          aggregated organisational
+          evidence
+        </span>
       </div>
     </section>
 
+    {/* PAGE 2 — WHAT ROOT KNOWS */}
+    <section
+      className="report-page"
+      style={styles.reportPage}
+    >
+      <PageHeader
+        kicker="Organisational Intelligence"
+        title="What Root knows today"
+        subtitle="Measured facts are separated from interpretation, alternative explanations and the evidence still required."
+      />
+
+      <div style={styles.reasoningGrid}>
+        <div
+          style={styles.reasoningCard}
+        >
+          <p
+            style={
+              styles.reasoningLabel
+            }
+          >
+            Measured Facts
+          </p>
+
+          <ul
+            style={styles.reasoningList}
+          >
+            {executiveReasoning.knows.map(
+              (item) => (
+                <li key={item}>
+                  {item}
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+
+        <div
+          style={styles.reasoningCard}
+        >
+          <p
+            style={
+              styles.reasoningLabel
+            }
+          >
+            Root&apos;s Interpretation
+          </p>
+
+          {executiveReasoning.suspects.map(
+            (item) => (
+              <p
+                key={item}
+                style={
+                  styles.reasoningText
+                }
+              >
+                {item}
+              </p>
+            )
+          )}
+        </div>
+
+        <div
+          style={styles.reasoningCard}
+        >
+          <p
+            style={
+              styles.reasoningLabel
+            }
+          >
+            What Root Cannot Yet Confirm
+          </p>
+
+          <ul
+            style={styles.reasoningList}
+          >
+            {executiveReasoning.unknowns.map(
+              (item) => (
+                <li key={item}>
+                  {item}
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+
+        <div
+          style={styles.reasoningCard}
+        >
+          <p
+            style={
+              styles.reasoningLabel
+            }
+          >
+            Alternative Explanations
+          </p>
+
+          <p
+            style={
+              styles.reasoningText
+            }
+          >
+            The same evidence could also
+            reflect:
+          </p>
+
+          <ul
+            style={styles.reasoningList}
+          >
+            {executiveReasoning.alternatives.map(
+              (item) => (
+                <li key={item}>
+                  {item}
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+      </div>
+
+      <div
+        style={
+          styles.confidenceBuilderCard
+        }
+      >
+        <div>
+          <p
+            style={
+              styles.reasoningLabel
+            }
+          >
+            What Would Increase
+            Confidence?
+          </p>
+
+          <h3
+            style={
+              styles.confidenceBuilderTitle
+            }
+          >
+            Root would become more
+            confident with:
+          </h3>
+        </div>
+
+        <ul
+          style={
+            styles.confidenceBuilderList
+          }
+        >
+          {executiveReasoning.confidenceBuilders.map(
+            (item) => (
+              <li key={item}>
+                ✓ {item}
+              </li>
+            )
+          )}
+        </ul>
+      </div>
+
+      <div
+        style={
+          styles.positioningStatement
+        }
+      >
+        Root does not simply measure
+        wellbeing. It learns how your
+        organisation changes over time
+        and adjusts its recommendations
+        as confidence grows.
+      </div>
+    </section>
     {/* PAGE 3 — HOW TO READ THE EVIDENCE */}
     <section className="report-page" style={styles.reportPage}>
       <PageHeader
@@ -1149,6 +1554,210 @@ const styles = {
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
 },
+  executiveBriefPage: {
+    height: "257mm",
+    maxHeight: "257mm",
+    boxSizing: "border-box",
+    padding: "34px",
+    display: "flex",
+    flexDirection: "column",
+    background: "#ffffff",
+    border: "1px solid #E5E7EB",
+    overflow: "hidden",
+  },
+
+  briefTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "32px",
+    alignItems: "flex-start",
+    paddingBottom: "20px",
+    borderBottom:
+      "2px solid #111827",
+  },
+
+  briefLogo: {
+    width: "72px",
+    height: "72px",
+    objectFit: "contain",
+    marginBottom: "12px",
+  },
+
+  briefTitle: {
+    margin: "0",
+    maxWidth: "650px",
+    fontSize: "42px",
+    lineHeight: "1.02",
+    letterSpacing: "-0.05em",
+  },
+
+  briefPreparedFor: {
+    margin: "14px 0 0",
+    fontSize: "16px",
+    color: "#4B5563",
+  },
+
+  briefDate: {
+    minWidth: "160px",
+    display: "grid",
+    gap: "5px",
+    textAlign: "right",
+    fontSize: "13px",
+    color: "#6B7280",
+  },
+
+  briefSummary: {
+    marginTop: "18px",
+    padding: "18px 20px",
+    background: "#F9FAFB",
+    border: "1px solid #E5E7EB",
+    fontSize: "16px",
+    lineHeight: "1.65",
+    color: "#1F2937",
+  },
+
+  glanceGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(2, 1fr)",
+    gap: "10px",
+    marginTop: "16px",
+  },
+
+  glanceCard: {
+    minHeight: "76px",
+    padding: "14px",
+    border: "1px solid #D1D5DB",
+    display: "grid",
+    gap: "8px",
+    alignContent: "space-between",
+    background: "#FFFFFF",
+  },
+
+  glanceCardWide: {
+    gridColumn: "1 / -1",
+    minHeight: "70px",
+    padding: "14px",
+    border: "2px solid #111827",
+    display: "grid",
+    gap: "8px",
+    background: "#F9FAFB",
+  },
+
+  positionSection: {
+    marginTop: "18px",
+  },
+
+  positionGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(3, 1fr)",
+    gap: "10px",
+  },
+
+  positionCard: {
+    minHeight: "126px",
+    display: "grid",
+    gridTemplateColumns:
+      "28px 1fr",
+    gap: "10px",
+    padding: "14px",
+    border: "1px solid #E5E7EB",
+    background: "#FAFAF8",
+    fontSize: "13px",
+    lineHeight: "1.5",
+  },
+
+  positionSymbol: {
+    fontSize: "20px",
+    fontWeight: "900",
+  },
+
+  briefFooter: {
+    marginTop: "auto",
+    paddingTop: "14px",
+    borderTop:
+      "1px solid #E5E7EB",
+    display: "flex",
+    justifyContent: "space-between",
+    color: "#6B7280",
+    fontSize: "12px",
+  },
+
+  reasoningGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(2, 1fr)",
+    gap: "14px",
+  },
+
+  reasoningCard: {
+    minHeight: "190px",
+    padding: "18px",
+    border: "1px solid #D1D5DB",
+    background: "#F9FAFB",
+    fontSize: "14px",
+    lineHeight: "1.6",
+  },
+
+  reasoningLabel: {
+    margin: "0 0 12px",
+    fontSize: "11px",
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    color: "#6B7280",
+  },
+
+  reasoningList: {
+    margin: "0",
+    paddingLeft: "20px",
+    display: "grid",
+    gap: "8px",
+  },
+
+  reasoningText: {
+    margin: "0 0 10px",
+  },
+
+  confidenceBuilderCard: {
+    marginTop: "16px",
+    padding: "18px",
+    border: "2px solid #111827",
+    display: "grid",
+    gridTemplateColumns:
+      "0.8fr 1.2fr",
+    gap: "22px",
+    background: "#FFFFFF",
+  },
+
+  confidenceBuilderTitle: {
+    margin: 0,
+    fontSize: "20px",
+    lineHeight: "1.35",
+  },
+
+  confidenceBuilderList: {
+    margin: 0,
+    padding: 0,
+    listStyle: "none",
+    display: "grid",
+    gap: "8px",
+    fontSize: "14px",
+    lineHeight: "1.5",
+  },
+
+  positioningStatement: {
+    marginTop: "16px",
+    padding: "16px 18px",
+    textAlign: "center",
+    background: "#111827",
+    color: "#FFFFFF",
+    fontSize: "15px",
+    fontWeight: "700",
+    lineHeight: "1.55",
+  },
+  
   coverDetailRow: {
   display: "flex",
   justifyContent: "space-between",
