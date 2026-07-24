@@ -1636,27 +1636,54 @@ We look forward to welcoming you.
     </p>
 
     <div style={styles.launchKitGrid}>
-      <button
-        style={styles.launchKitButton}
-        onClick={() =>
-          alert("Employee Email Generator - Coming Next")
-        }
-      >
-        Employee Email
-      </button>
+  <button
+    style={styles.launchKitButton}
+    onClick={() =>
+      window.open(
+        "/launch-kit?type=employee-email",
+        "_self"
+      )
+    }
+  >
+    Employee Email
+  </button>
 
-      <button style={styles.launchKitButton}>
-        Manager Briefing
-      </button>
+  <button
+    style={styles.launchKitButton}
+    onClick={() =>
+      window.open(
+        "/launch-kit?type=manager-briefing",
+        "_self"
+      )
+    }
+  >
+    Manager Briefing
+  </button>
 
-      <button style={styles.launchKitButton}>
-        Launch Poster
-      </button>
+  <button
+    style={styles.launchKitButton}
+    onClick={() =>
+      window.open(
+        "/launch-kit?type=launch-poster",
+        "_self"
+      )
+    }
+  >
+    Launch Poster
+  </button>
 
-      <button style={styles.launchKitButton}>
-        Leadership Talking Points
-      </button>
-    </div>
+  <button
+    style={styles.launchKitButton}
+    onClick={() =>
+      window.open(
+        "/launch-kit?type=leadership-talking-points",
+        "_self"
+      )
+    }
+  >
+    Leadership Talking Points
+  </button>
+</div>
   </div>
 
   <div style={styles.specialistSupportCard}>
