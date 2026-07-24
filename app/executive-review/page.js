@@ -816,12 +816,16 @@ const highestMeasured =
     )[0] ||
   null;
 
+const matchedParticipants = Number(
+  participation.matchedParticipants || 0
+);
+
+const privacyMinimum = Number(
+  snapshot?.privacyMinimum || 5
+);
+
 const hasComparison =
-  Number(
-    participation.matchedParticipants ||
-      0
-  ) > 0 ||
-  assessments.length > 1;
+  matchedParticipants >= privacyMinimum;
 
 const executiveReasoning =
   buildExecutiveReasoning({
@@ -839,6 +843,12 @@ const confidenceDisplay = `${confidenceLabel}${
     ? ` (${confidenceScore}%)`
     : ""
 }`;
+
+const visibleTrendRows = hasComparison
+  ? trendRows
+  : trendRows.length
+  ? [trendRows[0]]
+  : [];
 
 return (
   <main style={styles.page}>
@@ -1368,7 +1378,7 @@ return (
         }
       />
 
-      <LineChart rows={trendRows} />
+      <LineChart rows={visibleTrendRows} />
 
       <div style={styles.trendSummaryGrid}>
         <MiniMetric
@@ -1757,7 +1767,7 @@ const styles = {
     fontWeight: "700",
     lineHeight: "1.55",
   },
-  
+
   coverDetailRow: {
   display: "flex",
   justifyContent: "space-between",
