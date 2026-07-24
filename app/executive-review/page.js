@@ -864,9 +864,7 @@ const executiveDecision = String(
   .replace(/^considering\s+/i, "Consider ")
   .replace(/^\w/, (letter) => letter.toUpperCase());
 
-const visibleTrendRows = hasComparison
-  ? trendRows
-  : [];
+const visibleTrendRows = trendRows;
 
 return (
   <main style={styles.page}>
