@@ -864,24 +864,8 @@ const executiveDecision = String(
   .replace(/^considering\s+/i, "Consider ")
   .replace(/^\w/, (letter) => letter.toUpperCase());
 
-const baselineRow =
-  trendRows.length > 0
-    ? trendRows[0]
-    : null;
-
 const visibleTrendRows = hasComparison
   ? trendRows
-  : baselineRow
-  ? [
-      {
-        ...baselineRow,
-        label: "Baseline",
-      },
-      {
-        ...baselineRow,
-        label: "Current baseline",
-      },
-    ]
   : [];
 
 return (
@@ -1399,15 +1383,28 @@ return (
         }
       />
 
-      <LineChart rows={visibleTrendRows} />
-      {!hasComparison ? (
-  <p style={styles.baselineChartNote}>
-    The horizontal markers show the current
-    baseline only. They do not represent
-    improvement, deterioration or movement
-    over time.
-  </p>
-) : null}
+      {hasComparison ? (
+  <LineChart rows={visibleTrendRows} />
+) : (
+  <div style={styles.baselineHoldingPanel}>
+    <strong>
+      Baseline established
+    </strong>
+
+    <p>
+      Root has recorded the organisation&apos;s
+      current wellbeing position. Trend movement
+      will be displayed once the anonymous
+      reporting threshold of {privacyMinimum} matched
+      participants has been reached.
+    </p>
+
+    <small>
+      Current matched follow-ups: {matchedParticipants} of{" "}
+      {privacyMinimum}
+    </small>
+  </div>
+)}
 
       <div style={styles.trendSummaryGrid}>
         <MiniMetric
@@ -2188,4 +2185,19 @@ baselineChartNote: {
   lineHeight: "1.55",
   color: "#6B7280",
 },
+
+baselineHoldingPanel: {
+  marginTop: "28px",
+  minHeight: "300px",
+  padding: "38px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
+  border: "1px solid #D1D5DB",
+  background: "#F9FAFB",
+  color: "#1F2937",
+},
+
 };
