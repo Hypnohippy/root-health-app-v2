@@ -1381,29 +1381,14 @@ return (
         }
       />
 
-      {hasComparison ? (
-  <LineChart rows={visibleTrendRows} />
-) : (
-  <div style={styles.baselineHoldingPanel}>
-    <strong>
-      Baseline established
-    </strong>
+     <LineChart rows={visibleTrendRows} />
 
-    <p>
-      Root has recorded the organisation&apos;s
-      current wellbeing position. Trend movement
-      will be displayed once the anonymous
-      reporting threshold of {privacyMinimum} matched
-      participants has been reached.
-    </p>
-
-    <small>
-      Current matched follow-ups: {matchedParticipants} of{" "}
-      {privacyMinimum}
-    </small>
-  </div>
+{!hasComparison && (
+  <p style={styles.baselineChartNote}>
+    Trend interpretation is withheld until the anonymous reporting threshold of{" "}
+    {privacyMinimum} matched participants is reached. The chart shows the evidence collected so far.
+  </p>
 )}
-
       <div style={styles.trendSummaryGrid}>
         <MiniMetric
   label={hasComparison ? "Stress movement" : "Stress baseline"}
