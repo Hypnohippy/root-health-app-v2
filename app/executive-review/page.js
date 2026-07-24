@@ -91,9 +91,47 @@ function change(start, current) {
   return current - start;
 }
 
-function changePercent(start, current) {
-  if (!start || current === null || current === undefined) return null;
-  return Math.round(((start - current) / start) * 100);
+function describeMovement(metric) {
+  const start = Number(metric?.start);
+  const current = Number(metric?.current);
+
+  if (
+    Number.isNaN(start) ||
+    Number.isNaN(current)
+  ) {
+    return {
+      value: "Awaiting comparison",
+      detail: "Further review data is required",
+    };
+  }
+
+  const difference = current - start;
+  const absoluteDifference = Math.abs(difference).toFixed(1);
+
+  if (difference < 0) {
+    return {
+      value: "Improved",
+      detail: `${format(start)} → ${format(
+        current
+      )} · ${absoluteDifference} point reduction`,
+    };
+  }
+
+  if (difference > 0) {
+    return {
+      value: "Increased difficulty",
+      detail: `${format(start)} → ${format(
+        current
+      )} · ${absoluteDifference} point increase`,
+    };
+  }
+
+  return {
+    value: "Stable",
+    detail: `${format(start)} → ${format(
+      current
+    )} · No measured change`,
+  };
 }
 
 function buildExecutiveIntelligence({
@@ -597,15 +635,8 @@ const recoveryMetric = metricResults.find(
   (item) => item.label === "Recovery difficulty"
 );
 
-const stressChangePercent = changePercent(
-  stressMetric?.matchedStart ?? stressMetric?.start,
-  stressMetric?.matchedCurrent ?? stressMetric?.current
-);
-
-const burnoutChangePercent = changePercent(
-  burnoutMetric?.matchedStart ?? burnoutMetric?.start,
-  burnoutMetric?.matchedCurrent ?? burnoutMetric?.current
-);
+const stressMovement = describeMovement(stressMetric);
+const burnoutMovement = describeMovement(burnoutMetric);
 
 const highestMeasured =
   highRiskMetric ||
@@ -798,10 +829,10 @@ return (
         />
 
         <SnapshotCard
-          label="Root confidence"
-          value={confidenceLabel}
-          detail={`${confidenceScore}% confidence rating`}
-        />
+  label="Confidence in findings"
+  value={confidenceLabel}
+  detail={`${confidenceScore}% confidence rating`}
+/>
       </div>
 
       <div style={styles.insightPanel}>
@@ -812,9 +843,13 @@ return (
 </p>
 
 <p>
-  {executive.evidenceStrength ||
-    executiveNarrative.numbersSuggest}
+  <strong>Evidence maturity:</strong>{" "}
+  Stage {analysisStage.level} – {analysisStage.title}.
+  The confidence rating reflects the strength of the current
+  findings, while evidence maturity reflects how far the
+  organisation has progressed through repeated measurement.
 </p>
+
       </div>
     </section>
 
@@ -924,34 +959,34 @@ return (
 
       <div style={styles.trendSummaryGrid}>
         <MiniMetric
-          label={hasComparison ? "Stress movement" : "Stress baseline"}
-          value={
-            hasComparison && stressChangePercent !== null
-              ? `${stressChangePercent}% reduction`
-              : `${format(stressMetric?.current)} / 10`
-          }
-          detail={
-            hasComparison
-              ? `Stress ${format(stressMetric?.start)} → ${format(
-                  stressMetric?.current
-                )}`
-              : "Lower scores indicate fewer stress difficulties"
-          }
-        />
+  label={hasComparison ? "Stress movement" : "Stress baseline"}
+  value={
+    hasComparison
+      ? stressMovement.value
+      : `${format(stressMetric?.current)} / 10`
+  }
+  detail={
+    hasComparison
+      ? stressMovement.detail
+      : "Lower scores indicate fewer stress difficulties"
+  }
+/>
 
         <MiniMetric
-          label={hasComparison ? "Burnout movement" : "Burnout baseline"}
-          value={
-            hasComparison && burnoutChangePercent !== null
-              ? `${burnoutChangePercent}% reduction`
-              : `${format(burnoutMetric?.current)} / 10`
-          }
-          detail={
-            Number(burnoutMetric?.current) >= 8
-              ? "High-concern current result"
-              : "Lower scores indicate fewer burnout difficulties"
-          }
-        />
+  label={hasComparison ? "Burnout movement" : "Burnout baseline"}
+  value={
+    hasComparison
+      ? burnoutMovement.value
+      : `${format(burnoutMetric?.current)} / 10`
+  }
+  detail={
+    hasComparison
+      ? burnoutMovement.detail
+      : Number(burnoutMetric?.current) >= 8
+      ? "High-concern current result"
+      : "Lower scores indicate fewer burnout difficulties"
+  }
+/>
 
         <MiniMetric
           label="Sleep difficulty"
@@ -990,14 +1025,14 @@ return (
       </div>
 
       <div style={styles.insightPanel}>
-        <h3>What Root has detected</h3>
-        <p>{executiveNarrative.detected}</p>
+       <h3>Emerging pattern</h3>
+<p>{executiveNarrative.detected}</p>
 
-        <h3>What this may mean for the organisation</h3>
-        <p>{executiveNarrative.meaning}</p>
+<h3>Potential organisational impact</h3>
+<p>{executiveNarrative.meaning}</p>
 
-        <h3>What Root is watching next</h3>
-        <p>{executiveNarrative.watchingNext}</p>
+<h3>Next review focus</h3>
+<p>{executiveNarrative.watchingNext}</p>
       </div>
     </section>
 
@@ -1018,12 +1053,14 @@ return (
 
         <div style={styles.recommendationFeature}>
           <p style={styles.recommendationLabel}>
-            Executive Recommendation
+          Recommended Executive Decision
           </p>
 
           <h2 style={styles.recommendationTitle}>
-            {executiveNarrative.recommendation}
-          </h2>
+  {String(executiveNarrative.recommendation || "")
+    .replace(/^Root recommends\s+/i, "")
+    .replace(/^progressing\s+/i, "Proceed with ")}
+</h2>
         </div>
 
         <div style={styles.decisionCard}>
