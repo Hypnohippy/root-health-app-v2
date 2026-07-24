@@ -810,14 +810,15 @@ const hasComparison = safeRows.length > 1;
       </div>
 
       <div style={styles.chartInsight}>
-        <strong>Root insight</strong>
-        <p>
-          Stress moved from {first.stress} to {last.stress}, while burnout moved from{" "}
-          {first.burnout} to {last.burnout}. Sleep difficulty should be watched because
-          it showed the largest temporary movement during the period. Overall, the chart
-          is beginning to show a clearer direction of change.
-        </p>
-      </div>
+  <strong>Root insight</strong>
+  <p>
+    Stress moved from {format(first.stress)} to {format(last.stress)}, while
+    burnout moved from {format(first.burnout)} to {format(last.burnout)}. Sleep
+    difficulty should be watched because it showed the largest temporary movement
+    during the period. Overall, the chart is beginning to show a clearer direction
+    of change.
+  </p>
+</div>
     </div>
   );
 }
