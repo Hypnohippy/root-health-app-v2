@@ -752,15 +752,21 @@ return (
       />
 
       <div style={styles.insightPanel}>
-        <h3>Root Analysis Stage</h3>
+        <h3>Organisational Learning</h3>
 
         <p>
           <strong>
-            Stage {analysisStage.level} – {analysisStage.title}
-          </strong>
+            Stage {maturity.level} of 5 – {maturity.label}
+         </strong>
         </p>
 
-        <p>{analysisStage.description}</p>
+       <p>
+  This stage reflects the amount and quality of organisational evidence
+  available, including participation, completed baselines, matched follow-up
+  reviews, repeated measurement and anonymous support engagement. It describes
+  how much Root has learned about the organisation, not whether the wellbeing
+  results are good or bad.
+</p>
       </div>
 
       <div style={styles.indexFeature}>
@@ -843,8 +849,8 @@ return (
 </p>
 
 <p>
-  <strong>Evidence maturity:</strong>{" "}
-  Stage {analysisStage.level} – {analysisStage.title}.
+  <strong>Organisational learning:</strong>{" "}
+  Stage {maturity.level} of 5 – {maturity.label}.
   The confidence rating reflects the strength of the current
   findings, while evidence maturity reflects how far the
   organisation has progressed through repeated measurement.
