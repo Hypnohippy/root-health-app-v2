@@ -932,10 +932,12 @@ return (
         </p>
 
         <p>
-          A low early confidence rating does not mean the baseline is invalid.
-          It means that more participation and follow-up comparisons are needed
-          before Root can confirm wider organisational trends.
-        </p>
+  {confidenceScore >= 75
+    ? "The current confidence rating indicates that the findings are supported by repeated evidence. Continued participation will help confirm whether these patterns remain stable over time."
+    : confidenceScore >= 50
+    ? "The current confidence rating indicates that useful patterns are emerging, although further participation and follow-up comparisons are needed before wider organisational trends can be confirmed."
+    : "The current confidence rating reflects an early evidence base. This does not invalidate the baseline; further participation and follow-up comparisons are needed before wider organisational trends can be confirmed."}
+</p>
       </div>
     </section>
 
@@ -1040,7 +1042,7 @@ return (
     <section className="report-page" style={styles.reportPage}>
       <PageHeader
         kicker="Forecast & Recommendations"
-        title="What Root would do next"
+        title="Recommended next action"
         subtitle="The recommended response based on the current workforce evidence."
       />
 
@@ -1059,7 +1061,11 @@ return (
           <h2 style={styles.recommendationTitle}>
   {String(executiveNarrative.recommendation || "")
     .replace(/^Root recommends\s+/i, "")
-    .replace(/^progressing\s+/i, "Proceed with ")}
+    .replace(/^progressing\s+/i, "Proceed with ")
+    .replace(
+      /\band reviewing its effect\b/i,
+      "and review its effect"
+    )}
 </h2>
         </div>
 
@@ -1106,7 +1112,12 @@ return (
 
         <div style={styles.closingCard}>
           <h3>Executive Closing Summary</h3>
-          <p>{executiveNarrative.closingSummary}</p>
+          <p>
+  {String(executiveNarrative.closingSummary || "").replace(
+    /The strongest anonymous workforce theme is No challenge data yet\.\s*/i,
+    "No reliable anonymous workforce theme has yet been established. "
+  )}
+</p>
         </div>
 
         <div style={styles.reportEnd}>
