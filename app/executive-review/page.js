@@ -1435,7 +1435,16 @@ return (
     </section>
 
     {/* PAGE 5 — INTERPRETATION */}
-    <section className="report-page" style={styles.reportPage}>
+<section
+  className="report-page report-page-flexible"
+  style={{
+    ...styles.reportPage,
+    height: "auto",
+    maxHeight: "none",
+    minHeight: "257mm",
+    overflow: "visible",
+  }}
+>
       <PageHeader
         kicker="Executive Interpretation"
         title="What the evidence may mean"
