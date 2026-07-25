@@ -1439,6 +1439,9 @@ We look forward to welcoming you.
       <h2 style={styles.panelTitle}>
         Workforce participation overview
       </h2>
+      <pre style={{ fontSize: 12 }}>
+  {JSON.stringify(snapshot.participation, null, 2)}
+</pre>
 
       <p style={styles.participationIntro}>
         A clear view of participation, baseline completion and the
