@@ -1503,7 +1503,7 @@ We look forward to welcoming you.
         <div style={styles.participantRow}>
           <div>
             <div style={styles.participantDept}>
-              Repeat Check-ins
+              Matched Follow-ups
             </div>
 
             <strong style={{ fontSize: "26px" }}>
@@ -1512,35 +1512,43 @@ We look forward to welcoming you.
 
             <div style={styles.participantDept}>
   {snapshot.participation.followUpRate !== null
-    ? `${snapshot.participation.followUpRate}% returned for another check-in`
-    : "No repeat check-ins yet"}
+    ? `${snapshot.participation.followUpRate}% completed a baseline and at least one later check-in`
+    : "No matched follow-ups yet"}
 </div>
           </div>
         </div>
 
-        <div style={styles.participantRow}>
-          <div>
-            <div style={styles.participantDept}>
-              Awaiting follow-up
-            </div>
+       <div style={styles.participantRow}>
+  <div>
+    <div style={styles.participantDept}>
+      Baseline only
+    </div>
 
-            <strong style={{ fontSize: "26px" }}>
-              {snapshot.participation.baselineOnlyParticipants}
-            </strong>
-          </div>
-        </div>
+    <strong style={{ fontSize: "26px" }}>
+      {snapshot.participation.baselineOnlyParticipants}
+    </strong>
 
-        <div style={styles.participantRow}>
-          <div>
-            <div style={styles.participantDept}>
-              Departments
-            </div>
+    <div style={styles.participantDept}>
+      Completed a baseline but not yet a later check-in
+    </div>
+  </div>
+</div>
 
-            <strong style={{ fontSize: "26px" }}>
-              {snapshot.participation.departmentsRepresented}
-            </strong>
-          </div>
-        </div>
+       <div style={styles.participantRow}>
+  <div>
+    <div style={styles.participantDept}>
+      Departments
+    </div>
+
+    <strong style={{ fontSize: "26px" }}>
+      {snapshot.participation.departmentsRepresented}
+    </strong>
+
+    <div style={styles.participantDept}>
+      Departments represented by completed baseline evidence
+    </div>
+  </div>
+</div>
       </div>
 
       <div
