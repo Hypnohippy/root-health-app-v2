@@ -1434,25 +1434,24 @@ We look forward to welcoming you.
           <section style={styles.participantsCard}>
   <div style={styles.participationHeader}>
     <div>
-      <p style={styles.panelLabel}>Anonymous Participation</p>
+      <p style={styles.panelLabel}>
+        Anonymous Workforce Evidence
+      </p>
 
       <h2 style={styles.panelTitle}>
-        Workforce participation overview
+        Participation, engagement and direction
       </h2>
-      <pre style={{ fontSize: 12 }}>
-  {JSON.stringify(snapshot.participation, null, 2)}
-</pre>
 
       <p style={styles.participationIntro}>
-        A clear view of participation, baseline completion and the
-        strength of the organisation&apos;s follow-up evidence.
+        A live view of who is participating, whether employees are
+        returning and the direction recorded across repeated check-ins.
       </p>
     </div>
 
     <div style={styles.participationStatusPill}>
-      {snapshot?.participation?.outcomeSuppressed
-        ? "Evidence developing"
-        : "Movement available"}
+      {snapshot.participation.followUpCheckins > 0
+        ? "Live evidence updating"
+        : "Building baseline"}
     </div>
   </div>
 
@@ -1462,10 +1461,20 @@ We look forward to welcoming you.
     </p>
   ) : (
     <>
+      <p
+        style={{
+          ...styles.movementLabel,
+          marginTop: "26px",
+          marginBottom: "10px",
+        }}
+      >
+        Workforce participation
+      </p>
+
       <div style={styles.participationGrid}>
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Invited
+            Employees invited
           </div>
 
           <strong style={styles.participantValue}>
@@ -1473,13 +1482,13 @@ We look forward to welcoming you.
           </strong>
 
           <div style={styles.participantDescription}>
-            Employees invited to take part
+            Employees invited to participate in Root
           </div>
         </div>
 
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Joined
+            Employees joined
           </div>
 
           <strong style={styles.participantValue}>
@@ -1495,7 +1504,7 @@ We look forward to welcoming you.
 
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Baseline complete
+            Baselines completed
           </div>
 
           <strong style={styles.participantValue}>
@@ -1504,14 +1513,14 @@ We look forward to welcoming you.
 
           <div style={styles.participantDescription}>
             {snapshot.participation.baselineCompletionRate !== null
-              ? `${snapshot.participation.baselineCompletionRate}% completed their first assessment`
-              : "Awaiting baseline participation"}
+              ? `${snapshot.participation.baselineCompletionRate}% established a starting position`
+              : "Awaiting completed baseline assessments"}
           </div>
         </div>
 
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Matched follow-ups
+            People returning
           </div>
 
           <strong style={styles.participantValue}>
@@ -1520,28 +1529,137 @@ We look forward to welcoming you.
 
           <div style={styles.participantDescription}>
             {snapshot.participation.followUpRate !== null
-              ? `${snapshot.participation.followUpRate}% completed a baseline and later check-in`
-              : "No matched follow-ups yet"}
+              ? `${snapshot.participation.followUpRate}% completed at least one later check-in`
+              : "No employees have returned yet"}
           </div>
         </div>
+      </div>
 
+      <p
+        style={{
+          ...styles.movementLabel,
+          marginTop: "26px",
+          marginBottom: "10px",
+        }}
+      >
+        Live engagement
+      </p>
+
+      <div style={styles.participationGrid}>
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Baseline only
+            Follow-up check-ins
           </div>
 
           <strong style={styles.participantValue}>
-            {snapshot.participation.baselineOnlyParticipants}
+            {snapshot.participation.followUpCheckins}
           </strong>
 
           <div style={styles.participantDescription}>
-            Completed a baseline but not yet a later check-in
+            Every assessment completed after an employee&apos;s baseline
           </div>
         </div>
 
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Departments
+            Support interactions
+          </div>
+
+          <strong style={styles.participantValue}>
+            {supportInteractions}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            Anonymous use of Mind, Journal and Voice Coach support
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Assessment activity
+          </div>
+
+          <strong style={styles.participantValue}>
+            {snapshot.participation.totalAssessmentInteractions}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            Baseline and follow-up assessments completed
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Total Root activity
+          </div>
+
+          <strong style={styles.participantValue}>
+            {snapshot.participation.totalAssessmentInteractions +
+              supportInteractions}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            Assessments and recorded support interactions combined
+          </div>
+        </div>
+      </div>
+
+      <p
+        style={{
+          ...styles.movementLabel,
+          marginTop: "26px",
+          marginBottom: "10px",
+        }}
+      >
+        Direction across repeated check-ins
+      </p>
+
+      <div style={styles.participationGrid}>
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Improving interactions
+          </div>
+
+          <strong style={styles.participantValue}>
+            {snapshot.participation.improvingCheckins}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            Later check-ins where average difficulty reduced
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Stable interactions
+          </div>
+
+          <strong style={styles.participantValue}>
+            {snapshot.participation.stableCheckins}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            Later check-ins showing no meaningful overall movement
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Worsening interactions
+          </div>
+
+          <strong style={styles.participantValue}>
+            {snapshot.participation.worseningCheckins}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            Later check-ins where average difficulty increased
+          </div>
+        </div>
+
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Departments represented
           </div>
 
           <strong style={styles.participantValue}>
@@ -1549,7 +1667,7 @@ We look forward to welcoming you.
           </strong>
 
           <div style={styles.participantDescription}>
-            Departments represented in the wellbeing evidence
+            Departments contributing completed baseline evidence
           </div>
         </div>
       </div>
@@ -1557,24 +1675,40 @@ We look forward to welcoming you.
       <div style={styles.participationLowerGrid}>
         <div style={styles.movementStatusCard}>
           <div style={styles.movementIcon}>
-            {snapshot.participation.outcomeSuppressed ? "🔒" : "✓"}
+            {snapshot.participation.followUpCheckins > 0
+              ? "↗"
+              : "•"}
           </div>
 
           <div>
             <p style={styles.movementLabel}>
-              Participant movement
+              Current direction
             </p>
 
             <h3 style={styles.movementTitle}>
-              {snapshot.participation.outcomeSuppressed
-                ? "Movement remains protected"
-                : "Anonymous movement is available"}
+              {snapshot.participation.followUpCheckins === 0
+                ? "Awaiting follow-up evidence"
+                : snapshot.participation.improvingCheckins >
+                  snapshot.participation.worseningCheckins
+                ? "More interactions are improving"
+                : snapshot.participation.worseningCheckins >
+                  snapshot.participation.improvingCheckins
+                ? "Increased difficulty needs attention"
+                : "Movement is currently balanced"}
             </h3>
 
             <p style={styles.movementText}>
-              {snapshot.participation.outcomeSuppressed
-                ? `Root will release organisation-level movement once at least ${snapshot.participation.privacyMinimum} people have completed both a baseline and a follow-up check-in.`
-                : "The anonymous reporting threshold has been reached and Root can now show organisation-level movement."}
+              {snapshot.participation.followUpCheckins === 0
+                ? "Root has established a baseline but cannot yet measure change. Later check-ins will reveal whether reported difficulty is improving, stable or increasing."
+                : `${snapshot.participation.improvingCheckins} improving, ${snapshot.participation.stableCheckins} stable and ${snapshot.participation.worseningCheckins} worsening interaction${
+                    snapshot.participation.followUpCheckins === 1
+                      ? " has"
+                      : "s have"
+                  } been recorded across ${snapshot.participation.followUpCheckins} follow-up check-in${
+                    snapshot.participation.followUpCheckins === 1
+                      ? ""
+                      : "s"
+                  }.`}
             </p>
           </div>
         </div>
@@ -1586,43 +1720,74 @@ We look forward to welcoming you.
 
           <p style={styles.rootParticipationText}>
             {snapshot.participation.baselineCompleted === 0
-              ? "Participation has begun, but Root is still waiting for completed baselines before establishing an organisation-level wellbeing picture."
-              : snapshot.participation.matchedParticipants === 0
+              ? "Root is waiting for completed baseline assessments before establishing the organisation's starting wellbeing position."
+              : snapshot.participation.followUpCheckins === 0
               ? `Root has established a baseline from ${snapshot.participation.baselineCompleted} participant${
-                  snapshot.participation.baselineCompleted === 1 ? "" : "s"
-                }. Follow-up check-ins are now needed before movement can be measured.`
-              : snapshot.participation.outcomeSuppressed
-              ? `Participation is progressing well. ${snapshot.participation.matchedParticipants} participant${
-                  snapshot.participation.matchedParticipants === 1 ? " has" : "s have"
-                } completed a matched follow-up. ${
-                  snapshot.participation.privacyMinimum -
-                  snapshot.participation.matchedParticipants
-                } more ${
-                  snapshot.participation.privacyMinimum -
-                    snapshot.participation.matchedParticipants ===
-                  1
-                    ? "matched journey is"
-                    : "matched journeys are"
-                } needed before anonymous movement reporting becomes available.`
-              : `The anonymous reporting threshold has been reached. Root can now compare matched follow-ups with the organisation's baseline while continuing to protect individual privacy.`}
+                  snapshot.participation.baselineCompleted === 1
+                    ? ""
+                    : "s"
+                }. Employees now need to complete later check-ins so Root can begin measuring direction.`
+              : snapshot.participation.improvingCheckins >
+                snapshot.participation.worseningCheckins
+              ? `Root has recorded ${snapshot.participation.followUpCheckins} follow-up check-in${
+                  snapshot.participation.followUpCheckins === 1
+                    ? ""
+                    : "s"
+                } from ${snapshot.participation.matchedParticipants} returning participant${
+                  snapshot.participation.matchedParticipants === 1
+                    ? ""
+                    : "s"
+                }. ${snapshot.participation.improvingCheckins} showed reduced overall difficulty, compared with ${snapshot.participation.worseningCheckins} showing increased difficulty. The current interaction evidence is moving predominantly in a positive direction.`
+              : snapshot.participation.worseningCheckins >
+                snapshot.participation.improvingCheckins
+              ? `Root has recorded ${snapshot.participation.followUpCheckins} follow-up check-in${
+                  snapshot.participation.followUpCheckins === 1
+                    ? ""
+                    : "s"
+                }. ${snapshot.participation.worseningCheckins} showed increased overall difficulty, compared with ${snapshot.participation.improvingCheckins} showing improvement. Root recommends watching whether this pattern continues during the next review period.`
+              : `Root has recorded ${snapshot.participation.followUpCheckins} follow-up check-in${
+                  snapshot.participation.followUpCheckins === 1
+                    ? ""
+                    : "s"
+                }. Improving and worsening interactions are currently balanced, while ${snapshot.participation.stableCheckins} remained broadly stable. Continued participation will clarify the organisation's direction.`}
           </p>
         </div>
       </div>
 
-      {!snapshot.participation.outcomeSuppressed && (
-        <div style={styles.participantMovementResults}>
-          <span>
-            ↑ {snapshot.participation.improvedParticipants} improved
-          </span>
+      <div style={styles.participantMovementResults}>
+        <span>
+          ↗ {snapshot.participation.improvingCheckins} improving
+        </span>
 
-          <span>
-            → {snapshot.participation.stableParticipants} stable
-          </span>
+        <span>
+          → {snapshot.participation.stableCheckins} stable
+        </span>
 
-          <span>
-            ↓ {snapshot.participation.worsenedParticipants} worsened
-          </span>
-        </div>
+        <span>
+          ↘ {snapshot.participation.worseningCheckins} worsening
+        </span>
+
+        <span>
+          ↻ {snapshot.participation.followUpCheckins} follow-up
+          check-ins
+        </span>
+      </div>
+
+      {snapshot.participation.outcomeSuppressed && (
+        <p
+          style={{
+            margin: "14px 2px 0",
+            color: "#6A6256",
+            fontSize: "12px",
+            lineHeight: "1.55",
+          }}
+        >
+          Early interaction direction is shown to support programme
+          monitoring. Wider organisation-level conclusions remain
+          protected until Root&apos;s anonymous reporting threshold of{" "}
+          {snapshot.participation.privacyMinimum} matched participants
+          is reached.
+        </p>
       )}
     </>
   )}
