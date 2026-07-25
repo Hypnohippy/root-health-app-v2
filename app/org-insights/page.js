@@ -1432,13 +1432,24 @@ We look forward to welcoming you.
             <>
             <section style={styles.executiveBrief}>
           <section style={styles.participantsCard}>
-  <div style={styles.panelHeader}>
+  <div style={styles.participationHeader}>
     <div>
       <p style={styles.panelLabel}>Anonymous Participation</p>
 
       <h2 style={styles.panelTitle}>
         Workforce participation overview
       </h2>
+
+      <p style={styles.participationIntro}>
+        A clear view of participation, baseline completion and the
+        strength of the organisation&apos;s follow-up evidence.
+      </p>
+    </div>
+
+    <div style={styles.participationStatusPill}>
+      {snapshot?.participation?.outcomeSuppressed
+        ? "Evidence developing"
+        : "Movement available"}
     </div>
   </div>
 
@@ -1448,150 +1459,168 @@ We look forward to welcoming you.
     </p>
   ) : (
     <>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-          gap: "12px",
-          marginTop: "20px",
-        }}
-      >
+      <div style={styles.participationGrid}>
         <div style={styles.participantRow}>
-          <div>
-            <div style={styles.participantDept}>Invited</div>
+          <div style={styles.participantTitle}>
+            Invited
+          </div>
 
-            <strong style={{ fontSize: "26px" }}>
-              {snapshot.participation.invited}
-            </strong>
+          <strong style={styles.participantValue}>
+            {snapshot.participation.invited}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            Employees invited to take part
           </div>
         </div>
 
         <div style={styles.participantRow}>
-          <div>
-            <div style={styles.participantDept}>Joined</div>
+          <div style={styles.participantTitle}>
+            Joined
+          </div>
 
-            <strong style={{ fontSize: "26px" }}>
-              {snapshot.participation.joined}
-            </strong>
+          <strong style={styles.participantValue}>
+            {snapshot.participation.joined}
+          </strong>
 
-            <div style={styles.participantDept}>
-              {snapshot.participation.participationRate !== null
-                ? `${snapshot.participation.participationRate}% participation`
-                : "Awaiting invitations"}
-            </div>
+          <div style={styles.participantDescription}>
+            {snapshot.participation.participationRate !== null
+              ? `${snapshot.participation.participationRate}% activated their Root account`
+              : "Awaiting employee activation"}
           </div>
         </div>
 
         <div style={styles.participantRow}>
-          <div>
-            <div style={styles.participantDept}>
-              Baseline complete
-            </div>
+          <div style={styles.participantTitle}>
+            Baseline complete
+          </div>
 
-            <strong style={{ fontSize: "26px" }}>
-              {snapshot.participation.baselineCompleted}
-            </strong>
+          <strong style={styles.participantValue}>
+            {snapshot.participation.baselineCompleted}
+          </strong>
 
-            <div style={styles.participantDept}>
-              {snapshot.participation.baselineCompletionRate !== null
-                ? `${snapshot.participation.baselineCompletionRate}% completion`
-                : "Awaiting participation"}
-            </div>
+          <div style={styles.participantDescription}>
+            {snapshot.participation.baselineCompletionRate !== null
+              ? `${snapshot.participation.baselineCompletionRate}% completed their first assessment`
+              : "Awaiting baseline participation"}
           </div>
         </div>
 
         <div style={styles.participantRow}>
-          <div>
-            <div style={styles.participantDept}>
-              Matched Follow-ups
-            </div>
+          <div style={styles.participantTitle}>
+            Matched follow-ups
+          </div>
 
-            <strong style={{ fontSize: "26px" }}>
-              {snapshot.participation.matchedParticipants}
-            </strong>
+          <strong style={styles.participantValue}>
+            {snapshot.participation.matchedParticipants}
+          </strong>
 
-            <div style={styles.participantDept}>
-  {snapshot.participation.followUpRate !== null
-    ? `${snapshot.participation.followUpRate}% completed a baseline and at least one later check-in`
-    : "No matched follow-ups yet"}
-</div>
+          <div style={styles.participantDescription}>
+            {snapshot.participation.followUpRate !== null
+              ? `${snapshot.participation.followUpRate}% completed a baseline and later check-in`
+              : "No matched follow-ups yet"}
           </div>
         </div>
 
-       <div style={styles.participantRow}>
-  <div>
-    <div style={styles.participantDept}>
-      Baseline only
-    </div>
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Baseline only
+          </div>
 
-    <strong style={{ fontSize: "26px" }}>
-      {snapshot.participation.baselineOnlyParticipants}
-    </strong>
+          <strong style={styles.participantValue}>
+            {snapshot.participation.baselineOnlyParticipants}
+          </strong>
 
-    <div style={styles.participantDept}>
-      Completed a baseline but not yet a later check-in
-    </div>
-  </div>
-</div>
+          <div style={styles.participantDescription}>
+            Completed a baseline but not yet a later check-in
+          </div>
+        </div>
 
-       <div style={styles.participantRow}>
-  <div>
-    <div style={styles.participantDept}>
-      Departments
-    </div>
+        <div style={styles.participantRow}>
+          <div style={styles.participantTitle}>
+            Departments
+          </div>
 
-    <strong style={{ fontSize: "26px" }}>
-      {snapshot.participation.departmentsRepresented}
-    </strong>
+          <strong style={styles.participantValue}>
+            {snapshot.participation.departmentsRepresented}
+          </strong>
 
-    <div style={styles.participantDept}>
-      Departments represented by completed baseline evidence
-    </div>
-  </div>
-</div>
+          <div style={styles.participantDescription}>
+            Departments represented in the wellbeing evidence
+          </div>
+        </div>
       </div>
 
-      <div
-        style={{
-          marginTop: "16px",
-          padding: "16px",
-          borderRadius: "14px",
-          border: "1px solid rgba(255, 255, 255, 0.10)",
-        }}
-      >
-        <strong>Participant movement</strong>
+      <div style={styles.participationLowerGrid}>
+        <div style={styles.movementStatusCard}>
+          <div style={styles.movementIcon}>
+            {snapshot.participation.outcomeSuppressed ? "🔒" : "✓"}
+          </div>
 
-        <div
-          style={{
-            marginTop: "8px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "14px",
-          }}
-        >
-          {snapshot.participation.outcomeSuppressed ? (
-            <span style={styles.participantDept}>
-              Protected until at least{" "}
-              {snapshot.participation.privacyMinimum} matched journeys
-              have been completed.
-            </span>
-          ) : (
-            <>
-              <span>
-                ↑ {snapshot.participation.improvedParticipants} improved
-              </span>
+          <div>
+            <p style={styles.movementLabel}>
+              Participant movement
+            </p>
 
-              <span>
-                → {snapshot.participation.stableParticipants} stable
-              </span>
+            <h3 style={styles.movementTitle}>
+              {snapshot.participation.outcomeSuppressed
+                ? "Movement remains protected"
+                : "Anonymous movement is available"}
+            </h3>
 
-              <span>
-                ↓ {snapshot.participation.worsenedParticipants} worsened
-              </span>
-            </>
-          )}
+            <p style={styles.movementText}>
+              {snapshot.participation.outcomeSuppressed
+                ? `Root will release organisation-level movement once at least ${snapshot.participation.privacyMinimum} people have completed both a baseline and a follow-up check-in.`
+                : "The anonymous reporting threshold has been reached and Root can now show organisation-level movement."}
+            </p>
+          </div>
+        </div>
+
+        <div style={styles.rootParticipationComment}>
+          <p style={styles.movementLabel}>
+            Root comment
+          </p>
+
+          <p style={styles.rootParticipationText}>
+            {snapshot.participation.baselineCompleted === 0
+              ? "Participation has begun, but Root is still waiting for completed baselines before establishing an organisation-level wellbeing picture."
+              : snapshot.participation.matchedParticipants === 0
+              ? `Root has established a baseline from ${snapshot.participation.baselineCompleted} participant${
+                  snapshot.participation.baselineCompleted === 1 ? "" : "s"
+                }. Follow-up check-ins are now needed before movement can be measured.`
+              : snapshot.participation.outcomeSuppressed
+              ? `Participation is progressing well. ${snapshot.participation.matchedParticipants} participant${
+                  snapshot.participation.matchedParticipants === 1 ? " has" : "s have"
+                } completed a matched follow-up. ${
+                  snapshot.participation.privacyMinimum -
+                  snapshot.participation.matchedParticipants
+                } more ${
+                  snapshot.participation.privacyMinimum -
+                    snapshot.participation.matchedParticipants ===
+                  1
+                    ? "matched journey is"
+                    : "matched journeys are"
+                } needed before anonymous movement reporting becomes available.`
+              : `The anonymous reporting threshold has been reached. Root can now compare matched follow-ups with the organisation's baseline while continuing to protect individual privacy.`}
+          </p>
         </div>
       </div>
+
+      {!snapshot.participation.outcomeSuppressed && (
+        <div style={styles.participantMovementResults}>
+          <span>
+            ↑ {snapshot.participation.improvedParticipants} improved
+          </span>
+
+          <span>
+            → {snapshot.participation.stableParticipants} stable
+          </span>
+
+          <span>
+            ↓ {snapshot.participation.worsenedParticipants} worsened
+          </span>
+        </div>
+      )}
     </>
   )}
 </section>
@@ -3219,25 +3248,165 @@ pilotFill: {
 },
   participantsCard: {
   marginBottom: "22px",
-  padding: "28px",
+  padding: "30px",
   borderRadius: "32px",
-  background: "rgba(255,255,255,0.55)",
-  border: "1px solid rgba(255,255,255,0.72)",
+  background:
+    "linear-gradient(145deg, rgba(255,255,255,0.68), rgba(255,255,255,0.46))",
+  border: "1px solid rgba(255,255,255,0.76)",
+  boxShadow: "0 20px 60px rgba(35, 29, 21, 0.08)",
 },
 
-participantList: {
+participationHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: "20px",
+  flexWrap: "wrap",
+},
+
+participationIntro: {
+  maxWidth: "720px",
+  margin: "-6px 0 0",
+  color: "#5A554D",
+  fontSize: "14px",
+  lineHeight: "1.65",
+},
+
+participationStatusPill: {
+  padding: "10px 15px",
+  borderRadius: "999px",
+  background: "rgba(24,24,24,0.07)",
+  border: "1px solid rgba(24,24,24,0.08)",
+  color: "#3F392F",
+  fontSize: "12px",
+  fontWeight: "800",
+  letterSpacing: "0.04em",
+  whiteSpace: "nowrap",
+},
+
+participationGrid: {
   display: "grid",
-  gap: "16px",
+  gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))",
+  gap: "14px",
   marginTop: "24px",
+  alignItems: "stretch",
 },
 
 participantRow: {
+  minHeight: "190px",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(255,255,255,0.62)",
+  border: "1px solid rgba(255,255,255,0.82)",
+  boxShadow: "0 12px 30px rgba(35,29,21,0.05)",
+  display: "grid",
+  gridTemplateRows: "auto 1fr auto",
+  alignItems: "start",
+},
+
+participantTitle: {
+  minHeight: "38px",
+  color: "#5F574B",
+  fontSize: "13px",
+  fontWeight: "800",
+  lineHeight: "1.35",
+},
+
+participantValue: {
+  alignSelf: "center",
+  display: "block",
+  margin: "10px 0",
+  color: "#181818",
+  fontSize: "42px",
+  lineHeight: "1",
+  letterSpacing: "-0.04em",
+},
+
+participantDescription: {
+  minHeight: "56px",
+  color: "#6A6256",
+  fontSize: "13px",
+  lineHeight: "1.45",
+},
+
+participationLowerGrid: {
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 0.9fr)",
+  gap: "16px",
+  marginTop: "18px",
+},
+
+movementStatusCard: {
   display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "18px",
-  borderRadius: "18px",
-  background: "rgba(255,255,255,0.45)",
+  gap: "16px",
+  alignItems: "flex-start",
+  padding: "22px",
+  borderRadius: "24px",
+  background: "rgba(24,24,24,0.055)",
+  border: "1px solid rgba(24,24,24,0.07)",
+},
+
+movementIcon: {
+  width: "44px",
+  height: "44px",
+  flex: "0 0 44px",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "50%",
+  background: "rgba(255,255,255,0.72)",
+  fontSize: "19px",
+},
+
+movementLabel: {
+  margin: "0 0 7px",
+  color: "#776C5B",
+  fontSize: "11px",
+  fontWeight: "800",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+},
+
+movementTitle: {
+  margin: "0 0 8px",
+  color: "#181818",
+  fontSize: "19px",
+  lineHeight: "1.25",
+},
+
+movementText: {
+  margin: 0,
+  color: "#5A554D",
+  fontSize: "14px",
+  lineHeight: "1.6",
+},
+
+rootParticipationComment: {
+  padding: "22px",
+  borderRadius: "24px",
+  background:
+    "linear-gradient(135deg, rgba(24,24,24,0.92), rgba(55,49,41,0.92))",
+  color: "#FFFFFF",
+},
+
+rootParticipationText: {
+  margin: 0,
+  color: "rgba(255,255,255,0.84)",
+  fontSize: "14px",
+  lineHeight: "1.65",
+},
+
+participantMovementResults: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "12px",
+  marginTop: "16px",
+  padding: "16px 20px",
+  borderRadius: "20px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  color: "#3F392F",
+  fontSize: "14px",
+  fontWeight: "700",
 },
 
 participantDept: {
