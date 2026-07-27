@@ -1778,7 +1778,7 @@ We look forward to welcoming you.
           style={{
             margin: "14px 2px 0",
             color: "#6A6256",
-            fontSize: "12px",
+            fontSize: "12px", 
             lineHeight: "1.55",
           }}
         >
