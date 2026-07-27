@@ -49,6 +49,7 @@ export default function HRCoachPage() {
   const [conversation, setConversation] = useState([]);
   const [message, setMessage] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
 
   const conversationEndRef = useRef(null);
 
