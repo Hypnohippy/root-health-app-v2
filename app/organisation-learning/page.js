@@ -1567,6 +1567,218 @@ export default function OrganisationLearningPage() {
     </div>
   </section>
 ) : null}
+{organisationIntelligence ? (
+  <section
+    style={{
+      marginTop: "22px",
+      padding: "24px",
+      borderRadius: "24px",
+      border: "1px solid rgba(82, 103, 88, 0.14)",
+      background:
+        "linear-gradient(145deg, rgba(247,250,247,0.92), rgba(235,241,236,0.72))",
+      boxShadow: "0 18px 48px rgba(39, 55, 44, 0.1)",
+    }}
+  >
+    <p
+      style={{
+        margin: "0 0 8px",
+        color: "#617064",
+        fontSize: "0.76rem",
+        fontWeight: 800,
+        letterSpacing: "0.12em",
+        textTransform: "uppercase",
+      }}
+    >
+      Root noticed
+    </p>
+
+    <h3
+      style={{
+        margin: "0 0 10px",
+        color: "#232a25",
+        fontSize: "1.45rem",
+        lineHeight: 1.2,
+      }}
+    >
+      What the available evidence may be showing
+    </h3>
+
+    <p
+      style={{
+        margin: "0 0 20px",
+        color: "#626c64",
+        lineHeight: 1.65,
+      }}
+    >
+      These observations come from the workbook and any previous organisation
+      review available to Root. They describe measured movement and do not
+      prove why the movement occurred.
+    </p>
+
+    {Array.isArray(organisationIntelligence.findings) &&
+    organisationIntelligence.findings.length > 0 ? (
+      <div
+        style={{
+          display: "grid",
+          gap: "12px",
+        }}
+      >
+        {organisationIntelligence.findings.map((finding) => {
+          const worsening = finding.lowerIsBetter
+            ? finding.direction === "increasing"
+            : finding.direction === "decreasing";
+
+          const matchLabel =
+            finding.confidence === "Strong"
+              ? "Clear evidence match"
+              : finding.confidence === "Possible"
+                ? "Review evidence"
+                : "Early evidence";
+
+          return (
+            <article
+              key={finding.id}
+              style={{
+                padding: "17px",
+                borderRadius: "18px",
+                border: worsening
+                  ? "1px solid rgba(160, 91, 62, 0.16)"
+                  : "1px solid rgba(72, 119, 84, 0.16)",
+                background: worsening
+                  ? "rgba(176, 101, 69, 0.07)"
+                  : "rgba(72, 119, 84, 0.07)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "14px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ flex: "1 1 360px" }}>
+                  <strong
+                    style={{
+                      display: "block",
+                      color: "#292f2a",
+                      fontSize: "1rem",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {finding.title}
+                  </strong>
+
+                  <p
+                    style={{
+                      margin: "6px 0 0",
+                      color: "#666e67",
+                      fontSize: "0.9rem",
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {finding.detail}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "7px 10px",
+                    borderRadius: "999px",
+                    background: "rgba(255, 255, 255, 0.66)",
+                    border: "1px solid rgba(68, 78, 70, 0.1)",
+                    color: "#4f5c52",
+                    fontSize: "0.76rem",
+                    fontWeight: 800,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span aria-hidden="true">
+                    {finding.confidence === "Strong"
+                      ? "✓"
+                      : finding.confidence === "Possible"
+                        ? "!"
+                        : "○"}
+                  </span>
+
+                  {matchLabel}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "12px",
+                  paddingTop: "11px",
+                  borderTop: "1px solid rgba(70, 78, 72, 0.08)",
+                  color: worsening ? "#7a4938" : "#386148",
+                  fontSize: "0.82rem",
+                  fontWeight: 800,
+                }}
+              >
+                {worsening
+                  ? "This movement may require closer review."
+                  : "This movement appears positive or improving."}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    ) : (
+      <div
+        style={{
+          padding: "17px",
+          borderRadius: "18px",
+          border: "1px solid rgba(71, 83, 73, 0.1)",
+          background: "rgba(255, 255, 255, 0.54)",
+        }}
+      >
+        <strong
+          style={{
+            display: "block",
+            color: "#343c36",
+          }}
+        >
+          No measured movement can be described yet
+        </strong>
+
+        <p
+          style={{
+            margin: "6px 0 0",
+            color: "#69716b",
+            fontSize: "0.9rem",
+            lineHeight: 1.55,
+          }}
+        >
+          Root recognised the available figures, but there is not yet enough
+          comparable evidence to describe a trend or movement. This is normal
+          for a first review or a workbook containing only one reporting
+          period.
+        </p>
+      </div>
+    )}
+
+    <div
+      style={{
+        marginTop: "17px",
+        padding: "14px 16px",
+        borderRadius: "16px",
+        background: "rgba(42, 48, 43, 0.055)",
+        color: "#646b65",
+        fontSize: "0.84rem",
+        lineHeight: 1.55,
+      }}
+    >
+      <strong style={{ color: "#3d453f" }}>Important:</strong>{" "}
+      Root is reporting what changed in the evidence. Business events,
+      leadership changes, workload or other circumstances may provide context,
+      but Root is not claiming that any one factor caused the result.
+    </div>
+  </section>
+) : null}
 
                   {spreadsheetFileName && (
                     <div className="importResult">
