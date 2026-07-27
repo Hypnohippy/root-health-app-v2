@@ -973,7 +973,7 @@ const styles = {
 
   sendButton: {
     minWidth: "100px",
-    padding: "14px 20px",
+    padding: "14px 20px", 
     borderRadius: "18px",
     border: "none",
     background: "#263B2B",
