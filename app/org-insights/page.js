@@ -1324,7 +1324,14 @@ const rootWeeklyInterpretation =
   📄 View Executive Report
 </button>
 
-      <button
+     <button
+  style={styles.controlButton}
+  onClick={() => (window.location.href = "/organisation-learning")}
+>
+  🧠 Update Organisation Intelligence
+</button>
+
+<button
   style={styles.controlButton}
   onClick={() => (window.location.href = "/hr-coach")}
 >
