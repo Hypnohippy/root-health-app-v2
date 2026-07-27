@@ -456,6 +456,7 @@ export default function OrganisationLearningPage() {
 
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [reviewComplete, setReviewComplete] = useState(false);
 
   useEffect(() => {
     loadPage();
@@ -989,16 +990,15 @@ export default function OrganisationLearningPage() {
     resetSpreadsheet();
     setDataMethod("manual");
 
-    setMessage(
-      "Organisation picture updated. Root can now use this context alongside anonymous workforce evidence."
-    );
+    setMessage("");
+setReviewComplete(true);
 
-    setSaving(false);
+setSaving(false);
 
-    window.scrollTo({
-      top: 0,
-      behaviour: "smooth",
-    });
+window.scrollTo({
+  top: 0,
+  behavior: "smooth",
+});
   }
 
   const lastReviewDays = daysSince(previousReview?.created_at);
@@ -1049,7 +1049,59 @@ export default function OrganisationLearningPage() {
             </div>
           </header>
 
-          {message && <div className="successMessage">{message}</div>}
+          {reviewComplete && (
+  <section className="reviewCompleteCard">
+    <div className="reviewCompleteIcon">✓</div>
+
+    <p className="sectionLabel">
+      Organisation Picture Updated
+    </p>
+
+    <h2>
+      Today's review has been added to Root's organisational memory.
+    </h2>
+
+    <p className="reviewCompleteText">
+      Root will now compare today's evidence with future reviews,
+      look for relationships with anonymous workforce wellbeing,
+      strengthen confidence as more evidence is collected and
+      automatically update Organisation Insights as new evidence develops.
+    </p>
+
+    <div className="reviewChecklist">
+
+      <div>✓ Organisation review stored</div>
+
+      <div>✓ Organisational memory updated</div>
+
+      <div>✓ Future comparisons enabled</div>
+
+      <div>✓ Organisation Insights refreshed</div>
+
+    </div>
+
+    <div className="reviewCompleteButtons">
+
+      <button
+        className="saveButton"
+        onClick={() => router.push("/insights-org")}
+      >
+        View Organisation Insights →
+      </button>
+
+      <button
+        className="quietButton"
+        onClick={() => {
+          setReviewComplete(false);
+          setMessage("");
+        }}
+      >
+        Finish
+      </button>
+
+    </div>
+  </section>
+)}
 
           {errorMessage && (
             <div className="errorMessage">{errorMessage}</div>
@@ -3238,5 +3290,55 @@ const pageStyles = `
       min-height: 230px;
       padding: 25px 18px;
     }
+      .reviewCompleteCard {
+  margin-bottom: 24px;
+  padding: 34px;
+  border-radius: 30px;
+  text-align: center;
+  background: rgba(40,110,70,0.08);
+  border: 1px solid rgba(40,110,70,0.18);
+}
+
+.reviewCompleteIcon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(40,110,70,0.12);
+  color: #2d6a4f;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.reviewCompleteText {
+  max-width: 760px;
+  margin: 18px auto;
+  color: #5d5a54;
+}
+
+.reviewChecklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.reviewChecklist div {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.6);
+  font-weight: 700;
+}
+
+.reviewCompleteButtons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
   }
 `;
