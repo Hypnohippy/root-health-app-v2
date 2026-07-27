@@ -101,18 +101,59 @@ setOrganisation(org);
     mindEntries.length + journalEntries.length + voiceSessions.length;
 
   const latestAssessment =
-    assessments.length > 0 ? assessments[assessments.length - 1] : null;
+  const concernMetrics = [
+  {
+    label: "Stress",
+    field: "stress_score",
+  },
+  {
+    label: "Burnout",
+    field: "burnout_score",
+  },
+  {
+    label: "Sleep difficulty",
+    field: "sleep_score",
+  },
+  {
+    label: "Recovery difficulty",
+    field: "recovery_score",
+  },
+  {
+    label: "Mood difficulty",
+    field: "mood_score",
+  },
+  {
+    label: "Focus difficulty",
+    field: "focus_score",
+  },
+]
+  .map((metric) => {
+    const validScores = assessments
+      .map((assessment) => Number(assessment?.[metric.field]))
+      .filter((score) => Number.isFinite(score));
 
-  const highestConcern = latestAssessment
-    ? [
-        ["Stress", latestAssessment.stress_score],
-        ["Burnout", latestAssessment.burnout_score],
-        ["Sleep difficulty", latestAssessment.sleep_score],
-        ["Recovery difficulty", latestAssessment.recovery_score],
-        ["Mood difficulty", latestAssessment.mood_score],
-        ["Focus difficulty", latestAssessment.focus_score],
-      ].sort((a, b) => Number(b[1]) - Number(a[1]))[0]
-    : null;
+    const average =
+      validScores.length > 0
+        ? validScores.reduce((total, score) => total + score, 0) /
+          validScores.length
+        : null;
+
+    return {
+      ...metric,
+      average,
+      evidenceCount: validScores.length,
+    };
+  })
+  .filter((metric) => metric.average !== null)
+  .sort((a, b) => b.average - a.average);
+
+const primaryConcern = concernMetrics[0] || null;
+const secondaryConcern = concernMetrics[1] || null;
+
+const baselineParticipation =
+  members.length > 0
+    ? Math.round((baselineCompleted / members.length) * 100)
+    : 0;
 
   const confidence =
     assessments.length >= 20
@@ -191,12 +232,108 @@ setOrganisation(org);
                 </div>
 
                 <div style={styles.snapshotCard}>
-                  <span>Confidence</span>
-                  <strong>{confidence}</strong>
-                </div>
-              </div>
+  <span>Confidence</span>
+  <strong>{confidence}</strong>
+</div>
+</div>
 
-              <section style={styles.insightBox}>
+<section style={styles.rootFocusBox}>
+  <p style={styles.focusKicker}>Root&apos;s current starting point</p>
+
+  <h2 style={styles.focusTitle}>
+    Here is what Root is bringing to the conversation
+  </h2>
+
+  <p style={styles.text}>
+    This is not a final conclusion. It is the clearest starting point
+    supported by the evidence currently available.
+  </p>
+
+  <div style={styles.focusGrid}>
+    <div style={styles.focusCard}>
+      <span style={styles.focusLabel}>Strongest current signal</span>
+
+      {primaryConcern ? (
+        <>
+          <strong style={styles.focusValue}>
+            {primaryConcern.label}
+          </strong>
+
+          <p style={styles.focusText}>
+            Average recorded difficulty:{" "}
+            <strong>{primaryConcern.average.toFixed(1)} / 10</strong>
+          </p>
+        </>
+      ) : (
+        <p style={styles.focusText}>
+          Root does not yet have enough assessment evidence to identify
+          a leading concern.
+        </p>
+      )}
+    </div>
+
+    <div style={styles.focusCard}>
+      <span style={styles.focusLabel}>Another signal to explore</span>
+
+      {secondaryConcern ? (
+        <>
+          <strong style={styles.focusValue}>
+            {secondaryConcern.label}
+          </strong>
+
+          <p style={styles.focusText}>
+            Average recorded difficulty:{" "}
+            <strong>{secondaryConcern.average.toFixed(1)} / 10</strong>
+          </p>
+        </>
+      ) : (
+        <p style={styles.focusText}>
+          Further evidence will help Root distinguish between different
+          organisational pressures.
+        </p>
+      )}
+    </div>
+
+    <div style={styles.focusCard}>
+      <span style={styles.focusLabel}>Participation picture</span>
+
+      <strong style={styles.focusValue}>
+        {baselineParticipation}%
+      </strong>
+
+      <p style={styles.focusText}>
+        {baselineCompleted} of {members.length} employees have completed
+        a baseline.
+      </p>
+    </div>
+
+    <div style={styles.focusCard}>
+      <span style={styles.focusLabel}>Evidence confidence</span>
+
+      <strong style={styles.focusValue}>{confidence}</strong>
+
+      <p style={styles.focusText}>
+        {confidence === "High"
+          ? "Root has a stronger evidence base, although findings should still be tested against organisational context."
+          : confidence === "Developing"
+          ? "Root can identify useful signals, but alternative explanations should remain open."
+          : "Root is beginning to form a picture. Early signals should be treated as questions rather than conclusions."}
+      </p>
+    </div>
+  </div>
+
+  <div style={styles.rootQuestion}>
+    <strong>Root&apos;s opening question</strong>
+
+    <p>
+      {primaryConcern
+        ? `The strongest current signal is ${primaryConcern.label.toLowerCase()}. What has been happening inside the organisation that might help explain this?`
+        : "What has been happening inside the organisation that Root should understand before interpreting the numbers?"}
+    </p>
+  </div>
+</section>
+
+<section style={styles.insightBox}>
                 <h2 style={styles.sectionTitle}>How can Root help you think this through?</h2>
 
                 <p style={styles.text}>
@@ -295,6 +432,79 @@ const styles = {
     display: "grid",
     gap: "8px",
   },
+
+  rootFocusBox: {
+  marginTop: "30px",
+  padding: "30px",
+  borderRadius: "28px",
+  background:
+    "linear-gradient(145deg, rgba(233,241,230,0.78), rgba(255,255,255,0.46))",
+  border: "1px solid rgba(92,120,86,0.2)",
+  textAlign: "left",
+},
+
+focusKicker: {
+  margin: 0,
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.13em",
+  fontWeight: "800",
+  color: "#62705F",
+},
+
+focusTitle: {
+  margin: "8px 0 0",
+  fontSize: "27px",
+  lineHeight: 1.25,
+  color: "#181818",
+},
+
+focusGrid: {
+  marginTop: "24px",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+  gap: "14px",
+},
+
+focusCard: {
+  padding: "20px",
+  borderRadius: "21px",
+  background: "rgba(255,255,255,0.56)",
+  border: "1px solid rgba(255,255,255,0.78)",
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+},
+
+focusLabel: {
+  fontSize: "11px",
+  textTransform: "uppercase",
+  letterSpacing: "0.09em",
+  fontWeight: "800",
+  color: "#6F675B",
+},
+
+focusValue: {
+  fontSize: "23px",
+  lineHeight: 1.2,
+  color: "#20251F",
+},
+
+focusText: {
+  margin: 0,
+  fontSize: "14px",
+  lineHeight: 1.6,
+  color: "#575047",
+},
+
+rootQuestion: {
+  marginTop: "18px",
+  padding: "19px 21px",
+  borderRadius: "20px",
+  background: "rgba(45,65,49,0.9)",
+  color: "#FFFFFF",
+  lineHeight: 1.65,
+},
 
   insightBox: {
     marginTop: "30px",
