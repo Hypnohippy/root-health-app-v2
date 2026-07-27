@@ -127,13 +127,25 @@ setOrganisation(org);
 
       <main style={styles.page}>
         <section style={styles.card}>
-          <RootEnso size={90} />
-    <button
-  onClick={() => (window.location.href = "/org-insights")}
-  style={styles.backButton}
->
-  ← Back to Organisation Insights
-</button>
+          <div style={styles.topButtons}>
+  <button
+    type="button"
+    onClick={() => (window.location.href = "/insights-org")}
+    style={styles.backButton}
+  >
+    ← Organisation Insights
+  </button>
+
+  <button
+    type="button"
+    onClick={() => (window.location.href = "/organisation-learning")}
+    style={styles.intelligenceButton}
+  >
+    🧠 Update Organisation Intelligence
+  </button>
+</div>
+
+<RootEnso size={90} />
 
           <p style={styles.kicker}>Root Workplace</p>
 
@@ -331,5 +343,23 @@ const styles = {
   cursor: "pointer",
   fontWeight: 700,
   color: "#181818",
+},
+topButtons: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "12px",
+  marginBottom: "26px",
+  flexWrap: "wrap",
+},
+
+intelligenceButton: {
+  padding: "10px 18px",
+  borderRadius: "999px",
+  border: "1px solid rgba(72,119,84,0.25)",
+  background: "rgba(72,119,84,0.12)",
+  cursor: "pointer",
+  fontWeight: 700,
+  color: "#29533A",
 },
 };
