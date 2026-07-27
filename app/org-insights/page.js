@@ -1290,55 +1290,62 @@ const rootWeeklyInterpretation =
       <h2 style={styles.controlTitle}>HR Action Centre</h2>
 
       <p style={styles.controlText}>
-        Invite employees, launch initiatives and prepare executive reports.
-      </p>
+  Gather evidence, review organisational intelligence and turn insight
+  into informed action.
+</p>
     </div>
 
-    <div style={styles.controlButtons}>
+   <div style={styles.controlButtons}>
+  <button
+    type="button"
+    style={styles.controlButton}
+    onClick={() => setShowInvite(!showInvite)}
+  >
+    👥 Invite Employees
+  </button>
 
-      <button
-  style={styles.controlButton}
-  onClick={() => setShowInvite(!showInvite)}
->
-  👥 Invite Employees
-</button>
-     <button
-  style={styles.controlButton}
-  onClick={() => {
-    const joinLink = `${ROOT_PUBLIC_URL}/organisation/join`;
+  <button
+    type="button"
+    style={styles.controlButton}
+    onClick={() => {
+      const joinLink = `${ROOT_PUBLIC_URL}/organisation/join`;
 
-    navigator.clipboard.writeText(joinLink);
+      navigator.clipboard.writeText(joinLink);
 
-    alert("Employee join link copied.");
-  }}
->
-  📋 Copy Join Link
-</button>
+      alert("Employee join link copied.");
+    }}
+  >
+    📋 Copy Join Link
+  </button>
 
-      <button
-  style={styles.controlButton}
-  onClick={() =>
-    window.open("/executive-review?print=1", "_blank")
-  }
->
-  📄 View Executive Report
-</button>
+  <button
+    type="button"
+    style={styles.controlButton}
+    onClick={() =>
+      (window.location.href = "/organisation-learning")
+    }
+  >
+    🧠 Update Organisation Intelligence
+  </button>
 
-     <button
-  style={styles.controlButton}
-  onClick={() => (window.location.href = "/organisation-learning")}
->
-  🧠 Update Organisation Intelligence
-</button>
+  <button
+    type="button"
+    style={styles.controlButton}
+    onClick={() =>
+      window.open("/executive-review?print=1", "_blank")
+    }
+  >
+    📄 View Executive Report
+  </button>
 
-<button
-  style={styles.controlButton}
-  onClick={() => (window.location.href = "/hr-coach")}
->
-  💬 Ask Root
-</button>
-
-    </div>
+  <button
+    type="button"
+    style={styles.controlButton}
+    onClick={() => (window.location.href = "/hr-coach")}
+  >
+    💬 Discuss Insights with Root
+  </button>
+</div> 
 
   </div>
 {showInvite && (
