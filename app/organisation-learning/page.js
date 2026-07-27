@@ -1042,7 +1042,7 @@ window.scrollTo({
                 type="button"
                 onClick={goBackToOrganisationInsights}
               >
-                ← Back to Organisation Insights
+               Continue to Organisation Insights
               </button>
 
               <span className="timePill">Estimated time: 2–3 minutes</span>
