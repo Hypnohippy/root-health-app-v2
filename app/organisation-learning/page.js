@@ -1224,13 +1224,356 @@ export default function OrganisationLearningPage() {
                   {spreadsheetMessage && (
                     <div className="importMessage">{spreadsheetMessage}</div>
                   )}
+                  {organisationIntelligence ? (
+  <section
+    style={{
+      marginTop: "24px",
+      padding: "24px",
+      borderRadius: "24px",
+      border: "1px solid rgba(255, 255, 255, 0.14)",
+      background:
+        "linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.045))",
+      boxShadow: "0 18px 55px rgba(0, 0, 0, 0.16)",
+      backdropFilter: "blur(18px)",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: "20px",
+        flexWrap: "wrap",
+      }}
+    >
+      <div style={{ maxWidth: "720px" }}>
+        <p
+          style={{
+            margin: "0 0 8px",
+            fontSize: "0.78rem",
+            fontWeight: 700,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            opacity: 0.68,
+          }}
+        >
+          Root workbook analysis
+        </p>
+
+        <h3
+          style={{
+            margin: "0 0 10px",
+            fontSize: "clamp(1.35rem, 2vw, 1.8rem)",
+            lineHeight: 1.2,
+          }}
+        >
+          Root analysed your organisation data
+        </h3>
+
+        <p
+          style={{
+            margin: 0,
+            lineHeight: 1.65,
+            opacity: 0.78,
+          }}
+        >
+          Root has inspected the workbook and suggested how its
+          spreadsheet columns relate to the organisation measures below.
+          A data match describes Root&apos;s confidence in the spreadsheet
+          mapping. It is not a rating of the organisation&apos;s performance.
+        </p>
+      </div>
+
+      <div
+        style={{
+          minWidth: "180px",
+          padding: "14px 16px",
+          borderRadius: "18px",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          background: "rgba(255, 255, 255, 0.06)",
+        }}
+      >
+        <div
+          style={{
+            marginBottom: "5px",
+            fontSize: "0.76rem",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            opacity: 0.62,
+          }}
+        >
+          Overall data match
+        </div>
+
+        <div
+          style={{
+            fontSize: "1.08rem",
+            fontWeight: 700,
+          }}
+        >
+          {organisationIntelligence.confidence?.label === "Strong"
+            ? "Clear overall match"
+            : organisationIntelligence.confidence?.label === "Developing"
+              ? "Review suggested"
+              : "More review needed"}
+        </div>
+      </div>
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gap: "12px",
+        marginTop: "22px",
+      }}
+    >
+      <div
+        style={{
+          padding: "16px",
+          borderRadius: "18px",
+          background: "rgba(255, 255, 255, 0.055)",
+          border: "1px solid rgba(255, 255, 255, 0.09)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: 700,
+          }}
+        >
+          {organisationIntelligence.workbookSummary?.worksheetCount || 0}
+        </div>
+
+        <div style={{ marginTop: "4px", opacity: 0.68 }}>
+          Worksheets discovered
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: "16px",
+          borderRadius: "18px",
+          background: "rgba(255, 255, 255, 0.055)",
+          border: "1px solid rgba(255, 255, 255, 0.09)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: 700,
+          }}
+        >
+          {organisationIntelligence.workbookSummary?.columnCount || 0}
+        </div>
+
+        <div style={{ marginTop: "4px", opacity: 0.68 }}>
+          Columns inspected
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: "16px",
+          borderRadius: "18px",
+          background: "rgba(255, 255, 255, 0.055)",
+          border: "1px solid rgba(255, 255, 255, 0.09)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: 700,
+          }}
+        >
+          {organisationIntelligence.workbookSummary
+            ?.recognisedMeasureCount || 0}
+        </div>
+
+        <div style={{ marginTop: "4px", opacity: 0.68 }}>
+          Measures recognised
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: "16px",
+          borderRadius: "18px",
+          background: "rgba(255, 255,255, 0.055)",
+          border: "1px solid rgba(255, 255, 255, 0.09)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: 700,
+          }}
+        >
+          {organisationIntelligence.workbookSummary
+            ?.confirmationRequiredCount || 0}
+        </div>
+
+        <div style={{ marginTop: "4px", opacity: 0.68 }}>
+          Need confirmation
+        </div>
+      </div>
+    </div>
+
+    <div style={{ marginTop: "26px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "minmax(150px, 1.25fr) minmax(150px, 1.4fr) minmax(100px, 0.75fr) minmax(130px, 0.9fr)",
+          gap: "14px",
+          padding: "0 12px 10px",
+          fontSize: "0.75rem",
+          fontWeight: 700,
+          letterSpacing: "0.07em",
+          textTransform: "uppercase",
+          opacity: 0.58,
+        }}
+      >
+        <span>Root measure</span>
+        <span>Spreadsheet source</span>
+        <span>Value</span>
+        <span>Data match</span>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gap: "10px",
+        }}
+      >
+        {Object.entries(
+          organisationIntelligence.measureDefinitions || {}
+        ).map(([measureKey, definition]) => {
+          const mapping =
+            organisationIntelligence.mappings?.[measureKey] || null;
+
+          return (
+            <div
+              key={measureKey}
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "minmax(150px, 1.25fr) minmax(150px, 1.4fr) minmax(100px, 0.75fr) minmax(130px, 0.9fr)",
+                gap: "14px",
+                alignItems: "center",
+                padding: "15px 12px",
+                borderRadius: "16px",
+                border: "1px solid rgba(255, 255, 255, 0.09)",
+                background: "rgba(255, 255, 255, 0.045)",
+              }}
+            >
+              <div>
+                <strong>{definition.label}</strong>
+              </div>
+
+              <div
+                style={{
+                  minWidth: 0,
+                  lineHeight: 1.45,
+                  opacity: mapping ? 0.82 : 0.58,
+                }}
+              >
+                {mapping ? (
+                  <>
+                    <div>{mapping.header}</div>
+
+                    <div
+                      style={{
+                        marginTop: "3px",
+                        fontSize: "0.8rem",
+                        opacity: 0.66,
+                      }}
+                    >
+                      {mapping.sheetName}
+                    </div>
+                  </>
+                ) : (
+                  "No reliable source found"
+                )}
+              </div>
+
+              <div style={{ fontWeight: 700 }}>
+                {mapping
+                  ? formatDetectedMeasureValue(
+                      measureKey,
+                      mapping.value
+                    )
+                  : "—"}
+              </div>
+
+              <div>
+                <div
+                  title={
+                    mapping
+                      ? getDataMatchExplanation(mapping.confidenceLabel)
+                      : "Root did not find a sufficiently reliable spreadsheet match."
+                  }
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "7px 10px",
+                    borderRadius: "999px",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    background: "rgba(255, 255, 255, 0.06)",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span aria-hidden="true">
+                    {!mapping
+                      ? "○"
+                      : mapping.confidenceLabel === "Strong"
+                        ? "✓"
+                        : mapping.confidenceLabel === "Possible"
+                          ? "!"
+                          : "?"}
+                  </span>
+
+                  {mapping
+                    ? getDataMatchLabel(mapping.confidenceLabel)
+                    : "Not matched"}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    <div
+      style={{
+        marginTop: "20px",
+        padding: "15px 17px",
+        borderRadius: "17px",
+        background: "rgba(255, 255, 255, 0.045)",
+        border: "1px solid rgba(255, 255, 255, 0.09)",
+        lineHeight: 1.55,
+        fontSize: "0.9rem",
+        opacity: 0.76,
+      }}
+    >
+      <strong style={{ opacity: 1 }}>What “data match” means:</strong>{" "}
+      Root is describing how clearly the spreadsheet evidence matches a
+      measure. It is not judging whether the organisation itself is
+      performing strongly or poorly.
+    </div>
+  </section>
+) : null}
 
                   {spreadsheetFileName && (
                     <div className="importResult">
                       <div className="importHeader">
                         <div>
                           <p className="sectionLabel">
-                            Spreadsheet imported
+                            Root's analysis
                           </p>
 
                           <h3>{spreadsheetFileName}</h3>
