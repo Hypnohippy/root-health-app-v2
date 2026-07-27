@@ -138,32 +138,22 @@ export default function HRCoachPage() {
     setLoading(false);
   }
 
-  function startConversation(type) {
-    const starter = conversationStarters[type];
+  async function startConversation(type) {
+  const starter = conversationStarters[type];
 
-    if (!starter) return;
+  if (!starter) return;
 
-    setConversationStarted(true);
-
-    setConversation((current) => [
-      ...current,
-      {
-        id: `${Date.now()}-user`,
-        role: "user",
-        content: starter.userMessage,
-      },
-      {
-        id: `${Date.now()}-root`,
-        role: "assistant",
-        content: starter.rootMessage,
-      },
-    ]);
-  }
+  await handleSend({
+    preventDefault: () => {},
+    starterMessage: starter.userMessage,
+    starterIntent: type,
+  });
+}
 
   async function handleSend(event) {
   event.preventDefault();
 
-  const cleanMessage = message.trim();
+  const cleanMessage = event.starterMessage || message.trim();
 
   if (!cleanMessage) return;
 
@@ -206,7 +196,9 @@ export default function HRCoachPage() {
           journalEntries,
           voiceSessions,
 
-          intent: "general_evidence_discussion",
+          intent:
+  event.starterIntent ||
+  "general_evidence_discussion",
         }),
       }
     );
@@ -241,7 +233,9 @@ export default function HRCoachPage() {
   function clearConversation() {
     setConversation([]);
     setConversationStarted(false);
-    setMessage("");
+    if (!event.starterMessage) {
+  setMessage("");
+}
   }
 
   const activated = members.filter((member) => member.activated_at).length;
