@@ -159,6 +159,7 @@ export default function HRCoachPage() {
   if (!cleanMessage) return;
 
   setConversationStarted(true);
+  setIsThinking(true);
 
   const userEntry = {
     id: `${Date.now()}-user`,
@@ -228,6 +229,7 @@ export default function HRCoachPage() {
           "Root couldn't reach the organisation reasoning engine. Please try again.",
       },
     ]);
+    setIsThinking(false);
   }
 }
 
@@ -618,6 +620,30 @@ export default function HRCoachPage() {
                       );
                     })
                   )}
+
+                  {isThinking && (
+  <div
+    style={{
+      ...styles.messageRow,
+      justifyContent: "flex-start",
+    }}
+  >
+    <div
+      style={{
+        ...styles.messageBubble,
+        ...styles.rootMessage,
+      }}
+    >
+      <span style={styles.messageAuthor}>
+        Root
+      </span>
+
+      <p style={styles.messageText}>
+        Reviewing the organisation evidence...
+      </p>
+    </div>
+  </div>
+)}
 
                   <div ref={conversationEndRef} />
                 </div>
