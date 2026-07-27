@@ -100,7 +100,7 @@ setOrganisation(org);
   const supportInteractions =
     mindEntries.length + journalEntries.length + voiceSessions.length;
 
-  const latestAssessment =
+ 
   const concernMetrics = [
   {
     label: "Stress",
