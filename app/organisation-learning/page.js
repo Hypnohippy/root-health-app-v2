@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
+import { buildOrganisationIntelligence } from "../../lib/rootOrganisationIntelligenceEngine";
 
 const BUSINESS_EVENT_OPTIONS = [
   "Annual appraisals",
@@ -450,6 +451,9 @@ export default function OrganisationLearningPage() {
   const [spreadsheetMessage, setSpreadsheetMessage] = useState("");
   const [spreadsheetError, setSpreadsheetError] = useState("");
 
+  const [organisationIntelligence, setOrganisationIntelligence] =
+  useState(null);
+
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -656,105 +660,192 @@ export default function OrganisationLearningPage() {
   }
 
   function resetSpreadsheet() {
+  setSpreadsheetFileName("");
+  setSpreadsheetSheetName("");
+  setSpreadsheetRowCount(0);
+  setSpreadsheetPreviewRows([]);
+  setDetectedMeasures(EMPTY_MEASURES);
+  setDetectedSources({});
+  setOrganisationIntelligence(null);
+  setSpreadsheetMessage("");
+  setSpreadsheetError("");
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+}
+
+  async function processSpreadsheetFile(file) {
+  setSpreadsheetError("");
+  setSpreadsheetMessage("");
+  setOrganisationIntelligence(null);
+
+  if (!file) return;
+
+  const lowerName = file.name.toLowerCase();
+
+  const supported =
+    lowerName.endsWith(".csv") ||
+    lowerName.endsWith(".xlsx") ||
+    lowerName.endsWith(".xls");
+
+  if (!supported) {
+    setSpreadsheetError(
+      "Please upload an Excel spreadsheet or CSV file ending in .xlsx, .xls or .csv."
+    );
+    return;
+  }
+
+  setSpreadsheetLoading(true);
+
+  try {
+    const XLSX = await import("xlsx");
+    const arrayBuffer = await file.arrayBuffer();
+
+    const workbook = XLSX.read(arrayBuffer, {
+      type: "array",
+      cellDates: true,
+    });
+
+    if (!Array.isArray(workbook.SheetNames) || workbook.SheetNames.length === 0) {
+      throw new Error("No worksheets were found in this spreadsheet.");
+    }
+
+    /*
+     * This is the important change.
+     *
+     * The workbook is now passed to Root's organisation intelligence engine.
+     * The engine inspects every worksheet rather than only the first one.
+     */
+    const intelligence = buildOrganisationIntelligence({
+      workbook,
+      XLSX,
+      previousReviews: reviewHistory,
+    });
+
+    const importedMeasures = {
+      ...EMPTY_MEASURES,
+    };
+
+    const importedSources = {};
+
+    Object.entries(intelligence.mappings || {}).forEach(
+      ([measureKey, mapping]) => {
+        if (
+          !mapping ||
+          mapping.value === null ||
+          mapping.value === undefined ||
+          Number.isNaN(Number(mapping.value))
+        ) {
+          return;
+        }
+
+        importedMeasures[measureKey] = String(mapping.value);
+
+        importedSources[measureKey] = [
+          `Sheet: ${mapping.sheetName}`,
+          `Column: ${mapping.header}`,
+          `Confidence: ${mapping.confidenceLabel}`,
+        ].join(" · ");
+      }
+    );
+
+    /*
+     * Keep a small preview of the first worksheet for the existing preview
+     * table. The intelligence itself has already inspected every worksheet.
+     */
+    const firstSheetName = workbook.SheetNames[0];
+    const firstWorksheet = workbook.Sheets[firstSheetName];
+
+    const previewRows = XLSX.utils.sheet_to_json(firstWorksheet, {
+      defval: "",
+      raw: false,
+    });
+
+    const workbookSummary = intelligence.workbookSummary || {};
+
+    const recognisedCount =
+      workbookSummary.recognisedMeasureCount ||
+      Object.values(importedMeasures).filter(
+        (value) => value !== "" && value !== null && value !== undefined
+      ).length;
+
+    const confirmationCount =
+      workbookSummary.confirmationRequiredCount || 0;
+
+    const worksheetCount =
+      workbookSummary.worksheetCount || workbook.SheetNames.length;
+
+    const rowCount = workbookSummary.rowCount || 0;
+
+    setOrganisationIntelligence(intelligence);
+    setSpreadsheetFileName(file.name);
+
+    setSpreadsheetSheetName(
+      worksheetCount === 1
+        ? firstSheetName
+        : `${worksheetCount} worksheets analysed`
+    );
+
+    setSpreadsheetRowCount(rowCount);
+
+    setSpreadsheetPreviewRows(
+      Array.isArray(previewRows) ? previewRows.slice(0, 5) : []
+    );
+
+    setDetectedMeasures(importedMeasures);
+    setDetectedSources(importedSources);
+
+    if (recognisedCount === 0) {
+      setSpreadsheetMessage(
+        `Root analysed ${worksheetCount} worksheet${
+          worksheetCount === 1 ? "" : "s"
+        } and ${
+          workbookSummary.columnCount || 0
+        } columns, but no sufficiently reliable matches were found. Review the spreadsheet preview or enter the figures manually.`
+      );
+    } else if (confirmationCount > 0) {
+      setSpreadsheetMessage(
+        `Root analysed ${worksheetCount} worksheet${
+          worksheetCount === 1 ? "" : "s"
+        }, inspected ${
+          workbookSummary.columnCount || 0
+        } columns and recognised ${recognisedCount} of the 5 organisation measures. ${confirmationCount} mapping${
+          confirmationCount === 1 ? "" : "s"
+        } should be confirmed before the figures are added to the review.`
+      );
+    } else {
+      setSpreadsheetMessage(
+        `Root analysed ${worksheetCount} worksheet${
+          worksheetCount === 1 ? "" : "s"
+        }, inspected ${
+          workbookSummary.columnCount || 0
+        } columns and recognised ${recognisedCount} of the 5 organisation measures. Review each mapping before adding the figures to this review.`
+      );
+    }
+  } catch (error) {
+    console.error("Spreadsheet intelligence error:", error);
+
     setSpreadsheetFileName("");
     setSpreadsheetSheetName("");
     setSpreadsheetRowCount(0);
     setSpreadsheetPreviewRows([]);
     setDetectedMeasures(EMPTY_MEASURES);
     setDetectedSources({});
-    setSpreadsheetMessage("");
-    setSpreadsheetError("");
+    setOrganisationIntelligence(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+
+    setSpreadsheetError(
+      error?.message ||
+        "Root could not analyse this spreadsheet. Please check the file and try again."
+    );
+  } finally {
+    setSpreadsheetLoading(false);
   }
-
-  async function processSpreadsheetFile(file) {
-    setSpreadsheetError("");
-    setSpreadsheetMessage("");
-
-    if (!file) return;
-
-    const lowerName = file.name.toLowerCase();
-
-    const supported =
-      lowerName.endsWith(".csv") ||
-      lowerName.endsWith(".xlsx") ||
-      lowerName.endsWith(".xls");
-
-    if (!supported) {
-      setSpreadsheetError(
-        "Please upload an Excel spreadsheet or CSV file ending in .xlsx, .xls or .csv."
-      );
-      return;
-    }
-
-    setSpreadsheetLoading(true);
-
-    try {
-      const XLSX = await import("xlsx");
-      const arrayBuffer = await file.arrayBuffer();
-
-      const workbook = XLSX.read(arrayBuffer, {
-        type: "array",
-        cellDates: true,
-      });
-
-      const firstSheetName = workbook.SheetNames?.[0];
-
-      if (!firstSheetName) {
-        throw new Error("No spreadsheet sheet was found.");
-      }
-
-      const worksheet = workbook.Sheets[firstSheetName];
-
-      const rows = XLSX.utils.sheet_to_json(worksheet, {
-        defval: "",
-        raw: false,
-      });
-
-      if (!Array.isArray(rows) || rows.length === 0) {
-        throw new Error(
-          "The spreadsheet appears to be empty or does not contain a recognised table."
-        );
-      }
-
-      const extraction = extractMeasuresFromRows(rows);
-
-      setSpreadsheetFileName(file.name);
-      setSpreadsheetSheetName(firstSheetName);
-      setSpreadsheetRowCount(rows.length);
-      setSpreadsheetPreviewRows(rows.slice(0, 5));
-      setDetectedMeasures(extraction.detected);
-      setDetectedSources(extraction.sourceDetails);
-
-      const foundCount = Object.values(extraction.detected).filter(
-        (value) => value !== ""
-      ).length;
-
-      if (foundCount > 0) {
-        setSpreadsheetMessage(
-          `Root detected ${foundCount} of the 5 organisation measures. Review them below before adding them to this review.`
-        );
-      } else {
-        setSpreadsheetMessage(
-          "The spreadsheet opened successfully, but Root could not automatically identify the five organisation measures. You can still use the preview to enter the figures manually."
-        );
-      }
-    } catch (error) {
-      console.error("Spreadsheet import error:", error);
-
-      setSpreadsheetError(
-        error?.message ||
-          "Root could not read this spreadsheet. Please check the file and try again."
-      );
-
-      resetSpreadsheet();
-    } finally {
-      setSpreadsheetLoading(false);
-    }
-  }
+}
 
   function handleFileInput(event) {
     const file = event.target.files?.[0];
@@ -1075,9 +1166,10 @@ export default function OrganisationLearningPage() {
                   <h2>Drop your organisation data into Root</h2>
 
                   <p className="cardIntro">
-                    Root will inspect the first worksheet and look for sickness,
-                    turnover, agency spend, overtime and vacancy data.
-                  </p>
+  Root will inspect every worksheet, identify likely organisation
+  measures and show where each figure came from before anything is
+  added to the review.
+</p>
 
                   <input
                     ref={fileInputRef}
