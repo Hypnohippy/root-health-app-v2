@@ -160,36 +160,83 @@ export default function HRCoachPage() {
     ]);
   }
 
-  function handleSend(event) {
-    event.preventDefault();
+  async function handleSend(event) {
+  event.preventDefault();
 
-    const cleanMessage = message.trim();
+  const cleanMessage = message.trim();
 
-    if (!cleanMessage) return;
+  if (!cleanMessage) return;
 
-    setConversationStarted(true);
+  setConversationStarted(true);
 
-    const userEntry = {
-      id: `${Date.now()}-user`,
-      role: "user",
-      content: cleanMessage,
-    };
+  const userEntry = {
+    id: `${Date.now()}-user`,
+    role: "user",
+    content: cleanMessage,
+  };
 
-    const temporaryRootEntry = {
-      id: `${Date.now()}-root`,
-      role: "assistant",
-      content:
-        "Your question has been added to the conversation. The next stage will connect this space to Root's organisation reasoning engine, allowing Root to answer from the evidence shown above rather than from a fixed response.",
-    };
+  const conversationForApi = [
+    ...conversation,
+    userEntry,
+  ];
+
+  setConversation(conversationForApi);
+  setMessage("");
+
+  try {
+    const response = await fetch(
+      "/api/organisation-coach",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: cleanMessage,
+
+          conversation: conversation.map((entry) => ({
+            role: entry.role,
+            content: entry.content,
+          })),
+
+          organisation,
+          members,
+          assessments,
+          mindEntries,
+          journalEntries,
+          voiceSessions,
+
+          intent: "general_evidence_discussion",
+        }),
+      }
+    );
+
+    const data = await response.json();
 
     setConversation((current) => [
       ...current,
-      userEntry,
-      temporaryRootEntry,
+      {
+        id: `${Date.now()}-root`,
+        role: "assistant",
+        content:
+          data.reply ||
+          "Root could not produce a response.",
+      },
     ]);
+  } catch (error) {
+    console.error(error);
 
-    setMessage("");
+    setConversation((current) => [
+      ...current,
+      {
+        id: `${Date.now()}-error`,
+        role: "assistant",
+        content:
+          "Root couldn't reach the organisation reasoning engine. Please try again.",
+      },
+    ]);
   }
+}
 
   function clearConversation() {
     setConversation([]);
