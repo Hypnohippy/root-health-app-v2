@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
@@ -53,6 +54,53 @@ const EMPTY_MEASURES = {
   vacancies: "",
 };
 
+const MEASURE_LABELS = {
+  sickness_days: "Sickness days",
+  turnover: "Employee turnover",
+  agency_spend: "Agency spend",
+  overtime_hours: "Overtime hours",
+  vacancies: "Current vacancies",
+};
+
+const COLUMN_MATCHERS = {
+  sickness_days: [
+    "sickness days",
+    "sick days",
+    "absence days",
+    "absence",
+    "sickness",
+    "days lost",
+    "lost days",
+  ],
+  turnover: [
+    "employee turnover",
+    "staff turnover",
+    "turnover rate",
+    "turnover",
+    "leavers",
+  ],
+  agency_spend: [
+    "agency spend",
+    "agency cost",
+    "agency costs",
+    "temporary staff cost",
+    "temporary staffing cost",
+  ],
+  overtime_hours: [
+    "overtime hours",
+    "overtime",
+    "extra hours",
+    "additional hours",
+  ],
+  vacancies: [
+    "current vacancies",
+    "open vacancies",
+    "vacancies",
+    "vacancy count",
+    "open roles",
+  ],
+};
+
 function formatNumber(value) {
   if (value === null || value === undefined || value === "") return "—";
 
@@ -95,7 +143,9 @@ function daysSince(value) {
 
   return Math.max(
     0,
-    Math.floor((today.getTime() - previous.getTime()) / (1000 * 60 * 60 * 24))
+    Math.floor(
+      (today.getTime() - previous.getTime()) / (1000 * 60 * 60 * 24)
+    )
   );
 }
 
@@ -111,6 +161,114 @@ function toggleArrayItem(items, value) {
   return items.includes(value)
     ? items.filter((item) => item !== value)
     : [...items, value];
+}
+
+function normaliseText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/[£,%()]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function cleanNumericValue(value) {
+  if (value === null || value === undefined || value === "") return "";
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "";
+  }
+
+  const cleaned = String(value)
+    .replace(/£/g, "")
+    .replace(/,/g, "")
+    .replace(/%/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+
+  const number = Number(cleaned);
+
+  return Number.isNaN(number) ? "" : String(number);
+}
+
+function findMatchedMeasure(label) {
+  const normalisedLabel = normaliseText(label);
+
+  for (const [measureKey, matchers] of Object.entries(COLUMN_MATCHERS)) {
+    const matched = matchers.some((matcher) => {
+      const normalisedMatcher = normaliseText(matcher);
+
+      return (
+        normalisedLabel === normalisedMatcher ||
+        normalisedLabel.includes(normalisedMatcher) ||
+        normalisedMatcher.includes(normalisedLabel)
+      );
+    });
+
+    if (matched) return measureKey;
+  }
+
+  return null;
+}
+
+function extractMeasuresFromRows(rows) {
+  const detected = {
+    ...EMPTY_MEASURES,
+  };
+
+  const sourceDetails = {};
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return {
+      detected,
+      sourceDetails,
+    };
+  }
+
+  const headers = Object.keys(rows[0] || {});
+
+  headers.forEach((header) => {
+    const measureKey = findMatchedMeasure(header);
+
+    if (!measureKey || detected[measureKey] !== "") return;
+
+    for (const row of rows) {
+      const cleanedValue = cleanNumericValue(row?.[header]);
+
+      if (cleanedValue !== "") {
+        detected[measureKey] = cleanedValue;
+        sourceDetails[measureKey] = `Column: ${header}`;
+        break;
+      }
+    }
+  });
+
+  rows.forEach((row) => {
+    const entries = Object.entries(row || {});
+
+    if (entries.length < 2) return;
+
+    const firstValue = entries[0]?.[1];
+    const measureKey = findMatchedMeasure(firstValue);
+
+    if (!measureKey || detected[measureKey] !== "") return;
+
+    for (let index = 1; index < entries.length; index += 1) {
+      const candidateValue = entries[index]?.[1];
+      const cleanedValue = cleanNumericValue(candidateValue);
+
+      if (cleanedValue !== "") {
+        detected[measureKey] = cleanedValue;
+        sourceDetails[measureKey] = `Row: ${String(firstValue)}`;
+        break;
+      }
+    }
+  });
+
+  return {
+    detected,
+    sourceDetails,
+  };
 }
 
 function compareMeasure(current, previous, label, lowerIsBetter = true) {
@@ -226,6 +384,7 @@ function MeasureInput({
     <div className="measureRow">
       <div className="measureIdentity">
         <strong>{label}</strong>
+
         <span>
           Previous:{" "}
           {currency
@@ -253,6 +412,9 @@ function MeasureInput({
 }
 
 export default function OrganisationLearningPage() {
+  const router = useRouter();
+  const fileInputRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [organisation, setOrganisation] = useState(null);
@@ -260,11 +422,15 @@ export default function OrganisationLearningPage() {
   const [previousReview, setPreviousReview] = useState(null);
   const [reviewHistory, setReviewHistory] = useState([]);
 
+  const [dataMethod, setDataMethod] = useState("manual");
   const [measures, setMeasures] = useState(EMPTY_MEASURES);
+
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [businessEventNotes, setBusinessEventNotes] = useState("");
+
   const [selectedInitiatives, setSelectedInitiatives] = useState([]);
   const [initiativeNotes, setInitiativeNotes] = useState("");
+
   const [selectedWatchItems, setSelectedWatchItems] = useState([
     "Stress",
     "Burnout",
@@ -272,6 +438,17 @@ export default function OrganisationLearningPage() {
     "Sleep",
     "Sickness absence",
   ]);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [spreadsheetLoading, setSpreadsheetLoading] = useState(false);
+  const [spreadsheetFileName, setSpreadsheetFileName] = useState("");
+  const [spreadsheetSheetName, setSpreadsheetSheetName] = useState("");
+  const [spreadsheetRowCount, setSpreadsheetRowCount] = useState(0);
+  const [spreadsheetPreviewRows, setSpreadsheetPreviewRows] = useState([]);
+  const [detectedMeasures, setDetectedMeasures] = useState(EMPTY_MEASURES);
+  const [detectedSources, setDetectedSources] = useState({});
+  const [spreadsheetMessage, setSpreadsheetMessage] = useState("");
+  const [spreadsheetError, setSpreadsheetError] = useState("");
 
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -355,6 +532,7 @@ export default function OrganisationLearningPage() {
 
     if (reviewError) {
       console.error("Organisation review load error:", reviewError);
+
       setErrorMessage(
         "The page is ready, but Root could not load previous organisation reviews."
       );
@@ -420,6 +598,23 @@ export default function OrganisationLearningPage() {
     };
   }, [reviewHistory.length]);
 
+  const detectedCount = useMemo(
+    () =>
+      Object.values(detectedMeasures).filter(
+        (value) => value !== "" && value !== null && value !== undefined
+      ).length,
+    [detectedMeasures]
+  );
+
+  function goBackToOrganisationInsights() {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/insights-org");
+  }
+
   function handleMeasureChange(event) {
     const { name, value } = event.target;
 
@@ -456,6 +651,173 @@ export default function OrganisationLearningPage() {
           ? ""
           : String(previousReview.vacancies),
     });
+
+    setDataMethod("manual");
+  }
+
+  function resetSpreadsheet() {
+    setSpreadsheetFileName("");
+    setSpreadsheetSheetName("");
+    setSpreadsheetRowCount(0);
+    setSpreadsheetPreviewRows([]);
+    setDetectedMeasures(EMPTY_MEASURES);
+    setDetectedSources({});
+    setSpreadsheetMessage("");
+    setSpreadsheetError("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  async function processSpreadsheetFile(file) {
+    setSpreadsheetError("");
+    setSpreadsheetMessage("");
+
+    if (!file) return;
+
+    const lowerName = file.name.toLowerCase();
+
+    const supported =
+      lowerName.endsWith(".csv") ||
+      lowerName.endsWith(".xlsx") ||
+      lowerName.endsWith(".xls");
+
+    if (!supported) {
+      setSpreadsheetError(
+        "Please upload an Excel spreadsheet or CSV file ending in .xlsx, .xls or .csv."
+      );
+      return;
+    }
+
+    setSpreadsheetLoading(true);
+
+    try {
+      const XLSX = await import("xlsx");
+      const arrayBuffer = await file.arrayBuffer();
+
+      const workbook = XLSX.read(arrayBuffer, {
+        type: "array",
+        cellDates: true,
+      });
+
+      const firstSheetName = workbook.SheetNames?.[0];
+
+      if (!firstSheetName) {
+        throw new Error("No spreadsheet sheet was found.");
+      }
+
+      const worksheet = workbook.Sheets[firstSheetName];
+
+      const rows = XLSX.utils.sheet_to_json(worksheet, {
+        defval: "",
+        raw: false,
+      });
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        throw new Error(
+          "The spreadsheet appears to be empty or does not contain a recognised table."
+        );
+      }
+
+      const extraction = extractMeasuresFromRows(rows);
+
+      setSpreadsheetFileName(file.name);
+      setSpreadsheetSheetName(firstSheetName);
+      setSpreadsheetRowCount(rows.length);
+      setSpreadsheetPreviewRows(rows.slice(0, 5));
+      setDetectedMeasures(extraction.detected);
+      setDetectedSources(extraction.sourceDetails);
+
+      const foundCount = Object.values(extraction.detected).filter(
+        (value) => value !== ""
+      ).length;
+
+      if (foundCount > 0) {
+        setSpreadsheetMessage(
+          `Root detected ${foundCount} of the 5 organisation measures. Review them below before adding them to this review.`
+        );
+      } else {
+        setSpreadsheetMessage(
+          "The spreadsheet opened successfully, but Root could not automatically identify the five organisation measures. You can still use the preview to enter the figures manually."
+        );
+      }
+    } catch (error) {
+      console.error("Spreadsheet import error:", error);
+
+      setSpreadsheetError(
+        error?.message ||
+          "Root could not read this spreadsheet. Please check the file and try again."
+      );
+
+      resetSpreadsheet();
+    } finally {
+      setSpreadsheetLoading(false);
+    }
+  }
+
+  function handleFileInput(event) {
+    const file = event.target.files?.[0];
+
+    if (file) {
+      processSpreadsheetFile(file);
+    }
+  }
+
+  function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  }
+
+  function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+  }
+
+  function handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+
+    const file = event.dataTransfer.files?.[0];
+
+    if (file) {
+      processSpreadsheetFile(file);
+    }
+  }
+
+  function updateDetectedMeasure(key, value) {
+    setDetectedMeasures((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
+  function applyDetectedMeasures() {
+    const valuesToApply = Object.fromEntries(
+      Object.entries(detectedMeasures).filter(
+        ([, value]) => value !== "" && value !== null && value !== undefined
+      )
+    );
+
+    if (Object.keys(valuesToApply).length === 0) {
+      setSpreadsheetError(
+        "There are no detected figures to add. Enter or correct a value in the imported-data preview first."
+      );
+      return;
+    }
+
+    setMeasures((current) => ({
+      ...current,
+      ...valuesToApply,
+    }));
+
+    setSpreadsheetError("");
+    setSpreadsheetMessage(
+      "The imported figures have been added to this organisation review. You can edit any figure before saving."
+    );
   }
 
   async function saveReview() {
@@ -533,6 +895,9 @@ export default function OrganisationLearningPage() {
     setSelectedInitiatives([]);
     setInitiativeNotes("");
 
+    resetSpreadsheet();
+    setDataMethod("manual");
+
     setMessage(
       "Organisation picture updated. Root can now use this context alongside anonymous workforce evidence."
     );
@@ -541,7 +906,7 @@ export default function OrganisationLearningPage() {
 
     window.scrollTo({
       top: 0,
-      behavior: "smooth",
+      behaviour: "smooth",
     });
   }
 
@@ -583,11 +948,10 @@ export default function OrganisationLearningPage() {
             <div className="heroActions">
               <button
                 className="quietButton"
-                onClick={() => {
-                  window.location.href = "/insights-org";
-                }}
+                type="button"
+                onClick={goBackToOrganisationInsights}
               >
-                ← Organisation Insights
+                ← Back to Organisation Insights
               </button>
 
               <span className="timePill">Estimated time: 2–3 minutes</span>
@@ -604,9 +968,7 @@ export default function OrganisationLearningPage() {
             <div>
               <p className="sectionLabel">Organisation picture</p>
 
-              <h2>
-                {organisation?.name || "Your organisation"}
-              </h2>
+              <h2>{organisation?.name || "Your organisation"}</h2>
 
               <p>
                 {previousReview
@@ -620,6 +982,7 @@ export default function OrganisationLearningPage() {
             <div className="pictureStats">
               <div>
                 <span>Previous review</span>
+
                 <strong>
                   {lastReviewDays === null
                     ? "Not yet completed"
@@ -644,69 +1007,380 @@ export default function OrganisationLearningPage() {
           <section className="contentGrid">
             <div className="mainColumn">
               <section className="glassCard">
-                <div className="cardHeader">
-                  <div>
-                    <p className="sectionLabel">Business measures</p>
-                    <h2>What has changed since the last review?</h2>
-                    <p>
-                      Enter the current figures available to your
-                      organisation. You do not need to complete every field.
-                    </p>
-                  </div>
+                <p className="sectionLabel">Organisation data</p>
+                <h2>How would you like to update this review?</h2>
 
-                  {previousReview && (
-                    <button
-                      className="copyButton"
-                      onClick={copyPreviousMeasures}
-                    >
-                      Use previous figures
-                    </button>
-                  )}
-                </div>
+                <p className="cardIntro">
+                  Enter the figures manually or upload an existing spreadsheet.
+                  Root will attempt to recognise and map the relevant measures.
+                </p>
 
-                <div className="measureList">
-                  <MeasureInput
-                    label="Sickness days"
-                    name="sickness_days"
-                    value={measures.sickness_days}
-                    previousValue={previousReview?.sickness_days}
-                    onChange={handleMeasureChange}
-                  />
+                <div className="methodGrid">
+                  <button
+                    type="button"
+                    className={
+                      dataMethod === "manual"
+                        ? "methodButton active"
+                        : "methodButton"
+                    }
+                    onClick={() => setDataMethod("manual")}
+                  >
+                    <span className="methodIcon">✎</span>
 
-                  <MeasureInput
-                    label="Employee turnover"
-                    name="turnover"
-                    value={measures.turnover}
-                    previousValue={previousReview?.turnover}
-                    onChange={handleMeasureChange}
-                  />
+                    <span>
+                      <strong>Manual entry</strong>
+                      <small>Enter the current figures directly</small>
+                    </span>
+                  </button>
 
-                  <MeasureInput
-                    label="Agency spend"
-                    name="agency_spend"
-                    value={measures.agency_spend}
-                    previousValue={previousReview?.agency_spend}
-                    onChange={handleMeasureChange}
-                    currency
-                  />
+                  <button
+                    type="button"
+                    className={
+                      dataMethod === "spreadsheet"
+                        ? "methodButton active"
+                        : "methodButton"
+                    }
+                    onClick={() => setDataMethod("spreadsheet")}
+                  >
+                    <span className="methodIcon">▦</span>
 
-                  <MeasureInput
-                    label="Overtime hours"
-                    name="overtime_hours"
-                    value={measures.overtime_hours}
-                    previousValue={previousReview?.overtime_hours}
-                    onChange={handleMeasureChange}
-                  />
+                    <span>
+                      <strong>Spreadsheet upload</strong>
+                      <small>Import Excel or CSV data</small>
+                    </span>
+                  </button>
 
-                  <MeasureInput
-                    label="Current vacancies"
-                    name="vacancies"
-                    value={measures.vacancies}
-                    previousValue={previousReview?.vacancies}
-                    onChange={handleMeasureChange}
-                  />
+                  <button
+                    type="button"
+                    className={
+                      dataMethod === "connected"
+                        ? "methodButton active"
+                        : "methodButton"
+                    }
+                    onClick={() => setDataMethod("connected")}
+                  >
+                    <span className="methodIcon">↗</span>
+
+                    <span>
+                      <strong>Connected system</strong>
+                      <small>Planned for future integrations</small>
+                    </span>
+                  </button>
                 </div>
               </section>
+
+              {dataMethod === "spreadsheet" && (
+                <section className="glassCard">
+                  <p className="sectionLabel">Spreadsheet import</p>
+                  <h2>Drop your organisation data into Root</h2>
+
+                  <p className="cardIntro">
+                    Root will inspect the first worksheet and look for sickness,
+                    turnover, agency spend, overtime and vacancy data.
+                  </p>
+
+                  <input
+                    ref={fileInputRef}
+                    className="hiddenFileInput"
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={handleFileInput}
+                  />
+
+                  <div
+                    className={
+                      isDragging ? "dropZone dragging" : "dropZone"
+                    }
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => fileInputRef.current?.click()}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        fileInputRef.current?.click();
+                      }
+                    }}
+                  >
+                    <div className="dropIcon">▦</div>
+
+                    <h3>
+                      {spreadsheetLoading
+                        ? "Root is reading your spreadsheet..."
+                        : "Drop your spreadsheet here"}
+                    </h3>
+
+                    <p>
+                      {spreadsheetLoading
+                        ? "Please wait while the columns and figures are examined."
+                        : "Or select a file from your computer"}
+                    </p>
+
+                    {!spreadsheetLoading && (
+                      <span className="browseButton">Browse files</span>
+                    )}
+
+                    <small>Supports Excel .xlsx, .xls and CSV files</small>
+                  </div>
+
+                  {spreadsheetError && (
+                    <div className="importError">{spreadsheetError}</div>
+                  )}
+
+                  {spreadsheetMessage && (
+                    <div className="importMessage">{spreadsheetMessage}</div>
+                  )}
+
+                  {spreadsheetFileName && (
+                    <div className="importResult">
+                      <div className="importHeader">
+                        <div>
+                          <p className="sectionLabel">
+                            Spreadsheet imported
+                          </p>
+
+                          <h3>{spreadsheetFileName}</h3>
+
+                          <p>
+                            Sheet: {spreadsheetSheetName} ·{" "}
+                            {spreadsheetRowCount.toLocaleString("en-GB")} data
+                            row
+                            {spreadsheetRowCount === 1 ? "" : "s"}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="removeFileButton"
+                          onClick={resetSpreadsheet}
+                        >
+                          Remove file
+                        </button>
+                      </div>
+
+                      <div className="detectedSummary">
+                        <strong>
+                          {detectedCount} of 5 measures detected
+                        </strong>
+
+                        <span>
+                          Check each figure before adding it to the review.
+                        </span>
+                      </div>
+
+                      <div className="detectedMeasureList">
+                        {Object.entries(MEASURE_LABELS).map(
+                          ([measureKey, label]) => {
+                            const value = detectedMeasures[measureKey];
+                            const detected =
+                              value !== "" &&
+                              value !== null &&
+                              value !== undefined;
+
+                            return (
+                              <div
+                                className="detectedMeasureRow"
+                                key={measureKey}
+                              >
+                                <div>
+                                  <strong>{label}</strong>
+
+                                  <span>
+                                    {detectedSources[measureKey] ||
+                                      "Not automatically detected"}
+                                  </span>
+                                </div>
+
+                                <div className="detectedInputWrap">
+                                  {measureKey === "agency_spend" && (
+                                    <span className="inputPrefix">£</span>
+                                  )}
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step={
+                                      measureKey === "agency_spend"
+                                        ? "0.01"
+                                        : "1"
+                                    }
+                                    className={
+                                      measureKey === "agency_spend"
+                                        ? "measureInput currencyInput"
+                                        : "measureInput"
+                                    }
+                                    value={value}
+                                    placeholder="Enter figure"
+                                    onChange={(event) =>
+                                      updateDetectedMeasure(
+                                        measureKey,
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+
+                                  <span
+                                    className={
+                                      detected
+                                        ? "detectionStatus found"
+                                        : "detectionStatus"
+                                    }
+                                  >
+                                    {detected ? "✓" : "—"}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="applyImportButton"
+                        onClick={applyDetectedMeasures}
+                      >
+                        Add imported figures to this review
+                      </button>
+
+                      {spreadsheetPreviewRows.length > 0 && (
+                        <details className="spreadsheetPreview">
+                          <summary>View spreadsheet preview</summary>
+
+                          <div className="tableScroller">
+                            <table>
+                              <thead>
+                                <tr>
+                                  {Object.keys(
+                                    spreadsheetPreviewRows[0] || {}
+                                  ).map((header) => (
+                                    <th key={header}>{header}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+
+                              <tbody>
+                                {spreadsheetPreviewRows.map((row, rowIndex) => (
+                                  <tr key={rowIndex}>
+                                    {Object.keys(
+                                      spreadsheetPreviewRows[0] || {}
+                                    ).map((header) => (
+                                      <td key={`${rowIndex}-${header}`}>
+                                        {String(row?.[header] ?? "")}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {dataMethod === "connected" && (
+                <section className="glassCard connectedCard">
+                  <div className="connectedIcon">↗</div>
+
+                  <p className="sectionLabel">Connected systems</p>
+                  <h2>Direct integrations are coming later</h2>
+
+                  <p>
+                    This area will eventually allow Root to receive approved
+                    organisation measures from systems such as HR, payroll and
+                    workforce-planning platforms.
+                  </p>
+
+                  <p>
+                    Manual entry and spreadsheet import remain available now,
+                    ensuring organisations are not dependent on an integration
+                    before they can begin building evidence.
+                  </p>
+
+                  <button
+                    type="button"
+                    className="copyButton"
+                    onClick={() => setDataMethod("spreadsheet")}
+                  >
+                    Upload a spreadsheet instead
+                  </button>
+                </section>
+              )}
+
+              {(dataMethod === "manual" ||
+                dataMethod === "spreadsheet") && (
+                <section className="glassCard">
+                  <div className="cardHeader">
+                    <div>
+                      <p className="sectionLabel">Business measures</p>
+                      <h2>Current organisation figures</h2>
+
+                      <p>
+                        Enter or review the figures available to your
+                        organisation. You do not need to complete every field.
+                      </p>
+                    </div>
+
+                    {previousReview && (
+                      <button
+                        className="copyButton"
+                        type="button"
+                        onClick={copyPreviousMeasures}
+                      >
+                        Use previous figures
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="measureList">
+                    <MeasureInput
+                      label="Sickness days"
+                      name="sickness_days"
+                      value={measures.sickness_days}
+                      previousValue={previousReview?.sickness_days}
+                      onChange={handleMeasureChange}
+                    />
+
+                    <MeasureInput
+                      label="Employee turnover"
+                      name="turnover"
+                      value={measures.turnover}
+                      previousValue={previousReview?.turnover}
+                      onChange={handleMeasureChange}
+                    />
+
+                    <MeasureInput
+                      label="Agency spend"
+                      name="agency_spend"
+                      value={measures.agency_spend}
+                      previousValue={previousReview?.agency_spend}
+                      onChange={handleMeasureChange}
+                      currency
+                    />
+
+                    <MeasureInput
+                      label="Overtime hours"
+                      name="overtime_hours"
+                      value={measures.overtime_hours}
+                      previousValue={previousReview?.overtime_hours}
+                      onChange={handleMeasureChange}
+                    />
+
+                    <MeasureInput
+                      label="Current vacancies"
+                      name="vacancies"
+                      value={measures.vacancies}
+                      previousValue={previousReview?.vacancies}
+                      onChange={handleMeasureChange}
+                    />
+                  </div>
+                </section>
+              )}
 
               <section className="glassCard">
                 <p className="sectionLabel">Organisation context</p>
@@ -846,7 +1520,9 @@ export default function OrganisationLearningPage() {
               </section>
 
               <section className="reflectionCard">
-                <p className="reflectionLabel">Root&apos;s initial reflection</p>
+                <p className="reflectionLabel">
+                  Root&apos;s initial reflection
+                </p>
 
                 <h2>What Root will remember from this review</h2>
 
@@ -867,6 +1543,7 @@ export default function OrganisationLearningPage() {
 
               <button
                 className="saveButton"
+                type="button"
                 onClick={saveReview}
                 disabled={saving}
               >
@@ -945,6 +1622,7 @@ export default function OrganisationLearningPage() {
                 <div className="connectionFlow">
                   <div>
                     <strong>Employee evidence</strong>
+
                     <span>
                       Assessments, check-ins, Mind, Journal and Voice
                     </span>
@@ -954,6 +1632,7 @@ export default function OrganisationLearningPage() {
 
                   <div>
                     <strong>Organisation context</strong>
+
                     <span>
                       Measures, events, initiatives and priorities
                     </span>
@@ -963,6 +1642,7 @@ export default function OrganisationLearningPage() {
 
                   <div>
                     <strong>Root intelligence</strong>
+
                     <span>
                       Evidence, memory, hypotheses and recommendations
                     </span>
@@ -1037,6 +1717,11 @@ const pageStyles = `
     letter-spacing: -0.025em;
   }
 
+  h3 {
+    margin: 0;
+    color: #26221e;
+  }
+
   p {
     line-height: 1.7;
   }
@@ -1062,7 +1747,8 @@ const pageStyles = `
   }
 
   .quietButton,
-  .copyButton {
+  .copyButton,
+  .removeFileButton {
     padding: 11px 16px;
     border: 1px solid rgba(70, 63, 53, 0.15);
     border-radius: 999px;
@@ -1082,7 +1768,9 @@ const pageStyles = `
   }
 
   .successMessage,
-  .errorMessage {
+  .errorMessage,
+  .importMessage,
+  .importError {
     margin-bottom: 20px;
     padding: 16px 18px;
     border-radius: 18px;
@@ -1090,16 +1778,24 @@ const pageStyles = `
     line-height: 1.55;
   }
 
-  .successMessage {
+  .successMessage,
+  .importMessage {
     background: rgba(29, 139, 87, 0.12);
     border: 1px solid rgba(29, 139, 87, 0.18);
     color: #235c44;
   }
 
-  .errorMessage {
+  .errorMessage,
+  .importError {
     background: rgba(176, 64, 49, 0.1);
     border: 1px solid rgba(176, 64, 49, 0.18);
     color: #7b3027;
+  }
+
+  .importMessage,
+  .importError {
+    margin-top: 18px;
+    margin-bottom: 0;
   }
 
   .pictureCard,
@@ -1185,7 +1881,8 @@ const pageStyles = `
     border-radius: 30px;
   }
 
-  .cardHeader {
+  .cardHeader,
+  .importHeader {
     display: flex;
     gap: 20px;
     justify-content: space-between;
@@ -1197,6 +1894,304 @@ const pageStyles = `
   .timelineCard > p {
     margin: 4px 0 20px;
     color: #625b51;
+  }
+
+  .methodGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .methodButton {
+    min-height: 108px;
+    padding: 17px;
+    border: 1px solid rgba(70, 63, 53, 0.13);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.52);
+    color: #443f37;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    gap: 13px;
+    align-items: flex-start;
+    transition:
+      transform 0.18s ease,
+      background 0.18s ease,
+      border 0.18s ease;
+  }
+
+  .methodButton:hover {
+    transform: translateY(-2px);
+  }
+
+  .methodButton.active {
+    border-color: rgba(66, 105, 82, 0.32);
+    background: rgba(83, 122, 96, 0.14);
+    color: #294735;
+  }
+
+  .methodButton strong,
+  .methodButton small {
+    display: block;
+  }
+
+  .methodButton strong {
+    margin-bottom: 7px;
+    font-size: 15px;
+  }
+
+  .methodButton small {
+    color: #756d61;
+    line-height: 1.45;
+  }
+
+  .methodIcon {
+    width: 33px;
+    height: 33px;
+    flex: 0 0 33px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.65);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .hiddenFileInput {
+    display: none;
+  }
+
+  .dropZone {
+    min-height: 280px;
+    padding: 34px;
+    border: 2px dashed rgba(72, 89, 76, 0.25);
+    border-radius: 28px;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(255, 255, 255, 0.7),
+        transparent 58%
+      ),
+      rgba(239, 243, 238, 0.5);
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition:
+      transform 0.2s ease,
+      border 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .dropZone:hover,
+  .dropZone.dragging {
+    transform: translateY(-2px);
+    border-color: rgba(54, 104, 72, 0.56);
+    background: rgba(224, 237, 226, 0.72);
+  }
+
+  .dropIcon {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 17px;
+    border-radius: 22px;
+    background: rgba(61, 112, 76, 0.13);
+    color: #376548;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 34px;
+  }
+
+  .dropZone h3 {
+    margin-bottom: 8px;
+    font-size: 23px;
+  }
+
+  .dropZone p {
+    margin: 0 0 16px;
+    color: #696156;
+  }
+
+  .dropZone small {
+    margin-top: 15px;
+    color: #7c7468;
+  }
+
+  .browseButton {
+    padding: 12px 20px;
+    border-radius: 999px;
+    background: #292b27;
+    color: white;
+    font-weight: 850;
+  }
+
+  .importResult {
+    margin-top: 22px;
+    padding: 22px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.56);
+    border: 1px solid rgba(74, 67, 58, 0.1);
+  }
+
+  .importHeader p {
+    margin: 5px 0 0;
+    color: #6f675b;
+  }
+
+  .detectedSummary {
+    margin: 20px 0 12px;
+    padding: 14px 16px;
+    border-radius: 17px;
+    background: rgba(71, 107, 84, 0.1);
+  }
+
+  .detectedSummary strong,
+  .detectedSummary span {
+    display: block;
+  }
+
+  .detectedSummary strong {
+    color: #315640;
+  }
+
+  .detectedSummary span {
+    margin-top: 4px;
+    color: #6a6359;
+    font-size: 13px;
+  }
+
+  .detectedMeasureList {
+    display: grid;
+    gap: 9px;
+  }
+
+  .detectedMeasureRow {
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.65);
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(210px, 0.9fr);
+    gap: 16px;
+    align-items: center;
+  }
+
+  .detectedMeasureRow strong,
+  .detectedMeasureRow span {
+    display: block;
+  }
+
+  .detectedMeasureRow span {
+    margin-top: 4px;
+    color: #756d62;
+    font-size: 12px;
+  }
+
+  .detectedInputWrap {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 34px;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .detectionStatus {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(87, 81, 72, 0.08);
+    color: #847c71;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+  }
+
+  .detectionStatus.found {
+    background: rgba(46, 126, 76, 0.13);
+    color: #2e7448;
+  }
+
+  .applyImportButton {
+    width: 100%;
+    margin-top: 17px;
+    padding: 15px 18px;
+    border: 0;
+    border-radius: 17px;
+    background: #315b40;
+    color: white;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .spreadsheetPreview {
+    margin-top: 18px;
+    border-top: 1px solid rgba(70, 63, 53, 0.1);
+    padding-top: 17px;
+  }
+
+  .spreadsheetPreview summary {
+    color: #4c463e;
+    font-weight: 850;
+    cursor: pointer;
+  }
+
+  .tableScroller {
+    margin-top: 14px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.58);
+  }
+
+  th,
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(70, 63, 53, 0.09);
+    text-align: left;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  th {
+    color: #454039;
+    background: rgba(52, 56, 51, 0.06);
+  }
+
+  td {
+    color: #696156;
+  }
+
+  .connectedCard {
+    text-align: center;
+  }
+
+  .connectedCard > p {
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #625b51;
+  }
+
+  .connectedIcon {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 18px;
+    border-radius: 22px;
+    background: rgba(61, 112, 76, 0.13);
+    color: #376548;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    font-weight: 900;
   }
 
   .measureList {
@@ -1231,7 +2226,8 @@ const pageStyles = `
     font-size: 13px;
   }
 
-  .inputWrap {
+  .inputWrap,
+  .detectedInputWrap {
     position: relative;
   }
 
@@ -1239,6 +2235,7 @@ const pageStyles = `
     position: absolute;
     top: 50%;
     left: 15px;
+    z-index: 2;
     color: #72695e;
     font-weight: 800;
     transform: translateY(-50%);
@@ -1252,7 +2249,9 @@ const pageStyles = `
     outline: none;
     background: rgba(255, 255, 255, 0.74);
     color: #25221e;
-    transition: border 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      border 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .measureInput {
@@ -1293,7 +2292,9 @@ const pageStyles = `
     display: flex;
     gap: 10px;
     align-items: center;
-    transition: transform 0.18s ease, background 0.18s ease;
+    transition:
+      transform 0.18s ease,
+      background 0.18s ease;
   }
 
   .choiceButton:hover,
@@ -1360,8 +2361,16 @@ const pageStyles = `
     border-radius: 30px;
     color: white;
     background:
-      radial-gradient(circle at top right, rgba(255, 255, 255, 0.15), transparent 38%),
-      linear-gradient(135deg, rgba(27, 30, 28, 0.97), rgba(57, 62, 55, 0.94));
+      radial-gradient(
+        circle at top right,
+        rgba(255, 255, 255, 0.15),
+        transparent 38%
+      ),
+      linear-gradient(
+        135deg,
+        rgba(27, 30, 28, 0.97),
+        rgba(57, 62, 55, 0.94)
+      );
     box-shadow: 0 24px 65px rgba(25, 27, 24, 0.24);
   }
 
@@ -1531,6 +2540,10 @@ const pageStyles = `
       align-items: stretch;
       flex-direction: column;
     }
+
+    .methodGrid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 720px) {
@@ -1550,15 +2563,18 @@ const pageStyles = `
       grid-template-columns: 1fr;
     }
 
-    .measureRow {
+    .measureRow,
+    .detectedMeasureRow {
       grid-template-columns: 1fr;
     }
 
-    .cardHeader {
+    .cardHeader,
+    .importHeader {
       flex-direction: column;
     }
 
-    .copyButton {
+    .copyButton,
+    .removeFileButton {
       width: 100%;
     }
 
@@ -1569,6 +2585,11 @@ const pageStyles = `
     .reflectionCard {
       padding: 22px;
       border-radius: 24px;
+    }
+
+    .dropZone {
+      min-height: 230px;
+      padding: 25px 18px;
     }
   }
 `;
