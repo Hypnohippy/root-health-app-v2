@@ -146,7 +146,8 @@ export default function HRCoachPage() {
   const [journalEntries, setJournalEntries] = useState([]);
   const [voiceSessions, setVoiceSessions] = useState([]);
   const [evidenceStatus, setEvidenceStatus] = useState(null);
-
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(true);
   const [conversation, setConversation] = useState([]);
   const [message, setMessage] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
@@ -336,6 +337,56 @@ export default function HRCoachPage() {
     ]);
     setIsThinking(false);
   }
+}
+
+  function startVoiceInput() {
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    setVoiceSupported(false);
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.lang = "en-GB";
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    setIsListening(true);
+  };
+
+  recognition.onresult = (event) => {
+    let transcript = "";
+
+    for (
+      let index = event.resultIndex;
+      index < event.results.length;
+      index += 1
+    ) {
+      transcript += event.results[index][0].transcript;
+    }
+
+    setMessage(transcript.trim());
+  };
+
+  recognition.onerror = (event) => {
+    console.error(
+      "HR VOICE RECOGNITION ERROR:",
+      event.error
+    );
+
+    setIsListening(false);
+  };
+
+  recognition.onend = () => {
+    setIsListening(false);
+  };
+
+  recognition.start();
 }
 
   function clearConversation() {
@@ -652,7 +703,9 @@ export default function HRCoachPage() {
                     onClick={() => startConversation("voice")}
                     style={styles.promptButton}
                   >
-                    🎤 Start a voice conversation
+                   {isListening
+                  ? "🎤 Listening..."
+                  : "🎤 Start a voice conversation"}
                   </button>
                 </div>
               </section>
