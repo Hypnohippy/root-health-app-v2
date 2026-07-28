@@ -186,10 +186,10 @@ export default function HRCoachPage() {
         body: JSON.stringify({
           message: cleanMessage,
 
-          conversation: conversation.map((entry) => ({
-            role: entry.role,
-            content: entry.content,
-          })),
+          conversation: conversationForApi.map((entry) => ({
+  role: entry.role,
+  content: entry.content,
+})),
 
           organisation,
           members,
@@ -217,6 +217,7 @@ export default function HRCoachPage() {
           "Root could not produce a response.",
       },
     ]);
+    setIsThinking(false);
   } catch (error) {
     console.error(error);
 
@@ -234,12 +235,11 @@ export default function HRCoachPage() {
 }
 
   function clearConversation() {
-    setConversation([]);
-    setConversationStarted(false);
-    if (!event.starterMessage) {
+  setConversation([]);
+  setConversationStarted(false);
   setMessage("");
+  setIsThinking(false);
 }
-  }
 
   const activated = members.filter((member) => member.activated_at).length;
 
