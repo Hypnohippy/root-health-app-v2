@@ -978,16 +978,61 @@ Help the leader understand what the evidence supports and what it does not.
       data?.choices?.[0]?.message?.content?.trim() ||
       "The evidence is available, but Root could not form a reliable response from it yet.";
 
-    return Response.json(
+       return Response.json(
       {
         reply,
-        safeguardingMode: safeguardingLanguageDetected,
+
+        safeguardingMode:
+          safeguardingLanguageDetected,
+
+        evidenceStatus: {
+          organisationConfidence:
+            wellbeingReview?.confidence?.organisation?.label ||
+            "Unknown",
+
+          respondentConfidence:
+            wellbeingReview?.confidence?.respondents?.label ||
+            "Unknown",
+
+          participationConfidence:
+            wellbeingReview?.confidence?.participation?.label ||
+            "Unknown",
+
+          qualitativeConfidence:
+            wellbeingReview?.confidence?.qualitative?.label ||
+            "Unknown",
+
+          interventionReadiness:
+            wellbeingReview?.interventionReadiness?.level ||
+            "Unknown",
+
+          interventionReady:
+            wellbeingReview?.interventionReadiness?.ready === true,
+
+          permittedAction:
+            wellbeingReview?.interventionReadiness?.permittedAction ||
+            "Not available",
+
+          rootPosition:
+            wellbeingReview?.interventionReadiness?.rootPosition ||
+            "Evidence position not available",
+        },
+
         evidenceSummary: {
-          members: safeArray(members).length,
-          assessments: safeArray(assessments).length,
-          mindEntries: safeArray(mindEntries).length,
-          journalEntries: safeArray(journalEntries).length,
-          voiceSessions: safeArray(voiceSessions).length,
+          members:
+            safeArray(members).length,
+
+          assessments:
+            safeArray(assessments).length,
+
+          mindEntries:
+            safeArray(mindEntries).length,
+
+          journalEntries:
+            safeArray(journalEntries).length,
+
+          voiceSessions:
+            safeArray(voiceSessions).length,
         },
       },
       { status: 200 }
