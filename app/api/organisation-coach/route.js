@@ -499,6 +499,16 @@ export async function POST(request) {
       voiceSessions,
     });
 
+        const wellbeingReview =
+      buildOrganisationWellbeingReview({
+        organisation,
+        members,
+        assessments,
+        mindEntries,
+        journalEntries,
+        voiceSessions,
+      });
+
     const systemPrompt = `
 You are Root Organisation Companion.
 
