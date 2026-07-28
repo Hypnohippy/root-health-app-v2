@@ -304,12 +304,12 @@ export default function HRCoachPage() {
       ? Math.round((baselineCompleted / members.length) * 100)
       : 0;
 
-  const confidence =
-    assessments.length >= 20
-      ? "High"
-      : assessments.length >= 8
-      ? "Developing"
-      : "Early Stage";
+  const evidenceStage =
+  assessments.length >= 20
+    ? "Established"
+    : assessments.length >= 8
+    ? "Developing"
+    : "Early Stage";
 
   return (
     <RootAtmosphere type="coach">
@@ -363,9 +363,9 @@ export default function HRCoachPage() {
 
               <div style={styles.snapshotGrid}>
                 <div style={styles.snapshotCard}>
-                  <span>Employees</span>
-                  <strong>{members.length}</strong>
-                </div>
+                 <span>Programme members</span>
+                 <strong>{members.length}</strong>
+               </div>
 
                 <div style={styles.snapshotCard}>
                   <span>Activated</span>
@@ -388,8 +388,8 @@ export default function HRCoachPage() {
                 </div>
 
                 <div style={styles.snapshotCard}>
-                  <span>Confidence</span>
-                  <strong>{confidence}</strong>
+                  <span>Evidence stage</span>
+                  <strong>{evidenceStage}</strong>
                 </div>
               </div>
 
@@ -469,26 +469,28 @@ export default function HRCoachPage() {
                       {baselineParticipation}%
                     </strong>
 
-                    <p style={styles.focusText}>
-                      {baselineCompleted} of {members.length} employees have
-                      completed a baseline.
-                    </p>
+                  <p style={styles.focusText}>
+                    {baselineCompleted} of {members.length} recorded programme members
+                     have completed a baseline.
+                  </p>
                   </div>
 
                   <div style={styles.focusCard}>
                     <span style={styles.focusLabel}>
-                      Evidence confidence
-                    </span>
+  Evidence stage
+</span>
 
-                    <strong style={styles.focusValue}>{confidence}</strong>
+<strong style={styles.focusValue}>
+  {evidenceStage}
+</strong>
 
-                    <p style={styles.focusText}>
-                      {confidence === "High"
-                        ? "Root has a stronger evidence base, although findings should still be tested against organisational context."
-                        : confidence === "Developing"
-                        ? "Root can identify useful signals, but alternative explanations should remain open."
-                        : "Root is beginning to form a picture. Early signals should be treated as questions rather than conclusions."}
-                    </p>
+<p style={styles.focusText}>
+  {evidenceStage === "Established"
+    ? "Root has accumulated a larger assessment evidence base, while organisation-wide confidence still depends on participation, representation and longitudinal strength."
+    : evidenceStage === "Developing"
+    ? "Root has enough assessment records to identify useful signals, but this does not by itself establish organisation-wide confidence."
+    : "Root is beginning to form an evidence base. Early signals should be treated as questions rather than conclusions."}
+</p>
                   </div>
                 </div>
 
