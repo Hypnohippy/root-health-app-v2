@@ -145,6 +145,7 @@ export default function HRCoachPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [voiceSessions, setVoiceSessions] = useState([]);
+  const [evidenceStatus, setEvidenceStatus] = useState(null);
 
   const [conversation, setConversation] = useState([]);
   const [message, setMessage] = useState("");
@@ -306,6 +307,9 @@ export default function HRCoachPage() {
     );
 
     const data = await response.json();
+    if (data.evidenceStatus) {
+  setEvidenceStatus(data.evidenceStatus);
+}
 
     setConversation((current) => [
       ...current,
@@ -675,6 +679,24 @@ export default function HRCoachPage() {
                     </button>
                   ) : null}
                 </div>
+
+                {evidenceStatus && (
+  <div style={styles.evidenceStrip}>
+    <span>
+      <strong>Evidence confidence:</strong>{" "}
+      {evidenceStatus.organisationConfidence}
+    </span>
+
+    <span style={styles.evidenceDot}>·</span>
+
+    <span>
+      <strong>Action readiness:</strong>{" "}
+      {evidenceStatus.interventionReadiness}
+    </span>
+  </div>
+)}
+
+<div style={styles.conversationWindow}></div>
 
                 <div style={styles.conversationWindow}>
                   {!conversationStarted || conversation.length === 0 ? (
@@ -1195,5 +1217,24 @@ rootResponseListItem: {
 
 rootResponseMarker: {
   color: "#536A56",
+},
+
+evidenceStrip: {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: "8px",
+  marginBottom: "18px",
+  padding: "10px 16px",
+  borderRadius: "999px",
+  background: "rgba(255,255,255,0.38)",
+  border: "1px solid rgba(255,255,255,0.58)",
+  fontSize: "13px",
+  color: "#5F675C",
+},
+
+evidenceDot: {
+  opacity: 0.45,
 },
 };
