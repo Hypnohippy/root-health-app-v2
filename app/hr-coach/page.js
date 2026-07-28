@@ -37,6 +37,106 @@ const conversationStarters = {
   },
 };
 
+function formatRootMessage(content) {
+  if (!content) return null;
+
+  const lines = String(content).split("\n");
+
+  return lines.map((line, index) => {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      return (
+        <div
+          key={`space-${index}`}
+          style={{ height: "8px" }}
+        />
+      );
+    }
+
+    const headingMatch = trimmed.match(/^#{1,3}\s+(.+)$/);
+
+    if (headingMatch) {
+      return (
+        <strong
+          key={`heading-${index}`}
+          style={styles.rootResponseHeading}
+        >
+          {headingMatch[1]}
+        </strong>
+      );
+    }
+
+    const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
+
+    if (numberedMatch) {
+      return (
+        <div
+          key={`number-${index}`}
+          style={styles.rootResponseListItem}
+        >
+          <strong style={styles.rootResponseMarker}>
+            {numberedMatch[1]}.
+          </strong>
+
+          <span>
+            {formatInlineText(numberedMatch[2], index)}
+          </span>
+        </div>
+      );
+    }
+
+    const bulletMatch = trimmed.match(/^[-•]\s+(.+)$/);
+
+    if (bulletMatch) {
+      return (
+        <div
+          key={`bullet-${index}`}
+          style={styles.rootResponseListItem}
+        >
+          <strong style={styles.rootResponseMarker}>
+            •
+          </strong>
+
+          <span>
+            {formatInlineText(bulletMatch[1], index)}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <p
+        key={`paragraph-${index}`}
+        style={styles.rootResponseParagraph}
+      >
+        {formatInlineText(trimmed, index)}
+      </p>
+    );
+  });
+}
+
+function formatInlineText(text, lineIndex) {
+  const parts = String(text).split(/(\*\*.*?\*\*)/g);
+
+  return parts.map((part, partIndex) => {
+    if (
+      part.startsWith("**") &&
+      part.endsWith("**")
+    ) {
+      return (
+        <strong
+          key={`${lineIndex}-${partIndex}`}
+        >
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    return part;
+  });
+}
+
 export default function HRCoachPage() {
   const [loading, setLoading] = useState(true);
   const [organisation, setOrganisation] = useState(null);
@@ -616,7 +716,15 @@ export default function HRCoachPage() {
                               {isUser ? "You" : "Root"}
                             </span>
 
-                            <p style={styles.messageText}>{entry.content}</p>
+                            {isUser ? (
+  <p style={styles.messageText}>
+    {entry.content}
+  </p>
+) : (
+  <div style={styles.rootResponse}>
+    {formatRootMessage(entry.content)}
+  </div>
+)}
                           </div>
                         </div>
                       );
@@ -1057,4 +1165,35 @@ const styles = {
     lineHeight: 1.5,
     color: "#746D63",
   },
+
+  rootResponse: {
+  display: "block",
+  fontSize: "15px",
+  lineHeight: 1.7,
+},
+
+rootResponseHeading: {
+  display: "block",
+  margin: "14px 0 7px",
+  fontSize: "16px",
+  lineHeight: 1.4,
+  color: "#20251F",
+},
+
+rootResponseParagraph: {
+  margin: "0 0 8px",
+  lineHeight: 1.7,
+},
+
+rootResponseListItem: {
+  display: "grid",
+  gridTemplateColumns: "24px 1fr",
+  gap: "6px",
+  margin: "7px 0",
+  lineHeight: 1.65,
+},
+
+rootResponseMarker: {
+  color: "#536A56",
+},
 };
