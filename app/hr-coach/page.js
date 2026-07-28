@@ -699,14 +699,14 @@ export default function HRCoachPage() {
                   </button>
 
                   <button
-                    type="button"
-                    onClick={() => startConversation("voice")}
-                    style={styles.promptButton}
-                  >
-                   {isListening
-                  ? "🎤 Listening..."
-                  : "🎤 Start a voice conversation"}
-                  </button>
+  type="button"
+  onClick={startVoiceInput}
+  style={styles.promptButton}
+>
+  {isListening
+    ? "🎤 Listening..."
+    : "🎤 Start a voice conversation"}
+</button>
                 </div>
               </section>
 
