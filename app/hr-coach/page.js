@@ -696,7 +696,7 @@ export default function HRCoachPage() {
   </div>
 )}
 
-<div style={styles.conversationWindow}></div>
+
 
                 <div style={styles.conversationWindow}>
                   {!conversationStarted || conversation.length === 0 ? (
@@ -813,9 +813,9 @@ export default function HRCoachPage() {
                 </form>
 
                 <p style={styles.conversationNote}>
-                  This conversation interface is active. Root&apos;s live
-                  organisation reasoning engine will be connected next.
-                </p>
+  Root uses the organisation&apos;s current evidence to support this
+  conversation. Its conclusions will develop as the evidence develops.
+</p>
               </section>
             </>
           )}
