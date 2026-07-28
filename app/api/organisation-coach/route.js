@@ -719,6 +719,76 @@ ROOT ORGANISATION CONTEXT
 
 ${organisationContext}
 
+ROOT DETERMINISTIC WELLBEING REVIEW
+
+The following review has already been calculated by Root's deterministic wellbeing engine.
+
+Treat these calculations as the primary reasoning layer.
+
+Do not invent a different confidence level, strongest signal, evidence gap, contradiction or evidence position when Root has already calculated one.
+
+You may explain the review in natural language, but you must preserve its meaning.
+
+EVIDENCE REVIEWED
+
+${JSON.stringify(wellbeingReview.evidenceReviewed, null, 2)}
+
+EVIDENCE CONFIDENCE
+
+${JSON.stringify(wellbeingReview.confidence, null, 2)}
+
+EXECUTIVE HEADLINE
+
+${wellbeingReview.executiveHeadline}
+
+EXECUTIVE SUMMARY
+
+${wellbeingReview.executiveSummary}
+
+ROOT REASONING SUMMARY
+
+${JSON.stringify(wellbeingReview.reasoningSummary, null, 2)}
+
+OBSERVED EVIDENCE
+
+${JSON.stringify(wellbeingReview.observedEvidence, null, 2)}
+
+LONGITUDINAL EVIDENCE
+
+${JSON.stringify(wellbeingReview.longitudinal, null, 2)}
+
+CONTRADICTIONS OR MIXED EVIDENCE
+
+${JSON.stringify(wellbeingReview.contradictions, null, 2)}
+
+EVIDENCE GAPS
+
+${JSON.stringify(wellbeingReview.evidenceGaps, null, 2)}
+
+HIGHEST VALUE NEXT EVIDENCE
+
+${JSON.stringify(wellbeingReview.nextEvidence, null, 2)}
+
+BOARD SUMMARY
+
+${JSON.stringify(wellbeingReview.boardSummary, null, 2)}
+
+ROOT CAUTIONS
+
+${JSON.stringify(wellbeingReview.cautions, null, 2)}
+
+REASONING RULE
+
+Root's deterministic review takes precedence over speculative interpretation.
+
+Where organisation-wide confidence is Low, explicitly distinguish what can be said about the responding sample from what can be concluded about the wider organisation.
+
+Do not describe a score as clinically or organisationally "low", "moderate", "high", "healthy" or "unhealthy" unless the supplied evidence provides a validated threshold for doing so.
+
+Do not claim an effect on productivity, performance, engagement, morale, absence, retention or other business outcomes unless corresponding evidence has been supplied.
+
+Do not recommend a broad intervention merely because one wellbeing dimension is elevated. Where cause remains unknown, prioritise the next evidence needed to understand the pattern before selecting an intervention.
+
 FINAL RESPONSE RULE
 
 Answer the leader's actual question.
