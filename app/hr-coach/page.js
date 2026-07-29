@@ -502,33 +502,69 @@ function speakRootReply(reply) {
 function handleRealtimeEvent(event) {
   if (!event || !event.type) return;
 
-  if (event.type === "input_audio_buffer.speech_started") {
-    setVoiceStatus("listening");
+ if (event.type === "input_audio_buffer.speech_started") {
+  setVoiceStatus(
+    isRootSpeaking ? "speaking" : "listening"
+  );
 
-    if (isRootSpeaking) {
-      setIsRootSpeaking(false);
-    }
-
-    return;
-  }
+  return;
+}
 
   if (event.type === "input_audio_buffer.speech_stopped") {
     setVoiceStatus("transcribing");
     return;
   }
 
-  if (
-    event.type ===
-    "conversation.item.input_audio_transcription.completed"
-  ) {
-    const transcript = String(event.transcript || "").trim();
+ if (
+  event.type ===
+  "conversation.item.input_audio_transcription.completed"
+) {
+  const transcript = String(
+    event.transcript || ""
+  ).trim();
 
-    if (transcript) {
-      requestOrganisationReply(transcript);
-    }
-
+  if (!transcript) {
     return;
   }
+
+  const meaningfulSpeech =
+    transcript
+      .replace(/[^\p{L}\p{N}]/gu, "")
+      .trim();
+
+  if (!meaningfulSpeech) {
+    return;
+  }
+
+  if (isRootSpeaking) {
+    const channel = dataChannelRef.current;
+
+    if (
+      channel &&
+      channel.readyState === "open"
+    ) {
+      channel.send(
+        JSON.stringify({
+          type: "response.cancel",
+        })
+      );
+    }
+
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.pause();
+
+      remoteAudioRef.current
+        .play()
+        .catch(() => {});
+    }
+
+    setIsRootSpeaking(false);
+  }
+
+  requestOrganisationReply(transcript);
+
+  return;
+}
 
   if (event.type === "response.created") {
     setIsRootSpeaking(true);
