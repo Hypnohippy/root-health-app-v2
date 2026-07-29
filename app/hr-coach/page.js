@@ -146,18 +146,31 @@ export default function HRCoachPage() {
   const [journalEntries, setJournalEntries] = useState([]);
   const [voiceSessions, setVoiceSessions] = useState([]);
   const [evidenceStatus, setEvidenceStatus] = useState(null);
-  const [isListening, setIsListening] = useState(false);
-  const [voiceSupported, setVoiceSupported] = useState(true);
+  const [voiceStatus, setVoiceStatus] = useState("idle");
+  const [voiceError, setVoiceError] = useState("");
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [isRootSpeaking, setIsRootSpeaking] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [message, setMessage] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
 
   const conversationEndRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const dataChannelRef = useRef(null);
+  const microphoneStreamRef = useRef(null);
+  const remoteAudioRef = useRef(null);
+  const voiceReplyInProgressRef = useRef(false);
 
   useEffect(() => {
     loadContext();
   }, []);
+
+  useEffect(() => {
+  return () => {
+    stopVoiceConversation();
+  };
+}, []);
 
   useEffect(() => {
     conversationEndRef.current?.scrollIntoView({
@@ -339,61 +352,479 @@ export default function HRCoachPage() {
   }
 }
 
-  function startVoiceInput() {
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
+  function addConversationEntry(role, content, suffix = "") {
+  const cleanContent = String(content || "").trim();
 
-  if (!SpeechRecognition) {
-    setVoiceSupported(false);
+  if (!cleanContent) return;
+
+  setConversationStarted(true);
+
+  setConversation((current) => [
+    ...current,
+    {
+      id: `${Date.now()}-${role}-${suffix || Math.random()}`,
+      role,
+      content: cleanContent,
+    },
+  ]);
+}
+
+async function requestOrganisationReply(spokenMessage) {
+  const cleanMessage = String(spokenMessage || "").trim();
+
+  if (!cleanMessage || voiceReplyInProgressRef.current) return;
+
+  voiceReplyInProgressRef.current = true;
+  setIsThinking(true);
+  setVoiceStatus("thinking");
+
+  const userEntry = {
+    id: `${Date.now()}-voice-user`,
+    role: "user",
+    content: cleanMessage,
+  };
+
+  const conversationForApi = [
+    ...conversation,
+    userEntry,
+  ];
+
+  setConversationStarted(true);
+  setConversation(conversationForApi);
+
+  try {
+    const response = await fetch("/api/organisation-coach", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: cleanMessage,
+
+        conversation: conversationForApi.map((entry) => ({
+          role: entry.role,
+          content: entry.content,
+        })),
+
+        organisation,
+        members,
+        assessments,
+        mindEntries,
+        journalEntries,
+        voiceSessions,
+
+        intent: "voice_evidence_discussion",
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          data?.reply ||
+          "Root could not produce a voice response."
+      );
+    }
+
+    if (data.evidenceStatus) {
+      setEvidenceStatus(data.evidenceStatus);
+    }
+
+    const rootReply =
+      data.reply ||
+      "Root could not produce a response.";
+
+    setConversation((current) => [
+      ...current,
+      {
+        id: `${Date.now()}-voice-root`,
+        role: "assistant",
+        content: rootReply,
+      },
+    ]);
+
+    speakRootReply(rootReply);
+  } catch (error) {
+    console.error("ROOT VOICE REASONING ERROR:", error);
+
+    const errorMessage =
+      "Root couldn't reach the organisation reasoning engine. Please try again.";
+
+    setConversation((current) => [
+      ...current,
+      {
+        id: `${Date.now()}-voice-error`,
+        role: "assistant",
+        content: errorMessage,
+      },
+    ]);
+
+    setVoiceError(error.message || errorMessage);
+    setVoiceStatus("connected");
+  } finally {
+    setIsThinking(false);
+    voiceReplyInProgressRef.current = false;
+  }
+}
+
+function speakRootReply(reply) {
+  const channel = dataChannelRef.current;
+
+  if (!channel || channel.readyState !== "open") {
+    setVoiceStatus("connected");
     return;
   }
 
-  const recognition = new SpeechRecognition();
+  setIsRootSpeaking(true);
+  setVoiceStatus("speaking");
 
-  recognition.lang = "en-GB";
-  recognition.continuous = false;
-  recognition.interimResults = true;
+  channel.send(
+    JSON.stringify({
+      type: "response.create",
+      response: {
+        conversation: "none",
+        output_modalities: ["audio"],
+        input: [],
+        instructions:
+          "Read the following response aloud exactly as written. " +
+          "Do not add, remove, explain, paraphrase or introduce it. " +
+          "Use a calm, natural, professional British conversational tone.\n\n" +
+          reply,
+        metadata: {
+          source: "root_organisation_coach",
+        },
+      },
+    })
+  );
+}
 
-  recognition.onstart = () => {
-    setIsListening(true);
-  };
+function handleRealtimeEvent(event) {
+  if (!event || !event.type) return;
 
-  recognition.onresult = (event) => {
-    let transcript = "";
+  if (event.type === "input_audio_buffer.speech_started") {
+    setVoiceStatus("listening");
 
-    for (
-      let index = event.resultIndex;
-      index < event.results.length;
-      index += 1
-    ) {
-      transcript += event.results[index][0].transcript;
+    if (isRootSpeaking) {
+      setIsRootSpeaking(false);
     }
 
-    setMessage(transcript.trim());
-  };
+    return;
+  }
 
-  recognition.onerror = (event) => {
-    console.error(
-      "HR VOICE RECOGNITION ERROR:",
-      event.error
+  if (event.type === "input_audio_buffer.speech_stopped") {
+    setVoiceStatus("transcribing");
+    return;
+  }
+
+  if (
+    event.type ===
+    "conversation.item.input_audio_transcription.completed"
+  ) {
+    const transcript = String(event.transcript || "").trim();
+
+    if (transcript) {
+      requestOrganisationReply(transcript);
+    }
+
+    return;
+  }
+
+  if (event.type === "response.created") {
+    setIsRootSpeaking(true);
+    setVoiceStatus("speaking");
+    return;
+  }
+
+  if (
+    event.type === "response.output_audio.done" ||
+    event.type === "response.done"
+  ) {
+    setIsRootSpeaking(false);
+    setVoiceStatus("listening");
+    return;
+  }
+
+  if (event.type === "error") {
+    console.error("OPENAI REALTIME ERROR:", event);
+
+    setVoiceError(
+      event?.error?.message ||
+        event?.message ||
+        "The voice connection reported an error."
     );
 
-    setIsListening(false);
-  };
- 
-  recognition.onend = () => {
-    setIsListening(false);
-  };
+    setVoiceStatus("error");
+  }
+}
 
-  recognition.start();
+async function startVoiceConversation() {
+  if (isVoiceActive) return;
+
+  setVoiceError("");
+  setVoiceStatus("connecting");
+
+  try {
+    if (
+      typeof window === "undefined" ||
+      !window.RTCPeerConnection ||
+      !navigator.mediaDevices?.getUserMedia
+    ) {
+      throw new Error(
+        "This browser does not support live voice conversations."
+      );
+    }
+
+    const tokenResponse = await fetch(
+      "/api/hr-voice-session",
+      {
+        method: "POST",
+      }
+    );
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok || !tokenData.clientSecret) {
+      throw new Error(
+        tokenData?.error ||
+          "Root could not create a secure voice session."
+      );
+    }
+
+    const peerConnection = new RTCPeerConnection();
+    peerConnectionRef.current = peerConnection;
+
+    const remoteAudio = document.createElement("audio");
+    remoteAudio.autoplay = true;
+    remoteAudio.playsInline = true;
+    remoteAudioRef.current = remoteAudio;
+
+    peerConnection.ontrack = (event) => {
+      remoteAudio.srcObject = event.streams[0];
+
+      remoteAudio.play().catch((error) => {
+        console.error(
+          "ROOT REMOTE AUDIO PLAYBACK ERROR:",
+          error
+        );
+      });
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+      const state = peerConnection.connectionState;
+
+      if (state === "connected") {
+        setIsVoiceActive(true);
+        setVoiceStatus("listening");
+      }
+
+      if (
+        state === "failed" ||
+        state === "disconnected" ||
+        state === "closed"
+      ) {
+        if (state !== "closed") {
+          setVoiceError(
+            "The live voice connection was interrupted."
+          );
+        }
+
+        stopVoiceConversation();
+      }
+    };
+
+    const microphoneStream =
+      await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+    microphoneStreamRef.current = microphoneStream;
+
+    microphoneStream.getTracks().forEach((track) => {
+      peerConnection.addTrack(
+        track,
+        microphoneStream
+      );
+    });
+
+    const dataChannel =
+      peerConnection.createDataChannel("oai-events");
+
+    dataChannelRef.current = dataChannel;
+
+    dataChannel.addEventListener("open", () => {
+      dataChannel.send(
+        JSON.stringify({
+          type: "session.update",
+          session: {
+            type: "realtime",
+            model: "gpt-realtime-2.1",
+            output_modalities: ["audio"],
+            audio: {
+              input: {
+                transcription: {
+                  model: "gpt-live-transcribe",
+                  language: "en",
+                },
+                turn_detection: {
+                  type: "semantic_vad",
+                  eagerness: "low",
+                  create_response: false,
+                  interrupt_response: true,
+                },
+              },
+              output: {
+                voice: "marin",
+              },
+            },
+            instructions:
+              "You are only the live audio interface for Root. " +
+              "Do not independently answer the user. " +
+              "User speech is handled by Root's organisation reasoning engine. " +
+              "Only speak when the application explicitly sends a response.create instruction.",
+          },
+        })
+      );
+    });
+
+    dataChannel.addEventListener(
+      "message",
+      (messageEvent) => {
+        try {
+          const realtimeEvent = JSON.parse(
+            messageEvent.data
+          );
+
+          handleRealtimeEvent(realtimeEvent);
+        } catch (error) {
+          console.error(
+            "ROOT REALTIME EVENT PARSE ERROR:",
+            error
+          );
+        }
+      }
+    );
+
+    dataChannel.addEventListener("close", () => {
+      setIsVoiceActive(false);
+      setVoiceStatus("idle");
+    });
+
+    const offer =
+      await peerConnection.createOffer();
+
+    await peerConnection.setLocalDescription(
+      offer
+    );
+
+    const sdpResponse = await fetch(
+      "https://api.openai.com/v1/realtime/calls",
+      {
+        method: "POST",
+        body: offer.sdp,
+        headers: {
+          Authorization:
+            `Bearer ${tokenData.clientSecret}`,
+          "Content-Type": "application/sdp",
+        },
+      }
+    );
+
+    const answerSdp = await sdpResponse.text();
+
+    if (!sdpResponse.ok) {
+      throw new Error(
+        answerSdp ||
+          "Root could not complete the live voice connection."
+      );
+    }
+
+    await peerConnection.setRemoteDescription({
+      type: "answer",
+      sdp: answerSdp,
+    });
+
+    setConversationStarted(true);
+  } catch (error) {
+    console.error(
+      "ROOT LIVE VOICE START ERROR:",
+      error
+    );
+
+    setVoiceError(
+      error.message ||
+        "Root could not start the live voice conversation."
+    );
+
+    stopVoiceConversation();
+    setVoiceStatus("error");
+  }
+}
+
+function stopVoiceConversation() {
+  const channel = dataChannelRef.current;
+  const peerConnection =
+    peerConnectionRef.current;
+  const microphoneStream =
+    microphoneStreamRef.current;
+  const remoteAudio =
+    remoteAudioRef.current;
+
+  if (channel) {
+    try {
+      channel.close();
+    } catch (error) {
+      console.error(
+        "ROOT VOICE CHANNEL CLOSE ERROR:",
+        error
+      );
+    }
+  }
+
+  if (microphoneStream) {
+    microphoneStream
+      .getTracks()
+      .forEach((track) => track.stop());
+  }
+
+  if (peerConnection) {
+    try {
+      peerConnection.close();
+    } catch (error) {
+      console.error(
+        "ROOT PEER CONNECTION CLOSE ERROR:",
+        error
+      );
+    }
+  }
+
+  if (remoteAudio) {
+    remoteAudio.pause();
+    remoteAudio.srcObject = null;
+  }
+
+  dataChannelRef.current = null;
+  peerConnectionRef.current = null;
+  microphoneStreamRef.current = null;
+  remoteAudioRef.current = null;
+  voiceReplyInProgressRef.current = false;
+
+  setIsVoiceActive(false);
+  setIsRootSpeaking(false);
+  setVoiceStatus("idle");
 }
 
   function clearConversation() {
+  stopVoiceConversation();
   setConversation([]);
   setConversationStarted(false);
   setMessage("");
   setIsThinking(false);
+  setVoiceError("");
 }
 
   const activated = members.filter((member) => member.activated_at).length;
@@ -700,16 +1131,54 @@ export default function HRCoachPage() {
 
                   <button
   type="button"
-  onClick={startVoiceInput}
-  style={styles.promptButton}
+  onClick={
+    isVoiceActive
+      ? stopVoiceConversation
+      : startVoiceConversation
+  }
+  style={{
+    ...styles.promptButton,
+    ...(isVoiceActive
+      ? styles.activeVoiceButton
+      : {}),
+  }}
 >
-  {isListening
-    ? "🎤 Listening..."
+  {isVoiceActive
+    ? "■ End voice conversation"
+    : voiceStatus === "connecting"
+    ? "🎤 Connecting..."
     : "🎤 Start a voice conversation"}
 </button>
                 </div>
               </section>
 
+              {voiceStatus !== "idle" || voiceError ? (
+  <div style={styles.voiceStatusBox}>
+    <span style={styles.voiceStatusPulse} />
+
+    <strong>
+      {voiceStatus === "connecting"
+        ? "Connecting Root Voice..."
+        : voiceStatus === "listening"
+        ? "Root is listening"
+        : voiceStatus === "transcribing"
+        ? "Root is understanding what you said"
+        : voiceStatus === "thinking"
+        ? "Root is reviewing the organisation evidence"
+        : voiceStatus === "speaking"
+        ? "Root is speaking"
+        : voiceStatus === "error"
+        ? "Voice needs attention"
+        : "Root Voice"}
+    </strong>
+
+    {voiceError ? (
+      <span style={styles.voiceErrorText}>
+        {voiceError}
+      </span>
+    ) : null}
+  </div>
+) : null}
               <section style={styles.conversationSection}>
                 <div style={styles.conversationHeader}>
                   <div>
@@ -1289,5 +1758,40 @@ evidenceStrip: {
 
 evidenceDot: {
   opacity: 0.45,
+},
+
+activeVoiceButton: {
+  background: "#6C2F2F",
+},
+
+voiceStatusBox: {
+  marginTop: "16px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: "10px",
+  padding: "13px 17px",
+  borderRadius: "18px",
+  background: "rgba(38,59,43,0.10)",
+  border: "1px solid rgba(38,59,43,0.18)",
+  color: "#263B2B",
+  fontSize: "14px",
+},
+
+voiceStatusPulse: {
+  width: "10px",
+  height: "10px",
+  borderRadius: "50%",
+  background: "#52755A",
+  boxShadow: "0 0 0 6px rgba(82,117,90,0.12)",
+},
+
+voiceErrorText: {
+  width: "100%",
+  textAlign: "center",
+  fontSize: "12px",
+  fontWeight: "600",
+  color: "#7A3D3D",
 },
 };
