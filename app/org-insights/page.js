@@ -1033,6 +1033,7 @@ if (organisationReviewError) {
 });
 
 const {
+  organisationLearning,
   invited,
   activated,
   baselineCompleted,
