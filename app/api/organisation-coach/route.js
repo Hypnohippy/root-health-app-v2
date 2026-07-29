@@ -326,7 +326,110 @@ function summariseVoiceSessions(entries = []) {
     }`,
   ].join("\n");
 }
+function summariseMindEntries(entries = []) {
+  const records = safeArray(entries);
 
+  if (records.length === 0) {
+    return "No Mind & Emotions activity was supplied.";
+  }
+
+  const tools = uniqueValues(records.map((entry) => entry?.tool));
+
+  const emotions = uniqueValues(
+    records.map(
+      (entry) =>
+        entry?.emotion ||
+        entry?.emotional_theme ||
+        entry?.feeling
+    )
+  );
+
+  const themes = uniqueValues(
+    records.map(
+      (entry) =>
+        entry?.thought_theme ||
+        entry?.theme ||
+        entry?.automatic_thought
+    )
+  );
+
+  return [
+    `Mind & Emotions interactions: ${records.length}`,
+    `Tools used: ${tools.length > 0 ? tools.join(", ") : "not recorded"}`,
+    `Recorded emotions: ${
+      emotions.length > 0 ? emotions.join(", ") : "not recorded"
+    }`,
+    `Recorded thought themes: ${
+      themes.length > 0 ? themes.join(", ") : "not recorded"
+    }`,
+  ].join("\n");
+}
+
+function summariseJournalEntries(entries = []) {
+  const records = safeArray(entries);
+
+  if (records.length === 0) {
+    return "No journal activity was supplied.";
+  }
+
+  const emotionalThemes = uniqueValues(
+    records.map((entry) => entry?.emotional_theme)
+  );
+
+  const coachModes = uniqueValues(
+    records.map((entry) => entry?.recommended_coach_mode)
+  );
+
+  return [
+    `Journal reflections: ${records.length}`,
+    `Recorded emotional themes: ${
+      emotionalThemes.length > 0
+        ? emotionalThemes.join(", ")
+        : "not recorded"
+    }`,
+    `Recommended coach modes appearing in the evidence: ${
+      coachModes.length > 0 ? coachModes.join(", ") : "not recorded"
+    }`,
+  ].join("\n");
+}
+
+function summariseVoiceSessions(entries = []) {
+  const records = safeArray(entries);
+
+  if (records.length === 0) {
+    return "No Voice Coach sessions were supplied.";
+  }
+
+  const topics = uniqueValues(
+    records.map(
+      (entry) =>
+        entry?.topic ||
+        entry?.category ||
+        entry?.coach_mode ||
+        entry?.mode
+    )
+  );
+
+  const completedSessions = records.filter((entry) => {
+    const status = String(entry?.status || "").toLowerCase();
+
+    if (!status) return true;
+
+    return (
+      status === "completed" ||
+      status === "saved" ||
+      status === "finished"
+    );
+  });
+
+  return [
+    `Voice Coach sessions: ${records.length}`,
+    `Completed or saved sessions: ${completedSessions.length}`,
+    `Topics or modes recorded: ${
+      topics.length > 0 ? topics.join(", ") : "not recorded"
+    }`,
+  ].join("\n");
+}
 function buildOrganisationContext({
   organisation,
   members,
@@ -434,17 +537,18 @@ export async function POST(request) {
     const body = await request.json();
 
     const {
-      message,
-      conversation,
-      organisation,
-      members,
-      assessments,
-      mindEntries,
-      journalEntries,
-      voiceSessions,
-      intent,
-      userName,
-    } = body || {};
+  message,
+  conversation,
+  organisation,
+  members,
+  assessments,
+  mindEntries,
+  journalEntries,
+  voiceSessions,
+  organisationReviews,
+  intent,
+  userName,
+} = body || {};
 
     const cleanMessage = String(message || "").trim();
 
@@ -488,9 +592,14 @@ export async function POST(request) {
       summariseJournalEntries(journalEntries);
 
     const voiceSummary =
-      summariseVoiceSessions(voiceSessions);
+  summariseVoiceSessions(voiceSessions);
 
-    const organisationContext = buildOrganisationContext({
+const organisationLearningSummary =
+  summariseOrganisationReviews(
+    organisationReviews
+  );
+
+const organisationContext = buildOrganisationContext({
       organisation,
       members,
       assessments,
