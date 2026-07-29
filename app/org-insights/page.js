@@ -1466,6 +1466,86 @@ We look forward to welcoming you.
             <p style={styles.loading}>Loading organisation insights...</p>
           ) : (
             <>
+            {organisationLearning?.latestReview ? (
+  <section style={styles.participantsCard}>
+    <div style={styles.participationHeader}>
+      <div>
+        <p style={styles.panelLabel}>
+          Organisation Intelligence
+        </p>
+
+        <h2 style={styles.panelTitle}>
+          Latest business measures
+        </h2>
+
+        <p style={styles.participationIntro}>
+          Organisation-level figures supplied through the
+          Organisation Learning Review. These measures provide
+          business context alongside anonymous workforce wellbeing
+          evidence.
+        </p>
+      </div>
+
+      <div style={styles.participationStatusPill}>
+        {organisationLearning.reviewCount} review
+        {organisationLearning.reviewCount === 1
+          ? ""
+          : "s"}{" "}
+        recorded
+      </div>
+    </div>
+
+    <div style={styles.participationGrid}>
+      {organisationLearning.measures.map((measure) => (
+        <div
+          key={measure.key}
+          style={styles.participantRow}
+        >
+          <div style={styles.participantTitle}>
+            {measure.label}
+          </div>
+
+          <strong style={styles.participantValue}>
+            {measure.key === "agency_spend"
+              ? measure.current !== null
+                ? `£${measure.current.toLocaleString(
+                    "en-GB"
+                  )}`
+                : "—"
+              : measure.current !== null
+              ? measure.current.toLocaleString("en-GB")
+              : "—"}
+          </strong>
+
+          <div style={styles.participantDescription}>
+            {measure.previous === null
+              ? "First organisation review — baseline business measure"
+              : measure.direction === "stable"
+              ? "No change since the previous review"
+              : `${
+                  measure.direction === "improving"
+                    ? "Improving"
+                    : "Worsening"
+                } since the previous review`}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div style={styles.rootParticipationComment}>
+      <p style={styles.movementLabel}>
+        Root comment
+      </p>
+
+      <p style={styles.rootParticipationText}>
+        Root now has organisation-level business evidence alongside
+        anonymous workforce wellbeing evidence. These measures add
+        context to the organisation picture, but Root will not assume
+        that changes in one dataset caused changes in the other.
+      </p>
+    </div>
+  </section>
+) : null}
             <section style={styles.executiveBrief}>
           <section style={styles.participantsCard}>
   <div style={styles.participationHeader}>
