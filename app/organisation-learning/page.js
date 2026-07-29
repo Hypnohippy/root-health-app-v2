@@ -652,13 +652,8 @@ export default function OrganisationLearningPage() {
   );
 
   function goBackToOrganisationInsights() {
-    if (window.history.length > 1) {
-      router.back();
-      return;
-    }
-
-    router.push("/insights-org");
-  }
+  router.push("/insights-org");
+}
 
   function handleMeasureChange(event) {
     const { name, value } = event.target;
