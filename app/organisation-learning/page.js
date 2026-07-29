@@ -652,7 +652,7 @@ export default function OrganisationLearningPage() {
   );
 
  function goBackToOrganisationInsights() {
-  window.location.href = "/insights-org";
+  window.location.href = "/org-insights";
 }
 
   function handleMeasureChange(event) {
