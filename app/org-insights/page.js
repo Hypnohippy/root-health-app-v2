@@ -889,6 +889,7 @@ export default function OrgInsightsPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [voiceSessions, setVoiceSessions] = useState([]);
+  const [organisationReviews, setOrganisationReviews] = useState([]);
   const [showInvite, setShowInvite] = useState(false);
 
   useEffect(() => {
@@ -982,6 +983,21 @@ console.log("Assessment Data:", assessmentData);
       .order("created_at", { ascending: false })
       .limit(200);
 
+      const { data: organisationReviewData, error: organisationReviewError } =
+  await supabase
+    .from("organisation_learning_reviews")
+    .select("*")
+    .eq("organisation_id", orgId)
+    .order("created_at", { ascending: true })
+    .limit(24);
+
+if (organisationReviewError) {
+  console.error(
+    "Organisation learning review load error:",
+    organisationReviewError
+  );
+}
+
     const { data: voiceData } = await supabase
       .from("voice_sessions")
       .select("*")
@@ -997,6 +1013,11 @@ console.log("Assessment Data:", assessmentData);
     setMindEntries(Array.isArray(mindData) ? mindData : []);
     setJournalEntries(Array.isArray(journalData) ? journalData : []);
     setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
+    setOrganisationReviews(
+  Array.isArray(organisationReviewData)
+    ? organisationReviewData
+    : []
+);
 
     setLoading(false);
   };
@@ -1008,6 +1029,7 @@ console.log("Assessment Data:", assessmentData);
   mindEntries,
   journalEntries,
   voiceSessions,
+  organisationReviews,
 });
 
 const {
