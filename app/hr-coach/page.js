@@ -145,6 +145,7 @@ export default function HRCoachPage() {
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [voiceSessions, setVoiceSessions] = useState([]);
+  const [organisationReviews, setOrganisationReviews] = useState([]);
   const [evidenceStatus, setEvidenceStatus] = useState(null);
   const [voiceStatus, setVoiceStatus] = useState("idle");
   const [voiceError, setVoiceError] = useState("");
@@ -244,12 +245,24 @@ export default function HRCoachPage() {
       .select("*")
       .eq("organisation_id", orgId)
       .limit(200);
+      
+      const { data: organisationReviewData } = await supabase
+  .from("organisation_learning_reviews")
+  .select("*")
+  .eq("organisation_id", orgId)
+  .order("created_at", { ascending: true })
+  .limit(24);
 
     setMembers(Array.isArray(memberData) ? memberData : []);
     setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
     setMindEntries(Array.isArray(mindData) ? mindData : []);
     setJournalEntries(Array.isArray(journalData) ? journalData : []);
     setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
+    setOrganisationReviews(
+  Array.isArray(organisationReviewData)
+    ? organisationReviewData
+    : []
+);
 
     setLoading(false);
   }
@@ -312,6 +325,7 @@ export default function HRCoachPage() {
           mindEntries,
           journalEntries,
           voiceSessions,
+          organisationReviews,
 
           intent:
   event.starterIntent ||
@@ -412,6 +426,7 @@ async function requestOrganisationReply(spokenMessage) {
         mindEntries,
         journalEntries,
         voiceSessions,
+        organisationReviews,
 
         intent: "voice_evidence_discussion",
       }),
