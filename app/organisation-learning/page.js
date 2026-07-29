@@ -126,6 +126,46 @@ function formatCurrency(value) {
   }).format(number);
 }
 
+function formatDetectedMeasureValue(measureKey, value) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return "—";
+  }
+
+  if (measureKey === "agency_spend") {
+    return formatCurrency(value);
+  }
+
+  return formatNumber(value);
+}
+
+function getDataMatchLabel(confidenceLabel) {
+  if (confidenceLabel === "Strong") {
+    return "Clear match";
+  }
+
+  if (confidenceLabel === "Possible") {
+    return "Review match";
+  }
+
+  return "Needs confirmation";
+}
+
+function getDataMatchExplanation(confidenceLabel) {
+  if (confidenceLabel === "Strong") {
+    return "Root found a clear match between this spreadsheet evidence and the organisation measure.";
+  }
+
+  if (confidenceLabel === "Possible") {
+    return "Root found a possible match. Review the source and value before adding it to the organisation review.";
+  }
+
+  return "Root found some evidence for this mapping, but it should be confirmed before the figure is used.";
+}
+
 function formatDate(value) {
   if (!value) return "No previous review";
 
