@@ -381,7 +381,7 @@ export default function HRCoachPage() {
 
     setIsListening(false);
   };
-
+ 
   recognition.onend = () => {
     setIsListening(false);
   };
