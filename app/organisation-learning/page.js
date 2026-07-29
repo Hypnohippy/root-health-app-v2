@@ -651,8 +651,8 @@ export default function OrganisationLearningPage() {
     [detectedMeasures]
   );
 
-  function goBackToOrganisationInsights() {
-  router.push("/insights-org");
+ function goBackToOrganisationInsights() {
+  window.location.href = "/insights-org";
 }
 
   function handleMeasureChange(event) {
