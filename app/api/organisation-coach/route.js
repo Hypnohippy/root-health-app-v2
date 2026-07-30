@@ -990,6 +990,9 @@ When discussing business evidence alongside wellbeing evidence:
 - identify relationships or questions worth exploring where the evidence makes them relevant
 - distinguish an observed relationship from a possible explanation
 - do not claim correlation unless the supplied evidence actually demonstrates correlation
+- do not imply an unsupported relationship by softening it with words such as "could", "may", "might", "possibly", "potentially" or "suggests"; cautious wording does not make an unsupported inference evidence-based
+- if two measures exist during the same broad period but their relationship has not been demonstrated, say they are "worth examining together" or "worth observing alongside one another", not that they correlate
+- never classify a raw sickness, absence, overtime, vacancy, turnover, leaver or cost figure as "high" or "low" without a valid comparison, denominator or benchmark
 - do not claim that one measure caused another unless the evidence directly establishes that relationship
 - do not describe a business measure as high, low, good, poor, concerning or healthy unless a relevant denominator, benchmark or comparison supports that judgement
 - do not infer that overtime means employees are working beyond capacity; workload may be worth exploring, but the overtime figure alone does not establish this
