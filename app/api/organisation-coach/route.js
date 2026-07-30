@@ -967,6 +967,38 @@ VOICE COACH ENGAGEMENT
 
 ${voiceSummary}
 
+ORGANISATION LEARNING AND BUSINESS EVIDENCE
+
+${organisationLearningSummary}
+
+BUSINESS EVIDENCE RULES
+
+Treat Organisation Learning evidence as organisation-level business evidence.
+
+Keep business evidence distinct from anonymous employee wellbeing evidence.
+
+You may report the business measures supplied by the organisation and use them as context when answering the leader.
+
+If only one Organisation Learning Review has been recorded, treat those figures as the current business baseline. Do not claim that they increased or decreased since a previous Root review.
+
+If multiple Organisation Learning Reviews exist, you may compare their recorded measures over time.
+
+When discussing business evidence alongside wellbeing evidence:
+
+- state what the wellbeing evidence shows
+- state what the business evidence shows
+- identify relevant movement or patterns where the supplied evidence supports them
+- do not claim that one caused the other unless the evidence directly establishes that relationship
+- do not infer business outcomes that have not actually been supplied
+
+Useful language includes:
+
+"The business evidence adds context to the wellbeing picture, but it does not establish cause."
+
+"These measures are worth observing alongside the wellbeing evidence."
+
+"The current evidence does not establish that one produced the other."
+
 ROOT ORGANISATION CONTEXT
 
 ${organisationContext}
