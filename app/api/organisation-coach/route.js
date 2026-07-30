@@ -327,6 +327,105 @@ function summariseVoiceSessions(entries = []) {
   ].join("\n");
 }
 
+function summariseOrganisationReviews(entries = []) {
+  const records = safeArray(entries);
+
+  if (records.length === 0) {
+    return "No Organisation Learning Reviews were supplied.";
+  }
+
+  const ordered = [...records].sort((first, second) => {
+    const firstTime = new Date(
+      first?.review_date ||
+        first?.created_at ||
+        0
+    ).getTime();
+
+    const secondTime = new Date(
+      second?.review_date ||
+        second?.created_at ||
+        0
+    ).getTime();
+
+    return firstTime - secondTime;
+  });
+
+  const latest = ordered[ordered.length - 1];
+
+  const previous =
+    ordered.length > 1
+      ? ordered[ordered.length - 2]
+      : null;
+
+  function describeMeasure(key, label, currency = false) {
+    const current = safeNumber(latest?.[key]);
+    const previousValue = safeNumber(previous?.[key]);
+
+    if (current === null) {
+      return `${label}: not recorded`;
+    }
+
+    const formattedCurrent = currency
+      ? `£${current.toLocaleString("en-GB")}`
+      : current.toLocaleString("en-GB");
+
+    if (previousValue === null) {
+      return `${label}: ${formattedCurrent}; first saved organisation review, so no cross-review comparison is available yet.`;
+    }
+
+    const formattedPrevious = currency
+      ? `£${previousValue.toLocaleString("en-GB")}`
+      : previousValue.toLocaleString("en-GB");
+
+    const change = current - previousValue;
+
+    const direction =
+      change > 0
+        ? "increased"
+        : change < 0
+        ? "reduced"
+        : "remained unchanged";
+
+    return `${label}: ${formattedCurrent}; previous saved review ${formattedPrevious}; ${direction} since that review.`;
+  }
+
+  const businessEvents = Array.isArray(latest?.business_events)
+    ? latest.business_events
+    : [];
+
+  const initiatives = Array.isArray(latest?.initiatives)
+    ? latest.initiatives
+    : [];
+
+  const watchItems = Array.isArray(latest?.watch_items)
+    ? latest.watch_items
+    : [];
+
+  return [
+    `Organisation Learning Reviews recorded: ${records.length}`,
+    describeMeasure("sickness_days", "Sickness days"),
+    describeMeasure("turnover", "Employee turnover"),
+    describeMeasure("agency_spend", "Agency spend", true),
+    describeMeasure("overtime_hours", "Overtime hours"),
+    describeMeasure("vacancies", "Current vacancies"),
+    `Business events recorded in latest review: ${
+      businessEvents.length > 0
+        ? businessEvents.join(", ")
+        : "none"
+    }`,
+    `Initiatives recorded in latest review: ${
+      initiatives.length > 0
+        ? initiatives.join(", ")
+        : "none"
+    }`,
+    `Observation priorities in latest review: ${
+      watchItems.length > 0
+        ? watchItems.join(", ")
+        : "none"
+    }`,
+  ].join("\n");
+}
+
 function buildOrganisationContext({
   organisation,
   members,
