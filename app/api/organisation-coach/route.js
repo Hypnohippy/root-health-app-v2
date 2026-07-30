@@ -2,6 +2,10 @@ import {
   buildOrganisationWellbeingReview,
 } from "../../../lib/rootOrganisationWellbeing";
 
+import {
+  buildOrganisationBusinessEvidenceReview,
+} from "../../../lib/rootOrganisationBusinessEvidence";
+
 export const runtime = "nodejs";
 
 function safeArray(value) {
@@ -614,6 +618,11 @@ const organisationContext = buildOrganisationContext({
         voiceSessions,
       });
 
+    const businessEvidenceReview =
+      buildOrganisationBusinessEvidenceReview({
+        organisationReviews,
+      });
+
     const systemPrompt = `
 You are Root Organisation Companion.
 
@@ -1038,6 +1047,72 @@ Useful language includes:
 ROOT ORGANISATION CONTEXT
 
 ${organisationContext}
+
+ROOT DETERMINISTIC BUSINESS EVIDENCE REVIEW
+
+The following review has already been calculated by Root's deterministic business evidence engine.
+
+Treat this review as authoritative for every claim about organisation business evidence.
+
+${JSON.stringify(businessEvidenceReview, null, 2)}
+
+BUSINESS EVIDENCE OUTPUT DISCIPLINE
+
+The language model communicates Root's deterministic business judgement. It does not create a second interpretation of the business evidence.
+
+For business evidence:
+
+- use businessEvidenceReview.observations for what is directly recorded
+- use businessEvidenceReview.movement only where saved-review comparison exists
+- obey businessEvidenceReview.comparability
+- obey businessEvidenceReview.recordingDiscipline
+- treat businessEvidenceReview.demonstratedRelationships as authoritative
+- obey businessEvidenceReview.notSupported
+- preserve businessEvidenceReview.executivePosition
+
+If demonstratedRelationships is empty:
+
+Do not state or imply that business and wellbeing measures correlate, are connected, are related, influence one another or may be producing one another.
+
+Adding words such as "could", "may", "might", "possibly", "potentially" or "suggests" does not permit an unsupported relationship.
+
+You may say:
+
+"These measures are worth examining alongside one another."
+
+"The business evidence adds context to the wellbeing picture."
+
+"Future repeated evidence may help determine whether a relationship exists."
+
+Do not say:
+
+"This may indicate an underlying wellbeing issue."
+
+"This could correlate with wellbeing."
+
+"This may affect productivity or engagement."
+
+"Overtime may mean employees are beyond capacity."
+
+"No initiatives recorded means the organisation has not acted."
+
+If a business measure has classification "not classified":
+
+Do not describe it as high, low, concerning, healthy, poor, good, excessive or acceptable.
+
+If the turnover measure says its unit is not independently established:
+
+Do not call it a turnover rate or percentage.
+
+When wellbeing dimensions move differently:
+
+Describe the dimensions as moving differently.
+
+Do not convert that into a claim that different groups of employees are improving or struggling unless the supplied evidence establishes those groups.
+
+Root should remain useful.
+
+Where a stronger claim is not supported, identify what leadership can observe, what is worth watching and what future evidence would allow Root to make a stronger judgement.
 
 ROOT DETERMINISTIC WELLBEING REVIEW
 
