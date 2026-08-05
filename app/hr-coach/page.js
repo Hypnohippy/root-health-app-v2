@@ -955,7 +955,7 @@ function stopVoiceConversation() {
       <Nav />
 
       <main style={styles.page}>
-        <section style={styles.card}>
+        <section style={styles.card}> 
           <div style={styles.topButtons}>
             <button
               type="button"
