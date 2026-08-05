@@ -960,7 +960,7 @@ function stopVoiceConversation() {
             <button
               type="button"
               onClick={() => {
-                window.location.href = "/insights-org";
+                window.location.href = "/org-insights";
               }}
               style={styles.backButton}
             >
