@@ -22,8 +22,28 @@ export default function Nav() {
   ];
 
   const workplaceLinks = [
-    { href: "/org-insights", label: "Dashboard" },
-  ];
+  { href: "/org-insights", label: "Dashboard" },
+  {
+    href: "/organisation-learning",
+    label: "Organisation Learning",
+  },
+  {
+    href: "/hr-coach",
+    label: "Ask Root",
+  },
+  {
+    href: "/executive-review",
+    label: "Executive Review",
+  },
+  {
+    href: "/presentation-support",
+    label: "Interventions",
+  },
+  {
+    href: "/organisations/pricing",
+    label: "Pricing",
+  },
+];
 
   const links =
     activeExperience === "workplace"
