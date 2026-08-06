@@ -892,6 +892,8 @@ export default function OrgInsightsPage() {
   const [voiceSessions, setVoiceSessions] = useState([]);
   const [organisationReviews, setOrganisationReviews] = useState([]);
   const [showInvite, setShowInvite] = useState(false);
+  const [creatingHRInvite, setCreatingHRInvite] =
+  useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -1232,6 +1234,86 @@ const rootWeeklyInterpretation =
     ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
     : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
   
+    async function createHRInvitation() {
+  const email = window.prompt(
+    "Enter the work email address of the HR colleague you wish to invite:"
+  );
+
+  if (!email) return;
+
+  const cleanEmail = email.trim().toLowerCase();
+
+  if (!cleanEmail.includes("@")) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  if (!organisation?.id) {
+    alert("No active organisation was found.");
+    return;
+  }
+
+  setCreatingHRInvite(true);
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("Please sign in again.");
+      return;
+    }
+
+    const token = crypto.randomUUID();
+
+    const { error } = await supabase
+      .from("organisation_hr_invites")
+      .insert({
+        organisation_id: organisation.id,
+        email: cleanEmail,
+        role: "hr_admin",
+        invited_by: user.id,
+        token,
+        status: "pending",
+        expires_at: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+      });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    const inviteLink =
+      `${window.location.origin}/organisation/hr-join?token=${token}`;
+
+    await navigator.clipboard.writeText(inviteLink);
+
+    window.location.href =
+      `mailto:${cleanEmail}` +
+      `?subject=${encodeURIComponent(
+        `Invitation to manage ${organisation.name} in Root`
+      )}` +
+      `&body=${encodeURIComponent(
+        `Hello,
+
+You have been invited to help manage ${organisation.name}'s Root Workplace programme.
+
+Accept your invitation here:
+
+${inviteLink}
+
+This invitation expires in 7 days.
+
+Root Health`
+      )}`;
+
+    alert("HR invitation created and copied to the clipboard.");
+
+  } finally {
+    setCreatingHRInvite(false);
+  }
+}
   return (
   <RootAtmosphere type="coach">
       <Nav />
