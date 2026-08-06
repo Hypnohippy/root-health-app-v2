@@ -7,6 +7,7 @@ import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import { ROOT_PUBLIC_URL } from "../../lib/config";
 import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
+import { buildRootTrialStatus } from "../../lib/rootTrialStatus";
 
 function average(items, key) {
   const values = items
@@ -1134,59 +1135,17 @@ const latest =
   );
 
  
-  const fallbackTrialStart = assessments.length
-  ? new Date(assessments[0].created_at)
-  : null;
+  const trialStatus =
+  buildRootTrialStatus({
+    organisation,
+  });
 
-const trialStart = organisation?.trial_start
-  ? new Date(organisation.trial_start)
-  : fallbackTrialStart;
-
-const trialEnd = organisation?.trial_end
-  ? new Date(organisation.trial_end)
-  : trialStart
-  ? new Date(trialStart.getTime() + 60 * 24 * 60 * 60 * 1000)
-  : null;
-
-const today = new Date();
-
-const totalTrialDays =
-  trialStart && trialEnd
-    ? Math.max(
-        1,
-        Math.ceil(
-          (trialEnd.getTime() - trialStart.getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : 60;
-
-const daysElapsed =
-  trialStart
-    ? Math.max(
-        1,
-        Math.ceil(
-          (today.getTime() - trialStart.getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : 0;
-
-const daysRemaining =
-  trialEnd
-    ? Math.max(
-        0,
-        Math.ceil(
-          (trialEnd.getTime() - today.getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : totalTrialDays;
-
-const trialProgress =
-  trialStart && trialEnd
-    ? Math.min(100, Math.max(0, (daysElapsed / totalTrialDays) * 100))
-    : 0;
+const {
+  totalTrialDays,
+  daysElapsed,
+  daysRemaining,
+  progress: trialProgress,
+} = trialStatus;
  
 
   const executiveInsight =
@@ -1319,13 +1278,28 @@ const rootWeeklyInterpretation =
     </div>
 
    <div style={styles.controlButtons}>
-  <button
-    type="button"
-    style={styles.controlButton}
-    onClick={() => setShowInvite(!showInvite)}
-  >
-    👥 Invite Employees
-  </button>
+ <button
+  type="button"
+  style={{
+    ...styles.controlButton,
+    ...(!trialStatus.canInviteEmployees
+      ? styles.disabledControlButton
+      : {}),
+  }}
+  onClick={() => {
+    if (!trialStatus.canInviteEmployees) {
+      window.location.href =
+        "/organisations/pricing";
+      return;
+    }
+
+    setShowInvite(!showInvite);
+  }}
+>
+  {trialStatus.canInviteEmployees
+    ? "👥 Invite Employees"
+    : "🔒 Continue to Invite Employees"}
+</button>
 
   <button
     type="button"
@@ -1342,14 +1316,24 @@ const rootWeeklyInterpretation =
   </button>
 
   <button
-    type="button"
-    style={styles.controlButton}
-    onClick={() =>
-      (window.location.href = "/organisation-learning")
-    }
-  >
-    🧠 Update Organisation Intelligence
-  </button>
+  type="button"
+  style={{
+    ...styles.controlButton,
+    ...(!trialStatus.canCreateOrganisationReviews
+      ? styles.disabledControlButton
+      : {}),
+  }}
+  onClick={() => {
+    window.location.href =
+      trialStatus.canCreateOrganisationReviews
+        ? "/organisation-learning"
+        : "/organisations/pricing";
+  }}
+>
+  {trialStatus.canCreateOrganisationReviews
+    ? "🧠 Update Organisation Intelligence"
+    : "🔒 Continue Organisation Learning"}
+</button>
 
   <button
     type="button"
@@ -1419,6 +1403,60 @@ We look forward to welcoming you.
 </section>
           </div>
 
+{!loading &&
+  trialStatus.stage !== "early" && (
+    <section
+      style={{
+        ...styles.trialNoticeCard,
+        ...(trialStatus.isExpired
+          ? styles.trialNoticeExpired
+          : {}),
+      }}
+    >
+      <div style={styles.trialNoticeContent}>
+        <div>
+          <p style={styles.panelLabel}>
+            {trialStatus.label}
+          </p>
+
+          <h2 style={styles.panelTitle}>
+            {trialStatus.title}
+          </h2>
+
+          <p style={styles.panelDescription}>
+            {trialStatus.message}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          style={styles.trialNoticeButton}
+          onClick={() => {
+            window.location.href =
+              trialStatus.actionHref;
+          }}
+        >
+          {trialStatus.actionLabel}
+        </button>
+      </div>
+
+      {trialStatus.employeeContinuationRequired && (
+        <div style={styles.employeePromise}>
+          <strong>
+            Employees keep their personal Root journey
+          </strong>
+
+          <span>
+            If the organisation does not continue,
+            employees will be offered Personal Root so
+            their journals, insights, progress and
+            private wellbeing history remain available
+            without interruption.
+          </span>
+        </div>
+      )}
+    </section>
+  )}
           {!loading && (
   <section style={styles.pilotProgressCard}>
     <div>
@@ -3704,5 +3742,63 @@ participantStatus: {
   display: "grid",
   gap: "6px",
   textAlign: "right",
+},
+
+trialNoticeCard: {
+  marginBottom: "22px",
+  padding: "28px",
+  borderRadius: "32px",
+  background:
+    "linear-gradient(145deg, rgba(242,235,216,0.92), rgba(255,255,255,0.64))",
+  border:
+    "1px solid rgba(123,103,59,0.16)",
+  boxShadow:
+    "0 22px 70px rgba(63,52,29,0.10)",
+},
+
+trialNoticeExpired: {
+  background:
+    "linear-gradient(145deg, rgba(238,226,220,0.94), rgba(255,255,255,0.66))",
+  border:
+    "1px solid rgba(133,73,58,0.18)",
+},
+
+trialNoticeContent: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "24px",
+  flexWrap: "wrap",
+},
+
+trialNoticeButton: {
+  border: "none",
+  borderRadius: "999px",
+  padding: "14px 20px",
+  background: "#181818",
+  color: "#FFFFFF",
+  fontWeight: "800",
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+},
+
+employeePromise: {
+  marginTop: "20px",
+  padding: "18px 20px",
+  display: "grid",
+  gap: "6px",
+  borderRadius: "20px",
+  background:
+    "rgba(255,255,255,0.56)",
+  border:
+    "1px solid rgba(24,24,24,0.08)",
+  color: "#2E332F",
+  lineHeight: "1.6",
+},
+
+disabledControlButton: {
+  opacity: 0.76,
+  border:
+    "1px solid rgba(117,72,58,0.22)",
 },
 };
