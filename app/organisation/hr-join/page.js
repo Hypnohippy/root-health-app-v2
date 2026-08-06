@@ -215,14 +215,29 @@ export default function OrganisationHRJoinPage() {
     }
 
     if (data?.session && data?.user) {
-      setSignedInUser(data.user);
-      await loadInvitation(data.user);
-      setAuthLoading(false);
-      return;
-    }
+  setSignedInUser(data.user);
+  await loadInvitation(data.user);
+  setAuthLoading(false);
+  return;
+}
 
-    setVerificationSent(true);
-    setAuthLoading(false);
+if (
+  data?.user &&
+  Array.isArray(data.user.identities) &&
+  data.user.identities.length === 0
+) {
+  setAuthMode("signin");
+  setPassword("");
+  setConfirmPassword("");
+  setError(
+    "A Root account already exists for this email address. Please sign in using your existing password, or reset it if you have forgotten it."
+  );
+  setAuthLoading(false);
+  return;
+}
+
+setVerificationSent(true);
+setAuthLoading(false);
   }
 
   async function signIn() {
