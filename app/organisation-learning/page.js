@@ -3985,7 +3985,11 @@ const pageStyles = `
   flex-wrap: wrap;
   margin-top: 24px;
 }
-  .onboardingCard {
+
+/* Close the earlier mobile-only media query here. */
+}
+
+.onboardingCard {
     margin-bottom: 22px;
     padding: 30px;
     border-radius: 30px;
