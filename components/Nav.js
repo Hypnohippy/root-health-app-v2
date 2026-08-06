@@ -21,8 +21,11 @@ export default function Nav() {
     { href: "/profile", label: "You" },
   ];
 
-  const workplaceLinks = [
-  { href: "/org-insights", label: "Dashboard" },
+ const workplaceLinks = [
+  {
+    href: "/org-insights",
+    label: "Dashboard",
+  },
   {
     href: "/organisation-learning",
     label: "Organisation Learning",
