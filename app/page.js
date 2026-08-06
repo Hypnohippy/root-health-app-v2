@@ -285,10 +285,10 @@ checkUser();
      * During the normal pilot, Personal Root stays clean
      * and contains no unnecessary workplace messaging.
      */
-    const shouldShow = true;
-      trialStatus.stage === "conversion" ||
-      trialStatus.stage === "ending" ||
-      trialStatus.stage === "expired";
+    const shouldShow =
+  trialStatus.stage === "conversion" ||
+  trialStatus.stage === "ending" ||
+  trialStatus.stage === "expired";
 
     if (shouldShow) {
       setEmployeeProgramme({
