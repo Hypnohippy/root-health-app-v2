@@ -21,32 +21,32 @@ export default function Nav() {
     { href: "/profile", label: "You" },
   ];
 
- const workplaceLinks = [
-  {
-    href: "/org-insights",
-    label: "Dashboard",
-  },
-  {
-    href: "/organisation-learning",
-    label: "Organisation Learning",
-  },
-  {
-    href: "/hr-coach",
-    label: "Ask Root",
-  },
-  {
-    href: "/executive-review",
-    label: "Executive Review",
-  },
-  {
-    href: "/presentation-support",
-    label: "Interventions",
-  },
-  {
-    href: "/organisations/pricing",
-    label: "Pricing",
-  },
-];
+  const workplaceLinks = [
+    {
+      href: "/org-insights",
+      label: "Dashboard",
+    },
+    {
+      href: "/organisation-learning",
+      label: "Organisation Learning",
+    },
+    {
+      href: "/hr-coach",
+      label: "Ask Root",
+    },
+    {
+      href: "/executive-review",
+      label: "Executive Review",
+    },
+    {
+      href: "/presentation-support",
+      label: "Interventions",
+    },
+    {
+      href: "/organisations/pricing",
+      label: "Pricing",
+    },
+  ];
 
   const links =
     activeExperience === "workplace"
@@ -62,7 +62,11 @@ export default function Nav() {
 
         <div style={styles.desktopLinks}>
           {links.map((link) => (
-            <a key={link.href} href={link.href} style={styles.link}>
+            <a
+              key={link.href}
+              href={link.href}
+              style={styles.link}
+            >
               {link.label}
             </a>
           ))}
@@ -71,8 +75,10 @@ export default function Nav() {
         </div>
 
         <button
+          type="button"
           style={styles.menuButton}
-          onClick={() => setOpen(!open)}
+          onClick={() => setOpen((current) => !current)}
+          aria-label={open ? "Close navigation" : "Open navigation"}
         >
           {open ? "×" : "☰"}
         </button>
@@ -87,6 +93,7 @@ export default function Nav() {
               key={link.href}
               href={link.href}
               style={styles.mobileLink}
+              onClick={() => setOpen(false)}
             >
               {link.label}
             </a>
@@ -118,7 +125,7 @@ const styles = {
     left: "50%",
     transform: "translateX(-50%)",
     zIndex: 1000,
-    width: "min(1040px, calc(100% - 28px))",
+    width: "min(1400px, calc(100% - 28px))",
     padding: "10px 12px",
     display: "flex",
     justifyContent: "space-between",
