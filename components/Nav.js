@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRoot } from "../context/RootContext";
-import ExperienceSwitcher from "./ExperienceSwitcher";
+import ExperienceSwitcher from "./ExperienceSwitcher"; 
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
@@ -21,39 +21,6 @@ export default function Nav() {
     { href: "/profile", label: "You" },
   ];
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  const workplaceLinks = [
-<<<<<<< HEAD
-=======
- const workplaceLinks = [
->>>>>>> 2a40b6ad37e403bc0ef62d51768ede5ba5f20e3e
-  {
-    href: "/org-insights",
-    label: "Dashboard",
-  },
-  {
-    href: "/organisation-learning",
-    label: "Organisation Learning",
-  },
-  {
-    href: "/hr-coach",
-    label: "Ask Root",
-  },
-  {
-    href: "/executive-review",
-    label: "Executive Review",
-  },
-  {
-    href: "/presentation-support",
-    label: "Interventions",
-  },
-  {
-    href: "/organisations/pricing",
-    label: "Pricing",
-  },
-];
-=======
   const workplaceLinks = [
     {
       href: "/org-insights",
@@ -80,7 +47,6 @@ export default function Nav() {
       label: "Pricing",
     },
   ];
->>>>>>> 6501bf3af8aa66a7e622ea84a0089a34d9907c89
 
   const links =
     activeExperience === "workplace"
