@@ -7,6 +7,10 @@ import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import { buildOrganisationIntelligence } from "../../lib/rootOrganisationIntelligenceEngine";
+import {
+  getRootIdentity,
+  setActiveExperience,
+} from "../../lib/rootIdentity";
 
 const BUSINESS_EVENT_OPTIONS = [
   "Annual appraisals",
@@ -196,6 +200,28 @@ function toDatabaseNumber(value) {
   const number = Number(value);
 
   return Number.isNaN(number) ? null : number;
+}
+
+function createOrganisationCode(name) {
+  const cleanName = String(name || "ROOT")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 12);
+
+  const randomPart = Math.random()
+    .toString(36)
+    .slice(2, 7)
+    .toUpperCase();
+
+  return `${cleanName || "ROOT"}-${randomPart}`;
+}
+
+function addDays(date, days) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result.toISOString().slice(0, 10);
 }
 
 function toggleArrayItem(items, value) {
@@ -462,6 +488,16 @@ export default function OrganisationLearningPage() {
   const [membership, setMembership] = useState(null);
   const [previousReview, setPreviousReview] = useState(null);
   const [reviewHistory, setReviewHistory] = useState([]);
+  const [isOnboarding, setIsOnboarding] = useState(false);
+
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [organisationName, setOrganisationName] = useState("");
+  const [employeeCount, setEmployeeCount] = useState("51-150");
+  const [industry, setIndustry] = useState("Healthcare");
 
   const [dataMethod, setDataMethod] = useState("manual");
   const [measures, setMeasures] = useState(EMPTY_MEASURES);
@@ -502,7 +538,7 @@ export default function OrganisationLearningPage() {
     loadPage();
   }, []);
 
-  async function loadPage() {
+    async function loadPage() {
     setLoading(true);
     setErrorMessage("");
 
@@ -511,8 +547,17 @@ export default function OrganisationLearningPage() {
       error: authError,
     } = await supabase.auth.getUser();
 
+    /*
+     * No signed-in user means this page becomes the new organisation
+     * onboarding journey instead of redirecting to login.
+     */
     if (authError || !user) {
-      window.location.href = "/login";
+      setIsOnboarding(true);
+      setOrganisation(null);
+      setMembership(null);
+      setPreviousReview(null);
+      setReviewHistory([]);
+      setLoading(false);
       return;
     }
 
@@ -524,25 +569,41 @@ export default function OrganisationLearningPage() {
       .eq("user_id", user.id)
       .maybeSingle();
 
+    /*
+     * A signed-in private user who has no workplace membership may also
+     * create a new organisation through this page.
+     */
     if (membershipError || !member) {
-      await supabase.auth.signOut();
-      window.location.href = "/login";
+      setIsOnboarding(true);
+      setContactName(
+        user.user_metadata?.name || ""
+      );
+      setContactEmail(user.email || "");
+      setLoading(false);
       return;
     }
 
-    const allowedRoles = ["hr_admin", "organisation_admin"];
+    const allowedRoles = [
+      "hr_admin",
+      "organisation_admin",
+    ];
 
     if (!allowedRoles.includes(member.role)) {
       window.location.href = "/";
       return;
     }
 
+    setIsOnboarding(false);
+
     setMembership({
       ...member,
       user_id: user.id,
     });
 
-    localStorage.setItem("root_profile_key_v1", member.profile_key);
+    localStorage.setItem(
+      "root_profile_key_v1",
+      member.profile_key
+    );
 
     localStorage.setItem(
       "root_hr_org_v1",
@@ -552,11 +613,12 @@ export default function OrganisationLearningPage() {
       })
     );
 
-    const { data: org, error: organisationError } = await supabase
-      .from("organisations")
-      .select("*")
-      .eq("id", member.organisation_id)
-      .maybeSingle();
+    const { data: org, error: organisationError } =
+      await supabase
+        .from("organisations")
+        .select("*")
+        .eq("id", member.organisation_id)
+        .maybeSingle();
 
     if (organisationError) {
       setErrorMessage(
@@ -568,29 +630,40 @@ export default function OrganisationLearningPage() {
 
     setOrganisation(org || null);
 
-    const { data: reviews, error: reviewError } = await supabase
-      .from("organisation_learning_reviews")
-      .select("*")
-      .eq("organisation_id", member.organisation_id)
-      .order("created_at", { ascending: false })
-      .limit(12);
+    const { data: reviews, error: reviewError } =
+      await supabase
+        .from("organisation_learning_reviews")
+        .select("*")
+        .eq("organisation_id", member.organisation_id)
+        .order("created_at", {
+          ascending: false,
+        })
+        .limit(12);
 
     if (reviewError) {
-      console.error("Organisation review load error:", reviewError);
+      console.error(
+        "Organisation review load error:",
+        reviewError
+      );
 
       setErrorMessage(
         "The page is ready, but Root could not load previous organisation reviews."
       );
     }
 
-    const safeReviews = Array.isArray(reviews) ? reviews : [];
+    const safeReviews = Array.isArray(reviews)
+      ? reviews
+      : [];
+
     const latestReview = safeReviews[0] || null;
 
     setPreviousReview(latestReview);
     setReviewHistory(safeReviews);
 
     if (latestReview?.watch_items?.length) {
-      setSelectedWatchItems(latestReview.watch_items);
+      setSelectedWatchItems(
+        latestReview.watch_items
+      );
     }
 
     setLoading(false);
@@ -946,10 +1019,372 @@ export default function OrganisationLearningPage() {
       "The imported figures have been added to this organisation review. You can edit any figure before saving."
     );
   }
+  
+    async function createOrganisationAndFirstReview() {
+    setSaving(true);
+    setErrorMessage("");
+    setMessage("");
 
-  async function saveReview() {
+    const cleanName = contactName.trim();
+    const cleanEmail = contactEmail
+      .trim()
+      .toLowerCase();
+    const cleanOrganisationName =
+      organisationName.trim();
+
+    if (
+      !cleanName ||
+      !cleanEmail ||
+      !cleanOrganisationName
+    ) {
+      setErrorMessage(
+        "Please complete your name, work email and organisation name."
+      );
+      setSaving(false);
+      return;
+    }
+
+    const {
+      data: { user: existingUser },
+    } = await supabase.auth.getUser();
+
+    if (!existingUser) {
+      if (password.length < 8) {
+        setErrorMessage(
+          "Please create a password containing at least 8 characters."
+        );
+        setSaving(false);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setErrorMessage(
+          "The passwords do not match."
+        );
+        setSaving(false);
+        return;
+      }
+    }
+
+    const hasAnyMeasure = Object.values(
+      measures
+    ).some((value) => value !== "");
+
+    const hasContext =
+      selectedEvents.length > 0 ||
+      selectedInitiatives.length > 0 ||
+      businessEventNotes.trim() ||
+      initiativeNotes.trim();
+
+    if (!hasAnyMeasure && !hasContext) {
+      setErrorMessage(
+        "Please enter at least one business measure, event or initiative so Root can establish the organisation baseline."
+      );
+      setSaving(false);
+      return;
+    }
+
+    let user = existingUser;
+
+    /*
+     * Create the one Root account when the visitor is not already signed in.
+     */
+    if (!user) {
+      const {
+        data: signUpData,
+        error: signUpError,
+      } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: {
+            name: cleanName,
+          },
+        },
+      });
+
+      if (signUpError || !signUpData?.user) {
+        setErrorMessage(
+          signUpError?.message ||
+            "Root could not create your account."
+        );
+        setSaving(false);
+        return;
+      }
+
+      user = signUpData.user;
+
+      /*
+       * If Supabase email confirmation is enabled, signUp creates the user
+       * but does not create an active browser session.
+       */
+      if (!signUpData.session) {
+        setErrorMessage(
+          "Your Root account has been created. Please confirm your email address, then return to this page and sign in to complete the organisation setup."
+        );
+        setSaving(false);
+        return;
+      }
+    }
+
+    const profileKey = crypto.randomUUID();
+    const organisationCode =
+      createOrganisationCode(
+        cleanOrganisationName
+      );
+
+    const today = new Date()
+      .toISOString()
+      .slice(0, 10);
+
+    const trialEnd = addDays(
+      new Date(),
+      60
+    );
+
+    /*
+     * Create or update the user's personal Root profile.
+     */
+    const {
+      data: existingProfile,
+      error: profileLookupError,
+    } = await supabase
+      .from("profiles")
+      .select("id, profile_key")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (profileLookupError) {
+      setErrorMessage(
+        "Root could not check your personal profile."
+      );
+      setSaving(false);
+      return;
+    }
+
+    let personalProfileKey =
+      existingProfile?.profile_key ||
+      profileKey;
+
+    if (existingProfile) {
+      const { error: profileUpdateError } =
+        await supabase
+          .from("profiles")
+          .update({
+            name: cleanName,
+            email: cleanEmail,
+            profile_key: personalProfileKey,
+          })
+          .eq("id", existingProfile.id);
+
+      if (profileUpdateError) {
+        setErrorMessage(
+          "Root created your account but could not update your personal profile."
+        );
+        setSaving(false);
+        return;
+      }
+    } else {
+      const { error: profileInsertError } =
+        await supabase
+          .from("profiles")
+          .insert({
+            user_id: user.id,
+            profile_key: personalProfileKey,
+            name: cleanName,
+            email: cleanEmail,
+            subscription_status:
+              "organisation",
+            orientation_completed: false,
+          });
+
+      if (profileInsertError) {
+        setErrorMessage(
+          profileInsertError.message ||
+            "Root created your account but could not create your personal profile."
+        );
+        setSaving(false);
+        return;
+      }
+    }
+
+    /*
+     * Create the organisation and begin the 60-day pilot.
+     */
+    const {
+      data: newOrganisation,
+      error: organisationError,
+    } = await supabase
+      .from("organisations")
+      .insert({
+        name: cleanOrganisationName,
+        contact_name: cleanName,
+        contact_email: cleanEmail,
+        employee_count: employeeCount,
+        industry,
+        organisation_code: organisationCode,
+        trial_start: today,
+        trial_end: trialEnd,
+        status: "trial",
+        subscription_status: "trial",
+        subscription_plan: "trial",
+        subscription_active: true,
+      })
+      .select("*")
+      .single();
+
+    if (
+      organisationError ||
+      !newOrganisation
+    ) {
+      setErrorMessage(
+        organisationError?.message ||
+          "Root could not create the organisation."
+      );
+      setSaving(false);
+      return;
+    }
+
+    /*
+     * Create workplace capability for the same Root identity.
+     */
+    const {
+      data: newMembership,
+      error: membershipError,
+    } = await supabase
+      .from("organisation_members")
+      .insert({
+        organisation_id:
+          newOrganisation.id,
+        user_id: user.id,
+        profile_key: personalProfileKey,
+        email: cleanEmail,
+        name: cleanName,
+        department: "People / HR",
+        role: "organisation_admin",
+        invited_at:
+          new Date().toISOString(),
+        activated_at:
+          new Date().toISOString(),
+        created_at:
+          new Date().toISOString(),
+      })
+      .select(
+        "id, organisation_id, user_id, profile_key, email, name, department, role"
+      )
+      .single();
+
+    if (
+      membershipError ||
+      !newMembership
+    ) {
+      setErrorMessage(
+        membershipError?.message ||
+          "Root created the organisation but could not create workplace access."
+      );
+      setSaving(false);
+      return;
+    }
+
+    const reviewPayload = {
+      organisation_id:
+        newOrganisation.id,
+      created_by: user.id,
+      review_date: today,
+
+      sickness_days: toDatabaseNumber(
+        measures.sickness_days
+      ),
+      turnover: toDatabaseNumber(
+        measures.turnover
+      ),
+      agency_spend: toDatabaseNumber(
+        measures.agency_spend
+      ),
+      overtime_hours: toDatabaseNumber(
+        measures.overtime_hours
+      ),
+      vacancies: toDatabaseNumber(
+        measures.vacancies
+      ),
+
+      business_events: selectedEvents,
+      business_event_notes:
+        businessEventNotes.trim() || null,
+
+      initiatives: selectedInitiatives,
+      initiative_notes:
+        initiativeNotes.trim() || null,
+
+      watch_items: selectedWatchItems,
+      root_reflection: reflection,
+      confidence_label: "Emerging",
+    };
+
+    const {
+      data: firstReview,
+      error: reviewError,
+    } = await supabase
+      .from(
+        "organisation_learning_reviews"
+      )
+      .insert(reviewPayload)
+      .select("*")
+      .single();
+
+    if (reviewError || !firstReview) {
+      setErrorMessage(
+        reviewError?.message ||
+          "Root created the organisation but could not save the first review."
+      );
+      setSaving(false);
+      return;
+    }
+
+    localStorage.setItem(
+      "root_profile_key_v1",
+      personalProfileKey
+    );
+
+    localStorage.setItem(
+      "root_hr_org_v1",
+      JSON.stringify({
+        organisation_id:
+          newOrganisation.id,
+        role: "organisation_admin",
+      })
+    );
+
+    localStorage.setItem(
+      "root_organisation_v1",
+      JSON.stringify({
+        organisation_id:
+          newOrganisation.id,
+        organisation_name:
+          newOrganisation.name,
+        organisation_code:
+          newOrganisation.organisation_code,
+        role: "organisation_admin",
+        joined_at: Date.now(),
+      })
+    );
+
+    setActiveExperience("workplace");
+    await getRootIdentity();
+
+    window.location.href =
+      "/org-insights";
+  }
+    async function saveReview() {
+    if (isOnboarding) {
+      await createOrganisationAndFirstReview();
+      return;
+    }
+
     if (!membership?.organisation_id) {
-      setErrorMessage("Root could not identify the organisation.");
+      setErrorMessage(
+        "Root could not identify the organisation."
+      );
       return;
     }
 
@@ -1063,22 +1498,28 @@ window.scrollTo({
 
             <p className="kicker">Root Health</p>
 
-            <h1>Organisation Learning Review</h1>
+            <h1>
+  {isOnboarding
+    ? "Organisation Learning & Setup"
+    : "Organisation Learning Review"}
+</h1>
 
             <p className="subtitle">
-              Help Root understand what has changed across your organisation.
-              Root combines this context with anonymous workforce evidence to
-              build a clearer and more useful picture over time.
-            </p>
+  {isOnboarding
+    ? "Tell Root about your organisation, establish its first evidence baseline and begin your supported 60-day workplace pilot."
+    : "Help Root understand what has changed across your organisation. Root combines this context with anonymous workforce evidence to build a clearer and more useful picture over time."}
+</p>
 
             <div className="heroActions">
-              <button
-                className="quietButton"
-                type="button"
-                onClick={goBackToOrganisationInsights}
-              >
-               Continue to Organisation Insights
-              </button>
+              {!isOnboarding && (
+  <button
+    className="quietButton"
+    type="button"
+    onClick={goBackToOrganisationInsights}
+  >
+    Continue to Organisation Insights
+  </button>
+)}
 
               <span className="timePill">Estimated time: 2–3 minutes</span>
             </div>
@@ -1119,7 +1560,7 @@ window.scrollTo({
 
       <button
         className="saveButton"
-        onClick={() => router.push("/insights-org")}
+        onClick={() => router.push("/org-insights")}
       >
         View Organisation Insights →
       </button>
@@ -1137,6 +1578,171 @@ window.scrollTo({
     </div>
   </section>
 )}
+             {isOnboarding && (
+            <section className="onboardingCard">
+              <p className="sectionLabel">
+                Root Workplace Setup
+              </p>
+
+              <h2>
+                Let Root understand you and your organisation
+              </h2>
+
+              <p className="cardIntro">
+                One Root account will give you a private personal
+                wellbeing experience and authorised access to your
+                organisation&apos;s workplace intelligence.
+              </p>
+
+              <div className="onboardingGrid">
+                <label className="onboardingField">
+                  <span>Your name</span>
+
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(event) =>
+                      setContactName(
+                        event.target.value
+                      )
+                    }
+                    placeholder="e.g. Emma Jones"
+                  />
+                </label>
+
+                <label className="onboardingField">
+                  <span>Work email</span>
+
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(event) =>
+                      setContactEmail(
+                        event.target.value
+                      )
+                    }
+                    placeholder="emma@company.co.uk"
+                  />
+                </label>
+
+                <label className="onboardingField">
+                  <span>Create password</span>
+
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) =>
+                      setPassword(
+                        event.target.value
+                      )
+                    }
+                    placeholder="At least 8 characters"
+                  />
+                </label>
+
+                <label className="onboardingField">
+                  <span>Confirm password</span>
+
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) =>
+                      setConfirmPassword(
+                        event.target.value
+                      )
+                    }
+                    placeholder="Repeat your password"
+                  />
+                </label>
+
+                <label className="onboardingField">
+                  <span>Organisation name</span>
+
+                  <input
+                    type="text"
+                    value={organisationName}
+                    onChange={(event) =>
+                      setOrganisationName(
+                        event.target.value
+                      )
+                    }
+                    placeholder="e.g. Sony UK"
+                  />
+                </label>
+
+                <label className="onboardingField">
+                  <span>Employees covered by Root</span>
+
+                  <select
+                    value={employeeCount}
+                    onChange={(event) =>
+                      setEmployeeCount(
+                        event.target.value
+                      )
+                    }
+                  >
+                    <option value="1-50">
+                      Up to 50 employees
+                    </option>
+
+                    <option value="51-150">
+                      51–150 employees
+                    </option>
+
+                    <option value="151-500">
+                      151–500 employees
+                    </option>
+
+                    <option value="501-1000">
+                      501–1,000 employees
+                    </option>
+
+                    <option value="1000+">
+                      More than 1,000 employees
+                    </option>
+                  </select>
+                </label>
+
+                <label className="onboardingField onboardingWide">
+                  <span>Industry</span>
+
+                  <select
+                    value={industry}
+                    onChange={(event) =>
+                      setIndustry(
+                        event.target.value
+                      )
+                    }
+                  >
+                    <option>Healthcare</option>
+                    <option>Social Care</option>
+                    <option>Professional Services</option>
+                    <option>Manufacturing</option>
+                    <option>Retail</option>
+                    <option>Education</option>
+                    <option>Charity</option>
+                    <option>Technology</option>
+                    <option>Financial Services</option>
+                    <option>Hospitality</option>
+                    <option>Public Sector</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="onboardingPromise">
+                <strong>
+                  What happens when you finish
+                </strong>
+
+                <span>
+                  Root creates one account, enables personal and
+                  workplace access, creates the organisation, saves
+                  this first review and begins the 60-day pilot.
+                </span>
+              </div>
+            </section>
+          )}
 
           {errorMessage && (
             <div className="errorMessage">{errorMessage}</div>
@@ -2276,15 +2882,19 @@ window.scrollTo({
               </section>
 
               <button
-                className="saveButton"
-                type="button"
-                onClick={saveReview}
-                disabled={saving}
-              >
-                {saving
-                  ? "Updating organisation picture..."
-                  : "Update Organisation Picture"}
-              </button>
+  className="saveButton"
+  type="button"
+  onClick={saveReview}
+  disabled={saving}
+>
+  {saving
+    ? isOnboarding
+      ? "Creating your Root organisation..."
+      : "Updating organisation picture..."
+    : isOnboarding
+      ? "Create Organisation & Begin 60-Day Pilot"
+      : "Update Organisation Picture"}
+</button>
             </div>
 
             <aside className="timelineColumn">
@@ -3375,5 +3985,85 @@ const pageStyles = `
   flex-wrap: wrap;
   margin-top: 24px;
 }
+  .onboardingCard {
+    margin-bottom: 22px;
+    padding: 30px;
+    border-radius: 30px;
+    background:
+      linear-gradient(
+        145deg,
+        rgba(232, 240, 229, 0.82),
+        rgba(255, 255, 255, 0.58)
+      );
+    border: 1px solid rgba(82, 105, 82, 0.18);
+    box-shadow: 0 22px 62px rgba(39, 55, 44, 0.1);
+  }
+
+  .onboardingGrid {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 17px;
+  }
+
+  .onboardingField {
+    display: grid;
+    gap: 8px;
+  }
+
+  .onboardingField span {
+    color: #343b35;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .onboardingField input,
+  .onboardingField select {
+    width: 100%;
+    min-height: 50px;
+    padding: 13px 15px;
+    border-radius: 16px;
+    border: 1px solid rgba(46, 61, 49, 0.16);
+    background: rgba(255, 255, 255, 0.76);
+    color: #181818;
+    font: inherit;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .onboardingField input:focus,
+  .onboardingField select:focus {
+    border-color: rgba(66, 105, 82, 0.5);
+    box-shadow: 0 0 0 4px rgba(66, 105, 82, 0.08);
+  }
+
+  .onboardingWide {
+    grid-column: 1 / -1;
+  }
+
+  .onboardingPromise {
+    margin-top: 22px;
+    padding: 18px 20px;
+    border-radius: 20px;
+    display: grid;
+    gap: 6px;
+    background: rgba(38, 59, 43, 0.9);
+    color: #ffffff;
+  }
+
+  .onboardingPromise span {
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 720px) {
+    .onboardingGrid {
+      grid-template-columns: 1fr;
+    }
+
+    .onboardingWide {
+      grid-column: auto;
+    }
   }
 `;
