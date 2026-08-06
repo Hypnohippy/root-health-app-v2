@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 import Nav from "../components/Nav";
 import { buildRootKnowledge } from "../lib/rootKnowledgeBuilder";
+import { buildRootTrialStatus } from "../lib/rootTrialStatus";
 import { useRoot } from "../context/RootContext";
 
 const progressMetrics = [
@@ -117,6 +118,8 @@ export default function Home() {
   const [baselineAssessment, setBaselineAssessment] = useState(null);
 
   const [openCard, setOpenCard] = useState(null);
+  const [employeeProgramme, setEmployeeProgramme] = useState(null);
+  const [programmeLoading, setProgrammeLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -206,6 +209,104 @@ checkUser();
       }
     }
   }, []);
+  useEffect(() => {
+  let cancelled = false;
+
+  async function loadEmployeeProgramme() {
+    setProgrammeLoading(true);
+    setEmployeeProgramme(null);
+
+    /*
+     * Private personal users have no organisation membership.
+     *
+     * HR and organisation administrators must not receive the
+     * employee continuation card because they manage the
+     * organisation through Workplace mode.
+     */
+    const memberships = Array.isArray(identity?.organisations)
+      ? identity.organisations
+      : [];
+
+    const employeeMembership = memberships.find(
+      (membership) => membership?.role === "employee"
+    );
+
+    if (!employeeMembership?.organisation_id) {
+      if (!cancelled) {
+        setProgrammeLoading(false);
+      }
+
+      return;
+    }
+
+    const { data: organisation, error } = await supabase
+      .from("organisations")
+      .select(
+        `
+          id,
+          name,
+          trial_start,
+          trial_end,
+          status,
+          subscription_status,
+          subscription_plan,
+          subscription_active,
+          renewal_date
+        `
+      )
+      .eq(
+        "id",
+        employeeMembership.organisation_id
+      )
+      .maybeSingle();
+
+    if (cancelled) {
+      return;
+    }
+
+    if (error || !organisation) {
+      console.error(
+        "Employee programme status error:",
+        error
+      );
+
+      setProgrammeLoading(false);
+      return;
+    }
+
+    const trialStatus = buildRootTrialStatus({
+      organisation,
+    });
+
+    /*
+     * Employees only need to see programme messaging
+     * when the pilot is approaching its conclusion.
+     *
+     * During the normal pilot, Personal Root stays clean
+     * and contains no unnecessary workplace messaging.
+     */
+    const shouldShow =
+      trialStatus.stage === "conversion" ||
+      trialStatus.stage === "ending" ||
+      trialStatus.stage === "expired";
+
+    if (shouldShow) {
+      setEmployeeProgramme({
+        organisation,
+        membership: employeeMembership,
+        trialStatus,
+      });
+    }
+
+    setProgrammeLoading(false);
+  }
+
+  loadEmployeeProgramme();
+
+  return () => {
+    cancelled = true;
+  };
+}, [identity]);
 
   useEffect(() => {
   const load = async () => {
@@ -460,7 +561,127 @@ checkUser();
 
           <p style={styles.welcome}>{adaptiveGreeting}</p>
 
-          <h1 style={styles.title}>
+{!programmeLoading && employeeProgramme && (
+  <section style={styles.employeeProgrammeCard}>
+    <div style={styles.employeeProgrammeHeader}>
+      <div>
+        <p style={styles.employeeProgrammeLabel}>
+          Your wellbeing programme
+        </p>
+
+        <h2 style={styles.employeeProgrammeTitle}>
+          {employeeProgramme.organisation.name}
+        </h2>
+      </div>
+
+      <span style={styles.employeeProgrammeStatus}>
+        {employeeProgramme.trialStatus.label}
+      </span>
+    </div>
+
+    {employeeProgramme.trialStatus.stage ===
+      "conversion" && (
+      <>
+        <p style={styles.employeeProgrammeText}>
+          Your organisation’s Root pilot has{" "}
+          <strong>
+            {
+              employeeProgramme.trialStatus
+                .daysRemaining
+            }{" "}
+            days remaining
+          </strong>
+          .
+        </p>
+
+        <p style={styles.employeeProgrammeText}>
+          If your organisation continues with Root,
+          your experience will carry on normally.
+        </p>
+
+        <p style={styles.employeeProgrammePromise}>
+          If it decides not to continue, your
+          journals, Body and Mind work, check-ins,
+          insights, progress and Root memory will
+          remain yours.
+        </p>
+      </>
+    )}
+
+    {employeeProgramme.trialStatus.stage ===
+      "ending" && (
+      <>
+        <p style={styles.employeeProgrammeText}>
+          Your organisation’s pilot ends in{" "}
+          <strong>
+            {
+              employeeProgramme.trialStatus
+                .daysRemaining
+            }{" "}
+            day
+            {employeeProgramme.trialStatus
+              .daysRemaining === 1
+              ? ""
+              : "s"}
+          </strong>
+          .
+        </p>
+
+        <p style={styles.employeeProgrammePromise}>
+          Whatever your organisation decides, your
+          private Root journey will not be deleted or
+          transferred. Everything you have built
+          remains connected to your own account.
+        </p>
+      </>
+    )}
+
+    {employeeProgramme.trialStatus.stage ===
+      "expired" && (
+      <>
+        <p style={styles.employeeProgrammeText}>
+          Your organisation’s 60-day Root pilot has
+          concluded and the organisation is reviewing
+          its next step.
+        </p>
+
+        <p style={styles.employeeProgrammePromise}>
+          Your personal Root journey continues.
+          Everything you have recorded remains private,
+          available and connected to you.
+        </p>
+
+        <div style={styles.employeeContinuationBox}>
+          <strong style={styles.employeeContinuationTitle}>
+            Your wellbeing belongs to you.
+          </strong>
+
+          <span style={styles.employeeContinuationText}>
+            If your employer does not continue with
+            Root Workplace, you will be able to
+            continue through Personal Root without
+            losing your history or beginning again.
+          </span>
+        </div>
+      </>
+    )}
+
+    <div style={styles.employeeProgrammeActions}>
+      <a
+        href="/profile"
+        style={styles.employeeProgrammeButton}
+      >
+        Open my Root profile →
+      </a>
+
+      <span style={styles.employeeProgrammePrivacy}>
+        Your employer never sees your personal entries.
+      </span>
+    </div>
+  </section>
+)}
+
+<h1 style={styles.title}>
             {adaptiveTitle.split("\n").map((line, index) => (
               <span key={index}>
                 {line}
@@ -1199,4 +1420,127 @@ const styles = {
     color: "rgba(255,255,255,0.36)",
     fontSize: "12px",
   },
+
+  employeeProgrammeCard: {
+  width: "100%",
+  maxWidth: "700px",
+  boxSizing: "border-box",
+  margin: "0 0 30px",
+  padding: "24px",
+  borderRadius: "28px",
+  background:
+    "linear-gradient(145deg, rgba(255,255,255,0.66), rgba(245,239,226,0.54))",
+  border: "1px solid rgba(255,255,255,0.72)",
+  boxShadow: "0 22px 65px rgba(32,38,28,0.12)",
+  backdropFilter: "blur(20px)",
+},
+
+employeeProgrammeHeader: {
+  display: "flex",
+  alignItems: "flex-start",
+  justifyContent: "space-between",
+  gap: "18px",
+  flexWrap: "wrap",
+  marginBottom: "16px",
+},
+
+employeeProgrammeLabel: {
+  margin: "0 0 7px",
+  fontSize: "11px",
+  fontWeight: "800",
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  color: "#64705D",
+},
+
+employeeProgrammeTitle: {
+  margin: 0,
+  fontFamily: "Georgia, serif",
+  fontSize: "27px",
+  lineHeight: "1.15",
+  fontWeight: "500",
+  color: "#20271E",
+},
+
+employeeProgrammeStatus: {
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: "30px",
+  padding: "5px 12px",
+  boxSizing: "border-box",
+  borderRadius: "999px",
+  background: "rgba(68,88,66,0.10)",
+  color: "#465540",
+  fontSize: "12px",
+  fontWeight: "800",
+},
+
+employeeProgrammeText: {
+  margin: "0 0 12px",
+  color: "#3F463D",
+  lineHeight: "1.7",
+  fontSize: "15px",
+},
+
+employeeProgrammePromise: {
+  margin: "16px 0 0",
+  padding: "16px 18px",
+  borderRadius: "20px",
+  background: "rgba(255,255,255,0.48)",
+  border: "1px solid rgba(68,88,66,0.10)",
+  color: "#31402F",
+  lineHeight: "1.7",
+  fontSize: "15px",
+},
+
+employeeContinuationBox: {
+  marginTop: "16px",
+  padding: "18px",
+  display: "grid",
+  gap: "7px",
+  borderRadius: "20px",
+  background:
+    "linear-gradient(135deg, rgba(44,62,43,0.94), rgba(68,88,66,0.88))",
+  color: "#FFFFFF",
+},
+
+employeeContinuationTitle: {
+  fontFamily: "Georgia, serif",
+  fontSize: "20px",
+  fontWeight: "500",
+},
+
+employeeContinuationText: {
+  color: "rgba(255,255,255,0.82)",
+  lineHeight: "1.65",
+  fontSize: "14px",
+},
+
+employeeProgrammeActions: {
+  marginTop: "18px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  flexWrap: "wrap",
+  gap: "12px",
+},
+
+employeeProgrammeButton: {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 17px",
+  borderRadius: "999px",
+  background: "#263224",
+  color: "#FFFFFF",
+  textDecoration: "none",
+  fontSize: "14px",
+  fontWeight: "800",
+},
+
+employeeProgrammePrivacy: {
+  color: "#687064",
+  fontSize: "12px",
+  lineHeight: "1.5",
+},
 };
