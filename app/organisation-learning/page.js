@@ -1097,10 +1097,13 @@ export default function OrganisationLearningPage() {
         email: cleanEmail,
         password,
         options: {
-          data: {
-            name: cleanName,
-          },
-        },
+  data: {
+    name: cleanName,
+  },
+
+  emailRedirectTo:
+    `${window.location.origin}/organisation-learning`,
+},
       });
 
       if (signUpError || !signUpData?.user) {
