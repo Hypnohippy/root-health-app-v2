@@ -285,7 +285,7 @@ checkUser();
      * During the normal pilot, Personal Root stays clean
      * and contains no unnecessary workplace messaging.
      */
-    const shouldShow = true;
+    const shouldShow =
   trialStatus.stage === "conversion" ||
   trialStatus.stage === "ending" ||
   trialStatus.stage === "expired";
