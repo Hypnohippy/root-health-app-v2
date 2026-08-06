@@ -1383,6 +1383,17 @@ Root Health`
     : "🔒 Continue to Invite Employees"}
 </button>
 
+<button
+  type="button"
+  style={styles.controlButton}
+  onClick={createHRInvitation}
+  disabled={creatingHRInvite}
+>
+  {creatingHRInvite
+    ? "Creating HR invitation..."
+    : "👔 Invite HR Team"}
+</button>
+
   <button
     type="button"
     style={styles.controlButton}
