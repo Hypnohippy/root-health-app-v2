@@ -1304,13 +1304,28 @@ const rootWeeklyInterpretation =
   <button
     type="button"
     style={styles.controlButton}
-    onClick={() => {
-      const joinLink = `${ROOT_PUBLIC_URL}/organisation/join`;
+    onClick={async () => {
+  const joinLink =
+    `${window.location.origin}/organisation/join`;
 
-      navigator.clipboard.writeText(joinLink);
+  try {
+    await navigator.clipboard.writeText(joinLink);
 
-      alert("Employee join link copied.");
-    }}
+    alert(
+      `Employee join link copied:\n\n${joinLink}`
+    );
+  } catch (error) {
+    console.error(
+      "Could not copy employee join link:",
+      error
+    );
+
+    window.prompt(
+      "Copy this employee join link:",
+      joinLink
+    );
+  }
+}}
   >
     📋 Copy Join Link
   </button>
