@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId } from "react";
+import { createPortal } from "react-dom";
 
 export default function RootModal({
   isOpen = false,
@@ -48,11 +49,14 @@ export default function RootModal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) {
+  if (
+    !isOpen ||
+    typeof document === "undefined"
+  ) {
     return null;
   }
 
-  return (
+  const modal = (
     <div
       style={styles.backdrop}
       onMouseDown={(event) => {
@@ -143,26 +147,39 @@ export default function RootModal({
       </section>
     </div>
   );
+
+  return createPortal(
+    modal,
+    document.body
+  );
 }
 
 const styles = {
   backdrop: {
     position: "fixed",
     inset: 0,
-    zIndex: 9999,
 
-    padding: "24px",
+    zIndex: 2147483000,
 
-    display: "grid",
-    placeItems: "center",
+    padding:
+      "40px 24px 48px",
+
+    boxSizing: "border-box",
+
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-start",
 
     background:
-      "rgba(30, 27, 23, 0.38)",
+      "rgba(30, 27, 23, 0.48)",
 
-    backdropFilter: "blur(14px)",
+    backdropFilter:
+      "blur(14px)",
+
     WebkitBackdropFilter:
       "blur(14px)",
 
+    overflowX: "hidden",
     overflowY: "auto",
   },
 
@@ -171,18 +188,20 @@ const styles = {
 
     width: "100%",
 
-    margin: "auto",
+    margin: "0 auto",
+
+    flex: "0 0 auto",
 
     borderRadius: "34px",
 
     background:
-      "linear-gradient(145deg, rgba(250,248,243,0.97), rgba(238,242,232,0.96))",
+      "linear-gradient(145deg, rgba(250,248,243,0.98), rgba(238,242,232,0.97))",
 
     border:
       "1px solid rgba(255,255,255,0.9)",
 
     boxShadow:
-      "0 34px 120px rgba(29,25,20,0.28)",
+      "0 34px 120px rgba(29,25,20,0.32)",
 
     overflow: "hidden",
 
@@ -230,7 +249,8 @@ const styles = {
   header: {
     position: "relative",
 
-    padding: "30px 32px 24px",
+    padding:
+      "30px 32px 24px",
 
     display: "flex",
     justifyContent: "space-between",
@@ -272,6 +292,8 @@ const styles = {
 
   closeButton: {
     position: "relative",
+
+    zIndex: 2,
 
     flex: "0 0 auto",
 
@@ -321,7 +343,8 @@ const styles = {
   footer: {
     position: "relative",
 
-    padding: "22px 32px 28px",
+    padding:
+      "22px 32px 28px",
 
     display: "flex",
     justifyContent: "flex-end",
