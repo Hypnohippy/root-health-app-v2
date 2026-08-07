@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
+import RootModal from "../../components/workplace/RootModal";
 import { ROOT_PUBLIC_URL } from "../../lib/config";
 import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
 import { buildRootTrialStatus } from "../../lib/rootTrialStatus";
@@ -909,6 +910,23 @@ const [transferringAdmin, setTransferringAdmin] =
 const [creatingOrganisationUnit, setCreatingOrganisationUnit] =
   useState(false);
 
+const [showOrganisationUnitModal, setShowOrganisationUnitModal] =
+  useState(false);
+
+const [newOrganisationUnitName, setNewOrganisationUnitName] =
+  useState("");
+
+const [newOrganisationUnitType, setNewOrganisationUnitType] =
+  useState("department");
+
+const [
+  newOrganisationUnitParentId,
+  setNewOrganisationUnitParentId,
+] = useState("");
+
+const [organisationUnitError, setOrganisationUnitError] =
+  useState("");
+
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -1497,139 +1515,94 @@ const rootWeeklyInterpretation =
     );
   }
 }
+function openOrganisationUnitModal() {
+  setNewOrganisationUnitName("");
+  setNewOrganisationUnitType("department");
+  setNewOrganisationUnitParentId("");
+  setOrganisationUnitError("");
+  setShowOrganisationUnitModal(true);
+}
+
+function closeOrganisationUnitModal() {
+  if (creatingOrganisationUnit) return;
+
+  setShowOrganisationUnitModal(false);
+  setOrganisationUnitError("");
+}
+
 async function createOrganisationUnit() {
+  setOrganisationUnitError("");
+
   if (
     currentMembership?.role !==
     "organisation_admin"
   ) {
-    alert(
+    setOrganisationUnitError(
       "Only the Organisation Admin can create organisational units."
     );
     return;
   }
 
   if (!organisation?.id) {
-    alert(
+    setOrganisationUnitError(
       "Root could not identify the active organisation."
     );
     return;
   }
 
-  const unitName = window.prompt(
-    "What is the name of this organisational unit?\n\nExamples: Operations, South East, UK, Finance, Manchester Site"
-  );
-
-  if (!unitName) return;
-
   const cleanName =
-    unitName.trim();
+    newOrganisationUnitName.trim();
 
-  if (!cleanName) return;
-
-  const typeOptions = [
-    "1. Department",
-    "2. Region",
-    "3. Country",
-    "4. Division",
-    "5. Business Unit",
-    "6. Function",
-    "7. Site",
-    "8. Team",
-    "9. Other",
-  ].join("\n");
-
-  const typeSelection =
-    window.prompt(
-      `What type of organisational unit is ${cleanName}?\n\n${typeOptions}\n\nEnter the number beside the type:`,
-      "1"
-    );
-
-  if (!typeSelection) return;
-
-  const unitTypes = {
-    1: "department",
-    2: "region",
-    3: "country",
-    4: "division",
-    5: "business_unit",
-    6: "function",
-    7: "site",
-    8: "team",
-    9: "other",
-  };
-
-  const selectedType =
-    unitTypes[
-      Number(
-        typeSelection.trim()
-      )
-    ];
-
-  if (!selectedType) {
-    alert(
-      "That organisational unit type was not recognised."
+  if (!cleanName) {
+    setOrganisationUnitError(
+      "Please enter a name for this organisational unit."
     );
     return;
   }
 
-  let parentUnitId = null;
+  const validTypes = [
+    "department",
+    "region",
+    "country",
+    "division",
+    "business_unit",
+    "function",
+    "site",
+    "team",
+    "other",
+  ];
 
   if (
-    organisationUnits.length > 0
+    !validTypes.includes(
+      newOrganisationUnitType
+    )
   ) {
-    const parentOptions = [
-      `0. ${
-        organisation.name ||
-        "Whole organisation"
-      }`,
-      ...organisationUnits.map(
-        (unit, index) =>
-          `${index + 1}. ${
-            unit.name
-          } (${organisationUnitTypeLabel(
-            unit.unit_type
-          )})`
-      ),
-    ].join("\n");
-
-    const parentSelection =
-      window.prompt(
-        `Where does ${cleanName} sit?\n\n${parentOptions}\n\nEnter 0 if it reports directly into the organisation:`,
-        "0"
-      );
-
-    if (parentSelection === null) {
-      return;
-    }
-
-    const parentIndex =
-      Number(
-        parentSelection.trim()
-      );
-
-    if (
-      Number.isNaN(parentIndex) ||
-      parentIndex < 0 ||
-      parentIndex >
-        organisationUnits.length
-    ) {
-      alert(
-        "That parent selection was not recognised."
-      );
-      return;
-    }
-
-    if (parentIndex > 0) {
-      parentUnitId =
-        organisationUnits[
-          parentIndex - 1
-        ]?.id || null;
-    }
+    setOrganisationUnitError(
+      "Please choose a valid organisational unit type."
+    );
+    return;
   }
 
-  setCreatingOrganisationUnit(
-    true
-  );
+  const selectedParent =
+    newOrganisationUnitParentId
+      ? organisationUnits.find(
+          (unit) =>
+            unit.id ===
+            newOrganisationUnitParentId
+        )
+      : null;
+
+  if (
+    newOrganisationUnitParentId &&
+    !selectedParent
+  ) {
+    setOrganisationUnitError(
+      "Root could not identify the selected parent unit."
+    );
+    return;
+  }
+
+  setCreatingOrganisationUnit(true);
 
   try {
     const {
@@ -1638,7 +1611,7 @@ async function createOrganisationUnit() {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      alert(
+      setOrganisationUnitError(
         "Root could not verify your signed-in account."
       );
       return;
@@ -1657,10 +1630,11 @@ async function createOrganisationUnit() {
           cleanName,
 
         unit_type:
-          selectedType,
+          newOrganisationUnitType,
 
         parent_unit_id:
-          parentUnitId,
+          newOrganisationUnitParentId ||
+          null,
 
         active:
           true,
@@ -1686,10 +1660,19 @@ async function createOrganisationUnit() {
       unitError ||
       !newUnit
     ) {
-      alert(
-        unitError?.message ||
-          "Root could not create this organisational unit."
-      );
+      if (
+        unitError?.code === "23505"
+      ) {
+        setOrganisationUnitError(
+          "A unit with this name already exists in that part of the organisation."
+        );
+      } else {
+        setOrganisationUnitError(
+          unitError?.message ||
+            "Root could not create this organisational unit."
+        );
+      }
+
       return;
     }
 
@@ -1707,13 +1690,15 @@ async function createOrganisationUnit() {
       "Created organisational unit"
     );
 
-    alert(
-      `${cleanName} has been added to ${organisation.name}.`
+    setNewOrganisationUnitName("");
+    setNewOrganisationUnitType(
+      "department"
     );
+    setNewOrganisationUnitParentId("");
+    setOrganisationUnitError("");
+    setShowOrganisationUnitModal(false);
   } finally {
-    setCreatingOrganisationUnit(
-      false
-    );
+    setCreatingOrganisationUnit(false);
   }
 }   
 async function createHRInvitation() {
@@ -2162,8 +2147,8 @@ Root Health`
         type="button"
         style={styles.controlButton}
         onClick={
-          createOrganisationUnit
-        }
+  openOrganisationUnitModal
+}
         disabled={
           creatingOrganisationUnit
         }
