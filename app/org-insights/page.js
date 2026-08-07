@@ -894,6 +894,11 @@ export default function OrgInsightsPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [creatingHRInvite, setCreatingHRInvite] =
   useState(false);
+  const [currentMembership, setCurrentMembership] =
+  useState(null);
+
+const [transferringAdmin, setTransferringAdmin] =
+  useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -925,6 +930,7 @@ if (membershipError || !membership) {
   return;
 }
 
+setCurrentMembership(membership);
 const allowedRoles = ["hr_admin", "organisation_admin"];
 
 if (!allowedRoles.includes(membership.role)) {
@@ -1314,6 +1320,131 @@ Root Health`
     setCreatingHRInvite(false);
   }
 }
+  async function transferOrganisationAdmin() {
+  const eligibleHRAdmins = members.filter(
+    (member) =>
+      member?.role === "hr_admin" &&
+      member?.user_id
+  );
+
+  if (eligibleHRAdmins.length === 0) {
+    alert(
+      "There are no active HR Administrators available to receive Organisation Admin permission."
+    );
+    return;
+  }
+
+  const options = eligibleHRAdmins
+    .map(
+      (member, index) =>
+        `${index + 1}. ${
+          member.name ||
+          member.email ||
+          "HR Administrator"
+        }`
+    )
+    .join("\n");
+
+  const selection = window.prompt(
+    `Who should become the new Organisation Admin?\n\n${options}\n\nEnter the number beside their name:`
+  );
+
+  if (!selection) return;
+
+  const selectedIndex =
+    Number(selection.trim()) - 1;
+
+  const selectedMember =
+    eligibleHRAdmins[selectedIndex];
+
+  if (!selectedMember) {
+    alert(
+      "That selection was not recognised. Please try again."
+    );
+    return;
+  }
+
+  const selectedName =
+    selectedMember.name ||
+    selectedMember.email ||
+    "this HR Administrator";
+
+  const confirmed = window.confirm(
+    `${selectedName} will become the Organisation Admin.\n\nYou will become an HR Administrator and will keep access to the Workplace platform.\n\nDo you wish to continue?`
+  );
+
+  if (!confirmed) return;
+
+  const password = window.prompt(
+    "For security, enter your current Root password to confirm the transfer:"
+  );
+
+  if (!password) return;
+
+  setTransferringAdmin(true);
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user?.email) {
+      alert(
+        "Root could not verify your signed-in account. Please sign in again."
+      );
+      return;
+    }
+
+    const {
+      error: passwordError,
+    } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password,
+    });
+
+    if (passwordError) {
+      alert(
+        "The password was incorrect. Organisation Admin permission was not transferred."
+      );
+      return;
+    }
+
+    const {
+      data,
+      error: transferError,
+    } = await supabase.rpc(
+      "transfer_organisation_admin",
+      {
+        target_membership_id:
+          selectedMember.id,
+      }
+    );
+
+    if (transferError) {
+      alert(
+        transferError.message ||
+          "Root could not transfer Organisation Admin permission."
+      );
+      return;
+    }
+
+    if (!data?.success) {
+      alert(
+        "Root could not confirm that the transfer completed."
+      );
+      return;
+    }
+
+    alert(
+      `${selectedName} is now the Organisation Admin. You remain connected as an HR Administrator.`
+    );
+
+    window.location.reload();
+  } finally {
+    setTransferringAdmin(false);
+  }
+}
   return (
   <RootAtmosphere type="coach">
       <Nav />
@@ -1383,16 +1514,33 @@ Root Health`
     : "🔒 Continue to Invite Employees"}
 </button>
 
-<button
-  type="button"
-  style={styles.controlButton}
-  onClick={createHRInvitation}
-  disabled={creatingHRInvite}
->
-  {creatingHRInvite
-    ? "Creating HR invitation..."
-    : "👔 Invite HR Team"}
-</button>
+{currentMembership?.role ===
+  "organisation_admin" && (
+  <button
+    type="button"
+    style={styles.controlButton}
+    onClick={createHRInvitation}
+    disabled={creatingHRInvite}
+  >
+    {creatingHRInvite
+      ? "Creating HR invitation..."
+      : "👔 Invite HR Team"}
+  </button>
+)}
+
+{currentMembership?.role ===
+  "organisation_admin" && (
+  <button
+    type="button"
+    style={styles.controlButton}
+    onClick={transferOrganisationAdmin}
+    disabled={transferringAdmin}
+  >
+    {transferringAdmin
+      ? "Transferring permission..."
+      : "🔄 Transfer Organisation Admin"}
+  </button>
+)}
 
   <button
     type="button"
