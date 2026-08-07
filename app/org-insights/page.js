@@ -1712,18 +1712,6 @@ async function createOrganisationUnit() {
     setCreatingOrganisationUnit(false);
   }
 }   
-const [showHRInviteModal, setShowHRInviteModal] =
-  useState(false);
-
-const [hrInviteEmail, setHRInviteEmail] =
-  useState("");
-
-const [hrInviteUnitId, setHRInviteUnitId] =
-  useState("");
-
-const [hrInviteError, setHRInviteError] =
-  useState("");
-
   async function transferOrganisationAdmin() {
   const eligibleHRAdmins = members.filter(
     (member) =>
