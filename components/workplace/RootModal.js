@@ -7,7 +7,7 @@ export default function RootModal({
   isOpen = false,
   onClose,
   title = "Root Workplace",
-  eyebrow = "Root Workplace",
+  eyebrow = "Root Workplace", 
   children,
   primaryLabel = "Save",
   onPrimary,
