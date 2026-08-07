@@ -895,6 +895,17 @@ export default function OrgInsightsPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [creatingHRInvite, setCreatingHRInvite] =
   useState(false);
+  const [showHRInviteModal, setShowHRInviteModal] =
+  useState(false);
+
+const [hrInviteEmail, setHRInviteEmail] =
+  useState("");
+
+const [hrInviteUnitId, setHRInviteUnitId] =
+  useState("");
+
+const [hrInviteError, setHRInviteError] =
+  useState("");
   const [currentMembership, setCurrentMembership] =
   useState(null);
 
@@ -1701,86 +1712,18 @@ async function createOrganisationUnit() {
     setCreatingOrganisationUnit(false);
   }
 }   
-async function createHRInvitation() {
-  const email = window.prompt(
-    "Enter the work email address of the HR colleague you wish to invite:"
-  );
+const [showHRInviteModal, setShowHRInviteModal] =
+  useState(false);
 
-  if (!email) return;
+const [hrInviteEmail, setHRInviteEmail] =
+  useState("");
 
-  const cleanEmail = email.trim().toLowerCase();
+const [hrInviteUnitId, setHRInviteUnitId] =
+  useState("");
 
-  if (!cleanEmail.includes("@")) {
-    alert("Please enter a valid email address.");
-    return;
-  }
+const [hrInviteError, setHRInviteError] =
+  useState("");
 
-  if (!organisation?.id) {
-    alert("No active organisation was found.");
-    return;
-  }
-
-  setCreatingHRInvite(true);
-
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      alert("Please sign in again.");
-      return;
-    }
-
-    const token = crypto.randomUUID();
-
-    const { error } = await supabase
-      .from("organisation_hr_invites")
-      .insert({
-        organisation_id: organisation.id,
-        email: cleanEmail,
-        role: "hr_admin",
-        invited_by: user.id,
-        token,
-        status: "pending",
-        expires_at: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ).toISOString(),
-      });
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    const inviteLink =
-      `${window.location.origin}/organisation/hr-join?token=${token}`;
-
-    await navigator.clipboard.writeText(inviteLink);
-
-    window.location.href =
-      `mailto:${cleanEmail}` +
-      `?subject=${encodeURIComponent(
-        `Invitation to manage ${organisation.name} in Root`
-      )}` +
-      `&body=${encodeURIComponent(
-        `Hello,
-
-You have been invited to help manage ${organisation.name}'s Root Workplace programme.
-
-Accept your invitation here:
-
-${inviteLink}
-
-This invitation expires in 7 days.
-
-Root Health`
-      )}`;
-
-    alert("HR invitation created and copied to the clipboard.");
-
-  } finally {
-    setCreatingHRInvite(false);
-  }
-}
   async function transferOrganisationAdmin() {
   const eligibleHRAdmins = members.filter(
     (member) =>
@@ -2412,6 +2355,117 @@ Root Health`
     </div>
   ) : null}
 </RootModal>
+
+<RootModal
+  isOpen={showHRInviteModal}
+  onClose={closeHRInviteModal}
+  title="Invite HR Team"
+  eyebrow="Root Workplace"
+  primaryLabel={
+    creatingHRInvite
+      ? "Creating Invitation..."
+      : "Create Invitation"
+  }
+  onPrimary={createHRInvitation}
+  primaryDisabled={
+    creatingHRInvite ||
+    !hrInviteEmail.trim()
+  }
+>
+  <div style={styles.modalOrganisationContext}>
+    <span style={styles.modalContextLabel}>
+      Organisation
+    </span>
+
+    <strong style={styles.modalContextValue}>
+      {organisation?.name ||
+        "Your organisation"}
+    </strong>
+
+    <span style={styles.modalContextHint}>
+      Root already knows which organisation
+      you are managing.
+    </span>
+  </div>
+
+  <label style={styles.modalField}>
+    <span style={styles.modalFieldLabel}>
+      Work email
+    </span>
+
+    <input
+      type="email"
+      style={styles.modalInput}
+      value={hrInviteEmail}
+      onChange={(event) => {
+        setHRInviteEmail(
+          event.target.value
+        );
+
+        if (hrInviteError) {
+          setHRInviteError("");
+        }
+      }}
+      placeholder="e.g. sarah@company.co.uk"
+      autoFocus
+    />
+  </label>
+
+  <label style={styles.modalField}>
+    <span style={styles.modalFieldLabel}>
+      Area of responsibility
+    </span>
+
+    <select
+      style={styles.modalInput}
+      value={hrInviteUnitId}
+      onChange={(event) =>
+        setHRInviteUnitId(
+          event.target.value
+        )
+      }
+    >
+      <option value="">
+        Whole organisation
+      </option>
+
+      {organisationUnits
+        .filter(
+          (unit) =>
+            unit.active !== false
+        )
+        .map((unit) => (
+          <option
+            key={unit.id}
+            value={unit.id}
+          >
+            {unit.name} —{" "}
+            {organisationUnitTypeLabel(
+              unit.unit_type
+            )}
+          </option>
+        ))}
+    </select>
+  </label>
+
+  <div style={styles.modalExplanation}>
+    <strong>
+      Permission: HR Admin
+    </strong>
+
+    <span>
+      Root will remember the organisational
+      area selected here and carry it with
+      the invitation.
+    </span>
+  </div>
+
+  {hrInviteError ? (
+    <div style={styles.modalError}>
+      {hrInviteError}
+    </div>
+  ) : null}
+</RootModal>
                
                 <section style={styles.controlCentre}>
 
@@ -2452,15 +2506,13 @@ Root Health`
 {currentMembership?.role ===
   "organisation_admin" && (
   <button
-    type="button"
-    style={styles.controlButton}
-    onClick={createHRInvitation}
-    disabled={creatingHRInvite}
-  >
-    {creatingHRInvite
-      ? "Creating HR invitation..."
-      : "👔 Invite HR Team"}
-  </button>
+  type="button"
+  style={styles.controlButton}
+  onClick={openHRInviteModal}
+  disabled={creatingHRInvite}
+>
+  👔 Invite HR Team
+</button>
 )}
 
 {currentMembership?.role ===
