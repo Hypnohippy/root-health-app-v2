@@ -900,9 +900,20 @@ export default function OrgInsightsPage() {
 const [transferringAdmin, setTransferringAdmin] =
   useState(false);
 
+  const [hrActivity, setHRActivity] =
+  useState([]);
+
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+  if (!currentMembership?.id) return;
+
+  recordHRActivity(
+    "Viewed Organisation Insights"
+  );
+}, [currentMembership?.id]);
 
   const loadDashboard = async () => {
     setLoading(true);
@@ -931,7 +942,11 @@ if (membershipError || !membership) {
 }
 
 setCurrentMembership(membership);
-const allowedRoles = ["hr_admin", "organisation_admin"];
+
+const allowedRoles = [
+  "hr_admin",
+  "organisation_admin",
+];
 
 if (!allowedRoles.includes(membership.role)) {
   window.location.href = "/";
@@ -958,6 +973,32 @@ const { data: org } = await supabase
   .maybeSingle();
 
 setOrganisation(org || null);
+if (membership.role === "organisation_admin") {
+  const {
+    data: activityData,
+    error: activityError,
+  } = await supabase
+    .from("organisation_hr_activity")
+    .select("*")
+    .eq("organisation_id", orgId)
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(1000);
+
+  if (activityError) {
+    console.error(
+      "HR activity load error:",
+      activityError
+    );
+  }
+
+  setHRActivity(
+    Array.isArray(activityData)
+      ? activityData
+      : []
+  );
+}
 
     const orgFilter = orgId
   ? `organisation_id.eq.${orgId}`
@@ -1082,6 +1123,100 @@ const organisationalRecommendation =
     recommendedInsight,
     initiative,
   });
+
+  const hrNetwork = members.filter(
+  (member) =>
+    member?.role === "hr_admin" ||
+    member?.role === "organisation_admin"
+);
+
+const departmentNames = [
+  ...new Set(
+    members
+      .map((member) =>
+        String(
+          member?.department || ""
+        ).trim()
+      )
+      .filter(Boolean)
+  ),
+].sort((a, b) =>
+  a.localeCompare(b)
+);
+
+function latestHRActivity(memberId) {
+  return hrActivity.find(
+    (item) =>
+      item.membership_id === memberId
+  );
+}
+
+function hrActivityCount(memberId) {
+  return hrActivity.filter(
+    (item) =>
+      item.membership_id === memberId
+  ).length;
+}
+
+function formatHRActivityDate(value) {
+  if (!value) return "No recorded activity yet";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "No recorded activity yet";
+  }
+
+  const now = new Date();
+
+  const difference =
+    now.getTime() - date.getTime();
+
+  const days =
+    Math.floor(
+      difference /
+        (1000 * 60 * 60 * 24)
+    );
+
+  if (days <= 0) return "Active today";
+
+  if (days === 1) {
+    return "Active yesterday";
+  }
+
+  return `Active ${days} days ago`;
+}
+
+const activeHRCount = hrNetwork.filter(
+  (member) => {
+    const activity =
+      latestHRActivity(member.id);
+
+    if (!activity?.created_at) {
+      return false;
+    }
+
+    const age =
+      Date.now() -
+      new Date(
+        activity.created_at
+      ).getTime();
+
+    return (
+      age <=
+      14 * 24 * 60 * 60 * 1000
+    );
+  }
+).length;
+
+const hrAdoptionRate =
+  hrNetwork.length > 0
+    ? Math.round(
+        (activeHRCount /
+          hrNetwork.length) *
+          100
+      )
+    : 0;
 
   const baselineRows = assessments.filter(
   (item) => item.assessment_type === "baseline"
@@ -1239,7 +1374,48 @@ const rootWeeklyInterpretation =
     : recoveryLatest !== null && recoveryLatest >= 7
     ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
     : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
-  
+    async function recordHRActivity(action) {
+  if (
+    !currentMembership?.id ||
+    !currentMembership?.organisation_id
+  ) {
+    return;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("organisation_hr_activity")
+    .insert({
+      organisation_id:
+        currentMembership.organisation_id,
+
+      membership_id:
+        currentMembership.id,
+
+      user_id:
+        user.id,
+
+      department:
+        currentMembership.department || null,
+
+      role:
+        currentMembership.role,
+
+      action,
+    });
+
+  if (error) {
+    console.error(
+      "Could not record HR activity:",
+      error
+    );
+  }
+}
     async function createHRInvitation() {
   const email = window.prompt(
     "Enter the work email address of the HR colleague you wish to invite:"
@@ -1478,6 +1654,174 @@ Root Health`
               Anonymous wellbeing trends, engagement, support usage and early outcome
               movement for organisational review.
             </p>
+            {currentMembership && (
+  <div style={styles.signedInIdentity}>
+    <div>
+      <p style={styles.identityLabel}>
+        Signed in as
+      </p>
+
+      <strong style={styles.identityName}>
+        {currentMembership.name ||
+          currentMembership.email ||
+          "Root Workplace user"}
+      </strong>
+    </div>
+
+    <div style={styles.identityDetails}>
+      <span>
+        {currentMembership.role ===
+        "organisation_admin"
+          ? "Organisation Admin"
+          : "HR Admin"}
+      </span>
+
+      <span>
+        {currentMembership.department ||
+          "Organisation-wide"}
+      </span>
+    </div>
+  </div>
+)}
+
+{currentMembership?.role ===
+  "organisation_admin" && (
+  <section style={styles.hrNetworkCard}>
+    <div style={styles.hrNetworkHeader}>
+      <div>
+        <p style={styles.panelLabel}>
+          Global HR Network
+        </p>
+
+        <h2 style={styles.panelTitle}>
+          Who is running Root across{" "}
+          {organisation?.name ||
+            "your organisation"}
+        </h2>
+
+        <p style={styles.panelDescription}>
+          Organisation administration
+          activity only. Personal Root
+          activity remains private.
+        </p>
+      </div>
+
+      <div style={styles.hrAdoptionBadge}>
+        {hrAdoptionRate}% active
+      </div>
+    </div>
+
+    <div style={styles.hrNetworkSummary}>
+      <div style={styles.hrSummaryItem}>
+        <span>HR users</span>
+        <strong>{hrNetwork.length}</strong>
+      </div>
+
+      <div style={styles.hrSummaryItem}>
+        <span>Active in 14 days</span>
+        <strong>{activeHRCount}</strong>
+      </div>
+
+      <div style={styles.hrSummaryItem}>
+        <span>Departments</span>
+        <strong>
+          {departmentNames.length}
+        </strong>
+      </div>
+
+      <div style={styles.hrSummaryItem}>
+        <span>Need engagement</span>
+        <strong>
+          {Math.max(
+            hrNetwork.length -
+              activeHRCount,
+            0
+          )}
+        </strong>
+      </div>
+    </div>
+
+    <div style={styles.hrPeopleGrid}>
+      {hrNetwork.map((member) => {
+        const latestActivity =
+          latestHRActivity(member.id);
+
+        const activityCount =
+          hrActivityCount(member.id);
+
+        return (
+          <div
+            key={member.id}
+            style={styles.hrPersonCard}
+          >
+            <div
+              style={
+                styles.hrPersonTop
+              }
+            >
+              <div>
+                <strong
+                  style={
+                    styles.hrPersonName
+                  }
+                >
+                  {member.name ||
+                    member.email ||
+                    "HR user"}
+                </strong>
+
+                <p
+                  style={
+                    styles.hrPersonDepartment
+                  }
+                >
+                  {member.department ||
+                    "Organisation-wide"}
+                </p>
+              </div>
+
+              <span
+                style={
+                  styles.hrRoleBadge
+                }
+              >
+                {member.role ===
+                "organisation_admin"
+                  ? "Organisation Admin"
+                  : "HR Admin"}
+              </span>
+            </div>
+
+            <div
+              style={
+                styles.hrActivityStatus
+              }
+            >
+              <strong>
+                {formatHRActivityDate(
+                  latestActivity?.created_at
+                )}
+              </strong>
+
+              <span>
+                {latestActivity?.action ||
+                  "Waiting for first recorded Workplace activity"}
+              </span>
+
+              <span>
+                {activityCount} recorded
+                Workplace action
+                {activityCount === 1
+                  ? ""
+                  : "s"}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+)}
                 <section style={styles.controlCentre}>
 
   <div style={styles.controlHeader}>
@@ -4056,5 +4400,150 @@ disabledControlButton: {
   opacity: 0.76,
   border:
     "1px solid rgba(117,72,58,0.22)",
+},
+
+signedInIdentity: {
+  marginTop: "20px",
+  marginBottom: "26px",
+  padding: "16px 20px",
+  borderRadius: "22px",
+  background:
+    "rgba(255,255,255,0.46)",
+  border:
+    "1px solid rgba(255,255,255,0.72)",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "16px",
+  flexWrap: "wrap",
+},
+
+identityLabel: {
+  margin: "0 0 4px",
+  color: "#776C5B",
+  fontSize: "11px",
+  fontWeight: "800",
+  textTransform: "uppercase",
+  letterSpacing: "0.1em",
+},
+
+identityName: {
+  color: "#181818",
+  fontSize: "17px",
+},
+
+identityDetails: {
+  display: "flex",
+  gap: "8px",
+  flexWrap: "wrap",
+},
+
+hrNetworkCard: {
+  marginBottom: "24px",
+  padding: "28px",
+  borderRadius: "30px",
+  background:
+    "linear-gradient(145deg, rgba(255,255,255,0.64), rgba(255,255,255,0.42))",
+  border:
+    "1px solid rgba(255,255,255,0.76)",
+  boxShadow:
+    "0 18px 55px rgba(35,29,21,0.07)",
+},
+
+hrNetworkHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "20px",
+  alignItems: "flex-start",
+  flexWrap: "wrap",
+},
+
+hrAdoptionBadge: {
+  padding: "11px 16px",
+  borderRadius: "999px",
+  background: "#181818",
+  color: "#FFFFFF",
+  fontSize: "13px",
+  fontWeight: "800",
+},
+
+hrNetworkSummary: {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(150px, 1fr))",
+  gap: "12px",
+  marginTop: "22px",
+},
+
+hrSummaryItem: {
+  padding: "17px",
+  borderRadius: "20px",
+  background:
+    "rgba(255,255,255,0.58)",
+  border:
+    "1px solid rgba(255,255,255,0.78)",
+  display: "grid",
+  gap: "7px",
+  color: "#5A554D",
+  fontSize: "13px",
+},
+
+hrPeopleGrid: {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: "14px",
+  marginTop: "18px",
+},
+
+hrPersonCard: {
+  padding: "20px",
+  borderRadius: "22px",
+  background:
+    "rgba(255,255,255,0.56)",
+  border:
+    "1px solid rgba(255,255,255,0.8)",
+},
+
+hrPersonTop: {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "12px",
+  alignItems: "flex-start",
+},
+
+hrPersonName: {
+  display: "block",
+  color: "#181818",
+  fontSize: "16px",
+},
+
+hrPersonDepartment: {
+  margin: "5px 0 0",
+  color: "#6A6256",
+  fontSize: "13px",
+},
+
+hrRoleBadge: {
+  padding: "7px 10px",
+  borderRadius: "999px",
+  background:
+    "rgba(24,24,24,0.07)",
+  color: "#3F392F",
+  fontSize: "10px",
+  fontWeight: "800",
+  whiteSpace: "nowrap",
+},
+
+hrActivityStatus: {
+  marginTop: "17px",
+  paddingTop: "15px",
+  borderTop:
+    "1px solid rgba(24,24,24,0.08)",
+  display: "grid",
+  gap: "6px",
+  color: "#655D51",
+  fontSize: "12px",
+  lineHeight: "1.5",
 },
 };
