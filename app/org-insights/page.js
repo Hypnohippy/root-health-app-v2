@@ -903,6 +903,12 @@ const [transferringAdmin, setTransferringAdmin] =
   const [hrActivity, setHRActivity] =
   useState([]);
 
+  const [organisationUnits, setOrganisationUnits] =
+  useState([]);
+
+const [creatingOrganisationUnit, setCreatingOrganisationUnit] =
+  useState(false);
+
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -971,6 +977,41 @@ const { data: org } = await supabase
   .select("*")
   .eq("id", orgId)
   .maybeSingle();
+
+  const {
+  data: organisationUnitData,
+  error: organisationUnitError,
+} = await supabase
+  .from("organisation_units")
+  .select(
+    `
+      id,
+      organisation_id,
+      name,
+      unit_type,
+      parent_unit_id,
+      active,
+      created_by,
+      created_at
+    `
+  )
+  .eq("organisation_id", orgId)
+  .order("name", {
+    ascending: true,
+  });
+
+if (organisationUnitError) {
+  console.error(
+    "Organisation unit load error:",
+    organisationUnitError
+  );
+}
+
+setOrganisationUnits(
+  Array.isArray(organisationUnitData)
+    ? organisationUnitData
+    : []
+);
 
 setOrganisation(org || null);
 if (membership.role === "organisation_admin") {
@@ -1187,6 +1228,30 @@ function formatHRActivityDate(value) {
   return `Active ${days} days ago`;
 }
 
+function organisationUnitParentName(
+  unit
+) {
+  if (!unit?.parent_unit_id) {
+    return (
+      organisation?.name ||
+      "Whole organisation"
+    );
+  }
+
+  const parent =
+    organisationUnits.find(
+      (candidate) =>
+        candidate.id ===
+        unit.parent_unit_id
+    );
+
+  return (
+    parent?.name ||
+    organisation?.name ||
+    "Whole organisation"
+  );
+}
+
 const activeHRCount = hrNetwork.filter(
   (member) => {
     const activity =
@@ -1374,6 +1439,22 @@ const rootWeeklyInterpretation =
     : recoveryLatest !== null && recoveryLatest >= 7
     ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
     : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
+   
+   function organisationUnitTypeLabel(value) {
+  const labels = {
+    department: "Department",
+    region: "Region",
+    country: "Country",
+    division: "Division",
+    business_unit: "Business Unit",
+    function: "Function",
+    site: "Site",
+    team: "Team",
+    other: "Other",
+  };
+
+  return labels[value] || value || "Organisational Unit";
+}
     async function recordHRActivity(action) {
   if (
     !currentMembership?.id ||
@@ -1416,7 +1497,226 @@ const rootWeeklyInterpretation =
     );
   }
 }
-    async function createHRInvitation() {
+async function createOrganisationUnit() {
+  if (
+    currentMembership?.role !==
+    "organisation_admin"
+  ) {
+    alert(
+      "Only the Organisation Admin can create organisational units."
+    );
+    return;
+  }
+
+  if (!organisation?.id) {
+    alert(
+      "Root could not identify the active organisation."
+    );
+    return;
+  }
+
+  const unitName = window.prompt(
+    "What is the name of this organisational unit?\n\nExamples: Operations, South East, UK, Finance, Manchester Site"
+  );
+
+  if (!unitName) return;
+
+  const cleanName =
+    unitName.trim();
+
+  if (!cleanName) return;
+
+  const typeOptions = [
+    "1. Department",
+    "2. Region",
+    "3. Country",
+    "4. Division",
+    "5. Business Unit",
+    "6. Function",
+    "7. Site",
+    "8. Team",
+    "9. Other",
+  ].join("\n");
+
+  const typeSelection =
+    window.prompt(
+      `What type of organisational unit is ${cleanName}?\n\n${typeOptions}\n\nEnter the number beside the type:`,
+      "1"
+    );
+
+  if (!typeSelection) return;
+
+  const unitTypes = {
+    1: "department",
+    2: "region",
+    3: "country",
+    4: "division",
+    5: "business_unit",
+    6: "function",
+    7: "site",
+    8: "team",
+    9: "other",
+  };
+
+  const selectedType =
+    unitTypes[
+      Number(
+        typeSelection.trim()
+      )
+    ];
+
+  if (!selectedType) {
+    alert(
+      "That organisational unit type was not recognised."
+    );
+    return;
+  }
+
+  let parentUnitId = null;
+
+  if (
+    organisationUnits.length > 0
+  ) {
+    const parentOptions = [
+      `0. ${
+        organisation.name ||
+        "Whole organisation"
+      }`,
+      ...organisationUnits.map(
+        (unit, index) =>
+          `${index + 1}. ${
+            unit.name
+          } (${organisationUnitTypeLabel(
+            unit.unit_type
+          )})`
+      ),
+    ].join("\n");
+
+    const parentSelection =
+      window.prompt(
+        `Where does ${cleanName} sit?\n\n${parentOptions}\n\nEnter 0 if it reports directly into the organisation:`,
+        "0"
+      );
+
+    if (parentSelection === null) {
+      return;
+    }
+
+    const parentIndex =
+      Number(
+        parentSelection.trim()
+      );
+
+    if (
+      Number.isNaN(parentIndex) ||
+      parentIndex < 0 ||
+      parentIndex >
+        organisationUnits.length
+    ) {
+      alert(
+        "That parent selection was not recognised."
+      );
+      return;
+    }
+
+    if (parentIndex > 0) {
+      parentUnitId =
+        organisationUnits[
+          parentIndex - 1
+        ]?.id || null;
+    }
+  }
+
+  setCreatingOrganisationUnit(
+    true
+  );
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      alert(
+        "Root could not verify your signed-in account."
+      );
+      return;
+    }
+
+    const {
+      data: newUnit,
+      error: unitError,
+    } = await supabase
+      .from("organisation_units")
+      .insert({
+        organisation_id:
+          organisation.id,
+
+        name:
+          cleanName,
+
+        unit_type:
+          selectedType,
+
+        parent_unit_id:
+          parentUnitId,
+
+        active:
+          true,
+
+        created_by:
+          user.id,
+      })
+      .select(
+        `
+          id,
+          organisation_id,
+          name,
+          unit_type,
+          parent_unit_id,
+          active,
+          created_by,
+          created_at
+        `
+      )
+      .single();
+
+    if (
+      unitError ||
+      !newUnit
+    ) {
+      alert(
+        unitError?.message ||
+          "Root could not create this organisational unit."
+      );
+      return;
+    }
+
+    setOrganisationUnits(
+      (current) =>
+        [...current, newUnit].sort(
+          (a, b) =>
+            String(a.name).localeCompare(
+              String(b.name)
+            )
+        )
+    );
+
+    await recordHRActivity(
+      "Created organisational unit"
+    );
+
+    alert(
+      `${cleanName} has been added to ${organisation.name}.`
+    );
+  } finally {
+    setCreatingOrganisationUnit(
+      false
+    );
+  }
+}   
+async function createHRInvitation() {
   const email = window.prompt(
     "Enter the work email address of the HR colleague you wish to invite:"
   );
@@ -1822,6 +2122,148 @@ Root Health`
     </div>
   </section>
 )}
+              {currentMembership?.role ===
+  "organisation_admin" && (
+  <section
+    style={
+      styles.organisationStructureCard
+    }
+  >
+    <div
+      style={
+        styles.organisationStructureHeader
+      }
+    >
+      <div>
+        <p style={styles.panelLabel}>
+          Organisation Structure
+        </p>
+
+        <h2 style={styles.panelTitle}>
+          How{" "}
+          {organisation?.name ||
+            "your organisation"}{" "}
+          is organised
+        </h2>
+
+        <p
+          style={
+            styles.panelDescription
+          }
+        >
+          Create the organisational
+          units Root will use for
+          permissions, invitations and
+          organisational context.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        style={styles.controlButton}
+        onClick={
+          createOrganisationUnit
+        }
+        disabled={
+          creatingOrganisationUnit
+        }
+      >
+        {creatingOrganisationUnit
+          ? "Creating unit..."
+          : "＋ Add Organisational Unit"}
+      </button>
+    </div>
+
+    {organisationUnits.length ===
+    0 ? (
+      <div
+        style={
+          styles.organisationStructureEmpty
+        }
+      >
+        <strong>
+          No organisational units
+          created yet.
+        </strong>
+
+        <span>
+          Add the first unit to begin
+          building the structure for{" "}
+          {organisation?.name ||
+            "this organisation"}.
+        </span>
+      </div>
+    ) : (
+      <div
+        style={
+          styles.organisationUnitGrid
+        }
+      >
+        {organisationUnits.map(
+          (unit) => (
+            <div
+              key={unit.id}
+              style={
+                styles.organisationUnitCard
+              }
+            >
+              <div
+                style={
+                  styles.organisationUnitTop
+                }
+              >
+                <strong
+                  style={
+                    styles.organisationUnitName
+                  }
+                >
+                  {unit.name}
+                </strong>
+
+                <span
+                  style={
+                    styles.organisationUnitType
+                  }
+                >
+                  {organisationUnitTypeLabel(
+                    unit.unit_type
+                  )}
+                </span>
+              </div>
+
+              <div
+                style={
+                  styles.organisationUnitMeta
+                }
+              >
+                <span>
+                  Reports into
+                </span>
+
+                <strong>
+                  {organisationUnitParentName(
+                    unit
+                  )}
+                </strong>
+              </div>
+
+              <div
+                style={
+                  styles.organisationUnitStatus
+                }
+              >
+                {unit.active
+                  ? "● Active"
+                  : "○ Inactive"}
+              </div>
+            </div>
+          )
+        )}
+      </div>
+    )}
+  </section>
+)} 
+               
                 <section style={styles.controlCentre}>
 
   <div style={styles.controlHeader}>
@@ -4545,5 +4987,98 @@ hrActivityStatus: {
   color: "#655D51",
   fontSize: "12px",
   lineHeight: "1.5",
+},
+
+organisationStructureCard: {
+  marginBottom: "24px",
+  padding: "28px",
+  borderRadius: "30px",
+  background:
+    "linear-gradient(145deg, rgba(255,255,255,0.62), rgba(255,255,255,0.40))",
+  border:
+    "1px solid rgba(255,255,255,0.76)",
+  boxShadow:
+    "0 18px 55px rgba(35,29,21,0.07)",
+},
+
+organisationStructureHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: "20px",
+  flexWrap: "wrap",
+},
+
+organisationStructureEmpty: {
+  marginTop: "20px",
+  padding: "20px",
+  borderRadius: "22px",
+  background:
+    "rgba(255,255,255,0.5)",
+  border:
+    "1px dashed rgba(24,24,24,0.14)",
+  display: "grid",
+  gap: "7px",
+  color: "#5A554D",
+  lineHeight: "1.55",
+},
+
+organisationUnitGrid: {
+  marginTop: "20px",
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(230px, 1fr))",
+  gap: "14px",
+},
+
+organisationUnitCard: {
+  padding: "20px",
+  borderRadius: "22px",
+  background:
+    "rgba(255,255,255,0.58)",
+  border:
+    "1px solid rgba(255,255,255,0.82)",
+  display: "grid",
+  gap: "16px",
+},
+
+organisationUnitTop: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: "12px",
+},
+
+organisationUnitName: {
+  color: "#181818",
+  fontSize: "17px",
+  lineHeight: "1.3",
+},
+
+organisationUnitType: {
+  padding: "7px 10px",
+  borderRadius: "999px",
+  background:
+    "rgba(24,24,24,0.07)",
+  color: "#514A40",
+  fontSize: "10px",
+  fontWeight: "800",
+  whiteSpace: "nowrap",
+},
+
+organisationUnitMeta: {
+  display: "grid",
+  gap: "5px",
+  color: "#6A6256",
+  fontSize: "12px",
+},
+
+organisationUnitStatus: {
+  paddingTop: "13px",
+  borderTop:
+    "1px solid rgba(24,24,24,0.07)",
+  color: "#596650",
+  fontSize: "12px",
+  fontWeight: "800",
 },
 };
