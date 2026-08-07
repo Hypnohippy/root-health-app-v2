@@ -2248,6 +2248,170 @@ Root Health`
     )}
   </section>
 )} 
+<RootModal
+  isOpen={showOrganisationUnitModal}
+  onClose={closeOrganisationUnitModal}
+  title="Create Organisational Unit"
+  eyebrow="Root Workplace"
+  primaryLabel={
+    creatingOrganisationUnit
+      ? "Creating..."
+      : "Create Unit"
+  }
+  onPrimary={createOrganisationUnit}
+  primaryDisabled={
+    creatingOrganisationUnit ||
+    !newOrganisationUnitName.trim()
+  }
+>
+  <div style={styles.modalOrganisationContext}>
+    <span style={styles.modalContextLabel}>
+      Organisation
+    </span>
+
+    <strong style={styles.modalContextValue}>
+      {organisation?.name ||
+        "Your organisation"}
+    </strong>
+
+    <span style={styles.modalContextHint}>
+      Root already knows which organisation you are managing.
+    </span>
+  </div>
+
+  <label style={styles.modalField}>
+    <span style={styles.modalFieldLabel}>
+      Unit name
+    </span>
+
+    <input
+      type="text"
+      style={styles.modalInput}
+      value={newOrganisationUnitName}
+      onChange={(event) => {
+        setNewOrganisationUnitName(
+          event.target.value
+        );
+
+        if (organisationUnitError) {
+          setOrganisationUnitError("");
+        }
+      }}
+      placeholder="e.g. Operations"
+      autoFocus
+    />
+  </label>
+
+  <div style={styles.modalTwoColumnGrid}>
+    <label style={styles.modalField}>
+      <span style={styles.modalFieldLabel}>
+        Type
+      </span>
+
+      <select
+        style={styles.modalInput}
+        value={newOrganisationUnitType}
+        onChange={(event) =>
+          setNewOrganisationUnitType(
+            event.target.value
+          )
+        }
+      >
+        <option value="department">
+          Department
+        </option>
+
+        <option value="region">
+          Region
+        </option>
+
+        <option value="country">
+          Country
+        </option>
+
+        <option value="division">
+          Division
+        </option>
+
+        <option value="business_unit">
+          Business Unit
+        </option>
+
+        <option value="function">
+          Function
+        </option>
+
+        <option value="site">
+          Site
+        </option>
+
+        <option value="team">
+          Team
+        </option>
+
+        <option value="other">
+          Other
+        </option>
+      </select>
+    </label>
+
+    <label style={styles.modalField}>
+      <span style={styles.modalFieldLabel}>
+        Reports into
+      </span>
+
+      <select
+        style={styles.modalInput}
+        value={newOrganisationUnitParentId}
+        onChange={(event) =>
+          setNewOrganisationUnitParentId(
+            event.target.value
+          )
+        }
+      >
+        <option value="">
+          {organisation?.name ||
+            "Whole organisation"}
+        </option>
+
+        {organisationUnits
+          .filter(
+            (unit) =>
+              unit.active !== false
+          )
+          .map((unit) => (
+            <option
+              key={unit.id}
+              value={unit.id}
+            >
+              {unit.name} —{" "}
+              {organisationUnitTypeLabel(
+                unit.unit_type
+              )}
+            </option>
+          ))}
+      </select>
+    </label>
+  </div>
+
+  <div style={styles.modalExplanation}>
+    <strong>
+      Enter once. Reuse everywhere.
+    </strong>
+
+    <span>
+      Root will use this structure for future permissions,
+      invitations and organisational context. You will not
+      need to enter it again.
+    </span>
+  </div>
+
+  {organisationUnitError ? (
+    <div style={styles.modalError}>
+      {organisationUnitError}
+    </div>
+  ) : null}
+</RootModal>
                
                 <section style={styles.controlCentre}>
 
@@ -5065,5 +5229,93 @@ organisationUnitStatus: {
   color: "#596650",
   fontSize: "12px",
   fontWeight: "800",
+},
+
+modalOrganisationContext: {
+  padding: "18px 20px",
+  borderRadius: "20px",
+  background:
+    "rgba(237,241,231,0.72)",
+  border:
+    "1px solid rgba(70,88,62,0.10)",
+  display: "grid",
+  gap: "5px",
+},
+
+modalContextLabel: {
+  color: "#66725E",
+  fontSize: "10px",
+  fontWeight: "900",
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+},
+
+modalContextValue: {
+  color: "#263224",
+  fontSize: "17px",
+},
+
+modalContextHint: {
+  marginTop: "2px",
+  color: "#6A7065",
+  fontSize: "12px",
+  lineHeight: "1.5",
+},
+
+modalField: {
+  display: "grid",
+  gap: "8px",
+},
+
+modalFieldLabel: {
+  color: "#263224",
+  fontSize: "13px",
+  fontWeight: "800",
+},
+
+modalInput: {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "14px 15px",
+  borderRadius: "16px",
+  border:
+    "1px solid rgba(38,50,36,0.16)",
+  background:
+    "rgba(255,255,255,0.78)",
+  color: "#181818",
+  fontSize: "15px",
+  outline: "none",
+},
+
+modalTwoColumnGrid: {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "16px",
+},
+
+modalExplanation: {
+  padding: "16px 18px",
+  borderRadius: "18px",
+  background:
+    "rgba(255,255,255,0.52)",
+  border:
+    "1px solid rgba(24,24,24,0.07)",
+  display: "grid",
+  gap: "5px",
+  color: "#596153",
+  fontSize: "13px",
+  lineHeight: "1.55",
+},
+
+modalError: {
+  padding: "15px 17px",
+  borderRadius: "17px",
+  background:
+    "rgba(159,29,29,0.08)",
+  color: "#8F2929",
+  fontSize: "13px",
+  fontWeight: "700",
+  lineHeight: "1.55",
 },
 };
