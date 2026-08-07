@@ -1712,6 +1712,171 @@ async function createOrganisationUnit() {
     setCreatingOrganisationUnit(false);
   }
 }   
+function openHRInviteModal() {
+  setHRInviteEmail("");
+  setHRInviteUnitId("");
+  setHRInviteError("");
+  setShowHRInviteModal(true);
+}
+
+function closeHRInviteModal() {
+  if (creatingHRInvite) return;
+
+  setShowHRInviteModal(false);
+  setHRInviteError("");
+}
+
+async function createHRInvitation() {
+  setHRInviteError("");
+
+  const cleanEmail =
+    hrInviteEmail.trim().toLowerCase();
+
+  if (!cleanEmail) {
+    setHRInviteError(
+      "Please enter the HR colleague's work email address."
+    );
+    return;
+  }
+
+  if (!cleanEmail.includes("@")) {
+    setHRInviteError(
+      "Please enter a valid work email address."
+    );
+    return;
+  }
+
+  if (!organisation?.id) {
+    setHRInviteError(
+      "Root could not identify the active organisation."
+    );
+    return;
+  }
+
+  const selectedUnit =
+    hrInviteUnitId
+      ? organisationUnits.find(
+          (unit) =>
+            unit.id === hrInviteUnitId
+        )
+      : null;
+
+  if (
+    hrInviteUnitId &&
+    !selectedUnit
+  ) {
+    setHRInviteError(
+      "Root could not identify the selected organisational unit."
+    );
+    return;
+  }
+
+  setCreatingHRInvite(true);
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setHRInviteError(
+        "Root could not verify your signed-in account."
+      );
+      return;
+    }
+
+    const token =
+      crypto.randomUUID();
+
+    const { error } = await supabase
+      .from("organisation_hr_invites")
+      .insert({
+        organisation_id:
+          organisation.id,
+
+        organisation_unit_id:
+          hrInviteUnitId || null,
+
+        email:
+          cleanEmail,
+
+        role:
+          "hr_admin",
+
+        invited_by:
+          user.id,
+
+        token,
+
+        status:
+          "pending",
+
+        expires_at:
+          new Date(
+            Date.now() +
+              7 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+      });
+
+    if (error) {
+      setHRInviteError(
+        error.message ||
+          "Root could not create this HR invitation."
+      );
+      return;
+    }
+
+    const inviteLink =
+      `${window.location.origin}` +
+      `/organisation/hr-join?token=${token}`;
+
+    try {
+      await navigator.clipboard.writeText(
+        inviteLink
+      );
+    } catch (clipboardError) {
+      console.error(
+        "Could not copy HR invitation:",
+        clipboardError
+      );
+    }
+
+    const responsibilityText =
+      selectedUnit?.name
+        ? `You will be connected with ${selectedUnit.name} inside Root Workplace.`
+        : `You will have organisation-wide HR access inside Root Workplace.`;
+
+    setShowHRInviteModal(false);
+
+    setHRInviteEmail("");
+    setHRInviteUnitId("");
+    setHRInviteError("");
+
+    window.location.href =
+      `mailto:${cleanEmail}` +
+      `?subject=${encodeURIComponent(
+        `Invitation to manage ${organisation.name} in Root`
+      )}` +
+      `&body=${encodeURIComponent(
+        `Hello,
+
+You have been invited to help manage ${organisation.name}'s Root Workplace programme.
+
+${responsibilityText}
+
+Accept your invitation here:
+
+${inviteLink}
+
+This invitation expires in 7 days.
+
+Root Health`
+      )}`;
+  } finally {
+    setCreatingHRInvite(false);
+  }
+}
   async function transferOrganisationAdmin() {
   const eligibleHRAdmins = members.filter(
     (member) =>
