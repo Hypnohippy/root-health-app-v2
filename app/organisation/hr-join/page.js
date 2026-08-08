@@ -72,21 +72,30 @@ export default function OrganisationHRJoinPage() {
       await supabase
         .from("organisation_hr_invites")
         .select(
-          `
-            id,
-            organisation_id,
-            email,
-            role,
-            token,
-            status,
-            expires_at,
-            organisations (
-              id,
-              name,
-              organisation_code
-            )
-          `
-        )
+  `
+    id,
+    organisation_id,
+    organisation_unit_id,
+    email,
+    role,
+    token,
+    status,
+    expires_at,
+
+    organisation_units (
+      id,
+      name,
+      unit_type,
+      parent_unit_id
+    ),
+
+    organisations (
+      id,
+      name,
+      organisation_code
+    )
+  `
+)
         .eq("token", token)
         .maybeSingle();
 
