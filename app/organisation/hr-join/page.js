@@ -38,31 +38,89 @@ export default function OrganisationHRJoinPage() {
   }, [token]);
 
   async function initialisePage() {
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    if (!token) {
-      setError(
-        "This HR invitation link is incomplete."
-      );
-      setLoading(false);
-      return;
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setSignedInUser(null);
-      setLoading(false);
-      return;
-    }
-
-    setSignedInUser(user);
-
-    await loadInvitation(user);
+  if (!token) {
+    setError(
+      "This HR invitation link is incomplete."
+    );
+    setLoading(false);
+    return;
   }
+
+  const {
+    data: preview,
+    error: previewError,
+  } = await supabase
+    .rpc(
+      "get_hr_invitation_preview",
+      {
+        invite_token: token,
+      }
+    )
+    .maybeSingle();
+
+  if (previewError || !preview) {
+    setError(
+      "Root could not find this HR invitation."
+    );
+    setLoading(false);
+    return;
+  }
+
+  const previewInvite = {
+    id: preview.id,
+    organisation_id:
+      preview.organisation_id,
+    organisation_unit_id:
+      preview.organisation_unit_id,
+    email: preview.email,
+    role: preview.role,
+    token: preview.token,
+    status: preview.status,
+    expires_at: preview.expires_at,
+
+    organisations: {
+      id: preview.organisation_id,
+      name:
+        preview.organisation_name,
+      organisation_code:
+        preview.organisation_code,
+    },
+
+    organisation_units:
+      preview.organisation_unit_id
+        ? {
+            id:
+              preview.organisation_unit_id,
+            name:
+              preview.organisation_unit_name,
+            unit_type:
+              preview.organisation_unit_type,
+            parent_unit_id:
+              preview.parent_unit_id,
+          }
+        : null,
+  };
+
+  setInvite(previewInvite);
+  setEmail(preview.email || "");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    setSignedInUser(null);
+    setLoading(false);
+    return;
+  }
+
+  setSignedInUser(user);
+
+  await loadInvitation(user);
+}
 
   async function loadInvitation(user) {
     setLoading(true);
@@ -613,14 +671,27 @@ setAuthLoading(false);
           </label>
 
           <input
-            style={styles.input}
-            type="email"
-            value={email}
-            onChange={(event) =>
-              setEmail(event.target.value)
-            }
-            placeholder="e.g. sarah@company.co.uk"
-          />
+  style={{
+    ...styles.input,
+    ...(invite?.email
+      ? styles.lockedInput
+      : {}),
+  }}
+  type="email"
+  value={email}
+  readOnly={Boolean(invite?.email)}
+  onChange={(event) =>
+    setEmail(event.target.value)
+  }
+  placeholder="e.g. sarah@company.co.uk"
+/>
+{invite?.email ? (
+  <p style={styles.inviteEmailNote}>
+    This invitation was issued to this
+    email address, so Root has filled it
+    in for you.
+  </p>
+) : null}
 
           <label style={styles.label}>
             Password
@@ -890,6 +961,20 @@ const styles = {
     color: "#181818",
     fontSize: "15px",
   },
+
+  lockedInput: {
+  background:
+    "rgba(237,241,231,0.82)",
+  color: "#46513F",
+  cursor: "default",
+},
+
+inviteEmailNote: {
+  margin: "8px 0 0",
+  color: "#66705F",
+  fontSize: "12px",
+  lineHeight: "1.5",
+},
 
   accessBox: {
     marginTop: "24px",
