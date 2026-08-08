@@ -368,10 +368,13 @@ setAuthLoading(false);
             user.user_metadata?.full_name ||
             "",
 
-          department: "HR",
+          department:
+            invite.organisation_units?.name || "HR",
+
+          organisation_unit_id:
+            invite.organisation_unit_id,
 
           role: "hr_admin",
-
           invited_at:
             new Date().toISOString(),
 
@@ -419,7 +422,12 @@ setAuthLoading(false);
         .update({
           role: "hr_admin",
           department:
-            membership.department || "HR",
+       invite.organisation_units?.name ||
+       membership.department ||
+         "HR",
+
+          organisation_unit_id:
+       invite.organisation_unit_id,
           activated_at:
             new Date().toISOString(),
         })
