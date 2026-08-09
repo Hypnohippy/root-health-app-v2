@@ -339,6 +339,7 @@ export default function HRCoachPage() {
 })),
 
           organisation,
+          organisationContext,
           members,
           assessments,
           mindEntries,
@@ -440,6 +441,7 @@ async function requestOrganisationReply(spokenMessage) {
         })),
 
         organisation,
+        organisationContext,
         members,
         assessments,
         mindEntries,
@@ -448,8 +450,8 @@ async function requestOrganisationReply(spokenMessage) {
         organisationReviews,
 
         intent: "voice_evidence_discussion",
-      }),
-    });
+               }),
+            });
 
     const data = await response.json();
 
