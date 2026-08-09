@@ -912,10 +912,22 @@ const [hrInviteError, setHRInviteError] =
 const [transferringAdmin, setTransferringAdmin] =
   useState(false);
 
-  const [hrActivity, setHRActivity] =
+  const [showTransferAdminModal, setShowTransferAdminModal] =
+  useState(false);
+
+const [transferAdminMembershipId, setTransferAdminMembershipId] =
+  useState("");
+
+const [transferAdminPassword, setTransferAdminPassword] =
+  useState("");
+
+const [transferAdminError, setTransferAdminError] =
+  useState("");
+
+const [hrActivity, setHRActivity] =
   useState([]);
 
-  const [organisationUnits, setOrganisationUnits] =
+const [organisationUnits, setOrganisationUnits] =
   useState([]);
 
 const [creatingOrganisationUnit, setCreatingOrganisationUnit] =
