@@ -955,6 +955,9 @@ const [organisationUnitError, setOrganisationUnitError] =
 const [expandedOrganisationUnits, setExpandedOrganisationUnits] =
   useState({});
 
+const [selectedOrganisationUnit, setSelectedOrganisationUnit] =
+  useState(null);
+
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -1292,6 +1295,59 @@ function organisationUnitParentName(
         !current[unitId],
     })
   );
+}
+
+function openOrganisationUnitDetails(unit) {
+  setSelectedOrganisationUnit(
+    unit || null
+  );
+}
+
+function closeOrganisationUnitDetails() {
+  setSelectedOrganisationUnit(null);
+}
+
+function organisationUnitEmployees(unitId) {
+  return members.filter(
+    (member) =>
+      member?.role === "employee" &&
+      member?.organisation_unit_id ===
+        unitId
+  );
+}
+
+function organisationUnitHR(unitId) {
+  return members.filter(
+    (member) =>
+      member?.role === "hr_admin" &&
+      member?.organisation_unit_id ===
+        unitId
+  );
+}
+
+function organisationUnitChildren(unitId) {
+  return organisationUnits.filter(
+    (unit) =>
+      unit.parent_unit_id === unitId
+  );
+}
+
+function addChildOrganisationUnit(unitId) {
+  setSelectedOrganisationUnit(null);
+
+  setNewOrganisationUnitName("");
+
+  setNewOrganisationUnitType(
+    "department"
+  );
+
+  setNewOrganisationUnitParentId(
+    unitId
+  );
+
+  setOrganisationUnitError("");
+
+  setShowOrganisationUnitModal(true);
 }
 
   const parent =
@@ -2314,20 +2370,15 @@ Root Health`
                 <div style={styles.organisationTreeLine} />
 
                 <div
-              style={{
-                 ...styles.organisationTreeCard,
-                  cursor:
-                   childUnits.length > 0
-                     ? "pointer"
-                  : "default",
-              }}
-  onClick={() => {
-    if (childUnits.length > 0) {
-      toggleOrganisationUnit(
-        unit.id
-      );
-    }
+  style={{
+    ...styles.organisationTreeCard,
+    cursor: "pointer",
   }}
+  onClick={() =>
+    openOrganisationUnitDetails(
+      unit
+    )
+  }
 >
                   <div style={styles.organisationUnitTop}>
                     <strong
@@ -2348,19 +2399,34 @@ Root Health`
                       )}
                     </span>
 
-                    {childUnits.length > 0 && (
-                  <span
-                    style={
-                       styles.organisationExpandHint
-                  }
-                   >
-                 {expandedOrganisationUnits[
-                   unit.id
-                 ]
-                   ? "−"
-                  : "+"}
-                      </span>
-                      )}
+                   {childUnits.length > 0 && (
+  <button
+    type="button"
+    style={
+      styles.organisationExpandButton
+    }
+    onClick={(event) => {
+      event.stopPropagation();
+
+      toggleOrganisationUnit(
+        unit.id
+      );
+    }}
+    aria-label={
+      expandedOrganisationUnits[
+        unit.id
+      ]
+        ? `Collapse ${unit.name}`
+        : `Expand ${unit.name}`
+    }
+  >
+    {expandedOrganisationUnits[
+      unit.id
+    ]
+      ? "−"
+      : "+"}
+  </button>
+)}
                   </div>
 
                   <div
@@ -2415,10 +2481,16 @@ Root Health`
                         />
 
                         <div
-                          style={
-                            styles.organisationTreeCard
-                          }
-                        >
+  style={{
+    ...styles.organisationTreeCard,
+    cursor: "pointer",
+  }}
+  onClick={() =>
+    openOrganisationUnitDetails(
+      childUnit
+    )
+  }
+>
                           <div
                             style={
                               styles.organisationUnitTop
@@ -2482,6 +2554,290 @@ Root Health`
 )}
   </section>
 )} 
+
+<RootModal
+  isOpen={Boolean(
+    selectedOrganisationUnit
+  )}
+  onClose={
+    closeOrganisationUnitDetails
+  }
+  title={
+    selectedOrganisationUnit?.name ||
+    "Organisation Unit"
+  }
+  eyebrow="Organisation Structure"
+  primaryLabel="＋ Add Unit Beneath This"
+  onPrimary={() => {
+    if (
+      selectedOrganisationUnit?.id
+    ) {
+      addChildOrganisationUnit(
+        selectedOrganisationUnit.id
+      );
+    }
+  }}
+  primaryDisabled={
+    !selectedOrganisationUnit?.id
+  }
+>
+  {selectedOrganisationUnit && (
+    <div
+      style={
+        styles.organisationUnitDetail
+      }
+    >
+      <div
+        style={
+          styles.organisationUnitDetailHero
+        }
+      >
+        <div
+          style={
+            styles.organisationUnitDetailIcon
+          }
+        >
+          🏢
+        </div>
+
+        <div>
+          <span
+            style={
+              styles.modalContextLabel
+            }
+          >
+            {organisationUnitTypeLabel(
+              selectedOrganisationUnit.unit_type
+            )}
+          </span>
+
+          <strong
+            style={
+              styles.organisationUnitDetailName
+            }
+          >
+            {
+              selectedOrganisationUnit.name
+            }
+          </strong>
+
+          <span
+            style={
+              styles.organisationUnitDetailParent
+            }
+          >
+            Reports into{" "}
+            <strong>
+              {organisationUnitParentName(
+                selectedOrganisationUnit
+              )}
+            </strong>
+          </span>
+        </div>
+      </div>
+
+      <div
+        style={
+          styles.organisationUnitDetailGrid
+        }
+      >
+        <div
+          style={
+            styles.organisationUnitDetailStat
+          }
+        >
+          <span>Employees</span>
+
+          <strong>
+            {
+              organisationUnitEmployees(
+                selectedOrganisationUnit.id
+              ).length
+            }
+          </strong>
+        </div>
+
+        <div
+          style={
+            styles.organisationUnitDetailStat
+          }
+        >
+          <span>HR coverage</span>
+
+          <strong>
+            {
+              organisationUnitHR(
+                selectedOrganisationUnit.id
+              ).length
+            }
+          </strong>
+        </div>
+
+        <div
+          style={
+            styles.organisationUnitDetailStat
+          }
+        >
+          <span>Units beneath</span>
+
+          <strong>
+            {
+              organisationUnitChildren(
+                selectedOrganisationUnit.id
+              ).length
+            }
+          </strong>
+        </div>
+
+        <div
+          style={
+            styles.organisationUnitDetailStat
+          }
+        >
+          <span>Status</span>
+
+          <strong>
+            {selectedOrganisationUnit.active
+              ? "Active"
+              : "Inactive"}
+          </strong>
+        </div>
+      </div>
+
+      <div
+        style={
+          styles.organisationUnitPeopleCard
+        }
+      >
+        <span
+          style={
+            styles.modalContextLabel
+          }
+        >
+          HR responsibility
+        </span>
+
+        {organisationUnitHR(
+          selectedOrganisationUnit.id
+        ).length > 0 ? (
+          organisationUnitHR(
+            selectedOrganisationUnit.id
+          ).map((hrMember) => (
+            <div
+              key={hrMember.id}
+              style={
+                styles.organisationUnitHRPerson
+              }
+            >
+              <div>
+                <strong>
+                  {hrMember.name ||
+                    "HR Administrator"}
+                </strong>
+
+                <span>
+                  {hrMember.email ||
+                    "Root Workplace"}
+                </span>
+              </div>
+
+              <span
+                style={
+                  styles.hrRoleBadge
+                }
+              >
+                HR Admin
+              </span>
+            </div>
+          ))
+        ) : (
+          <span
+            style={
+              styles.organisationUnitEmptyHint
+            }
+          >
+            No HR Administrator is
+            currently assigned directly
+            to this unit.
+          </span>
+        )}
+      </div>
+
+      <div
+        style={
+          styles.organisationUnitPeopleCard
+        }
+      >
+        <span
+          style={
+            styles.modalContextLabel
+          }
+        >
+          Structure
+        </span>
+
+        {organisationUnitChildren(
+          selectedOrganisationUnit.id
+        ).length > 0 ? (
+          <div
+            style={
+              styles.organisationUnitChildList
+            }
+          >
+            {organisationUnitChildren(
+              selectedOrganisationUnit.id
+            ).map((child) => (
+              <button
+                key={child.id}
+                type="button"
+                style={
+                  styles.organisationUnitChildButton
+                }
+                onClick={() =>
+                  openOrganisationUnitDetails(
+                    child
+                  )
+                }
+              >
+                <span>
+                  {child.name}
+                </span>
+
+                <span>
+                  {organisationUnitTypeLabel(
+                    child.unit_type
+                  )}
+                  {"  →"}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span
+            style={
+              styles.organisationUnitEmptyHint
+            }
+          >
+            Nothing sits beneath this
+            unit yet.
+          </span>
+        )}
+      </div>
+
+      <p
+        style={
+          styles.organisationUnitDetailHint
+        }
+      >
+        Root uses this structure to
+        understand organisational
+        relationships, permissions and
+        HR responsibility while keeping
+        personal wellbeing information
+        private.
+      </p>
+    </div>
+  )}
 <RootModal
   isOpen={showOrganisationUnitModal}
   onClose={closeOrganisationUnitModal}
@@ -5796,6 +6152,141 @@ organisationExpandHint: {
   fontWeight: "700",
   lineHeight: "1",
   flex: "0 0 auto",
+},
+
+organisationExpandButton: {
+  width: "28px",
+  height: "28px",
+  border: "none",
+  borderRadius: "999px",
+  background:
+    "rgba(24,24,24,0.06)",
+  color: "#514A40",
+  display: "grid",
+  placeItems: "center",
+  fontSize: "17px",
+  fontWeight: "800",
+  cursor: "pointer",
+  flex: "0 0 auto",
+},
+
+organisationUnitDetail: {
+  display: "grid",
+  gap: "18px",
+},
+
+organisationUnitDetailHero: {
+  display: "flex",
+  alignItems: "center",
+  gap: "16px",
+  padding: "20px",
+  borderRadius: "24px",
+  background:
+    "linear-gradient(145deg, rgba(237,241,231,0.86), rgba(255,255,255,0.72))",
+  border:
+    "1px solid rgba(70,88,62,0.10)",
+},
+
+organisationUnitDetailIcon: {
+  width: "54px",
+  height: "54px",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "18px",
+  background:
+    "rgba(24,24,24,0.07)",
+  fontSize: "24px",
+},
+
+organisationUnitDetailName: {
+  display: "block",
+  marginTop: "4px",
+  color: "#181818",
+  fontSize: "22px",
+  lineHeight: "1.2",
+},
+
+organisationUnitDetailParent: {
+  display: "block",
+  marginTop: "7px",
+  color: "#696158",
+  fontSize: "13px",
+},
+
+organisationUnitDetailGrid: {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(130px, 1fr))",
+  gap: "10px",
+},
+
+organisationUnitDetailStat: {
+  padding: "16px",
+  borderRadius: "19px",
+  background:
+    "rgba(255,255,255,0.64)",
+  border:
+    "1px solid rgba(24,24,24,0.07)",
+  display: "grid",
+  gap: "6px",
+  color: "#70685C",
+  fontSize: "12px",
+},
+
+organisationUnitPeopleCard: {
+  padding: "18px",
+  borderRadius: "21px",
+  background:
+    "rgba(255,255,255,0.54)",
+  border:
+    "1px solid rgba(24,24,24,0.07)",
+  display: "grid",
+  gap: "12px",
+},
+
+organisationUnitHRPerson: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "14px",
+  paddingTop: "12px",
+  borderTop:
+    "1px solid rgba(24,24,24,0.07)",
+},
+
+organisationUnitEmptyHint: {
+  color: "#746C60",
+  fontSize: "13px",
+  lineHeight: "1.55",
+},
+
+organisationUnitChildList: {
+  display: "grid",
+  gap: "8px",
+},
+
+organisationUnitChildButton: {
+  width: "100%",
+  border: "none",
+  padding: "13px 14px",
+  borderRadius: "15px",
+  background:
+    "rgba(24,24,24,0.045)",
+  color: "#28231E",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "12px",
+  cursor: "pointer",
+  textAlign: "left",
+  fontWeight: "700",
+},
+
+organisationUnitDetailHint: {
+  margin: 0,
+  color: "#766E62",
+  fontSize: "12px",
+  lineHeight: "1.6",
 },
 
 organisationUnitMeta: {
