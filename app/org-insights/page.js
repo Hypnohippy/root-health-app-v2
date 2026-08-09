@@ -2805,12 +2805,15 @@ Root Health`
   <button
     type="button"
     style={styles.controlButton}
-    onClick={transferOrganisationAdmin}
+    onClick={() => {
+      setTransferAdminMembershipId("");
+      setTransferAdminPassword("");
+      setTransferAdminError("");
+      setShowTransferAdminModal(true);
+    }}
     disabled={transferringAdmin}
   >
-    {transferringAdmin
-      ? "Transferring permission..."
-      : "🔄 Transfer Organisation Admin"}
+    🔄 Transfer Organisation Admin
   </button>
 )}
 
