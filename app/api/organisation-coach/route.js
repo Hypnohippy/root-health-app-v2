@@ -771,6 +771,11 @@ const organisationLearningSummary =
     organisationReviews
   );
 
+  const sharedOrganisationStructure =
+  summariseSharedOrganisationContext(
+    sharedOrganisationContext
+  );
+
 const organisationContext = buildOrganisationContext({
       organisation,
       members,
@@ -1218,7 +1223,37 @@ Useful language includes:
 
 "The current evidence does not establish that one produced the other."
 
-ROOT ORGANISATION CONTEXT
+ROOT LIVE ORGANISATION STRUCTURE
+
+${sharedOrganisationStructure}
+
+STRUCTURE REASONING RULES
+
+This is Root's current live picture of how the organisation is structured.
+
+Use it only where relevant to the leader's question.
+
+You may use it to understand:
+
+- recorded regions, departments, sites, teams and other organisation units
+- parent and child organisation relationships
+- employee participation at organisation-unit level where supplied
+- whether HR responsibility is organisation-wide or attached to a recorded organisation unit
+- where organisational representation or participation evidence is incomplete
+
+Do not invent an organisation unit that is not recorded.
+
+Do not infer employee experiences merely from their organisational location.
+
+Do not infer a cause for differences between organisation units.
+
+Do not identify individual employees.
+
+Do not expose names, email addresses, profile keys, membership IDs or user IDs.
+
+Where organisation-unit evidence is too small or incomplete for a reliable comparison, state that limitation rather than creating a conclusion.
+
+ROOT ORGANISATION EVIDENCE CONTEXT
 
 ${organisationContext}
 
