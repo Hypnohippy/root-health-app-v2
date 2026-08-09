@@ -1364,82 +1364,6 @@ function addChildOrganisationUnit(unitId) {
   setShowOrganisationUnitModal(true);
 }
 
-  function toggleOrganisationUnit(unitId) {
-  setExpandedOrganisationUnits(
-    (current) => ({
-      ...current,
-      [unitId]:
-        !current[unitId],
-    })
-  );
-}
-
-function openOrganisationUnitDetails(unit) {
-  setSelectedOrganisationUnit(
-    unit || null
-  );
-}
-
-function closeOrganisationUnitDetails() {
-  setSelectedOrganisationUnit(null);
-}
-
-function organisationUnitEmployees(unitId) {
-  return members.filter(
-    (member) =>
-      member?.role === "employee" &&
-      member?.organisation_unit_id ===
-        unitId
-  );
-}
-
-function organisationUnitHR(unitId) {
-  return members.filter(
-    (member) =>
-      member?.role === "hr_admin" &&
-      member?.organisation_unit_id ===
-        unitId
-  );
-}
-
-function organisationUnitChildren(unitId) {
-  return organisationUnits.filter(
-    (unit) =>
-      unit.parent_unit_id === unitId
-  );
-}
-
-function addChildOrganisationUnit(unitId) {
-  setSelectedOrganisationUnit(null);
-
-  setNewOrganisationUnitName("");
-
-  setNewOrganisationUnitType(
-    "department"
-  );
-
-  setNewOrganisationUnitParentId(
-    unitId
-  );
-
-  setOrganisationUnitError("");
-
-  setShowOrganisationUnitModal(true);
-}
-
-  const parent =
-    organisationUnits.find(
-      (candidate) =>
-        candidate.id ===
-        unit.parent_unit_id
-    );
-
-  return (
-    parent?.name ||
-    organisation?.name ||
-    "Whole organisation"
-  );
-}
 
 const activeHRCount = hrNetwork.filter(
   (member) => {
@@ -2130,11 +2054,12 @@ Root Health`
     
 
     window.location.reload();
-  } finally {
+    } finally {
     setTransferringAdmin(false);
   }
-  
-  return (
+}
+
+return (
   <RootAtmosphere type="coach">
       <Nav />
 
