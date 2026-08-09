@@ -2730,72 +2730,7 @@ return (
       >
         <div
 
-              {(() => {
-        const firstImpression =
-          organisationUnitFirstImpression(
-            selectedOrganisationUnit
-          );
-
-        return (
-          <div
-            style={
-              styles.rootFirstImpression
-            }
-          >
-            <div
-              style={
-                styles.rootFirstImpressionTop
-              }
-            >
-              <div
-                style={
-                  styles.rootFirstImpressionLeaf
-                }
-              >
-                🍃
-              </div>
-
-              <span
-                style={
-                  styles.rootFirstImpressionLabel
-                }
-              >
-                Root&apos;s First Impression
-              </span>
-            </div>
-
-            <strong
-              style={
-                styles.rootFirstImpressionHeadline
-              }
-            >
-              {firstImpression.headline}
-            </strong>
-
-            <p
-              style={
-                styles.rootFirstImpressionText
-              }
-            >
-              {firstImpression.detail}
-            </p>
-
-            <div
-              style={
-                styles.rootFirstImpressionFooter
-              }
-            >
-              <span>
-                Current evidence
-              </span>
-
-              <strong>
-                Structural picture
-              </strong>
-            </div>
-          </div>
-        );
-      })()}
+             
           style={
             styles.organisationUnitDetailStat
           }
