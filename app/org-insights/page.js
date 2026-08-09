@@ -2241,93 +2241,200 @@ Root Health`
       </button>
     </div>
 
-    {organisationUnits.length ===
-    0 ? (
-      <div
-        style={
-          styles.organisationStructureEmpty
-        }
-      >
-        <strong>
-          No organisational units
-          created yet.
+    {organisationUnits.length === 0 ? (
+  <div
+    style={
+      styles.organisationStructureEmpty
+    }
+  >
+    <strong>
+      No organisational units
+      created yet.
+    </strong>
+
+    <span>
+      Add the first unit to begin
+      building the structure for{" "}
+      {organisation?.name ||
+        "this organisation"}.
+    </span>
+  </div>
+) : (
+  <div style={styles.organisationTree}>
+    <div style={styles.organisationRootNode}>
+      <div style={styles.organisationRootIcon}>
+        🏢
+      </div>
+
+      <div>
+        <strong style={styles.organisationRootName}>
+          {organisation?.name ||
+            "Whole Organisation"}
         </strong>
 
-        <span>
-          Add the first unit to begin
-          building the structure for{" "}
-          {organisation?.name ||
-            "this organisation"}.
+        <span style={styles.organisationRootMeta}>
+          Whole organisation
         </span>
       </div>
-    ) : (
-      <div
-        style={
-          styles.organisationUnitGrid
-        }
-      >
-        {organisationUnits.map(
-          (unit) => (
+    </div>
+
+    <div style={styles.organisationTreeChildren}>
+      {organisationUnits
+        .filter(
+          (unit) =>
+            !unit.parent_unit_id
+        )
+        .map((unit) => {
+          const childUnits =
+            organisationUnits.filter(
+              (child) =>
+                child.parent_unit_id ===
+                unit.id
+            );
+
+          return (
             <div
               key={unit.id}
-              style={
-                styles.organisationUnitCard
-              }
+              style={styles.organisationTreeBranch}
             >
-              <div
-                style={
-                  styles.organisationUnitTop
-                }
-              >
-                <strong
+              <div style={styles.organisationTreeNode}>
+                <div style={styles.organisationTreeLine} />
+
+                <div style={styles.organisationTreeCard}>
+                  <div style={styles.organisationUnitTop}>
+                    <strong
+                      style={
+                        styles.organisationUnitName
+                      }
+                    >
+                      {unit.name}
+                    </strong>
+
+                    <span
+                      style={
+                        styles.organisationUnitType
+                      }
+                    >
+                      {organisationUnitTypeLabel(
+                        unit.unit_type
+                      )}
+                    </span>
+                  </div>
+
+                  <div
+                    style={
+                      styles.organisationUnitMeta
+                    }
+                  >
+                    <span>
+                      Reports into
+                    </span>
+
+                    <strong>
+                      {organisationUnitParentName(
+                        unit
+                      )}
+                    </strong>
+                  </div>
+
+                  <div
+                    style={
+                      styles.organisationUnitStatus
+                    }
+                  >
+                    {unit.active
+                      ? "● Active"
+                      : "○ Inactive"}
+                  </div>
+                </div>
+              </div>
+
+              {childUnits.length > 0 && (
+                <div
                   style={
-                    styles.organisationUnitName
+                    styles.organisationNestedChildren
                   }
                 >
-                  {unit.name}
-                </strong>
+                  {childUnits.map(
+                    (childUnit) => (
+                      <div
+                        key={childUnit.id}
+                        style={
+                          styles.organisationTreeNode
+                        }
+                      >
+                        <div
+                          style={
+                            styles.organisationTreeLine
+                          }
+                        />
 
-                <span
-                  style={
-                    styles.organisationUnitType
-                  }
-                >
-                  {organisationUnitTypeLabel(
-                    unit.unit_type
+                        <div
+                          style={
+                            styles.organisationTreeCard
+                          }
+                        >
+                          <div
+                            style={
+                              styles.organisationUnitTop
+                            }
+                          >
+                            <strong
+                              style={
+                                styles.organisationUnitName
+                              }
+                            >
+                              {childUnit.name}
+                            </strong>
+
+                            <span
+                              style={
+                                styles.organisationUnitType
+                              }
+                            >
+                              {organisationUnitTypeLabel(
+                                childUnit.unit_type
+                              )}
+                            </span>
+                          </div>
+
+                          <div
+                            style={
+                              styles.organisationUnitMeta
+                            }
+                          >
+                            <span>
+                              Reports into
+                            </span>
+
+                            <strong>
+                              {organisationUnitParentName(
+                                childUnit
+                              )}
+                            </strong>
+                          </div>
+
+                          <div
+                            style={
+                              styles.organisationUnitStatus
+                            }
+                          >
+                            {childUnit.active
+                              ? "● Active"
+                              : "○ Inactive"}
+                          </div>
+                        </div>
+                      </div>
+                    )
                   )}
-                </span>
-              </div>
-
-              <div
-                style={
-                  styles.organisationUnitMeta
-                }
-              >
-                <span>
-                  Reports into
-                </span>
-
-                <strong>
-                  {organisationUnitParentName(
-                    unit
-                  )}
-                </strong>
-              </div>
-
-              <div
-                style={
-                  styles.organisationUnitStatus
-                }
-              >
-                {unit.active
-                  ? "● Active"
-                  : "○ Inactive"}
-              </div>
+                </div>
+              )}
             </div>
-          )
-        )}
-      </div>
-    )}
+          );
+        })}
+    </div>
+  </div>
+)}
   </section>
 )} 
 <RootModal
@@ -5487,6 +5594,105 @@ organisationStructureEmpty: {
   gap: "7px",
   color: "#5A554D",
   lineHeight: "1.55",
+},
+
+organisationTree: {
+  marginTop: "22px",
+  padding: "24px",
+  borderRadius: "28px",
+  background:
+    "rgba(255,255,255,0.46)",
+  border:
+    "1px solid rgba(255,255,255,0.62)",
+},
+
+organisationRootNode: {
+  display: "flex",
+  alignItems: "center",
+  gap: "14px",
+  padding: "18px 20px",
+  borderRadius: "22px",
+  background:
+    "rgba(24,24,24,0.96)",
+  color: "#FFFFFF",
+  boxShadow:
+    "0 16px 34px rgba(24,24,24,0.12)",
+},
+
+organisationRootIcon: {
+  width: "42px",
+  height: "42px",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "14px",
+  background:
+    "rgba(255,255,255,0.12)",
+  fontSize: "20px",
+},
+
+organisationRootName: {
+  display: "block",
+  fontSize: "17px",
+  fontWeight: "900",
+},
+
+organisationRootMeta: {
+  display: "block",
+  marginTop: "3px",
+  fontSize: "12px",
+  opacity: 0.72,
+},
+
+organisationTreeChildren: {
+  position: "relative",
+  marginTop: "18px",
+  marginLeft: "22px",
+  paddingLeft: "26px",
+  borderLeft:
+    "1px solid rgba(24,24,24,0.12)",
+},
+
+organisationTreeBranch: {
+  position: "relative",
+  marginBottom: "16px",
+},
+
+organisationTreeNode: {
+  position: "relative",
+  display: "flex",
+  alignItems: "stretch",
+},
+
+organisationTreeLine: {
+  position: "absolute",
+  left: "-26px",
+  top: "28px",
+  width: "26px",
+  height: "1px",
+  background:
+    "rgba(24,24,24,0.12)",
+},
+
+organisationTreeCard: {
+  flex: 1,
+  padding: "18px 20px",
+  borderRadius: "22px",
+  background:
+    "rgba(255,255,255,0.82)",
+  border:
+    "1px solid rgba(24,24,24,0.08)",
+  boxShadow:
+    "0 12px 30px rgba(24,24,24,0.06)",
+},
+
+organisationNestedChildren: {
+  marginTop: "10px",
+  marginLeft: "28px",
+  paddingLeft: "24px",
+  display: "grid",
+  gap: "10px",
+  borderLeft:
+    "1px solid rgba(24,24,24,0.10)",
 },
 
 organisationUnitGrid: {
