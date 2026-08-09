@@ -540,6 +540,8 @@ export async function POST(request) {
   message,
   conversation,
   organisation,
+  organisationContext:
+    sharedOrganisationContext,
   members,
   assessments,
   mindEntries,
