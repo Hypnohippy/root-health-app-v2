@@ -1287,6 +1287,83 @@ function organisationUnitParentName(
     );
   }
 
+  const parent =
+    organisationUnits.find(
+      (candidate) =>
+        candidate.id ===
+        unit.parent_unit_id
+    );
+
+  return (
+    parent?.name ||
+    organisation?.name ||
+    "Whole organisation"
+  );
+}
+
+function toggleOrganisationUnit(unitId) {
+  setExpandedOrganisationUnits(
+    (current) => ({
+      ...current,
+      [unitId]:
+        !current[unitId],
+    })
+  );
+}
+
+function openOrganisationUnitDetails(unit) {
+  setSelectedOrganisationUnit(
+    unit || null
+  );
+}
+
+function closeOrganisationUnitDetails() {
+  setSelectedOrganisationUnit(null);
+}
+
+function organisationUnitEmployees(unitId) {
+  return members.filter(
+    (member) =>
+      member?.role === "employee" &&
+      member?.organisation_unit_id ===
+        unitId
+  );
+}
+
+function organisationUnitHR(unitId) {
+  return members.filter(
+    (member) =>
+      member?.role === "hr_admin" &&
+      member?.organisation_unit_id ===
+        unitId
+  );
+}
+
+function organisationUnitChildren(unitId) {
+  return organisationUnits.filter(
+    (unit) =>
+      unit.parent_unit_id === unitId
+  );
+}
+
+function addChildOrganisationUnit(unitId) {
+  setSelectedOrganisationUnit(null);
+
+  setNewOrganisationUnitName("");
+
+  setNewOrganisationUnitType(
+    "department"
+  );
+
+  setNewOrganisationUnitParentId(
+    unitId
+  );
+
+  setOrganisationUnitError("");
+
+  setShowOrganisationUnitModal(true);
+}
+
   function toggleOrganisationUnit(unitId) {
   setExpandedOrganisationUnits(
     (current) => ({
@@ -2835,9 +2912,11 @@ Root Health`
         HR responsibility while keeping
         personal wellbeing information
         private.
-      </p>
+            </p>
     </div>
   )}
+</RootModal>
+
 <RootModal
   isOpen={showOrganisationUnitModal}
   onClose={closeOrganisationUnitModal}
