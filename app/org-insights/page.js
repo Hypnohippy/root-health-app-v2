@@ -1364,6 +1364,91 @@ function addChildOrganisationUnit(unitId) {
   setShowOrganisationUnitModal(true);
 }
 
+function organisationUnitFirstImpression(unit) {
+  if (!unit?.id) {
+    return {
+      headline:
+        "Root is still getting to know this part of the organisation.",
+      detail:
+        "As the organisational picture develops, Root will build a clearer understanding of how this area fits into the wider organisation.",
+      tone: "developing",
+    };
+  }
+
+  const employeeCount =
+    organisationUnitEmployees(
+      unit.id
+    ).length;
+
+  const hrCount =
+    organisationUnitHR(
+      unit.id
+    ).length;
+
+  const childCount =
+    organisationUnitChildren(
+      unit.id
+    ).length;
+
+  if (
+    employeeCount > 0 &&
+    hrCount > 0
+  ) {
+    return {
+      headline:
+        `${unit.name} is connected and ready for Root to learn more.`,
+      detail:
+        `Root can currently see ${employeeCount} employee${
+          employeeCount === 1 ? "" : "s"
+        } connected with this area and direct HR responsibility is established. ${
+          childCount > 0
+            ? `${childCount} organisational unit${
+                childCount === 1
+                  ? " sits"
+                  : "s sit"
+              } beneath it.`
+            : "There are currently no recorded units beneath it."
+        } As anonymous evidence develops, Root can begin adding a deeper organisational picture.`,
+      tone: "established",
+    };
+  }
+
+  if (
+    employeeCount > 0 &&
+    hrCount === 0
+  ) {
+    return {
+      headline:
+        `${unit.name} is taking shape, with one connection still worth considering.`,
+      detail:
+        `Root can currently see ${employeeCount} employee${
+          employeeCount === 1 ? "" : "s"
+        } connected with this area, but no HR Administrator is assigned directly to it. This may be intentional if HR responsibility sits higher in the organisation.`,
+      tone: "consider",
+    };
+  }
+
+  if (
+    employeeCount === 0 &&
+    hrCount > 0
+  ) {
+    return {
+      headline:
+        `${unit.name} has HR support in place while its people picture develops.`,
+      detail:
+        "Direct HR responsibility is recorded, but Root cannot currently see employees connected with this unit. As people join this part of the structure, the picture will become more useful.",
+      tone: "developing",
+    };
+  }
+
+  return {
+    headline:
+      `${unit.name} has its place in the organisation. Now Root can begin filling in the picture.`,
+    detail:
+      "The structure is recorded, but Root cannot yet see employees or direct HR responsibility connected with this unit. That is not a problem — it simply means the picture is still developing.",
+    tone: "developing",
+  };
+}
 
 const activeHRCount = hrNetwork.filter(
   (member) => {
@@ -2644,6 +2729,73 @@ return (
         }
       >
         <div
+
+              {(() => {
+        const firstImpression =
+          organisationUnitFirstImpression(
+            selectedOrganisationUnit
+          );
+
+        return (
+          <div
+            style={
+              styles.rootFirstImpression
+            }
+          >
+            <div
+              style={
+                styles.rootFirstImpressionTop
+              }
+            >
+              <div
+                style={
+                  styles.rootFirstImpressionLeaf
+                }
+              >
+                🍃
+              </div>
+
+              <span
+                style={
+                  styles.rootFirstImpressionLabel
+                }
+              >
+                Root&apos;s First Impression
+              </span>
+            </div>
+
+            <strong
+              style={
+                styles.rootFirstImpressionHeadline
+              }
+            >
+              {firstImpression.headline}
+            </strong>
+
+            <p
+              style={
+                styles.rootFirstImpressionText
+              }
+            >
+              {firstImpression.detail}
+            </p>
+
+            <div
+              style={
+                styles.rootFirstImpressionFooter
+              }
+            >
+              <span>
+                Current evidence
+              </span>
+
+              <strong>
+                Structural picture
+              </strong>
+            </div>
+          </div>
+        );
+      })()}
           style={
             styles.organisationUnitDetailStat
           }
@@ -6215,6 +6367,76 @@ organisationUnitDetailParent: {
   marginTop: "7px",
   color: "#696158",
   fontSize: "13px",
+},
+
+rootFirstImpression: {
+  position: "relative",
+  overflow: "hidden",
+  padding: "24px 26px",
+  borderRadius: "26px",
+  background:
+    "linear-gradient(145deg, rgba(235,242,228,0.96), rgba(248,246,237,0.92))",
+  border:
+    "1px solid rgba(83,105,72,0.13)",
+  boxShadow:
+    "0 18px 42px rgba(53,69,46,0.07)",
+},
+
+rootFirstImpressionTop: {
+  display: "flex",
+  alignItems: "center",
+  gap: "9px",
+  marginBottom: "13px",
+},
+
+rootFirstImpressionLeaf: {
+  width: "30px",
+  height: "30px",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "999px",
+  background:
+    "rgba(78,102,67,0.09)",
+  fontSize: "15px",
+},
+
+rootFirstImpressionLabel: {
+  color: "#60705A",
+  fontSize: "11px",
+  fontWeight: "900",
+  letterSpacing: "0.13em",
+  textTransform: "uppercase",
+},
+
+rootFirstImpressionHeadline: {
+  display: "block",
+  maxWidth: "720px",
+  color: "#242A21",
+  fontSize: "21px",
+  lineHeight: "1.35",
+  fontFamily: "Georgia, serif",
+},
+
+rootFirstImpressionText: {
+  maxWidth: "760px",
+  margin:
+    "12px 0 0",
+  color: "#656A5F",
+  fontSize: "14px",
+  lineHeight: "1.7",
+},
+
+rootFirstImpressionFooter: {
+  marginTop: "18px",
+  paddingTop: "13px",
+  borderTop:
+    "1px solid rgba(83,105,72,0.10)",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "12px",
+  color: "#74796F",
+  fontSize: "11px",
 },
 
 organisationUnitDetailGrid: {
