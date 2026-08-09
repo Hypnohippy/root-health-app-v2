@@ -1890,45 +1890,26 @@ Root Health`
   }
 }
   async function transferOrganisationAdmin() {
-  const eligibleHRAdmins = members.filter(
+  setTransferAdminError("");
+
+  const selectedMember = members.find(
     (member) =>
+      member?.id ===
+        transferAdminMembershipId &&
       member?.role === "hr_admin" &&
       member?.user_id
   );
 
-  if (eligibleHRAdmins.length === 0) {
-    alert(
-      "There are no active HR Administrators available to receive Organisation Admin permission."
+  if (!selectedMember) {
+    setTransferAdminError(
+      "Please choose an active HR Administrator."
     );
     return;
   }
 
-  const options = eligibleHRAdmins
-    .map(
-      (member, index) =>
-        `${index + 1}. ${
-          member.name ||
-          member.email ||
-          "HR Administrator"
-        }`
-    )
-    .join("\n");
-
-  const selection = window.prompt(
-    `Who should become the new Organisation Admin?\n\n${options}\n\nEnter the number beside their name:`
-  );
-
-  if (!selection) return;
-
-  const selectedIndex =
-    Number(selection.trim()) - 1;
-
-  const selectedMember =
-    eligibleHRAdmins[selectedIndex];
-
-  if (!selectedMember) {
-    alert(
-      "That selection was not recognised. Please try again."
+  if (!transferAdminPassword) {
+    setTransferAdminError(
+      "Please enter your current Root password."
     );
     return;
   }
@@ -1937,18 +1918,6 @@ Root Health`
     selectedMember.name ||
     selectedMember.email ||
     "this HR Administrator";
-
-  const confirmed = window.confirm(
-    `${selectedName} will become the Organisation Admin.\n\nYou will become an HR Administrator and will keep access to the Workplace platform.\n\nDo you wish to continue?`
-  );
-
-  if (!confirmed) return;
-
-  const password = window.prompt(
-    "For security, enter your current Root password to confirm the transfer:"
-  );
-
-  if (!password) return;
 
   setTransferringAdmin(true);
 
@@ -1959,7 +1928,7 @@ Root Health`
     } = await supabase.auth.getUser();
 
     if (userError || !user?.email) {
-      alert(
+      setTransferAdminError(
         "Root could not verify your signed-in account. Please sign in again."
       );
       return;
@@ -1969,11 +1938,11 @@ Root Health`
       error: passwordError,
     } = await supabase.auth.signInWithPassword({
       email: user.email,
-      password,
+      password: transferAdminPassword,
     });
 
     if (passwordError) {
-      alert(
+      setTransferAdminError(
         "The password was incorrect. Organisation Admin permission was not transferred."
       );
       return;
@@ -1991,7 +1960,7 @@ Root Health`
     );
 
     if (transferError) {
-      alert(
+      setTransferAdminError(
         transferError.message ||
           "Root could not transfer Organisation Admin permission."
       );
@@ -1999,11 +1968,16 @@ Root Health`
     }
 
     if (!data?.success) {
-      alert(
+      setTransferAdminError(
         "Root could not confirm that the transfer completed."
       );
       return;
     }
+
+    setShowTransferAdminModal(false);
+    setTransferAdminMembershipId("");
+    setTransferAdminPassword("");
+    setTransferAdminError("");
 
     alert(
       `${selectedName} is now the Organisation Admin. You remain connected as an HR Administrator.`
@@ -2649,7 +2623,7 @@ Root Health`
       ? "Transferring..."
       : "Transfer Admin"
   }
-  onPrimary={() => {}}
+  onPrimary={transferOrganisationAdmin}
   primaryDisabled={
     transferringAdmin ||
     !transferAdminMembershipId ||
