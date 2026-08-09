@@ -495,6 +495,176 @@ function buildOrganisationContext({
 
   return contextLines.join("\n");
 }
+function summariseSharedOrganisationContext(
+  context
+) {
+  if (!context) {
+    return [
+      "No live organisation structure was supplied.",
+      "Do not infer regions, departments, sites, teams or HR responsibilities that are not present elsewhere in the supplied evidence.",
+    ].join("\n");
+  }
+
+  const structure =
+    context?.structure || {};
+
+  const people =
+    context?.people || {};
+
+  const responsibilities =
+    context?.responsibilities || {};
+
+  const unitSummaries =
+    safeArray(
+      structure.unitSummaries
+    );
+
+  const lines = [
+    `Recorded organisation units: ${
+      Number(structure.unitCount) || 0
+    }.`,
+
+    `Recorded employees: ${
+      Number(people.employeeCount) || 0
+    }.`,
+
+    `Activated employees: ${
+      Number(
+        people.activatedEmployeeCount
+      ) || 0
+    }.`,
+
+    `Employees with completed baselines: ${
+      Number(
+        people.baselineCompletedCount
+      ) || 0
+    }.`,
+
+    `Recorded employee participation rate: ${
+      Number.isFinite(
+        Number(people.participationRate)
+      )
+        ? `${Number(
+            people.participationRate
+          )}%`
+        : "not available"
+    }.`,
+
+    `Recorded HR administrators: ${
+      safeArray(
+        people.hrAdmins
+      ).length
+    }.`,
+
+    `Recorded organisation administrators: ${
+      safeArray(
+        people.organisationAdmins
+      ).length
+    }.`,
+  ];
+
+  if (unitSummaries.length > 0) {
+    lines.push(
+      "",
+      "LIVE ORGANISATION UNITS"
+    );
+
+    unitSummaries.forEach(
+      (unit) => {
+        const path =
+          safeArray(unit.path)
+            .map((item) =>
+              safeText(
+                item?.name,
+                ""
+              )
+            )
+            .filter(Boolean)
+            .join(" → ") ||
+          safeText(
+            unit.name,
+            "Unnamed unit"
+          );
+
+        lines.push(
+          [
+            `Unit: ${path}`,
+            `type: ${safeText(
+              unit.unit_type,
+              "not recorded"
+            )}`,
+            `employees: ${
+              Number(
+                unit.employee_count
+              ) || 0
+            }`,
+            `activated employees: ${
+              Number(
+                unit.activated_employee_count
+              ) || 0
+            }`,
+            `completed baselines: ${
+              Number(
+                unit.baseline_completed_count
+              ) || 0
+            }`,
+            `participation: ${
+              Number.isFinite(
+                Number(
+                  unit.participation_rate
+                )
+              )
+                ? `${Number(
+                    unit.participation_rate
+                  )}%`
+                : "not available"
+            }`,
+            `HR users: ${
+              Number(
+                unit.hr_user_count
+              ) || 0
+            }`,
+          ].join("; ")
+        );
+      }
+    );
+  }
+
+  const hrResponsibilities =
+    safeArray(
+      responsibilities.hr
+    );
+
+  if (
+    hrResponsibilities.length > 0
+  ) {
+    lines.push(
+      "",
+      "HR RESPONSIBILITY COVERAGE"
+    );
+
+    hrResponsibilities.forEach(
+      (responsibility) => {
+        lines.push(
+          `- ${safeText(
+            responsibility
+              ?.responsibility_label,
+            "Whole organisation"
+          )}`
+        );
+      }
+    );
+  }
+
+  lines.push(
+    "",
+    "PRIVACY RULE",
+    "This structure may be used to understand organisational hierarchy, participation and HR coverage.",
+    "Do not identify individual employees or expose names, email addresses, profile keys, membership IDs or user IDs."
+  );
+
+  return lines.join("\n");
+}
 
 function normaliseConversation(conversation = []) {
   return safeArray(conversation)
