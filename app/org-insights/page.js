@@ -952,6 +952,9 @@ const [
 const [organisationUnitError, setOrganisationUnitError] =
   useState("");
 
+const [expandedOrganisationUnits, setExpandedOrganisationUnits] =
+  useState({});
+
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -1280,6 +1283,16 @@ function organisationUnitParentName(
       "Whole organisation"
     );
   }
+
+  function toggleOrganisationUnit(unitId) {
+  setExpandedOrganisationUnits(
+    (current) => ({
+      ...current,
+      [unitId]:
+        !current[unitId],
+    })
+  );
+}
 
   const parent =
     organisationUnits.find(
@@ -2300,7 +2313,22 @@ Root Health`
               <div style={styles.organisationTreeNode}>
                 <div style={styles.organisationTreeLine} />
 
-                <div style={styles.organisationTreeCard}>
+                <div
+              style={{
+                 ...styles.organisationTreeCard,
+                  cursor:
+                   childUnits.length > 0
+                     ? "pointer"
+                  : "default",
+              }}
+  onClick={() => {
+    if (childUnits.length > 0) {
+      toggleOrganisationUnit(
+        unit.id
+      );
+    }
+  }}
+>
                   <div style={styles.organisationUnitTop}>
                     <strong
                       style={
@@ -2319,6 +2347,20 @@ Root Health`
                         unit.unit_type
                       )}
                     </span>
+
+                    {childUnits.length > 0 && (
+                  <span
+                    style={
+                       styles.organisationExpandHint
+                  }
+                   >
+                 {expandedOrganisationUnits[
+                   unit.id
+                 ]
+                   ? "−"
+                  : "+"}
+                      </span>
+                      )}
                   </div>
 
                   <div
@@ -2349,7 +2391,10 @@ Root Health`
                 </div>
               </div>
 
-              {childUnits.length > 0 && (
+              {childUnits.length > 0 &&
+             expandedOrganisationUnits[
+               unit.id
+             ] && (
                 <div
                   style={
                     styles.organisationNestedChildren
@@ -5736,6 +5781,21 @@ organisationUnitType: {
   fontSize: "10px",
   fontWeight: "800",
   whiteSpace: "nowrap",
+},
+
+organisationExpandHint: {
+  width: "24px",
+  height: "24px",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "50%",
+  background:
+    "rgba(24,24,24,0.055)",
+  color: "#514A40",
+  fontSize: "16px",
+  fontWeight: "700",
+  lineHeight: "1",
+  flex: "0 0 auto",
 },
 
 organisationUnitMeta: {
