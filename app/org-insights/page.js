@@ -2631,8 +2631,128 @@ Root Health`
     </div>
   ) : null}
 </RootModal>
+
+<RootModal
+  isOpen={showTransferAdminModal}
+  onClose={() => {
+    if (transferringAdmin) return;
+
+    setShowTransferAdminModal(false);
+    setTransferAdminMembershipId("");
+    setTransferAdminPassword("");
+    setTransferAdminError("");
+  }}
+  title="Transfer Organisation Admin"
+  eyebrow="Root Workplace"
+  primaryLabel={
+    transferringAdmin
+      ? "Transferring..."
+      : "Transfer Admin"
+  }
+  onPrimary={() => {}}
+  primaryDisabled={
+    transferringAdmin ||
+    !transferAdminMembershipId ||
+    !transferAdminPassword
+  }
+>
+  <div style={styles.modalOrganisationContext}>
+    <span style={styles.modalContextLabel}>
+      Organisation
+    </span>
+
+    <strong style={styles.modalContextValue}>
+      {organisation?.name ||
+        "Your organisation"}
+    </strong>
+
+    <span style={styles.modalContextHint}>
+      Transfer whole-organisation control to another active HR Administrator.
+    </span>
+  </div>
+
+  <label style={styles.modalField}>
+    <span style={styles.modalFieldLabel}>
+      New Organisation Admin
+    </span>
+
+    <select
+      style={styles.modalInput}
+      value={transferAdminMembershipId}
+      onChange={(event) => {
+        setTransferAdminMembershipId(
+          event.target.value
+        );
+
+        if (transferAdminError) {
+          setTransferAdminError("");
+        }
+      }}
+    >
+      <option value="">
+        Select an HR Administrator
+      </option>
+
+      {members
+        .filter(
+          (member) =>
+            member?.role === "hr_admin" &&
+            member?.user_id
+        )
+        .map((member) => (
+          <option
+            key={member.id}
+            value={member.id}
+          >
+            {member.name ||
+              member.email ||
+              "HR Administrator"}
+          </option>
+        ))}
+    </select>
+  </label>
+
+  <label style={styles.modalField}>
+    <span style={styles.modalFieldLabel}>
+      Confirm with your Root password
+    </span>
+
+    <input
+      type="password"
+      style={styles.modalInput}
+      value={transferAdminPassword}
+      onChange={(event) => {
+        setTransferAdminPassword(
+          event.target.value
+        );
+
+        if (transferAdminError) {
+          setTransferAdminError("");
+        }
+      }}
+      placeholder="Enter your current Root password"
+    />
+  </label>
+
+  <div style={styles.modalExplanation}>
+    <strong>
+      What happens next
+    </strong>
+
+    <span>
+      The selected HR Administrator will become the Organisation Admin.
+      You will remain connected as an HR Administrator and keep Workplace access.
+    </span>
+  </div>
+
+  {transferAdminError ? (
+    <div style={styles.modalError}>
+      {transferAdminError}
+    </div>
+  ) : null}
+</RootModal>
                
-                <section style={styles.controlCentre}>
+  <section style={styles.controlCentre}>
 
   <div style={styles.controlHeader}>
     <div>
