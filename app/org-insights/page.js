@@ -893,6 +893,8 @@ export default function OrgInsightsPage() {
   const [voiceSessions, setVoiceSessions] = useState([]);
   const [organisationReviews, setOrganisationReviews] = useState([]);
   const [showInvite, setShowInvite] = useState(false);
+  const [joinLinkCopied, setJoinLinkCopied] =
+  useState(false);
   const [creatingHRInvite, setCreatingHRInvite] =
   useState(false);
   const [showHRInviteModal, setShowHRInviteModal] =
@@ -1979,9 +1981,7 @@ Root Health`
     setTransferAdminPassword("");
     setTransferAdminError("");
 
-    alert(
-      `${selectedName} is now the Organisation Admin. You remain connected as an HR Administrator.`
-    );
+    
 
     window.location.reload();
   } finally {
@@ -2792,33 +2792,36 @@ Root Health`
 )}
 
   <button
-    type="button"
-    style={styles.controlButton}
-    onClick={async () => {
-  const joinLink =
-    `${window.location.origin}/organisation/join`;
+  type="button"
+  style={styles.controlButton}
+  onClick={async () => {
+    const joinLink =
+      `${window.location.origin}/organisation/join`;
 
-  try {
-    await navigator.clipboard.writeText(joinLink);
+    try {
+      await navigator.clipboard.writeText(
+        joinLink
+      );
 
-    alert(
-      `Employee join link copied:\n\n${joinLink}`
-    );
-  } catch (error) {
-    console.error(
-      "Could not copy employee join link:",
-      error
-    );
+      setJoinLinkCopied(true);
 
-    window.prompt(
-      "Copy this employee join link:",
-      joinLink
-    );
-  }
-}}
-  >
-    📋 Copy Join Link
-  </button>
+      window.setTimeout(() => {
+        setJoinLinkCopied(false);
+      }, 2500);
+    } catch (error) {
+      console.error(
+        "Could not copy employee join link:",
+        error
+      );
+
+      setShowInvite(true);
+    }
+  }}
+>
+  {joinLinkCopied
+    ? "✅ Join Link Copied"
+    : "📋 Copy Join Link"}
+</button>
 
   <button
   type="button"
