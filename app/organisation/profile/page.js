@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
 function makeProfileKey() {
@@ -16,8 +16,54 @@ export default function OrganisationProfilePage() {
   const [email, setEmail] = useState("");
   const [age, setAge] = useState("");
   const [department, setDepartment] = useState("");
+  const [organisationUnits, setOrganisationUnits] =
+  useState([]);
+  const [organisationUnitId, setOrganisationUnitId] =
+  useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+  loadOrganisationUnits();
+}, []);
+
+async function loadOrganisationUnits() {
+  const organisation = JSON.parse(
+    localStorage.getItem("root_organisation_v1") || "{}"
+  );
+
+  if (!organisation.organisation_id) {
+    return;
+  }
+
+  const {
+    data,
+    error: unitError,
+  } = await supabase
+    .from("organisation_units")
+    .select(
+      "id, name, unit_type, parent_unit_id, active"
+    )
+    .eq(
+      "organisation_id",
+      organisation.organisation_id
+    )
+    .eq("active", true)
+    .order("name", {
+      ascending: true,
+    });
+
+  if (unitError) {
+    console.error(
+      "Could not load organisational units:",
+      unitError
+    );
+    return;
+  }
+
+  setOrganisationUnits(
+    Array.isArray(data) ? data : []
+  );
+}
 
 async function saveProfile() {
   setSaving(true);
@@ -137,13 +183,58 @@ age: age.trim(),
           placeholder="e.g. 61"
         />
 
-        <label style={styles.label}>Department (optional)</label>
-        <input
-          style={styles.input}
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-          placeholder="e.g. HR, Finance, Operations"
-        />
+        <label style={styles.label}>
+  Where do you work? (optional)
+</label>
+
+{organisationUnits.length > 0 ? (
+  <select
+    style={styles.input}
+    value={organisationUnitId}
+    onChange={(e) => {
+      const selectedId =
+        e.target.value;
+
+      setOrganisationUnitId(
+        selectedId
+      );
+
+      const selectedUnit =
+        organisationUnits.find(
+          (unit) =>
+            unit.id === selectedId
+        );
+
+      setDepartment(
+        selectedUnit?.name || ""
+      );
+    }}
+  >
+    <option value="">
+      Select your area
+    </option>
+
+    {organisationUnits.map(
+      (unit) => (
+        <option
+          key={unit.id}
+          value={unit.id}
+        >
+          {unit.name}
+        </option>
+      )
+    )}
+  </select>
+) : (
+  <input
+    style={styles.input}
+    value={department}
+    onChange={(e) =>
+      setDepartment(e.target.value)
+    }
+    placeholder="e.g. HR, Finance, Operations"
+  />
+)}
 
         {error ? <p style={styles.error}>{error}</p> : null}
 
