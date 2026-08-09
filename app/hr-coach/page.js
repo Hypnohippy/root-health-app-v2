@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
+import { buildOrganisationContext } from "../../lib/rootOrganisationContext";
 
 const conversationStarters = {
   findings: {
@@ -146,6 +147,7 @@ export default function HRCoachPage() {
   const [journalEntries, setJournalEntries] = useState([]);
   const [voiceSessions, setVoiceSessions] = useState([]);
   const [organisationReviews, setOrganisationReviews] = useState([]);
+  const [organisationContext, setOrganisationContext] = useState(null);
   const [evidenceStatus, setEvidenceStatus] = useState(null);
   const [voiceStatus, setVoiceStatus] = useState("idle");
   const [voiceError, setVoiceError] = useState("");
@@ -192,6 +194,23 @@ export default function HRCoachPage() {
 
     const membership = access.membership;
     const orgId = membership.organisation_id;
+
+    try {
+  const context =
+    await buildOrganisationContext({
+      supabase,
+      organisationId: orgId,
+    });
+
+  setOrganisationContext(context);
+} catch (contextError) {
+  console.error(
+    "ROOT ORGANISATION CONTEXT ERROR:",
+    contextError
+  );
+
+  setOrganisationContext(null);
+}
 
     localStorage.setItem(
       "root_hr_org_v1",
