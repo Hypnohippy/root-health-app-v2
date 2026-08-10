@@ -10,6 +10,10 @@ import {
   buildRootContext,
 } from "../../../lib/rootContextEngine";
 
+import {
+  buildVerifiedRootContext,
+} from "../../../lib/rootContextSourceEngine";
+
 export const runtime = "nodejs";
 
 function safeArray(value) {
@@ -1891,8 +1895,9 @@ Help the leader understand what the evidence supports and what it does not.
        return Response.json(
       {
         reply,
-        
-        rootContext,
+
+        rootContext:
+          verifiedRootContext,
 
         safeguardingMode:
           safeguardingLanguageDetected,
@@ -1949,6 +1954,23 @@ Help the leader understand what the evidence supports and what it does not.
       },
       { status: 200 }
     );
+    const verifiedRootContext =
+  rootContext?.show === true
+    ? await buildVerifiedRootContext({
+        apiKey,
+
+        userMessage:
+          cleanMessage,
+
+        assistantAnswer:
+          reply,
+
+        rootContext,
+
+        jurisdiction:
+          "United Kingdom",
+      })
+    : null;
   } catch (error) {
     console.error("ORGANISATION COACH ERROR:", error);
 
