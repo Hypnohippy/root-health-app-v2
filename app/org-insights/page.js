@@ -1733,6 +1733,204 @@ if (
 
 const dashboardBrief =
   dashboardBriefItems.slice(0, 3);
+  const dynamicActionItems = [];
+
+const latestOrganisationReviewDate =
+  organisationLearning?.latestReview?.created_at
+    ? new Date(
+        organisationLearning.latestReview.created_at
+      )
+    : null;
+
+const organisationReviewAgeDays =
+  latestOrganisationReviewDate &&
+  !Number.isNaN(
+    latestOrganisationReviewDate.getTime()
+  )
+    ? Math.floor(
+        (Date.now() -
+          latestOrganisationReviewDate.getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : null;
+
+/*
+  1. Participation
+
+  Root prioritises establishing enough
+  anonymous evidence before stronger
+  organisation-level conclusions are made.
+*/
+
+if (baselineCompleted < 5) {
+  dynamicActionItems.push({
+    priority: 100,
+    tone: "attention",
+    icon: "◒",
+    eyebrow: "Build the evidence",
+    title:
+      baselineCompleted === 0
+        ? "Start the organisation baseline"
+        : "Strengthen workforce participation",
+    detail:
+      baselineCompleted === 0
+        ? "No employee baseline has been completed yet. Inviting employees is the most useful next step because Root needs a starting position before it can build a reliable organisation picture."
+        : `${baselineCompleted} employee baseline${
+            baselineCompleted === 1
+              ? " is"
+              : "s are"
+          } currently contributing to the organisation picture. Reaching broader participation will strengthen the evidence available to HR and leadership.`,
+    actionLabel:
+      "Invite employees →",
+    action:
+      "invite-employees",
+  });
+}
+
+/*
+  2. Organisation Learning
+
+  Business context helps Root interpret
+  anonymous workforce evidence without
+  assuming causation.
+*/
+
+if (!organisationLearning?.latestReview) {
+  dynamicActionItems.push({
+    priority: 95,
+    tone: "information",
+    icon: "↗",
+    eyebrow: "Add business context",
+    title:
+      "Teach Root about the organisation",
+    detail:
+      "Root has anonymous workforce evidence, but no completed Organisation Learning Review. Adding business measures, organisational events and current initiatives will make later interpretation more useful.",
+    actionLabel:
+      "Complete Organisation Learning →",
+    action:
+      "organisation-learning",
+  });
+} else if (
+  organisationReviewAgeDays !== null &&
+  organisationReviewAgeDays >= 14
+) {
+  dynamicActionItems.push({
+    priority: 80,
+    tone: "information",
+    icon: "↗",
+    eyebrow: "Refresh the picture",
+    title:
+      "Update Organisation Learning",
+    detail:
+      `The latest Organisation Learning Review was completed ${organisationReviewAgeDays} days ago. Updating the business measures and organisational context would give Root a more current picture to compare with workforce evidence.`,
+    actionLabel:
+      "Update organisation picture →",
+    action:
+      "organisation-learning",
+  });
+}
+
+/*
+  3. Current organisational priority
+*/
+
+if (
+  primaryConcern &&
+  primaryConcern !==
+    "No challenge data yet"
+) {
+  dynamicActionItems.push({
+    priority: 90,
+    tone: "watch",
+    icon: "◇",
+    eyebrow: "Current priority",
+    title:
+      `Review ${primaryConcern}`,
+    detail:
+      `${primaryConcern} is currently the strongest measured wellbeing area in Root's organisation picture. Review the evidence, confidence and recommended organisational response before deciding what action is proportionate.`,
+    actionLabel:
+      "View the evidence →",
+    action:
+      "executive-brief",
+  });
+}
+
+/*
+  4. Executive decision support
+*/
+
+if (
+  baselineCompleted > 0 &&
+  currentScore !== null
+) {
+  dynamicActionItems.push({
+    priority: 65,
+    tone: "positive",
+    icon: "✓",
+    eyebrow: "Leadership support",
+    title:
+      "Your Executive Review is ready",
+    detail:
+      `Root can turn the current organisation picture into a structured leadership review showing what is known, what remains uncertain, current priorities and recommended next actions.`,
+    actionLabel:
+      "Open Executive Review →",
+    action:
+      "executive-review",
+  });
+}
+
+/*
+  5. HR engagement
+
+  Organisation administration only.
+  Personal employee activity remains private.
+*/
+
+if (
+  currentMembership?.role ===
+    "organisation_admin" &&
+  hrNetwork.length > 0
+) {
+  const inactiveHRCount =
+    Math.max(
+      0,
+      hrNetwork.length -
+        activeHRCount
+    );
+
+  if (inactiveHRCount > 0) {
+    dynamicActionItems.push({
+      priority: 55,
+      tone: "information",
+      icon: "○",
+      eyebrow: "HR engagement",
+      title:
+        `${inactiveHRCount} HR user${
+          inactiveHRCount === 1
+            ? " may need"
+            : "s may need"
+        } reconnecting`,
+      detail:
+        `${inactiveHRCount} HR user${
+          inactiveHRCount === 1
+            ? " has"
+            : "s have"
+        } no recorded Workplace administration activity during the last 14 days. It may be worth checking whether they need support or access guidance.`,
+      actionLabel:
+        "View HR network →",
+      action:
+        "hr-network",
+    });
+  }
+}
+
+const dynamicActions =
+  dynamicActionItems
+    .sort(
+      (a, b) =>
+        b.priority - a.priority
+    )
+    .slice(0, 3);
    function organisationUnitTypeLabel(value) {
   const labels = {
     department: "Department",
@@ -3587,7 +3785,194 @@ return (
   into informed action.
 </p>
     </div>
+  {dynamicActions.length > 0 && (
+  <div
+    style={
+      styles.dynamicActionSection
+    }
+  >
+    <div
+      style={
+        styles.dynamicActionHeading
+      }
+    >
+      <div>
+        <span
+          style={
+            styles.dynamicActionKicker
+          }
+        >
+          Root recommends now
+        </span>
 
+        <strong
+          style={
+            styles.dynamicActionHeadingTitle
+          }
+        >
+          What deserves attention
+        </strong>
+      </div>
+
+      <span
+        style={
+          styles.dynamicActionCount
+        }
+      >
+        {dynamicActions.length} prioritised
+      </span>
+    </div>
+
+    <div
+      style={
+        styles.dynamicActionGrid
+      }
+    >
+      {dynamicActions.map(
+        (item) => (
+          <button
+            key={`${item.action}-${item.title}`}
+            type="button"
+            style={
+              styles.dynamicActionCard
+            }
+            onClick={() => {
+              if (
+                item.action ===
+                "invite-employees"
+              ) {
+                if (
+                  !trialStatus.canInviteEmployees
+                ) {
+                  window.location.href =
+                    "/organisations/pricing";
+
+                  return;
+                }
+
+                setShowInvite(true);
+
+                return;
+              }
+
+              if (
+                item.action ===
+                "organisation-learning"
+              ) {
+                window.location.href =
+                  trialStatus.canCreateOrganisationReviews
+                    ? "/organisation-learning"
+                    : "/organisations/pricing";
+
+                return;
+              }
+
+              if (
+                item.action ===
+                "executive-brief"
+              ) {
+                document
+                  .getElementById(
+                    "root-executive-brief"
+                  )
+                  ?.scrollIntoView({
+                    behavior:
+                      "smooth",
+                    block:
+                      "start",
+                  });
+
+                return;
+              }
+
+              if (
+                item.action ===
+                "executive-review"
+              ) {
+                window.open(
+                  "/executive-review?print=1",
+                  "_blank"
+                );
+
+                return;
+              }
+
+              if (
+                item.action ===
+                "hr-network"
+              ) {
+                document
+                  .getElementById(
+                    "hr-network"
+                  )
+                  ?.scrollIntoView({
+                    behavior:
+                      "smooth",
+                    block:
+                      "start",
+                  });
+              }
+            }}
+          >
+            <div
+              style={
+                styles.dynamicActionCardTop
+              }
+            >
+              <span
+                style={
+                  styles.dynamicActionIcon
+                }
+              >
+                {item.icon}
+              </span>
+
+              <span
+                style={
+                  styles.dynamicActionEyebrow
+                }
+              >
+                {item.eyebrow}
+              </span>
+            </div>
+
+            <strong
+              style={
+                styles.dynamicActionTitle
+              }
+            >
+              {item.title}
+            </strong>
+
+            <span
+              style={
+                styles.dynamicActionDetail
+              }
+            >
+              {item.detail}
+            </span>
+
+            <span
+              style={
+                styles.dynamicActionLink
+              }
+            >
+              {item.actionLabel}
+            </span>
+          </button>
+        )
+      )}
+    </div>
+
+    <div
+      style={
+        styles.everydayToolsLabel
+      }
+    >
+      Everyday tools
+    </div>
+  </div>
+)}
    <div style={styles.controlButtons}>
  <button
   type="button"
@@ -5858,6 +6243,142 @@ controlText: {
   marginTop: 8,
   opacity: 0.75,
   maxWidth: 520,
+},
+
+dynamicActionSection: {
+  width: "100%",
+  marginTop: "24px",
+},
+
+dynamicActionHeading: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent:
+    "space-between",
+  gap: "16px",
+  flexWrap: "wrap",
+  marginBottom: "14px",
+},
+
+dynamicActionKicker: {
+  display: "block",
+  marginBottom: "4px",
+  color: "#78806F",
+  fontSize: "10px",
+  fontWeight: "900",
+  textTransform:
+    "uppercase",
+  letterSpacing:
+    "0.14em",
+},
+
+dynamicActionHeadingTitle: {
+  display: "block",
+  color: "#252722",
+  fontSize: "16px",
+},
+
+dynamicActionCount: {
+  padding: "6px 10px",
+  borderRadius: "999px",
+  background:
+    "rgba(255,255,255,0.48)",
+  border:
+    "1px solid rgba(255,255,255,0.72)",
+  color: "#6B7165",
+  fontSize: "10px",
+  fontWeight: "800",
+},
+
+dynamicActionGrid: {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(240px, 1fr))",
+  gap: "12px",
+},
+
+dynamicActionCard: {
+  appearance: "none",
+  width: "100%",
+  minHeight: "210px",
+  padding: "20px",
+  borderRadius: "22px",
+  border:
+    "1px solid rgba(255,255,255,0.72)",
+  background:
+    "linear-gradient(145deg, rgba(255,255,255,0.62), rgba(244,246,239,0.44))",
+  boxShadow:
+    "0 14px 34px rgba(31,35,28,0.06)",
+  cursor: "pointer",
+  textAlign: "left",
+  display: "flex",
+  flexDirection: "column",
+  alignItems:
+    "flex-start",
+  color: "#272A25",
+},
+
+dynamicActionCardTop: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  marginBottom: "14px",
+},
+
+dynamicActionIcon: {
+  width: "28px",
+  height: "28px",
+  borderRadius: "999px",
+  display: "grid",
+  placeItems: "center",
+  background:
+    "rgba(111,128,101,0.10)",
+  color: "#66725F",
+  fontWeight: "900",
+},
+
+dynamicActionEyebrow: {
+  color: "#777D71",
+  fontSize: "10px",
+  fontWeight: "900",
+  textTransform:
+    "uppercase",
+  letterSpacing:
+    "0.11em",
+},
+
+dynamicActionTitle: {
+  marginBottom: "9px",
+  color: "#232620",
+  fontSize: "17px",
+  lineHeight: "1.3",
+},
+
+dynamicActionDetail: {
+  color: "#5B6157",
+  fontSize: "12px",
+  lineHeight: "1.6",
+  flex: 1,
+},
+
+dynamicActionLink: {
+  display: "block",
+  marginTop: "16px",
+  color: "#596B52",
+  fontSize: "11px",
+  fontWeight: "900",
+},
+
+everydayToolsLabel: {
+  margin:
+    "22px 0 10px",
+  color: "#777D71",
+  fontSize: "10px",
+  fontWeight: "900",
+  textTransform:
+    "uppercase",
+  letterSpacing:
+    "0.14em",
 },
 
 controlButtons: {
