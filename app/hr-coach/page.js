@@ -138,6 +138,211 @@ function formatInlineText(text, lineIndex) {
   });
 }
 
+function RootContextCard({ context }) {
+  if (!context?.show) {
+    return null;
+  }
+
+  const areas = Array.isArray(
+    context?.areas
+  )
+    ? context.areas
+    : [];
+
+  const questions = [
+    ...new Set(
+      areas.flatMap((area) =>
+        Array.isArray(
+          area?.reflectionQuestions
+        )
+          ? area.reflectionQuestions
+          : []
+      )
+    ),
+  ].slice(0, 5);
+
+  const humanBoundary =
+    context?.humanDecisionBoundary;
+
+  return (
+    <div style={styles.rootContextCard}>
+      <div
+        style={
+          styles.rootContextGlow
+        }
+      />
+
+      <div
+        style={
+          styles.rootContextHeader
+        }
+      >
+        <div
+          style={
+            styles.rootContextLeaf
+          }
+        >
+          🍃
+        </div>
+
+        <div>
+          <span
+            style={
+              styles.rootContextEyebrow
+            }
+          >
+            A little more context
+          </span>
+
+          <strong
+            style={
+              styles.rootContextTitle
+            }
+          >
+            Root noticed something
+            that may help
+          </strong>
+        </div>
+      </div>
+
+      <p
+        style={
+          styles.rootContextIntroduction
+        }
+      >
+        {context?.introduction ||
+          "There may be some additional context worth considering before you decide what to do next."}
+      </p>
+
+      {areas.length > 0 && (
+        <div
+          style={
+            styles.rootContextAreas
+          }
+        >
+          {areas.map((area) => (
+            <span
+              key={area.key}
+              style={
+                styles.rootContextArea
+              }
+            >
+              <span>
+                {area.icon || "🍃"}
+              </span>
+
+              <span>
+                {area.label}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <details
+        style={
+          styles.rootContextDetails
+        }
+      >
+        <summary
+          style={
+            styles.rootContextSummary
+          }
+        >
+          Why might this be worth
+          another look?
+        </summary>
+
+        <div
+          style={
+            styles.rootContextExpanded
+          }
+        >
+          {humanBoundary?.triggered &&
+            humanBoundary?.message && (
+              <div
+                style={
+                  styles.rootContextBoundary
+                }
+              >
+                <strong>
+                  The decision remains
+                  yours.
+                </strong>
+
+                <p>
+                  {
+                    humanBoundary.message
+                  }
+                </p>
+              </div>
+            )}
+
+          {questions.length > 0 && (
+            <div>
+              <span
+                style={
+                  styles.rootContextQuestionLabel
+                }
+              >
+                Questions worth
+                considering
+              </span>
+
+              <div
+                style={
+                  styles.rootContextQuestions
+                }
+              >
+                {questions.map(
+                  (question) => (
+                    <div
+                      key={question}
+                      style={
+                        styles.rootContextQuestion
+                      }
+                    >
+                      <span
+                        style={
+                          styles.rootContextQuestionDot
+                        }
+                      >
+                        •
+                      </span>
+
+                      <span>
+                        {question}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          <div
+            style={
+              styles.rootContextPromise
+            }
+          >
+            <strong>
+              Root strengthens the
+              foundation for your
+              decision.
+            </strong>
+
+            <span>
+              It does not make the
+              employment decision for
+              you.
+            </span>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
 export default function HRCoachPage() {
   const [loading, setLoading] = useState(true);
   const [organisation, setOrganisation] = useState(null);
@@ -360,15 +565,18 @@ export default function HRCoachPage() {
 }
 
     setConversation((current) => [
-      ...current,
-      {
-        id: `${Date.now()}-root`,
-        role: "assistant",
-        content:
-          data.reply ||
-          "Root could not produce a response.",
-      },
-    ]);
+  ...current,
+  {
+    id: `${Date.now()}-root`,
+    role: "assistant",
+    content:
+      data.reply ||
+      "Root could not produce a response.",
+
+    rootContext:
+      data?.rootContext || null,
+  },
+]);
     setIsThinking(false);
   } catch (error) {
     console.error(error);
@@ -472,13 +680,16 @@ async function requestOrganisationReply(spokenMessage) {
       "Root could not produce a response.";
 
     setConversation((current) => [
-      ...current,
-      {
-        id: `${Date.now()}-voice-root`,
-        role: "assistant",
-        content: rootReply,
-      },
-    ]);
+  ...current,
+  {
+    id: `${Date.now()}-voice-root`,
+    role: "assistant",
+    content: rootReply,
+
+    rootContext:
+      data?.rootContext || null,
+  },
+]);
 
     speakRootReply(rootReply);
   } catch (error) {
@@ -976,6 +1187,19 @@ function stopVoiceConversation() {
       <Nav />
 
       <main style={styles.page}>
+        <style>{`
+  @keyframes rootContextReveal {
+    from {
+      opacity: 0;
+      transform: translateY(7px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`}</style>
         <section style={styles.card}> 
           <div style={styles.topButtons}>
             <button
@@ -1310,43 +1534,79 @@ function stopVoiceConversation() {
                     </div>
                   ) : (
                     conversation.map((entry) => {
-                      const isUser = entry.role === "user";
+  const isUser =
+    entry.role === "user";
 
-                      return (
-                        <div
-                          key={entry.id}
-                          style={{
-                            ...styles.messageRow,
-                            justifyContent: isUser
-                              ? "flex-end"
-                              : "flex-start",
-                          }}
-                        >
-                          <div
-                            style={{
-                              ...styles.messageBubble,
-                              ...(isUser
-                                ? styles.userMessage
-                                : styles.rootMessage),
-                            }}
-                          >
-                            <span style={styles.messageAuthor}>
-                              {isUser ? "You" : "Root"}
-                            </span>
+  return (
+    <div
+      key={entry.id}
+      style={{
+        ...styles.messageRow,
+        justifyContent: isUser
+          ? "flex-end"
+          : "flex-start",
+      }}
+    >
+      <div
+        style={{
+          ...styles.messageStack,
+          alignItems: isUser
+            ? "flex-end"
+            : "flex-start",
+        }}
+      >
+        <div
+          style={{
+            ...styles.messageBubble,
+            ...(isUser
+              ? styles.userMessage
+              : styles.rootMessage),
+          }}
+        >
+          <span
+            style={
+              styles.messageAuthor
+            }
+          >
+            {isUser
+              ? "You"
+              : "Root"}
+          </span>
 
-                            {isUser ? (
-  <p style={styles.messageText}>
-    {entry.content}
-  </p>
-) : (
-  <div style={styles.rootResponse}>
-    {formatRootMessage(entry.content)}
-  </div>
-)}
-                          </div>
-                        </div>
-                      );
-                    })
+          {isUser ? (
+            <p
+              style={
+                styles.messageText
+              }
+            >
+              {entry.content}
+            </p>
+          ) : (
+            <div
+              style={
+                styles.rootResponse
+              }
+            >
+              {formatRootMessage(
+                entry.content
+              )}
+            </div>
+          )}
+        </div>
+
+        {!isUser &&
+          entry?.rootContext
+            ?.show === true && (
+            <RootContextCard
+              context={
+                entry.rootContext
+              }
+            />
+          )}
+      </div>
+    </div>
+  );
+})
                   )}
 
                   {isThinking && (
@@ -1707,6 +1967,185 @@ const styles = {
     display: "flex",
     marginBottom: "16px",
   },
+
+  messageStack: {
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+  gap: "9px",
+},
+
+rootContextCard: {
+  position: "relative",
+  overflow: "hidden",
+  width:
+    "min(620px, calc(100% - 10px))",
+  boxSizing: "border-box",
+  padding: "18px 20px",
+  borderRadius: "22px",
+  background:
+    "linear-gradient(145deg, rgba(248,246,236,0.98), rgba(235,243,230,0.96))",
+  border:
+    "1px solid rgba(94,116,83,0.16)",
+  boxShadow:
+    "0 14px 38px rgba(44,56,39,0.09)",
+  color: "#30372D",
+  animation:
+    "rootContextReveal 520ms ease-out",
+},
+
+rootContextGlow: {
+  position: "absolute",
+  width: "150px",
+  height: "150px",
+  right: "-70px",
+  top: "-78px",
+  borderRadius: "999px",
+  background:
+    "rgba(118,145,101,0.10)",
+  pointerEvents: "none",
+},
+
+rootContextHeader: {
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+  gap: "11px",
+},
+
+rootContextLeaf: {
+  width: "36px",
+  height: "36px",
+  flex: "0 0 auto",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "999px",
+  background:
+    "rgba(83,112,73,0.09)",
+  fontSize: "17px",
+},
+
+rootContextEyebrow: {
+  display: "block",
+  marginBottom: "2px",
+  color: "#74816E",
+  fontSize: "9px",
+  fontWeight: "900",
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+},
+
+rootContextTitle: {
+  display: "block",
+  color: "#30372D",
+  fontSize: "15px",
+  lineHeight: "1.35",
+},
+
+rootContextIntroduction: {
+  position: "relative",
+  margin: "12px 0 0",
+  color: "#62695D",
+  fontSize: "13px",
+  lineHeight: "1.65",
+},
+
+rootContextAreas: {
+  position: "relative",
+  marginTop: "13px",
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "7px",
+},
+
+rootContextArea: {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  padding: "7px 10px",
+  borderRadius: "999px",
+  background:
+    "rgba(255,255,255,0.56)",
+  border:
+    "1px solid rgba(82,105,73,0.10)",
+  color: "#566050",
+  fontSize: "11px",
+  fontWeight: "700",
+},
+
+rootContextDetails: {
+  position: "relative",
+  marginTop: "13px",
+  paddingTop: "11px",
+  borderTop:
+    "1px solid rgba(84,105,74,0.10)",
+},
+
+rootContextSummary: {
+  cursor: "pointer",
+  color: "#53634E",
+  fontSize: "12px",
+  fontWeight: "800",
+  listStyle: "none",
+},
+
+rootContextExpanded: {
+  paddingTop: "14px",
+  display: "grid",
+  gap: "15px",
+},
+
+rootContextBoundary: {
+  padding: "13px 15px",
+  borderRadius: "16px",
+  background:
+    "rgba(255,255,255,0.54)",
+  border:
+    "1px solid rgba(89,108,80,0.10)",
+  fontSize: "12px",
+  lineHeight: "1.6",
+},
+
+rootContextQuestionLabel: {
+  display: "block",
+  marginBottom: "9px",
+  color: "#5F6C59",
+  fontSize: "10px",
+  fontWeight: "900",
+  letterSpacing: "0.09em",
+  textTransform: "uppercase",
+},
+
+rootContextQuestions: {
+  display: "grid",
+  gap: "7px",
+},
+
+rootContextQuestion: {
+  display: "grid",
+  gridTemplateColumns:
+    "14px 1fr",
+  gap: "5px",
+  color: "#5D6259",
+  fontSize: "12px",
+  lineHeight: "1.55",
+},
+
+rootContextQuestionDot: {
+  color: "#758C69",
+  fontWeight: "900",
+},
+
+rootContextPromise: {
+  paddingTop: "12px",
+  borderTop:
+    "1px solid rgba(84,105,74,0.10)",
+  display: "grid",
+  gap: "3px",
+  color: "#677063",
+  fontSize: "11px",
+  lineHeight: "1.5",
+},
 
   messageBubble: {
     maxWidth: "78%",
