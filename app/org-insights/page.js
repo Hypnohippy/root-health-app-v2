@@ -2246,11 +2246,11 @@ return (
       </div>
 
       <div style={styles.hrSummaryItem}>
-        <span>Departments</span>
-        <strong>
-          {departmentNames.length}
+      <span>Organisational Units</span>
+      <strong>
+       {organisationUnits.length}
         </strong>
-      </div>
+         </div>
 
       <div style={styles.hrSummaryItem}>
         <span>Need engagement</span>
