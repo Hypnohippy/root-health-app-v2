@@ -14,6 +14,10 @@ import {
   buildVerifiedRootContext,
 } from "../../../lib/rootContextSourceEngine";
 
+import {
+  buildRootVerificationDecision,
+} from "../../../lib/rootVerificationEngine";
+
 export const runtime = "nodejs";
 
 function safeArray(value) {
@@ -1893,8 +1897,25 @@ Help the leader understand what the evidence supports and what it does not.
       sharedOrganisationContext,
   });
 
-  const verifiedRootContext =
-  rootContext?.show === true
+  const verificationDecision =
+  buildRootVerificationDecision({
+    userMessage:
+      cleanMessage,
+
+    assistantAnswer:
+      reply,
+
+    conversation:
+      normaliseConversation(
+        conversation
+      ),
+
+    rootContext,
+  });
+
+const verifiedRootContext =
+  verificationDecision
+    ?.shouldVerify === true
     ? await buildVerifiedRootContext({
         apiKey,
 
