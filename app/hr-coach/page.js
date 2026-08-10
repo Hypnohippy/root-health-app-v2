@@ -144,26 +144,11 @@ function RootContextCard({ context }) {
     return null;
   }
 
-  const areas = Array.isArray(
-    context?.areas
+  const sources = Array.isArray(
+    context?.sources
   )
-    ? context.areas
+    ? context.sources
     : [];
-
-  const questions = [
-    ...new Set(
-      areas.flatMap((area) =>
-        Array.isArray(
-          area?.reflectionQuestions
-        )
-          ? area.reflectionQuestions
-          : []
-      )
-    ),
-  ].slice(0, 5);
-
-  const humanBoundary =
-    context?.humanDecisionBoundary;
 
   return (
     <div style={styles.rootContextCard}>
@@ -192,7 +177,8 @@ function RootContextCard({ context }) {
               styles.rootContextEyebrow
             }
           >
-            A little more context
+            {context?.eyebrow ||
+              "Root checked something for you"}
           </span>
 
           <strong
@@ -200,151 +186,153 @@ function RootContextCard({ context }) {
               styles.rootContextTitle
             }
           >
-            Root noticed something
-            that may help
+            {context?.title ||
+              "One thing worth knowing"}
           </strong>
         </div>
       </div>
 
-      <p
-        style={
-          styles.rootContextIntroduction
-        }
-      >
-        {context?.introduction ||
-          "There may be some additional context worth considering before you decide what to do next."}
-      </p>
-
-      {areas.length > 0 && (
-        <div
+      {context?.summary && (
+        <p
           style={
-            styles.rootContextAreas
+            styles.rootContextIntroduction
           }
         >
-          {areas.map((area) => (
-            <span
-              key={area.key}
-              style={
-                styles.rootContextArea
-              }
-            >
-              <span>
-                {area.icon || "🍃"}
-              </span>
+          {context.summary}
+        </p>
+      )}
 
-              <span>
-                {area.label}
-              </span>
-            </span>
-          ))}
+      {context?.keyPoint && (
+        <div
+          style={
+            styles.rootContextKeyPoint
+          }
+        >
+          <span
+            style={
+              styles.rootContextQuestionLabel
+            }
+          >
+            Worth keeping in mind
+          </span>
+
+          <p
+            style={
+              styles.rootContextKeyPointText
+            }
+          >
+            {context.keyPoint}
+          </p>
         </div>
       )}
 
-      <details
-        style={
-          styles.rootContextDetails
-        }
-      >
-        <summary
-          style={
-            styles.rootContextSummary
-          }
-        >
-          Why might this be worth
-          another look?
-        </summary>
-
+      {context?.reassurance && (
         <div
           style={
-            styles.rootContextExpanded
+            styles.rootContextReassurance
           }
         >
-          {humanBoundary?.triggered &&
-            humanBoundary?.message && (
-              <div
-                style={
-                  styles.rootContextBoundary
-                }
-              >
-                <strong>
-                  The decision remains
-                  yours.
-                </strong>
+          {context.reassurance}
+        </div>
+      )}
 
-                <p>
-                  {
-                    humanBoundary.message
-                  }
-                </p>
-              </div>
-            )}
-
-          {questions.length > 0 && (
-            <div>
-              <span
-                style={
-                  styles.rootContextQuestionLabel
-                }
-              >
-                Questions worth
-                considering
-              </span>
-
-              <div
-                style={
-                  styles.rootContextQuestions
-                }
-              >
-                {questions.map(
-                  (question) => (
-                    <div
-                      key={question}
-                      style={
-                        styles.rootContextQuestion
-                      }
-                    >
-                      <span
-                        style={
-                          styles.rootContextQuestionDot
-                        }
-                      >
-                        •
-                      </span>
-
-                      <span>
-                        {question}
-                      </span>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-          )}
+      {sources.length > 0 && (
+        <div
+          style={
+            styles.rootContextSources
+          }
+        >
+          <span
+            style={
+              styles.rootContextQuestionLabel
+            }
+          >
+            Current official guidance
+          </span>
 
           <div
             style={
-              styles.rootContextPromise
+              styles.rootContextSourceList
             }
           >
-            <strong>
-              Root strengthens the
-              foundation for your
-              decision.
-            </strong>
+            {sources.map(
+              (source, index) => (
+                <a
+                  key={`${source.url}-${index}`}
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={
+                    styles.rootContextSource
+                  }
+                >
+                  <div>
+                    <strong
+                      style={
+                        styles.rootContextSourceTitle
+                      }
+                    >
+                      {source.title ||
+                        "Official guidance"}
+                    </strong>
 
-            <span>
-              It does not make the
-              employment decision for
-              you.
-            </span>
+                    <span
+                      style={
+                        styles.rootContextSourceOrganisation
+                      }
+                    >
+                      {source.organisation ||
+                        "Official source"}
+                    </span>
+
+                    {source.whyRelevant && (
+                      <p
+                        style={
+                          styles.rootContextSourceReason
+                        }
+                      >
+                        {
+                          source.whyRelevant
+                        }
+                      </p>
+                    )}
+                  </div>
+
+                  <span
+                    style={
+                      styles.rootContextSourceArrow
+                    }
+                  >
+                    ↗
+                  </span>
+                </a>
+              )
+            )}
           </div>
         </div>
-      </details>
+      )}
+
+      <div
+        style={
+          styles.rootContextPromise
+        }
+      >
+        <strong>
+          Root checked the current
+          context while you were
+          talking.
+        </strong>
+
+        <span>
+          The information supports
+          your judgement. The decision
+          remains yours.
+        </span>
+      </div>
     </div>
   );
 }
-
-export default function HRCoachPage() {
+  export default function HRCoachPage() {
   const [loading, setLoading] = useState(true);
   const [organisation, setOrganisation] = useState(null);
   const [members, setMembers] = useState([]);
@@ -2135,6 +2123,88 @@ rootContextQuestion: {
 rootContextQuestionDot: {
   color: "#758C69",
   fontWeight: "900",
+},
+
+rootContextKeyPoint: {
+  marginTop: "14px",
+  padding: "14px 16px",
+  borderRadius: "17px",
+  background:
+    "rgba(255,255,255,0.52)",
+  border:
+    "1px solid rgba(84,105,74,0.10)",
+},
+
+rootContextKeyPointText: {
+  margin: "7px 0 0",
+  color: "#4F574B",
+  fontSize: "13px",
+  lineHeight: "1.65",
+},
+
+rootContextReassurance: {
+  marginTop: "12px",
+  color: "#596451",
+  fontSize: "12px",
+  lineHeight: "1.6",
+},
+
+rootContextSources: {
+  marginTop: "16px",
+  paddingTop: "14px",
+  borderTop:
+    "1px solid rgba(84,105,74,0.10)",
+},
+
+rootContextSourceList: {
+  marginTop: "9px",
+  display: "grid",
+  gap: "8px",
+},
+
+rootContextSource: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "14px",
+  padding: "13px 14px",
+  borderRadius: "16px",
+  background:
+    "rgba(255,255,255,0.58)",
+  border:
+    "1px solid rgba(84,105,74,0.10)",
+  color: "#30372D",
+  textDecoration: "none",
+},
+
+rootContextSourceTitle: {
+  display: "block",
+  fontSize: "12px",
+  lineHeight: "1.45",
+},
+
+rootContextSourceOrganisation: {
+  display: "block",
+  marginTop: "3px",
+  color: "#71806B",
+  fontSize: "10px",
+  fontWeight: "800",
+  textTransform: "uppercase",
+  letterSpacing: "0.07em",
+},
+
+rootContextSourceReason: {
+  margin: "5px 0 0",
+  color: "#676E62",
+  fontSize: "11px",
+  lineHeight: "1.5",
+},
+
+rootContextSourceArrow: {
+  flex: "0 0 auto",
+  color: "#61775A",
+  fontSize: "16px",
+  fontWeight: "800",
 },
 
 rootContextPromise: {
