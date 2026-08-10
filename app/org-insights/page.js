@@ -1645,6 +1645,7 @@ if (baselineCompleted === 0) {
     icon: "○",
     text:
       "Root is waiting for the first completed employee baseline before forming a workforce picture.",
+    target: "pilot-progress",
   });
 } else if (baselineCompleted < 5) {
   dashboardBriefItems.push({
@@ -1654,14 +1655,16 @@ if (baselineCompleted === 0) {
       `${baselineCompleted} employee baseline${
         baselineCompleted === 1 ? " has" : "s have"
       } been completed. The organisation picture is developing as participation grows.`,
-  });
+     target: "pilot-progress",
+    });
 } else {
   dashboardBriefItems.push({
     tone: "positive",
     icon: "✓",
     text:
       `${baselineCompleted} employee baselines are now contributing to the organisation picture.`,
-  });
+    target: "pilot-progress",
+    });
 }
 
 if (
@@ -1669,11 +1672,12 @@ if (
   primaryConcern !== "No challenge data yet"
 ) {
   dashboardBriefItems.push({
-    tone: "watch",
-    icon: "◒",
-    text:
-      `${primaryConcern} is currently the strongest measured wellbeing area for leadership attention.`,
-  });
+  tone: "watch",
+  icon: "◒",
+  text:
+    `${primaryConcern} is currently the strongest measured wellbeing area for leadership attention.`,
+  target: "root-executive-brief",
+});
 }
 
 if (organisationLearning?.latestReview) {
@@ -1688,14 +1692,16 @@ if (organisationLearning?.latestReview) {
           ? ""
           : "s"
       } providing business context alongside the anonymous workforce evidence.`,
-  });
+      target: "organisation-intelligence",
+    });
 } else {
   dashboardBriefItems.push({
     tone: "learning",
     icon: "○",
     text:
       "An Organisation Learning Review would give Root business context to place alongside the anonymous workforce evidence.",
-  });
+     target: "organisation-intelligence",
+    });
 }
 
 if (
@@ -1720,6 +1726,7 @@ if (
             ? " has"
             : "s have"
         } no recorded Workplace activity in the last 14 days.`,
+        target: "hr-network",
     });
   }
 }
@@ -2343,9 +2350,65 @@ return (
           (item, index) => (
             <div
               key={`${item.text}-${index}`}
-              style={
-                styles.dashboardBriefItem
+              style={{
+                ...styles.dashboardBriefItem,
+
+                ...(item.target
+                  ? styles.dashboardBriefItemClickable
+                  : {}),
+              }}
+              role={
+                item.target
+                  ? "button"
+                  : undefined
               }
+              tabIndex={
+                item.target
+                  ? 0
+                  : undefined
+              }
+              onClick={() => {
+                if (!item.target) {
+                  return;
+                }
+
+                document
+                  .getElementById(
+                    item.target
+                  )
+                  ?.scrollIntoView({
+                    behavior:
+                      "smooth",
+                    block:
+                      "start",
+                  });
+              }}
+              onKeyDown={(
+                event
+              ) => {
+                if (!item.target) {
+                  return;
+                }
+
+                if (
+                  event.key ===
+                    "Enter" ||
+                  event.key === " "
+                ) {
+                  event.preventDefault();
+
+                  document
+                    .getElementById(
+                      item.target
+                    )
+                    ?.scrollIntoView({
+                      behavior:
+                        "smooth",
+                      block:
+                        "start",
+                    });
+                }
+              }}
             >
               <span
                 style={{
@@ -2365,9 +2428,25 @@ return (
                 {item.icon}
               </span>
 
-              <span>
-                {item.text}
-              </span>
+              <div
+                style={
+                  styles.dashboardBriefTextRow
+                }
+              >
+                <span>
+                  {item.text}
+                </span>
+
+                {item.target && (
+                  <span
+                    style={
+                      styles.dashboardBriefArrow
+                    }
+                  >
+                    View →
+                  </span>
+                )}
+              </div>
             </div>
           )
         )}
@@ -2375,9 +2454,13 @@ return (
     </section>
   )}
 
+
 {currentMembership?.role ===
   "organisation_admin" && (
-  <section style={styles.hrNetworkCard}>
+  <section
+  id="hr-network"
+  style={styles.hrNetworkCard}
+>
     <div style={styles.hrNetworkHeader}>
       <div>
         <p style={styles.panelLabel}>
@@ -3733,7 +3816,10 @@ We look forward to welcoming you.
     </section>
   )}
           {!loading && (
-  <section style={styles.pilotProgressCard}>
+  <section
+  id="pilot-progress"
+  style={styles.pilotProgressCard}
+>
     <div>
       <p style={styles.panelLabel}>Pilot Progress</p>
       <h2 style={styles.panelTitle}>
@@ -3781,7 +3867,10 @@ We look forward to welcoming you.
           ) : (
             <>
             {organisationLearning?.latestReview ? (
-  <section style={styles.participantsCard}>
+  <section
+  id="organisation-intelligence"
+  style={styles.participantsCard}
+>
     <div style={styles.participationHeader}>
       <div>
         <p style={styles.panelLabel}>
@@ -4223,7 +4312,12 @@ We look forward to welcoming you.
   )}
 </section>
 
-  <p style={styles.panelLabel}>Root Executive Brief</p>
+ <p
+  id="root-executive-brief"
+  style={styles.panelLabel}
+>
+  Root Executive Brief
+</p>
 
   <div style={styles.briefTopLine}>
     <div>
@@ -6153,6 +6247,28 @@ dashboardBriefItem: {
   color: "#50564C",
   fontSize: "13px",
   lineHeight: "1.55",
+},
+
+dashboardBriefItemClickable: {
+  cursor: "pointer",
+  transition:
+    "transform 160ms ease, background 160ms ease, box-shadow 160ms ease",
+},
+
+dashboardBriefTextRow: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent:
+    "space-between",
+  gap: "14px",
+},
+
+dashboardBriefArrow: {
+  flex: "0 0 auto",
+  color: "#6B7964",
+  fontSize: "11px",
+  fontWeight: "900",
+  whiteSpace: "nowrap",
 },
 
 dashboardBriefIcon: {
