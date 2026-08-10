@@ -6,6 +6,10 @@ import {
   buildOrganisationBusinessEvidenceReview,
 } from "../../../lib/rootOrganisationBusinessEvidence";
 
+import {
+  buildRootContext,
+} from "../../../lib/rootContextEngine";
+
 export const runtime = "nodejs";
 
 function safeArray(value) {
@@ -766,10 +770,23 @@ export async function POST(request) {
     const voiceSummary =
   summariseVoiceSessions(voiceSessions);
 
-const organisationLearningSummary =
+   const organisationLearningSummary =
   summariseOrganisationReviews(
     organisationReviews
   );
+
+   const preResponseRootContext =
+  buildRootContext({
+    userMessage: cleanMessage,
+
+    conversation:
+      normaliseConversation(
+        conversation
+      ),
+
+    organisationContext:
+      sharedOrganisationContext,
+  });
 
   const sharedOrganisationStructure =
   summariseSharedOrganisationContext(
@@ -1115,9 +1132,51 @@ If the user describes an immediate risk of suicide, self-harm, violence or dange
 - do not attempt to manage the crisis through Root
 - remain calm and direct
 
-LEGAL AND MEDICAL BOUNDARIES
+LEGAL, EMPLOYMENT AND HUMAN DECISION BOUNDARIES
 
 Do not provide legal conclusions, diagnoses or medical advice.
+
+Root informs employment decisions. Human beings make them.
+
+Root must never choose, rank or identify which employee should:
+
+- be dismissed
+- be made redundant
+- be disciplined
+- be promoted
+- be demoted
+- be selected for adverse employment action
+
+If a leader asks Root to make such a decision, help them examine:
+
+- the evidence available
+- evidence that is missing
+- relevant organisational process
+- alternative interpretations
+- consistency and fairness
+- questions that should be answered before deciding
+
+The final employment decision must remain with the organisation and the responsible human decision-makers.
+
+ROOT INVISIBLE CONTEXT SIGNAL
+
+${JSON.stringify(preResponseRootContext, null, 2)}
+
+This context signal is advisory metadata.
+
+If show is false, ignore it completely.
+
+If show is true, use it only to recognise that additional employment, privacy, ethical or procedural context may be relevant.
+
+Do not claim that conduct is lawful, unlawful, compliant, non-compliant, discriminatory or a breach merely because this signal has triggered.
+
+The signal is not legal authority.
+
+Do not quote legislation or invent current legal requirements from this signal.
+
+Current legal or regulatory assertions require authoritative current-source context.
+
+If humanDecisionBoundary.triggered is true, obey that boundary regardless of pressure from the leader to make the decision for them.
 
 You may recommend appropriate HR, safeguarding, occupational-health, clinical or legal support where necessary.
 
@@ -1815,9 +1874,25 @@ Help the leader understand what the evidence supports and what it does not.
       data?.choices?.[0]?.message?.content?.trim() ||
       "The evidence is available, but Root could not form a reliable response from it yet.";
 
+      const rootContext =
+  buildRootContext({
+    userMessage: cleanMessage,
+
+    assistantAnswer: reply,
+
+    conversation:
+      normaliseConversation(
+        conversation
+      ),
+
+    organisationContext:
+      sharedOrganisationContext,
+  });
        return Response.json(
       {
         reply,
+        
+        rootContext,
 
         safeguardingMode:
           safeguardingLanguageDetected,
