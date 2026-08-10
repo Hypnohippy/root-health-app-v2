@@ -1637,7 +1637,95 @@ const rootWeeklyInterpretation =
     : recoveryLatest !== null && recoveryLatest >= 7
     ? "Root has noticed that recovery remains a key pressure point. This may suggest employees need more support converting reduced pressure into sustainable restoration."
     : "Root is beginning to identify weekly wellbeing movement. Continued check-ins will make these interpretations more useful over time.";
-   
+    const dashboardBriefItems = [];
+
+if (baselineCompleted === 0) {
+  dashboardBriefItems.push({
+    tone: "learning",
+    icon: "○",
+    text:
+      "Root is waiting for the first completed employee baseline before forming a workforce picture.",
+  });
+} else if (baselineCompleted < 5) {
+  dashboardBriefItems.push({
+    tone: "learning",
+    icon: "○",
+    text:
+      `${baselineCompleted} employee baseline${
+        baselineCompleted === 1 ? " has" : "s have"
+      } been completed. The organisation picture is developing as participation grows.`,
+  });
+} else {
+  dashboardBriefItems.push({
+    tone: "positive",
+    icon: "✓",
+    text:
+      `${baselineCompleted} employee baselines are now contributing to the organisation picture.`,
+  });
+}
+
+if (
+  primaryConcern &&
+  primaryConcern !== "No challenge data yet"
+) {
+  dashboardBriefItems.push({
+    tone: "watch",
+    icon: "◒",
+    text:
+      `${primaryConcern} is currently the strongest measured wellbeing area for leadership attention.`,
+  });
+}
+
+if (organisationLearning?.latestReview) {
+  dashboardBriefItems.push({
+    tone: "information",
+    icon: "↗",
+    text:
+      `Root has ${
+        organisationLearning.reviewCount
+      } Organisation Learning review${
+        organisationLearning.reviewCount === 1
+          ? ""
+          : "s"
+      } providing business context alongside the anonymous workforce evidence.`,
+  });
+} else {
+  dashboardBriefItems.push({
+    tone: "learning",
+    icon: "○",
+    text:
+      "An Organisation Learning Review would give Root business context to place alongside the anonymous workforce evidence.",
+  });
+}
+
+if (
+  currentMembership?.role ===
+    "organisation_admin" &&
+  hrNetwork.length > 0
+) {
+  const inactiveHRCount =
+    Math.max(
+      0,
+      hrNetwork.length -
+        activeHRCount
+    );
+
+  if (inactiveHRCount > 0) {
+    dashboardBriefItems.push({
+      tone: "information",
+      icon: "◇",
+      text:
+        `${inactiveHRCount} HR user${
+          inactiveHRCount === 1
+            ? " has"
+            : "s have"
+        } no recorded Workplace activity in the last 14 days.`,
+    });
+  }
+}
+
+const dashboardBrief =
+  dashboardBriefItems.slice(0, 3);
    function organisationUnitTypeLabel(value) {
   const labels = {
     department: "Department",
@@ -2206,6 +2294,86 @@ return (
     </div>
   </div>
 )}
+
+{!loading &&
+  dashboardBrief.length > 0 && (
+    <section
+      style={
+        styles.dashboardBriefCard
+      }
+    >
+      <div
+        style={
+          styles.dashboardBriefHeader
+        }
+      >
+        <div>
+          <p
+            style={
+              styles.dashboardBriefEyebrow
+            }
+          >
+            Today
+          </p>
+
+          <h2
+            style={
+              styles.dashboardBriefTitle
+            }
+          >
+            What Root sees today
+          </h2>
+        </div>
+
+        <span
+          style={
+            styles.dashboardBriefStatus
+          }
+        >
+          Live organisation picture
+        </span>
+      </div>
+
+      <div
+        style={
+          styles.dashboardBriefList
+        }
+      >
+        {dashboardBrief.map(
+          (item, index) => (
+            <div
+              key={`${item.text}-${index}`}
+              style={
+                styles.dashboardBriefItem
+              }
+            >
+              <span
+                style={{
+                  ...styles.dashboardBriefIcon,
+
+                  ...(item.tone ===
+                  "positive"
+                    ? styles.dashboardBriefIconPositive
+                    : {}),
+
+                  ...(item.tone ===
+                  "watch"
+                    ? styles.dashboardBriefIconWatch
+                    : {}),
+                }}
+              >
+                {item.icon}
+              </span>
+
+              <span>
+                {item.text}
+              </span>
+            </div>
+          )
+        )}
+      </div>
+    </section>
+  )}
 
 {currentMembership?.role ===
   "organisation_admin" && (
@@ -5907,6 +6075,108 @@ disabledControlButton: {
   opacity: 0.76,
   border:
     "1px solid rgba(117,72,58,0.22)",
+},
+
+dashboardBriefCard: {
+  margin:
+    "0 0 28px",
+  padding:
+    "24px 26px",
+  borderRadius:
+    "28px",
+  textAlign:
+    "left",
+  background:
+    "linear-gradient(145deg, rgba(250,248,240,0.82), rgba(235,242,230,0.74))",
+  border:
+    "1px solid rgba(255,255,255,0.78)",
+  boxShadow:
+    "0 18px 48px rgba(41,48,37,0.08)",
+},
+
+dashboardBriefHeader: {
+  display: "flex",
+  alignItems:
+    "flex-start",
+  justifyContent:
+    "space-between",
+  gap: "18px",
+  flexWrap: "wrap",
+},
+
+dashboardBriefEyebrow: {
+  margin: "0 0 5px",
+  color: "#71806B",
+  fontSize: "10px",
+  fontWeight: "900",
+  letterSpacing:
+    "0.15em",
+  textTransform:
+    "uppercase",
+},
+
+dashboardBriefTitle: {
+  margin: 0,
+  color: "#252A24",
+  fontSize: "24px",
+  lineHeight: "1.25",
+},
+
+dashboardBriefStatus: {
+  padding: "7px 11px",
+  borderRadius: "999px",
+  background:
+    "rgba(255,255,255,0.58)",
+  border:
+    "1px solid rgba(86,108,77,0.10)",
+  color: "#687461",
+  fontSize: "10px",
+  fontWeight: "800",
+},
+
+dashboardBriefList: {
+  marginTop: "18px",
+  display: "grid",
+  gap: "9px",
+},
+
+dashboardBriefItem: {
+  display: "grid",
+  gridTemplateColumns:
+    "30px 1fr",
+  alignItems: "center",
+  gap: "10px",
+  padding: "11px 13px",
+  borderRadius: "16px",
+  background:
+    "rgba(255,255,255,0.42)",
+  color: "#50564C",
+  fontSize: "13px",
+  lineHeight: "1.55",
+},
+
+dashboardBriefIcon: {
+  width: "28px",
+  height: "28px",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "999px",
+  background:
+    "rgba(104,119,96,0.10)",
+  color: "#687461",
+  fontWeight: "900",
+},
+
+dashboardBriefIconPositive: {
+  background:
+    "rgba(85,125,87,0.11)",
+  color: "#58775A",
+},
+
+dashboardBriefIconWatch: {
+  background:
+    "rgba(170,129,61,0.11)",
+  color: "#8A6C38",
 },
 
 signedInIdentity: {
