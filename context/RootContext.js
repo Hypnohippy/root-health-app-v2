@@ -30,7 +30,7 @@ export function RootProvider({ children }) {
 
   setLoading(false);
 
-  return latest;
+  return latest; 
 }
 
   async function switchExperience(experience) {
