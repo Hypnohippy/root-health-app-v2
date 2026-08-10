@@ -929,6 +929,11 @@ const [transferAdminError, setTransferAdminError] =
 const [hrActivity, setHRActivity] =
   useState([]);
 
+  const [
+  reviewedDailyActions,
+  setReviewedDailyActions,
+] = useState([]);
+
 const [organisationUnits, setOrganisationUnits] =
   useState([]);
 
@@ -969,6 +974,51 @@ const [selectedOrganisationUnit, setSelectedOrganisationUnit] =
     "Viewed Organisation Insights"
   );
 }, [currentMembership?.id]);
+
+useEffect(() => {
+  if (
+    !currentMembership?.id ||
+    !organisation?.id
+  ) {
+    return;
+  }
+
+  const today =
+    new Date()
+      .toISOString()
+      .slice(0, 10);
+
+  const storageKey =
+    `root_daily_actions_${organisation.id}_${currentMembership.id}_${today}`;
+
+  try {
+    const stored =
+      window.localStorage.getItem(
+        storageKey
+      );
+
+    const parsed =
+      stored
+        ? JSON.parse(stored)
+        : [];
+
+    setReviewedDailyActions(
+      Array.isArray(parsed)
+        ? parsed
+        : []
+    );
+  } catch (error) {
+    console.error(
+      "Could not read Root daily action memory:",
+      error
+    );
+
+    setReviewedDailyActions([]);
+  }
+}, [
+  currentMembership?.id,
+  organisation?.id,
+]);
 
   const loadDashboard = async () => {
     setLoading(true);
@@ -1768,10 +1818,12 @@ if (baselineCompleted < 5) {
     tone: "attention",
     icon: "◒",
     eyebrow: "Build the evidence",
+
     title:
       baselineCompleted === 0
         ? "Start the organisation baseline"
         : "Strengthen workforce participation",
+
     detail:
       baselineCompleted === 0
         ? "No employee baseline has been completed yet. Inviting employees is the most useful next step because Root needs a starting position before it can build a reliable organisation picture."
@@ -1780,10 +1832,15 @@ if (baselineCompleted < 5) {
               ? " is"
               : "s are"
           } currently contributing to the organisation picture. Reaching broader participation will strengthen the evidence available to HR and leadership.`,
+
     actionLabel:
       "Invite employees →",
+
     action:
       "invite-employees",
+
+    reviewKey:
+      `participation-${baselineCompleted}-${invited}-${activated}`,
   });
 }
 
@@ -1801,14 +1858,21 @@ if (!organisationLearning?.latestReview) {
     tone: "information",
     icon: "↗",
     eyebrow: "Add business context",
+
     title:
       "Teach Root about the organisation",
+
     detail:
       "Root has anonymous workforce evidence, but no completed Organisation Learning Review. Adding business measures, organisational events and current initiatives will make later interpretation more useful.",
+
     actionLabel:
       "Complete Organisation Learning →",
+
     action:
       "organisation-learning",
+
+    reviewKey:
+      "organisation-learning-none",
   });
 } else if (
   organisationReviewAgeDays !== null &&
@@ -1819,14 +1883,25 @@ if (!organisationLearning?.latestReview) {
     tone: "information",
     icon: "↗",
     eyebrow: "Refresh the picture",
+
     title:
       "Update Organisation Learning",
+
     detail:
       `The latest Organisation Learning Review was completed ${organisationReviewAgeDays} days ago. Updating the business measures and organisational context would give Root a more current picture to compare with workforce evidence.`,
+
     actionLabel:
       "Update organisation picture →",
+
     action:
       "organisation-learning",
+
+    reviewKey:
+      `organisation-learning-${
+        organisationLearning?.latestReview?.id ||
+        organisationLearning?.latestReview?.created_at ||
+        "current"
+      }`,
   });
 }
 
@@ -1844,14 +1919,21 @@ if (
     tone: "watch",
     icon: "◇",
     eyebrow: "Current priority",
+
     title:
       `Review ${primaryConcern}`,
+
     detail:
       `${primaryConcern} is currently the strongest measured wellbeing area in Root's organisation picture. Review the evidence, confidence and recommended organisational response before deciding what action is proportionate.`,
+
     actionLabel:
       "View the evidence →",
+
     action:
       "executive-brief",
+
+    reviewKey:
+      `priority-${primaryConcern}-${currentScore ?? "none"}-${assessments.length}`,
   });
 }
 
@@ -1868,14 +1950,21 @@ if (
     tone: "positive",
     icon: "✓",
     eyebrow: "Leadership support",
+
     title:
       "Your Executive Review is ready",
+
     detail:
-      `Root can turn the current organisation picture into a structured leadership review showing what is known, what remains uncertain, current priorities and recommended next actions.`,
+      "Root can turn the current organisation picture into a structured leadership review showing what is known, what remains uncertain, current priorities and recommended next actions.",
+
     actionLabel:
       "Open Executive Review →",
+
     action:
       "executive-review",
+
+    reviewKey:
+      `executive-review-${currentScore ?? "none"}-${assessments.length}-${organisationLearning?.reviewCount || 0}`,
   });
 }
 
@@ -1904,33 +1993,108 @@ if (
       tone: "information",
       icon: "○",
       eyebrow: "HR engagement",
+
       title:
         `${inactiveHRCount} HR user${
           inactiveHRCount === 1
             ? " may need"
             : "s may need"
         } reconnecting`,
+
       detail:
         `${inactiveHRCount} HR user${
           inactiveHRCount === 1
             ? " has"
             : "s have"
         } no recorded Workplace administration activity during the last 14 days. It may be worth checking whether they need support or access guidance.`,
+
       actionLabel:
         "View HR network →",
+
       action:
         "hr-network",
+
+      reviewKey:
+        `hr-network-${inactiveHRCount}-${activeHRCount}-${hrNetwork.length}`,
     });
   }
 }
 
+const prioritisedDynamicActions =
+  dynamicActionItems.sort(
+    (a, b) =>
+      b.priority - a.priority
+  );
+
 const dynamicActions =
-  dynamicActionItems
-    .sort(
-      (a, b) =>
-        b.priority - a.priority
+  prioritisedDynamicActions
+    .filter(
+      (item) =>
+        !reviewedDailyActions.includes(
+          item.reviewKey
+        )
     )
     .slice(0, 3);
+
+const reviewedActionCount =
+  prioritisedDynamicActions.filter(
+    (item) =>
+      reviewedDailyActions.includes(
+        item.reviewKey
+      )
+  ).length;
+
+const allCurrentActionsReviewed =
+  prioritisedDynamicActions.length > 0 &&
+  dynamicActions.length === 0 &&
+  reviewedActionCount > 0;
+
+    function rememberDailyAction(
+  reviewKey
+) {
+  if (
+    !reviewKey ||
+    !currentMembership?.id ||
+    !organisation?.id
+  ) {
+    return;
+  }
+
+  const today =
+    new Date()
+      .toISOString()
+      .slice(0, 10);
+
+  const storageKey =
+    `root_daily_actions_${organisation.id}_${currentMembership.id}_${today}`;
+
+  setReviewedDailyActions(
+    (current) => {
+      const next =
+        current.includes(reviewKey)
+          ? current
+          : [
+              ...current,
+              reviewKey,
+            ];
+
+      try {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify(next)
+        );
+      } catch (error) {
+        console.error(
+          "Could not save Root daily action memory:",
+          error
+        );
+      }
+
+      return next;
+    }
+  );
+}
+
    function organisationUnitTypeLabel(value) {
   const labels = {
     department: "Department",
@@ -3837,6 +4001,9 @@ return (
               styles.dynamicActionCard
             }
             onClick={() => {
+              rememberDailyAction(
+                item.reviewKey
+        );
               if (
                 item.action ===
                 "invite-employees"
@@ -3964,15 +4131,51 @@ return (
       )}
     </div>
 
-    <div
+   
+  </div>
+)}
+{allCurrentActionsReviewed && (
+  <div
+    style={
+      styles.dynamicActionsCaughtUp
+    }
+  >
+    <span
       style={
-        styles.everydayToolsLabel
+        styles.dynamicActionsCaughtUpIcon
       }
     >
-      Everyday tools
+      ✓
+    </span>
+
+    <div
+      style={{
+        display: "grid",
+        gap: "4px",
+      }}
+    >
+      <strong>
+        You're caught up for today
+      </strong>
+
+      <span>
+        You've reviewed everything Root
+        currently thinks deserves your
+        attention. If the evidence changes,
+        Root can surface something new.
+      </span>
     </div>
   </div>
 )}
+
+<div
+  style={
+    styles.everydayToolsLabel
+  }
+>
+  Everyday tools
+</div>
+
    <div style={styles.controlButtons}>
  <button
   type="button"
@@ -6367,6 +6570,36 @@ dynamicActionLink: {
   color: "#596B52",
   fontSize: "11px",
   fontWeight: "900",
+},
+
+dynamicActionsCaughtUp: {
+  width: "100%",
+  marginTop: "22px",
+  padding: "18px 20px",
+  borderRadius: "20px",
+  display: "flex",
+  alignItems: "center",
+  gap: "14px",
+  textAlign: "left",
+  background:
+    "rgba(244,248,239,0.56)",
+  border:
+    "1px solid rgba(105,128,94,0.16)",
+  color: "#4F594A",
+},
+
+dynamicActionsCaughtUpIcon: {
+  width: "34px",
+  height: "34px",
+  flex: "0 0 34px",
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "999px",
+  background:
+    "rgba(91,126,82,0.11)",
+  color: "#5C7654",
+  fontWeight: "900",
+  fontSize: "15px",
 },
 
 everydayToolsLabel: {
