@@ -259,14 +259,21 @@ export async function POST(request) {
             "subscription",
 
           line_items: [
-            {
-              price:
-                pricing.price
-                  .stripePriceId,
+  {
+    price:
+      pricing.price
+        .stripePriceId,
 
-              quantity: 1,
-            },
-          ],
+    quantity: 1,
+  },
+],
+
+custom_text: {
+  submit: {
+    message:
+      `Root Workplace membership for ${organisation.name}.`,
+  },
+},
 
           customer_email:
             membership.email ||
@@ -298,6 +305,16 @@ export async function POST(request) {
               pricing.price.key,
           },
 
+          payment_method_collection:
+              "always",
+
+          billing_address_collection:
+              "required",
+
+          phone_number_collection: {
+              enabled: true,
+        },
+
           subscription_data: {
             metadata: {
               organisation_id:
@@ -312,7 +329,7 @@ export async function POST(request) {
           },
 
           success_url:
-            `${origin}/organisations/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+            `${origin}/organisations/welcome?session_id={CHECKOUT_SESSION_ID}`,
 
           cancel_url:
             `${origin}/organisations/billing?checkout=cancelled`,
