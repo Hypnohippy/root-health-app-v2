@@ -166,7 +166,7 @@ export default function OrganisationBillingPage() {
     } =
       await supabase.auth.getSession();
 
-    const accessToken =
+    const accessToken = 
       sessionData?.session
         ?.access_token;
 
