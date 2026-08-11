@@ -211,7 +211,7 @@ export default function RootSolarSystem() {
           height: 0;
 
           animation:
-            rootOrbit 120s linear infinite;
+            rootOrbit 150s linear infinite;
 
           transform-origin: center;
 
@@ -230,7 +230,7 @@ export default function RootSolarSystem() {
           transform: translateX(var(--orbit-radius));
 
           animation:
-            rootCounterOrbit 120s linear infinite;
+            rootCounterOrbit 150s linear infinite;
 
           display: grid;
           place-items: center;
