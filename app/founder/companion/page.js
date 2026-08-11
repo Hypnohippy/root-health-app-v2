@@ -1,11 +1,30 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
 
+import { supabase } from "../../../lib/supabase";
 import RootEnso from "../../../components/RootEnso";
+
+import {
+  buildOrganisationSnapshot,
+} from "../../../lib/rootOrganisationEngine";
+
+import {
+  buildRootTrialStatus,
+} from "../../../lib/rootTrialStatus";
+
+import {
+  buildRootExecutiveMeetingContext,
+} from "../../../lib/rootExecutiveMeetingContext";
+
+import {
+  buildRootExecutiveReasoning,
+  buildRootMeetingCloseFrame,
+} from "../../../lib/rootExecutiveReasoningEngine";
 
 const STEPS = [
   {
@@ -26,7 +45,7 @@ const STEPS = [
   },
   {
     key: "objections",
-    label: "Objections",
+    label: "Conversation",
   },
   {
     key: "recommendation",
@@ -46,294 +65,497 @@ const STEPS = [
   },
 ];
 
-const OBJECTIONS = {
-  participation: {
-    label: "Participation was too low",
-
-    evidence:
-      "Current participation should be separated from programme effectiveness. A lower follow-up rate reduces confidence in organisation-wide conclusions, but it does not automatically mean the employees who used Root failed to benefit.",
-
-    interpretation:
-      "The useful question is not simply how many people did not return. It is whether repeat participants changed, whether engagement varied by team, and whether the missing follow-up evidence could materially alter the organisation picture.",
-
-    permission:
-      "Would it be useful if I showed you what the current participation does — and does not — allow us to conclude?",
-
-    response:
-      "I think that concern is completely reasonable. The important distinction is between evidence of failure and incomplete evidence. Root is deliberately cautious here. Where follow-up participation is lower, confidence comes down rather than Root pretending the result represents everybody.",
-
-    question:
-      "What do you think was the biggest reason people did not come back for the follow-up assessment?",
-
-    opportunity:
-      "If understanding, trust or confidence in using Root limited participation, a short employee re-engagement session may strengthen the next evidence period.",
-  },
-
-  no_change: {
-    label: "The headline score did not improve",
-
-    evidence:
-      "An unchanged headline can conceal movement underneath it. Repeat participation, team mix and the number of employees represented at each measurement point need to be checked before treating an unchanged percentage as evidence of no improvement.",
-
-    interpretation:
-      "If the initial assessment included 60 people but only 20 completed a follow-up, the two headline figures are not necessarily describing the same population. Root should not call that success or failure without checking who actually contributed to each figure.",
-
-    permission:
-      "Can I unpack that number for a moment? There is an important difference between 'the score did not move' and 'the evidence shows nothing changed.'",
-
-    response:
-      "The headline is useful, but I would not make the decision from that number alone. We need to look at repeat responders, participation and whether the people who returned show a consistent direction of travel. Root deliberately reports uncertainty where those populations differ.",
-
-    question:
-      "Would your view change if the repeat-participant evidence was improving but the organisation-wide follow-up sample was still too small to confirm it?",
-
-    opportunity:
-      "Increase repeat participation before making a stronger organisation-wide conclusion.",
-  },
-
-  cost: {
-    label: "The cost feels difficult to justify",
-
-    evidence:
-      "The commercial question should be connected to what Root has actually created: employee support, organisational evidence, executive interpretation and the ability to observe movement over time.",
-
-    interpretation:
-      "A price objection can mean several different things: insufficient perceived value, lack of budget, uncertainty about evidence, or inability to explain the purchase internally. Those require different conversations.",
-
-    permission:
-      "That's fair. Before I try to answer the cost point, may I ask what part feels hardest to justify?",
-
-    response:
-      "I would rather understand the concern than defend the price. If the issue is that Root has not demonstrated enough value, that is different from Root demonstrating value but the budget not being available.",
-
-    question:
-      "Is the concern primarily the amount itself, or whether you have enough evidence to defend continuing internally?",
-
-    opportunity:
-      "Clarify whether the objection is value, budget, timing or internal approval before recommending a next step.",
-  },
-
-  trust: {
-    label: "Employees may not trust it",
-
-    evidence:
-      "Participation alone cannot tell us why an employee did not use Root. Possible explanations include awareness, competing priorities, confidence, trust, local communication and organisational circumstances.",
-
-    interpretation:
-      "Root should never convert non-participation into an unsupported claim about employee trust. It can identify the evidence gap and help the organisation investigate it.",
-
-    permission:
-      "Would you mind if we separate what we know from what we suspect here?",
-
-    response:
-      "Trust could absolutely be part of it, but the current evidence does not prove that. I would be uncomfortable telling you it does. What we can say is that participation gives us an opportunity to understand the barriers more clearly.",
-
-    question:
-      "What were employees actually told about privacy, anonymity and how their information would be used?",
-
-    opportunity:
-      "Consider a short trust, privacy and 'how Root works' session if communication appears to be a barrier.",
-  },
-
-  privacy: {
-    label: "I am worried about employee privacy",
-
-    evidence:
-      "Root's organisational intelligence is designed around anonymous organisation-level evidence rather than exposing private employee conversations, reflections or health information.",
-
-    interpretation:
-      "A privacy concern is not an objection to overcome quickly. It deserves a clear explanation of separation between private employee support and organisational evidence.",
-
-    permission:
-      "Absolutely — may I explain exactly what leadership can and cannot see?",
-
-    response:
-      "The employee side and organisation side are deliberately separated. Leadership receives organisation-level patterns and evidence. Private conversations and personal reflections are not provided to the employer.",
-
-    question:
-      "Is there a particular type of employee information you are concerned the organisation might be able to see?",
-
-    opportunity:
-      "Offer a privacy and governance walkthrough rather than trying to reassure with general statements.",
-  },
-
-  managers: {
-    label: "Managers did not really use it",
-
-    evidence:
-      "Manager engagement can influence communication, participation and whether organisational learning is acted upon, but low manager activity should not automatically be treated as evidence that employee support failed.",
-
-    interpretation:
-      "The issue may be adoption rather than product value. The next question is whether managers understood their role in the Root programme.",
-
-    permission:
-      "Can I explore the manager side separately from the employee evidence?",
-
-    response:
-      "That is worth looking at. Root does not require managers to become wellbeing experts, but they do need to understand what the programme is for and how to support participation appropriately.",
-
-    question:
-      "How were managers introduced to Root, and what were they expected to do during the pilot?",
-
-    opportunity:
-      "A manager briefing may improve programme understanding without asking managers to handle private employee wellbeing information.",
-  },
-
-  approval: {
-    label: "I need approval from someone else",
-
-    evidence:
-      "This usually means the conversation has moved from product understanding to internal decision support.",
-
-    interpretation:
-      "Do not push for an artificial decision. Identify who needs confidence, what evidence they will need, and what objection is likely to appear when the proposal reaches them.",
-
-    permission:
-      "Of course. Would it help if we worked out what they are most likely to want to see before you take it to them?",
-
-    response:
-      "Rather than send you away with another generic brochure, I would rather make sure you have the evidence and explanation you need to have that conversation confidently.",
-
-    question:
-      "Who needs to be comfortable with the decision, and what do you think their first question will be?",
-
-    opportunity:
-      "Prepare a concise board or executive decision brief using the organisation's own evidence.",
-  },
-
-  wait: {
-    label: "We would rather wait",
-
-    evidence:
-      "Waiting may be sensible if the evidence is genuinely too immature. It may be less sensible if the organisation has enough evidence but is avoiding the decision because one uncertainty feels uncomfortable.",
-
-    interpretation:
-      "Clarify what new information the waiting period is expected to produce.",
-
-    permission:
-      "That's completely possible. Can I ask what you would hope to know after waiting that we do not know today?",
-
-    response:
-      "If more evidence would materially improve the decision, waiting may be the right thing to do. If nothing new is likely to be measured, waiting may simply postpone the same conversation.",
-
-    question:
-      "What specific evidence would make you feel ready to decide?",
-
-    opportunity:
-      "Agree the evidence threshold and a review date rather than leaving the decision open-ended.",
-  },
-};
-
-function inferObjection(text) {
-  const value =
-    String(text || "")
-      .toLowerCase();
-
+function formatPercent(value) {
   if (
-    value.includes("particip") ||
-    value.includes("engage") ||
-    value.includes("response rate") ||
-    value.includes("assessment")
+    value === null ||
+    value === undefined ||
+    Number.isNaN(Number(value))
   ) {
-    return "participation";
+    return "—";
   }
 
+  return `${Math.round(Number(value))}%`;
+}
+
+function formatNumber(value) {
   if (
-    value.includes("burnout") ||
-    value.includes("no change") ||
-    value.includes("same") ||
-    value.includes("didn't improve") ||
-    value.includes("did not improve")
+    value === null ||
+    value === undefined ||
+    Number.isNaN(Number(value))
   ) {
-    return "no_change";
+    return "—";
   }
 
-  if (
-    value.includes("cost") ||
-    value.includes("price") ||
-    value.includes("expensive") ||
-    value.includes("budget")
-  ) {
-    return "cost";
-  }
-
-  if (
-    value.includes("privacy") ||
-    value.includes("confidential") ||
-    value.includes("data")
-  ) {
-    return "privacy";
-  }
-
-  if (
-    value.includes("trust") ||
-    value.includes("suspicious")
-  ) {
-    return "trust";
-  }
-
-  if (
-    value.includes("manager")
-  ) {
-    return "managers";
-  }
-
-  if (
-    value.includes("approval") ||
-    value.includes("board") ||
-    value.includes("boss") ||
-    value.includes("sign off")
-  ) {
-    return "approval";
-  }
-
-  if (
-    value.includes("wait") ||
-    value.includes("later") ||
-    value.includes("think about")
-  ) {
-    return "wait";
-  }
-
-  return "";
+  return String(value);
 }
 
 export default function FounderCompanionPage() {
-  const [stepIndex, setStepIndex] =
-    useState(0);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [meetingType, setMeetingType] =
-    useState("Subscription review");
-
-  const [organisationName, setOrganisationName] =
-    useState("Final Test Ltd");
-
-  const [contactName, setContactName] =
+  const [error, setError] =
     useState("");
 
-  const [discoveryNotes, setDiscoveryNotes] =
-    useState("");
+  const [
+    organisation,
+    setOrganisation,
+  ] = useState(null);
 
-  const [whatTheySaid, setWhatTheySaid] =
-    useState("");
+  const [
+    currentMembership,
+    setCurrentMembership,
+  ] = useState(null);
 
-  const [selectedObjection, setSelectedObjection] =
-    useState("");
+  const [members, setMembers] =
+    useState([]);
 
-  const [objectionReady, setObjectionReady] =
-    useState(false);
+  const [
+    assessments,
+    setAssessments,
+  ] = useState([]);
 
-  const [recommendation, setRecommendation] =
-    useState("continue");
+  const [
+    mindEntries,
+    setMindEntries,
+  ] = useState([]);
 
-  const [decision, setDecision] =
-    useState("");
+  const [
+    journalEntries,
+    setJournalEntries,
+  ] = useState([]);
 
-  const [reflection, setReflection] =
-    useState("");
+  const [
+    voiceSessions,
+    setVoiceSessions,
+  ] = useState([]);
+
+  const [
+    organisationReviews,
+    setOrganisationReviews,
+  ] = useState([]);
+
+  const [
+    stepIndex,
+    setStepIndex,
+  ] = useState(0);
+
+  const [
+    meetingType,
+    setMeetingType,
+  ] = useState(
+    "Subscription review"
+  );
+
+  const [
+    contactName,
+    setContactName,
+  ] = useState("");
+
+  const [
+    discoveryNotes,
+    setDiscoveryNotes,
+  ] = useState("");
+
+  const [
+    whatTheySaid,
+    setWhatTheySaid,
+  ] = useState("");
+
+  const [
+    reasoningResult,
+    setReasoningResult,
+  ] = useState(null);
+
+  const [
+    meetingHistory,
+    setMeetingHistory,
+  ] = useState([]);
+
+  const [
+    recommendation,
+    setRecommendation,
+  ] = useState(
+    "continue"
+  );
+
+  const [
+    decision,
+    setDecision,
+  ] = useState("");
+
+  const [
+    reflection,
+    setReflection,
+  ] = useState("");
+
+  useEffect(() => {
+    loadCompanion();
+  }, []);
+
+  async function loadCompanion() {
+    setLoading(true);
+    setError("");
+
+    try {
+      const {
+        data: {
+          user,
+        },
+        error:
+          authError,
+      } =
+        await supabase.auth.getUser();
+
+      if (
+        authError ||
+        !user
+      ) {
+        window.location.href =
+          "/login";
+
+        return;
+      }
+
+      const {
+        data:
+          membership,
+        error:
+          membershipError,
+      } =
+        await supabase
+          .from(
+            "organisation_members"
+          )
+          .select(
+            `
+              id,
+              organisation_id,
+              profile_key,
+              email,
+              name,
+              department,
+              role
+            `
+          )
+          .eq(
+            "user_id",
+            user.id
+          )
+          .maybeSingle();
+
+      if (
+        membershipError ||
+        !membership
+      ) {
+        throw new Error(
+          "Root could not identify your organisation membership."
+        );
+      }
+
+      setCurrentMembership(
+        membership
+      );
+
+      const orgId =
+        membership.organisation_id;
+
+      const [
+        organisationResult,
+        membersResult,
+        assessmentsResult,
+        mindResult,
+        journalResult,
+        voiceResult,
+        reviewsResult,
+      ] =
+        await Promise.all([
+          supabase
+            .from(
+              "organisations"
+            )
+            .select("*")
+            .eq(
+              "id",
+              orgId
+            )
+            .maybeSingle(),
+
+          supabase
+            .from(
+              "organisation_members"
+            )
+            .select("*")
+            .eq(
+              "organisation_id",
+              orgId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false,
+              }
+            ),
+
+          supabase
+            .from(
+              "wellbeing_assessments"
+            )
+            .select("*")
+            .eq(
+              "organisation_id",
+              orgId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  true,
+              }
+            ),
+
+          supabase
+            .from(
+              "mind_entries"
+            )
+            .select("*")
+            .eq(
+              "organisation_id",
+              orgId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false,
+              }
+            )
+            .limit(200),
+
+          supabase
+            .from(
+              "journal_entries"
+            )
+            .select("*")
+            .eq(
+              "organisation_id",
+              orgId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false,
+              }
+            )
+            .limit(200),
+
+          supabase
+            .from(
+              "voice_sessions"
+            )
+            .select("*")
+            .eq(
+              "organisation_id",
+              orgId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false,
+              }
+            )
+            .limit(200),
+
+          supabase
+            .from(
+              "organisation_learning_reviews"
+            )
+            .select("*")
+            .eq(
+              "organisation_id",
+              orgId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  true,
+              }
+            )
+            .limit(24),
+        ]);
+
+      if (
+        organisationResult
+          .error
+      ) {
+        throw organisationResult.error;
+      }
+
+      if (
+        assessmentsResult
+          .error
+      ) {
+        console.error(
+          "Companion assessment load error:",
+          assessmentsResult.error
+        );
+      }
+
+      if (
+        reviewsResult
+          .error
+      ) {
+        console.error(
+          "Companion organisation review load error:",
+          reviewsResult.error
+        );
+      }
+
+      setOrganisation(
+        organisationResult
+          .data ||
+          null
+      );
+
+      setMembers(
+        Array.isArray(
+          membersResult.data
+        )
+          ? membersResult.data
+          : []
+      );
+
+      setAssessments(
+        Array.isArray(
+          assessmentsResult.data
+        )
+          ? assessmentsResult.data
+          : []
+      );
+
+      setMindEntries(
+        Array.isArray(
+          mindResult.data
+        )
+          ? mindResult.data
+          : []
+      );
+
+      setJournalEntries(
+        Array.isArray(
+          journalResult.data
+        )
+          ? journalResult.data
+          : []
+      );
+
+      setVoiceSessions(
+        Array.isArray(
+          voiceResult.data
+        )
+          ? voiceResult.data
+          : []
+      );
+
+      setOrganisationReviews(
+        Array.isArray(
+          reviewsResult.data
+        )
+          ? reviewsResult.data
+          : []
+      );
+    } catch (
+      loadError
+    ) {
+      console.error(
+        "Executive Companion load error:",
+        loadError
+      );
+
+      setError(
+        loadError?.message ||
+          "Root could not prepare the meeting evidence."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const snapshot =
+    useMemo(() => {
+      return buildOrganisationSnapshot({
+        organisation,
+        members,
+        assessments,
+        mindEntries,
+        journalEntries,
+        voiceSessions,
+        organisationReviews,
+      });
+    }, [
+      organisation,
+      members,
+      assessments,
+      mindEntries,
+      journalEntries,
+      voiceSessions,
+      organisationReviews,
+    ]);
+
+  const trialStatus =
+    useMemo(() => {
+      return buildRootTrialStatus({
+        organisation,
+      });
+    }, [
+      organisation,
+    ]);
+
+  const meetingContext =
+    useMemo(() => {
+      return buildRootExecutiveMeetingContext({
+        organisation,
+        members,
+        assessments,
+        mindEntries,
+        journalEntries,
+        voiceSessions,
+        organisationReviews,
+        snapshot,
+        trialStatus,
+      });
+    }, [
+      organisation,
+      members,
+      assessments,
+      mindEntries,
+      journalEntries,
+      voiceSessions,
+      organisationReviews,
+      snapshot,
+      trialStatus,
+    ]);
+
+  const closeFrame =
+    useMemo(() => {
+      return buildRootMeetingCloseFrame({
+        context:
+          meetingContext,
+
+        meetingHistory,
+      });
+    }, [
+      meetingContext,
+      meetingHistory,
+    ]);
 
   const currentStep =
-    STEPS[stepIndex];
+    STEPS[
+      stepIndex
+    ];
 
   const progress =
     Math.round(
@@ -342,98 +564,207 @@ export default function FounderCompanionPage() {
         100
     );
 
-  const currentObjection =
-    selectedObjection
-      ? OBJECTIONS[
-          selectedObjection
-        ]
-      : null;
+  const likelyQuestions =
+    meetingContext
+      ?.meetingIntelligence
+      ?.likelyQuestions ||
+    [];
 
-  const meetingHeadline =
-    meetingType ===
-    "Subscription review"
-      ? "Decide whether Root has earned the right to continue."
-      : "Understand the concern before deciding what happens next.";
+  const participation =
+    meetingContext
+      ?.participation ||
+    {};
 
-  const evidenceSummary =
-    useMemo(
-      () => ({
-        status:
-          "Trial complete",
+  const headline =
+    meetingContext
+      ?.meetingIntelligence
+      ?.executiveHeadline ||
+    {};
 
-        workforce:
-          "100 employees",
+  const confidence =
+    meetingContext
+      ?.rootIntelligence
+      ?.confidenceLabel ||
+    "Developing";
 
-        assessments:
-          "11 recorded",
+  const organisationName =
+    organisation?.name ||
+    "Organisation";
 
-        participation:
-          "Follow-up participation needs interpretation",
+  const strongestPositive =
+    meetingContext
+      ?.meetingIntelligence
+      ?.strongestDefensiblePositive ||
+    "Root is still establishing the strongest defensible positive signal.";
 
-        confidence:
-          "Emerging",
-
-        subscription:
-          "Active in sandbox",
-
-        strongestMessage:
-          "Do not confuse incomplete evidence with evidence of failure.",
-      }),
-      []
-    );
+  const strongestConcern =
+    meetingContext
+      ?.meetingIntelligence
+      ?.strongestDefensibleConcern ||
+    "Root is still establishing the strongest organisational concern.";
 
   function nextStep() {
-    setStepIndex((current) =>
-      Math.min(
-        STEPS.length - 1,
-        current + 1
-      )
+    setStepIndex(
+      (current) =>
+        Math.min(
+          STEPS.length -
+            1,
+          current + 1
+        )
     );
   }
 
   function previousStep() {
-    setStepIndex((current) =>
-      Math.max(
-        0,
-        current - 1
-      )
+    setStepIndex(
+      (current) =>
+        Math.max(
+          0,
+          current - 1
+        )
     );
   }
 
-  function analyseConcern() {
-    const inferred =
-      inferObjection(
-        whatTheySaid
-      );
+  function analyseStatement(
+    statement =
+      whatTheySaid
+  ) {
+    const cleaned =
+      String(
+        statement || ""
+      ).trim();
 
-    if (inferred) {
-      setSelectedObjection(
-        inferred
-      );
+    if (!cleaned) {
+      return;
     }
 
-    setObjectionReady(
-      Boolean(
-        inferred ||
-          selectedObjection
-      )
+    const result =
+      buildRootExecutiveReasoning({
+        context:
+          meetingContext,
+
+        statement:
+          cleaned,
+
+        meetingHistory,
+      });
+
+    setWhatTheySaid(
+      cleaned
+    );
+
+    setReasoningResult(
+      result
     );
   }
 
-  function selectObjection(
-    value
+  function useLikelyQuestion(
+    question
   ) {
-    setSelectedObjection(
-      value
+    const text =
+      question?.question ||
+      "";
+
+    setWhatTheySaid(
+      text
     );
 
-    setObjectionReady(
-      Boolean(value)
+    analyseStatement(
+      text
+    );
+  }
+
+  function recordConcern(
+    resolved
+  ) {
+    if (
+      !reasoningResult
+        ?.reasoning
+    ) {
+      return;
+    }
+
+    const entry = {
+      id:
+        `${Date.now()}-${Math.random()}`,
+
+      createdAt:
+        new Date()
+          .toISOString(),
+
+      statement:
+        whatTheySaid,
+
+      reasoning:
+        reasoningResult.reasoning,
+
+      resolved,
+    };
+
+    setMeetingHistory(
+      (current) => [
+        ...current,
+        entry,
+      ]
+    );
+
+    setWhatTheySaid(
+      ""
+    );
+
+    setReasoningResult(
+      null
+    );
+  }
+
+  if (loading) {
+    return (
+      <main
+        style={
+          styles.loadingPage
+        }
+      >
+        <RootEnso
+          size={100}
+        />
+
+        <p>
+          Root is preparing
+          the case file...
+        </p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main
+        style={
+          styles.loadingPage
+        }
+      >
+        <RootEnso
+          size={90}
+        />
+
+        <h1>
+          Companion could
+          not prepare the
+          meeting.
+        </h1>
+
+        <p>
+          {error}
+        </p>
+      </main>
     );
   }
 
   return (
-    <main style={styles.page}>
+    <main
+      style={
+        styles.page
+      }
+    >
       <style>{`
         * {
           box-sizing: border-box;
@@ -454,21 +785,11 @@ export default function FounderCompanionPage() {
         button {
           transition:
             transform 160ms ease,
-            box-shadow 160ms ease,
-            background 160ms ease;
+            box-shadow 160ms ease;
         }
 
         button:hover {
           transform: translateY(-1px);
-        }
-
-        .companion-step-button:hover {
-          background: rgba(255,255,255,0.72) !important;
-        }
-
-        .companion-primary:hover {
-          box-shadow:
-            0 18px 42px rgba(33,51,37,0.18);
         }
 
         @media (max-width: 1120px) {
@@ -478,7 +799,8 @@ export default function FounderCompanionPage() {
           }
 
           .companion-intelligence {
-            grid-column: 1 / -1;
+            grid-column:
+              1 / -1;
           }
         }
 
@@ -488,48 +810,31 @@ export default function FounderCompanionPage() {
               1fr !important;
           }
 
-          .companion-progress {
-            order: 2;
-          }
-
-          .companion-centre {
-            order: 1;
-          }
-
-          .companion-intelligence {
-            order: 3;
-          }
-
           .companion-header {
+            flex-direction:
+              column !important;
             align-items:
               flex-start !important;
-            flex-direction:
-              column !important;
           }
 
           .companion-step-list {
+            display: grid !important;
             grid-template-columns:
               repeat(3, minmax(0, 1fr));
-            display: grid !important;
           }
 
-          .companion-footer-actions {
+          .companion-actions {
             flex-direction:
               column !important;
-            align-items:
-              stretch !important;
-          }
-        }
-
-        @media (max-width: 520px) {
-          .companion-step-list {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
           }
         }
       `}</style>
 
-      <header style={styles.header}>
+      <header
+        style={
+          styles.header
+        }
+      >
         <div
           className="companion-header"
           style={
@@ -538,38 +843,41 @@ export default function FounderCompanionPage() {
         >
           <div
             style={
-              styles.brandWrap
+              styles.brand
             }
           >
-            <RootEnso size={50} />
+            <RootEnso
+              size={48}
+            />
 
             <div>
-              <div
+              <strong
                 style={
                   styles.brandName
                 }
               >
                 ROOT
-              </div>
+              </strong>
 
-              <div
+              <span
                 style={
-                  styles.brandDescriptor
+                  styles.brandSub
                 }
               >
-                Meeting Companion
-              </div>
+                Executive
+                Companion
+              </span>
             </div>
           </div>
 
           <div
             style={
-              styles.headerMeta
+              styles.headerRight
             }
           >
             <span
               style={
-                styles.privateBadge
+                styles.founderBadge
               }
             >
               Founder view
@@ -578,7 +886,7 @@ export default function FounderCompanionPage() {
             <a
               href="/org-insights"
               style={
-                styles.exitLink
+                styles.exit
               }
             >
               Exit Companion
@@ -599,10 +907,11 @@ export default function FounderCompanionPage() {
         >
           <p
             style={
-              styles.heroEyebrow
+              styles.eyebrow
             }
           >
-            ONE CONVERSATION AT A TIME
+            EXECUTIVE
+            INTELLIGENCE
           </p>
 
           <h1
@@ -618,7 +927,8 @@ export default function FounderCompanionPage() {
                 styles.heroAccent
               }
             >
-              Root will carry the structure.
+              Root will carry
+              the evidence.
             </span>
           </h1>
 
@@ -627,7 +937,10 @@ export default function FounderCompanionPage() {
               styles.heroText
             }
           >
-            {meetingHeadline}
+            {organisationName}
+            {" · "}
+            {confidence}
+            {" confidence"}
           </p>
         </div>
       </section>
@@ -644,14 +957,13 @@ export default function FounderCompanionPage() {
           }
         >
           <aside
-            className="companion-progress"
             style={
               styles.sidebar
             }
           >
             <p
               style={
-                styles.panelEyebrow
+                styles.panelLabel
               }
             >
               Meeting progress
@@ -679,7 +991,8 @@ export default function FounderCompanionPage() {
             >
               <strong>
                 Step{" "}
-                {stepIndex + 1}
+                {stepIndex +
+                  1}
               </strong>
 
               <span>
@@ -712,7 +1025,6 @@ export default function FounderCompanionPage() {
                         step.key
                       }
                       type="button"
-                      className="companion-step-button"
                       onClick={() =>
                         setStepIndex(
                           index
@@ -724,24 +1036,12 @@ export default function FounderCompanionPage() {
                         ...(active
                           ? styles.stepButtonActive
                           : {}),
-
-                        ...(complete
-                          ? styles.stepButtonComplete
-                          : {}),
                       }}
                     >
                       <span
-                        style={{
-                          ...styles.stepDot,
-
-                          ...(active
-                            ? styles.stepDotActive
-                            : {}),
-
-                          ...(complete
-                            ? styles.stepDotComplete
-                            : {}),
-                        }}
+                        style={
+                          styles.stepNumber
+                        }
                       >
                         {complete
                           ? "✓"
@@ -749,237 +1049,1169 @@ export default function FounderCompanionPage() {
                             1}
                       </span>
 
-                      <span>
-                        {step.label}
-                      </span>
+                      {step.label}
                     </button>
                   );
                 }
               )}
             </div>
+
+            {meetingHistory.length >
+              0 && (
+              <div
+                style={
+                  styles.historyMini
+                }
+              >
+                <p
+                  style={
+                    styles.panelLabel
+                  }
+                >
+                  Concerns heard
+                </p>
+
+                <strong>
+                  {
+                    meetingHistory.length
+                  }
+                </strong>
+
+                <span>
+                  {
+                    meetingHistory.filter(
+                      (item) =>
+                        item.resolved
+                    ).length
+                  }{" "}
+                  resolved
+                </span>
+              </div>
+            )}
           </aside>
 
           <section
-            className="companion-centre"
             style={
-              styles.centre
+              styles.mainCard
             }
           >
             <div
               style={
-                styles.stageCard
+                styles.stageHeader
               }
             >
-              <div
-                style={
-                  styles.stageTop
-                }
-              >
-                <div>
-                  <p
-                    style={
-                      styles.stageEyebrow
-                    }
-                  >
-                    {currentStep.label}
-                  </p>
-
-                  <span
-                    style={
-                      styles.stageNumber
-                    }
-                  >
-                    {String(
-                      stepIndex +
-                        1
-                    ).padStart(
-                      2,
-                      "0"
-                    )}
-                  </span>
-                </div>
+              <div>
+                <p
+                  style={
+                    styles.panelLabel
+                  }
+                >
+                  {
+                    currentStep.label
+                  }
+                </p>
 
                 <span
                   style={
-                    styles.meetingBadge
+                    styles.stageNumber
                   }
                 >
-                  {meetingType}
+                  {String(
+                    stepIndex +
+                      1
+                  ).padStart(
+                    2,
+                    "0"
+                  )}
                 </span>
               </div>
 
-              {currentStep.key ===
-                "preparation" && (
-                <PreparationStep
-                  organisationName={
-                    organisationName
-                  }
-                  setOrganisationName={
-                    setOrganisationName
-                  }
-                  contactName={
-                    contactName
-                  }
-                  setContactName={
-                    setContactName
-                  }
-                  meetingType={
-                    meetingType
-                  }
-                  setMeetingType={
-                    setMeetingType
-                  }
-                />
-              )}
-
-              {currentStep.key ===
-                "opening" && (
-                <OpeningStep
-                  contactName={
-                    contactName
-                  }
-                  organisationName={
-                    organisationName
-                  }
-                />
-              )}
-
-              {currentStep.key ===
-                "discovery" && (
-                <DiscoveryStep
-                  discoveryNotes={
-                    discoveryNotes
-                  }
-                  setDiscoveryNotes={
-                    setDiscoveryNotes
-                  }
-                />
-              )}
-
-              {currentStep.key ===
-                "evidence" && (
-                <EvidenceStep
-                  evidence={
-                    evidenceSummary
-                  }
-                />
-              )}
-
-              {currentStep.key ===
-                "objections" && (
-                <ObjectionsStep
-                  whatTheySaid={
-                    whatTheySaid
-                  }
-                  setWhatTheySaid={
-                    setWhatTheySaid
-                  }
-                  selectedObjection={
-                    selectedObjection
-                  }
-                  selectObjection={
-                    selectObjection
-                  }
-                  analyseConcern={
-                    analyseConcern
-                  }
-                  objectionReady={
-                    objectionReady
-                  }
-                  objection={
-                    currentObjection
-                  }
-                />
-              )}
-
-              {currentStep.key ===
-                "recommendation" && (
-                <RecommendationStep
-                  recommendation={
-                    recommendation
-                  }
-                  setRecommendation={
-                    setRecommendation
-                  }
-                />
-              )}
-
-              {currentStep.key ===
-                "decision" && (
-                <DecisionStep
-                  decision={
-                    decision
-                  }
-                  setDecision={
-                    setDecision
-                  }
-                />
-              )}
-
-              {currentStep.key ===
-                "close" && (
-                <CloseStep />
-              )}
-
-              {currentStep.key ===
-                "reflection" && (
-                <ReflectionStep
-                  decision={
-                    decision
-                  }
-                  reflection={
-                    reflection
-                  }
-                  setReflection={
-                    setReflection
-                  }
-                />
-              )}
-
-              <div
-                className="companion-footer-actions"
+              <span
                 style={
-                  styles.footerActions
+                  styles.meetingBadge
                 }
               >
+                {
+                  meetingType
+                }
+              </span>
+            </div>
+
+            {currentStep.key ===
+              "preparation" && (
+              <>
+                <Title>
+                  Before you go
+                  in.
+                </Title>
+
+                <Lead>
+                  Root has already
+                  read the case
+                  file. You do not
+                  need to remember
+                  the numbers.
+                </Lead>
+
+                <div
+                  style={
+                    styles.formGrid
+                  }
+                >
+                  <Field
+                    label="Organisation"
+                    value={
+                      organisationName
+                    }
+                    disabled
+                  />
+
+                  <Field
+                    label="Who are you speaking with?"
+                    value={
+                      contactName
+                    }
+                    onChange={
+                      setContactName
+                    }
+                    placeholder="e.g. Sarah"
+                  />
+
+                  <label
+                    style={
+                      styles.field
+                    }
+                  >
+                    <span
+                      style={
+                        styles.fieldLabel
+                      }
+                    >
+                      Meeting type
+                    </span>
+
+                    <select
+                      value={
+                        meetingType
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        setMeetingType(
+                          event
+                            .target
+                            .value
+                        )
+                      }
+                      style={
+                        styles.input
+                      }
+                    >
+                      <option>
+                        Subscription
+                        review
+                      </option>
+
+                      <option>
+                        Objection
+                        handling
+                      </option>
+
+                      <option>
+                        Executive
+                        review
+                      </option>
+
+                      <option>
+                        Renewal
+                        conversation
+                      </option>
+                    </select>
+                  </label>
+                </div>
+
+                <div
+                  style={
+                    styles.caseHeadline
+                  }
+                >
+                  <p
+                    style={
+                      styles.panelLabel
+                    }
+                  >
+                    ROOT'S FIRST
+                    IMPRESSION
+                  </p>
+
+                  <h3>
+                    {
+                      headline.headline
+                    }
+                  </h3>
+
+                  <p>
+                    {
+                      headline.detail
+                    }
+                  </p>
+                </div>
+
+                <Quiet>
+                  Today is not
+                  about convincing
+                  them. Find out
+                  whether their
+                  interpretation
+                  survives their
+                  own evidence.
+                </Quiet>
+              </>
+            )}
+
+            {currentStep.key ===
+              "opening" && (
+              <>
+                <Title>
+                  Give them the
+                  floor first.
+                </Title>
+
+                <Lead>
+                  Do not begin by
+                  presenting Root's
+                  version of the
+                  trial.
+                </Lead>
+
+                <Script>
+                  Good afternoon{" "}
+                  {contactName ||
+                    "there"}.
+                  <br />
+                  <br />
+                  Firstly, thank
+                  you for giving
+                  Root the
+                  opportunity to
+                  work with{" "}
+                  {
+                    organisationName
+                  }.
+                  <br />
+                  <br />
+                  Before we look
+                  at any of the
+                  evidence, I'd
+                  really like to
+                  hear your view.
+                  <br />
+                  <br />
+                  <strong>
+                    How has the
+                    experience felt
+                    from your
+                    perspective?
+                  </strong>
+                </Script>
+
+                <Quiet>
+                  Ask it. Then shut
+                  up. Sherlock
+                  cannot investigate
+                  while David is
+                  still talking.
+                  🤣
+                </Quiet>
+              </>
+            )}
+
+            {currentStep.key ===
+              "discovery" && (
+              <>
+                <Title>
+                  Build their case
+                  before answering
+                  it.
+                </Title>
+
+                <Lead>
+                  Capture what
+                  matters to them
+                  in their words,
+                  not yours.
+                </Lead>
+
+                <Question>
+                  What stood out to
+                  you during the
+                  trial?
+                </Question>
+
+                <Question>
+                  Was there
+                  anything you
+                  expected Root to
+                  show that it
+                  didn't?
+                </Question>
+
+                <Question>
+                  If you had one
+                  concern about
+                  continuing, what
+                  would it be?
+                </Question>
+
+                <label
+                  style={
+                    styles.field
+                  }
+                >
+                  <span
+                    style={
+                      styles.fieldLabel
+                    }
+                  >
+                    What are you
+                    hearing?
+                  </span>
+
+                  <textarea
+                    value={
+                      discoveryNotes
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setDiscoveryNotes(
+                        event
+                          .target
+                          .value
+                      )
+                    }
+                    placeholder="A few words are enough..."
+                    style={
+                      styles.textarea
+                    }
+                  />
+                </label>
+              </>
+            )}
+
+            {currentStep.key ===
+              "evidence" && (
+              <>
+                <Title>
+                  Here is the case
+                  file.
+                </Title>
+
+                <Lead>
+                  These are the
+                  numbers Root will
+                  use if the
+                  conversation
+                  turns towards
+                  success, failure
+                  or representation.
+                </Lead>
+
+                <div
+                  style={
+                    styles.factGrid
+                  }
+                >
+                  <Fact
+                    label="Workforce"
+                    value={
+                      formatNumber(
+                        participation
+                          .workforceDenominator
+                      )
+                    }
+                  />
+
+                  <Fact
+                    label="Baseline"
+                    value={
+                      formatNumber(
+                        participation
+                          .baselineParticipants
+                      )
+                    }
+                  />
+
+                  <Fact
+                    label="Repeat evidence"
+                    value={
+                      formatNumber(
+                        participation
+                          .repeatParticipants
+                      )
+                    }
+                  />
+
+                  <Fact
+                    label="Repeat rate"
+                    value={
+                      formatPercent(
+                        participation
+                          .repeatRateFromBaseline
+                      )
+                    }
+                  />
+
+                  <Fact
+                    label="Missing follow-ups"
+                    value={
+                      formatNumber(
+                        participation
+                          .missingFollowUps
+                      )
+                    }
+                  />
+
+                  <Fact
+                    label="Evidence confidence"
+                    value={
+                      confidence
+                    }
+                  />
+                </div>
+
+                <div
+                  style={
+                    styles.splitEvidence
+                  }
+                >
+                  <EvidenceBlock
+                    label="Strongest defensible positive"
+                    text={
+                      strongestPositive
+                    }
+                    good
+                  />
+
+                  <EvidenceBlock
+                    label="Strongest defensible concern"
+                    text={
+                      strongestConcern
+                    }
+                  />
+                </div>
+
+                <div
+                  style={
+                    styles.caseHeadline
+                  }
+                >
+                  <p
+                    style={
+                      styles.panelLabel
+                    }
+                  >
+                    INTERPRETATION
+                  </p>
+
+                  <h3>
+                    {
+                      participation
+                        ?.participationInterpretation
+                        ?.headline
+                    }
+                  </h3>
+
+                  <p>
+                    {
+                      participation
+                        ?.participationInterpretation
+                        ?.meaning
+                    }
+                  </p>
+                </div>
+              </>
+            )}
+
+            {currentStep.key ===
+              "objections" && (
+              <>
+                <Title>
+                  They said
+                  something.
+                  Good.
+                </Title>
+
+                <Lead>
+                  No canned
+                  objections now.
+                  Root will use
+                  their words and
+                  this organisation's
+                  evidence.
+                </Lead>
+
+                {likelyQuestions.length >
+                  0 && (
+                  <div
+                    style={
+                      styles.predictedBox
+                    }
+                  >
+                    <p
+                      style={
+                        styles.panelLabel
+                      }
+                    >
+                      ROOT THINKS
+                      THESE MAY COME
+                      UP
+                    </p>
+
+                    <div
+                      style={
+                        styles.predictedButtons
+                      }
+                    >
+                      {likelyQuestions.map(
+                        (
+                          item,
+                          index
+                        ) => (
+                          <button
+                            key={
+                              `${item.key}-${index}`
+                            }
+                            type="button"
+                            onClick={() =>
+                              useLikelyQuestion(
+                                item
+                              )
+                            }
+                            style={
+                              styles.predictedButton
+                            }
+                          >
+                            {
+                              item.question
+                            }
+                          </button>
+                        )
+                      )}
+                    </div>
+
+                    <span
+                      style={
+                        styles.microText
+                      }
+                    >
+                      Two-finger
+                      typing
+                      protection
+                      enabled. 🤣
+                    </span>
+                  </div>
+                )}
+
+                <label
+                  style={
+                    styles.field
+                  }
+                >
+                  <span
+                    style={
+                      styles.fieldLabel
+                    }
+                  >
+                    They said...
+                  </span>
+
+                  <textarea
+                    value={
+                      whatTheySaid
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setWhatTheySaid(
+                        event
+                          .target
+                          .value
+                      )
+                    }
+                    placeholder={'e.g. "Burnout hasn’t really improved, has it?"'}
+                    style={
+                      styles.textarea
+                    }
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    analyseStatement()
+                  }
+                  style={
+                    styles.primaryButton
+                  }
+                >
+                  Ask Root to
+                  interpret →
+                </button>
+
+                {reasoningResult
+                  ?.reasoning && (
+                  <ReasoningPanel
+                    reasoning={
+                      reasoningResult.reasoning
+                    }
+                    onResolved={() =>
+                      recordConcern(
+                        true
+                      )
+                    }
+                    onUnresolved={() =>
+                      recordConcern(
+                        false
+                      )
+                    }
+                  />
+                )}
+
+                {meetingHistory.length >
+                  0 && (
+                  <div
+                    style={
+                      styles.conversationMemory
+                    }
+                  >
+                    <p
+                      style={
+                        styles.panelLabel
+                      }
+                    >
+                      CONVERSATION
+                      MEMORY
+                    </p>
+
+                    {meetingHistory.map(
+                      (
+                        item,
+                        index
+                      ) => (
+                        <div
+                          key={
+                            item.id
+                          }
+                          style={
+                            styles.memoryRow
+                          }
+                        >
+                          <span>
+                            {item.resolved
+                              ? "✓"
+                              : "○"}
+                          </span>
+
+                          <div>
+                            <strong>
+                              Concern{" "}
+                              {index +
+                                1}
+                            </strong>
+
+                            <p>
+                              {
+                                item.statement
+                              }
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {currentStep.key ===
+              "recommendation" && (
+              <>
+                <Title>
+                  What has this
+                  conversation
+                  earned?
+                </Title>
+
+                <Lead>
+                  The recommendation
+                  should follow the
+                  evidence and the
+                  concerns actually
+                  discussed.
+                </Lead>
+
+                <Recommendation
+                  active={
+                    recommendation ===
+                    "continue"
+                  }
+                  onClick={() =>
+                    setRecommendation(
+                      "continue"
+                    )
+                  }
+                  title="Continue membership"
+                  text="Continue building the longitudinal organisation picture."
+                />
+
+                <Recommendation
+                  active={
+                    recommendation ===
+                    "evidence"
+                  }
+                  onClick={() =>
+                    setRecommendation(
+                      "evidence"
+                    )
+                  }
+                  title="Strengthen evidence first"
+                  text="Agree exactly what additional participation or context is required."
+                />
+
+                <Recommendation
+                  active={
+                    recommendation ===
+                    "session"
+                  }
+                  onClick={() =>
+                    setRecommendation(
+                      "session"
+                    )
+                  }
+                  title="Executive / engagement session"
+                  text="Use a focused session where understanding or participation is limiting confidence."
+                />
+
+                <div
+                  style={
+                    styles.caseHeadline
+                  }
+                >
+                  <p
+                    style={
+                      styles.panelLabel
+                    }
+                  >
+                    CLOSE READINESS
+                  </p>
+
+                  <h3>
+                    {
+                      closeFrame.headline
+                    }
+                  </h3>
+
+                  <p>
+                    {
+                      closeFrame.reason
+                    }
+                  </p>
+
+                  {!closeFrame.readyToClose &&
+                    closeFrame.suggestedNextQuestion && (
+                      <strong>
+                        Ask next:{" "}
+                        {
+                          closeFrame.suggestedNextQuestion
+                        }
+                      </strong>
+                    )}
+                </div>
+              </>
+            )}
+
+            {currentStep.key ===
+              "decision" && (
+              <>
+                <Title>
+                  Ask for the
+                  decision.
+                </Title>
+
+                <Lead>
+                  Don't explain
+                  what you've
+                  already explained.
+                </Lead>
+
+                <div
+                  style={
+                    styles.decisionCard
+                  }
+                >
+                  {closeFrame.readyToClose ? (
+                    <>
+                      <p>
+                        {
+                          closeFrame.personalisedFrame
+                        }
+                      </p>
+
+                      <h3>
+                        {
+                          closeFrame.suggestedClose
+                        }
+                      </h3>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Root thinks
+                        the decision
+                        has not been
+                        fully earned
+                        yet.
+                      </p>
+
+                      <h3>
+                        {
+                          closeFrame.suggestedNextQuestion
+                        }
+                      </h3>
+                    </>
+                  )}
+                </div>
+
+                <div
+                  style={
+                    styles.outcomes
+                  }
+                >
+                  <Outcome
+                    active={
+                      decision ===
+                      "yes"
+                    }
+                    onClick={() =>
+                      setDecision(
+                        "yes"
+                      )
+                    }
+                    title="Yes"
+                    text="They continue"
+                  />
+
+                  <Outcome
+                    active={
+                      decision ===
+                      "not_yet"
+                    }
+                    onClick={() =>
+                      setDecision(
+                        "not_yet"
+                      )
+                    }
+                    title="Not yet"
+                    text="Something remains"
+                  />
+
+                  <Outcome
+                    active={
+                      decision ===
+                      "no"
+                    }
+                    onClick={() =>
+                      setDecision(
+                        "no"
+                      )
+                    }
+                    title="No"
+                    text="Understand why"
+                  />
+                </div>
+              </>
+            )}
+
+            {currentStep.key ===
+              "close" && (
+              <div
+                style={
+                  styles.close
+                }
+              >
+                <p
+                  style={
+                    styles.panelLabel
+                  }
+                >
+                  DECISION TIME
+                </p>
+
+                {closeFrame.readyToClose ? (
+                  <>
+                    <h2
+                      style={
+                        styles.closeTitle
+                      }
+                    >
+                      You have
+                      earned the
+                      right to ask.
+                    </h2>
+
+                    <p
+                      style={
+                        styles.closeCopy
+                      }
+                    >
+                      You understood
+                      the concern.
+                      <br />
+                      You used their
+                      evidence.
+                      <br />
+                      You made the
+                      recommendation.
+                    </p>
+
+                    <div
+                      style={
+                        styles.windows
+                      }
+                    >
+                      <span
+                        style={
+                          styles.rule
+                        }
+                      />
+
+                      <p>
+                        The next
+                        person to
+                        speak...
+                        <br />
+
+                        <strong>
+                          takes the
+                          windows
+                          home.
+                        </strong>
+                      </p>
+
+                      <span
+                        style={
+                          styles.rule
+                        }
+                      />
+                    </div>
+
+                    <h3
+                      style={
+                        styles.silence
+                      }
+                    >
+                      Pause.
+                      <br />
+                      Don't rescue
+                      the silence.
+                    </h3>
+                  </>
+                ) : (
+                  <>
+                    <h2
+                      style={
+                        styles.closeTitle
+                      }
+                    >
+                      Not yet.
+                    </h2>
+
+                    <p
+                      style={
+                        styles.closeCopy
+                      }
+                    >
+                      Root still sees
+                      something
+                      unresolved.
+                    </p>
+
+                    <div
+                      style={
+                        styles.windows
+                      }
+                    >
+                      <p>
+                        {
+                          closeFrame.suggestedNextQuestion
+                        }
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                <div
+                  style={
+                    styles.fearNaught
+                  }
+                >
+                  <RootEnso
+                    size={42}
+                  />
+
+                  Fear Naught.
+                </div>
+              </div>
+            )}
+
+            {currentStep.key ===
+              "reflection" && (
+              <>
+                <Title>
+                  What did Root
+                  learn?
+                </Title>
+
+                <Lead>
+                  We will use this
+                  conversation when
+                  we build the
+                  Executive Record
+                  next.
+                </Lead>
+
+                <div
+                  style={
+                    styles.reflectionSummary
+                  }
+                >
+                  <span>
+                    Outcome
+                  </span>
+
+                  <strong>
+                    {decision ===
+                    "yes"
+                      ? "Continued"
+                      : decision ===
+                        "no"
+                      ? "Did not continue"
+                      : decision ===
+                        "not_yet"
+                      ? "Decision delayed"
+                      : "Not recorded"}
+                  </strong>
+                </div>
+
+                <div
+                  style={
+                    styles.reflectionSummary
+                  }
+                >
+                  <span>
+                    Concerns
+                    explored
+                  </span>
+
+                  <strong>
+                    {
+                      meetingHistory.length
+                    }
+                  </strong>
+                </div>
+
+                <label
+                  style={
+                    styles.field
+                  }
+                >
+                  <span
+                    style={
+                      styles.fieldLabel
+                    }
+                  >
+                    What did you
+                    learn today?
+                  </span>
+
+                  <textarea
+                    value={
+                      reflection
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setReflection(
+                        event
+                          .target
+                          .value
+                      )
+                    }
+                    placeholder="A few words are enough..."
+                    style={{
+                      ...styles.textarea,
+                      minHeight:
+                        "170px",
+                    }}
+                  />
+                </label>
+
+                <Quiet>
+                  Win, lose or
+                  delay — preserve
+                  the reasoning.
+                  Next time Root
+                  should know where
+                  this conversation
+                  left off.
+                </Quiet>
+              </>
+            )}
+
+            <div
+              className="companion-actions"
+              style={
+                styles.actions
+              }
+            >
+              <button
+                type="button"
+                disabled={
+                  stepIndex ===
+                  0
+                }
+                onClick={
+                  previousStep
+                }
+                style={{
+                  ...styles.secondaryButton,
+
+                  opacity:
+                    stepIndex ===
+                    0
+                      ? 0.35
+                      : 1,
+                }}
+              >
+                ← Previous
+              </button>
+
+              {stepIndex <
+                STEPS.length -
+                  1 && (
                 <button
                   type="button"
                   onClick={
-                    previousStep
+                    nextStep
                   }
-                  disabled={
-                    stepIndex === 0
+                  style={
+                    styles.primaryButton
                   }
-                  style={{
-                    ...styles.secondaryButton,
-
-                    opacity:
-                      stepIndex ===
-                      0
-                        ? 0.38
-                        : 1,
-                  }}
                 >
-                  ← Previous
+                  Continue →
                 </button>
-
-                {stepIndex <
-                  STEPS.length -
-                    1 && (
-                  <button
-                    type="button"
-                    className="companion-primary"
-                    onClick={
-                      nextStep
-                    }
-                    style={
-                      styles.primaryButton
-                    }
-                  >
-                    Continue →
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </section>
 
@@ -991,109 +2223,118 @@ export default function FounderCompanionPage() {
           >
             <p
               style={
-                styles.panelEyebrow
+                styles.panelLabel
               }
             >
-              Root beside you
+              ROOT BESIDE YOU
             </p>
 
             <h2
               style={
-                styles.intelligenceTitle
+                styles.orgName
               }
             >
               {organisationName}
             </h2>
 
-            <div
-              style={
-                styles.intelligenceList
+            <Intel
+              label="Trial"
+              value={
+                trialStatus?.label ||
+                "—"
               }
-            >
-              <IntelRow
-                label="Status"
-                value={
-                  evidenceSummary.status
-                }
-              />
+            />
 
-              <IntelRow
-                label="Workforce"
-                value={
-                  evidenceSummary.workforce
-                }
-              />
+            <Intel
+              label="Workforce"
+              value={
+                formatNumber(
+                  participation
+                    .workforceDenominator
+                )
+              }
+            />
 
-              <IntelRow
-                label="Evidence"
-                value={
-                  evidenceSummary.assessments
-                }
-              />
+            <Intel
+              label="Baseline"
+              value={
+                formatNumber(
+                  participation
+                    .baselineParticipants
+                )
+              }
+            />
 
-              <IntelRow
-                label="Confidence"
-                value={
-                  evidenceSummary.confidence
-                }
-                accent
-              />
+            <Intel
+              label="Repeat"
+              value={
+                formatNumber(
+                  participation
+                    .repeatParticipants
+                )
+              }
+            />
 
-              <IntelRow
-                label="Membership"
-                value={
-                  evidenceSummary.subscription
-                }
-              />
-            </div>
+            <Intel
+              label="Repeat rate"
+              value={
+                formatPercent(
+                  participation
+                    .repeatRateFromBaseline
+                )
+              }
+            />
+
+            <Intel
+              label="Confidence"
+              value={
+                confidence
+              }
+            />
 
             <div
               style={
-                styles.watchCard
+                styles.watch
               }
             >
               <p
                 style={
-                  styles.watchLabel
+                  styles.panelLabelLight
                 }
               >
                 ROOT'S WATCHPOINT
               </p>
 
-              <strong
-                style={
-                  styles.watchTitle
+              <strong>
+                {
+                  headline.headline
                 }
-              >
-                Don't let one headline
-                become the whole story.
               </strong>
 
-              <p
-                style={
-                  styles.watchText
-                }
-              >
+              <p>
                 {
-                  evidenceSummary.strongestMessage
+                  meetingContext
+                    ?.meetingIntelligence
+                    ?.caution
                 }
               </p>
             </div>
 
             <div
               style={
-                styles.companionNote
+                styles.rootWhisper
               }
             >
               <RootEnso
-                size={40}
+                size={36}
               />
 
               <p>
                 Listen first.
                 <br />
-                Answer what they
-                actually said.
+                Evidence second.
+                <br />
+                Close last.
               </p>
             </div>
           </aside>
@@ -1103,1051 +2344,241 @@ export default function FounderCompanionPage() {
   );
 }
 
-function PreparationStep({
-  organisationName,
-  setOrganisationName,
-  contactName,
-  setContactName,
-  meetingType,
-  setMeetingType,
+function ReasoningPanel({
+  reasoning,
+  onResolved,
+  onUnresolved,
 }) {
   return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
-        }
-      >
-        Before you go in.
-      </h2>
-
+    <div
+      style={
+        styles.reasoningPanel
+      }
+    >
       <p
         style={
-          styles.sectionLead
+          styles.reasoningHeader
         }
       >
-        Today is not about
-        convincing them. Your job
-        is to understand what they
-        believe the evidence says,
-        then help them interpret it
-        accurately.
+        ROOT HAS READ THE
+        EVIDENCE
       </p>
 
-      <div
-        style={
-          styles.formGrid
-        }
+      <Reason
+        number="01"
+        label="You said"
       >
-        <Field
-          label="Organisation"
-          value={
-            organisationName
-          }
-          onChange={
-            setOrganisationName
-          }
-        />
-
-        <Field
-          label="Who are you speaking with?"
-          value={
-            contactName
-          }
-          onChange={
-            setContactName
-          }
-          placeholder="e.g. Sarah"
-        />
-
-        <label
-          style={
-            styles.fieldWrap
-          }
-        >
-          <span
-            style={
-              styles.fieldLabel
-            }
-          >
-            Meeting type
-          </span>
-
-          <select
-            value={
-              meetingType
-            }
-            onChange={(event) =>
-              setMeetingType(
-                event.target
-                  .value
-              )
-            }
-            style={
-              styles.input
-            }
-          >
-            <option>
-              Subscription review
-            </option>
-
-            <option>
-              Objection handling
-            </option>
-
-            <option>
-              Executive review
-            </option>
-
-            <option>
-              Renewal conversation
-            </option>
-          </select>
-        </label>
-      </div>
-
-      <QuietPrompt>
-        You don't need to remember
-        the whole meeting. Root will
-        give you the next step.
-      </QuietPrompt>
-    </div>
-  );
-}
-
-function OpeningStep({
-  contactName,
-  organisationName,
-}) {
-  const person =
-    contactName || "there";
-
-  return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
+        “
+        {
+          reasoning.originalStatement
         }
+        ”
+      </Reason>
+
+      <Reason
+        number="02"
+        label="What your evidence actually shows"
       >
-        Open the conversation.
-      </h2>
-
-      <p
-        style={
-          styles.sectionLead
-        }
-      >
-        Don't start by defending
-        Root. Start by giving them
-        the floor.
-      </p>
-
-      <ScriptCard>
-        Good afternoon{" "}
-        {person}.
-        <br />
-        <br />
-        Firstly, thank you for
-        giving Root the opportunity
-        to work with{" "}
-        {organisationName}.
-        <br />
-        <br />
-        Before we look at any of
-        the numbers, I'd really like
-        to hear your own view.
-        <br />
-        <br />
-        <strong>
-          How has the experience
-          felt from your
-          perspective?
-        </strong>
-      </ScriptCard>
-
-      <QuietPrompt>
-        Ask the question. Then
-        listen. Don't start solving
-        while they're still
-        talking.
-      </QuietPrompt>
-    </div>
-  );
-}
-
-function DiscoveryStep({
-  discoveryNotes,
-  setDiscoveryNotes,
-}) {
-  return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
-        }
-      >
-        Understand their version
-        first.
-      </h2>
-
-      <p
-        style={
-          styles.sectionLead
-        }
-      >
-        You are looking for what
-        they noticed, what
-        disappointed them and what
-        they are worried you might
-        say next.
-      </p>
-
-      <div
-        style={
-          styles.questionStack
-        }
-      >
-        <QuestionCard>
-          What stood out to you
-          during the trial?
-        </QuestionCard>
-
-        <QuestionCard>
-          Was there anything you
-          expected Root to show
-          that it didn't?
-        </QuestionCard>
-
-        <QuestionCard>
-          If you had one concern
-          about continuing, what
-          would it be?
-        </QuestionCard>
-      </div>
-
-      <label
-        style={
-          styles.fieldWrap
-        }
-      >
-        <span
-          style={
-            styles.fieldLabel
-          }
-        >
-          What are you hearing?
-        </span>
-
-        <textarea
-          value={
-            discoveryNotes
-          }
-          onChange={(event) =>
-            setDiscoveryNotes(
-              event.target
-                .value
-            )
-          }
-          placeholder="Capture their words, not your interpretation yet..."
-          style={
-            styles.textarea
-          }
-        />
-      </label>
-
-      <QuietPrompt>
-        Their words are evidence
-        too. Don't translate them
-        too early.
-      </QuietPrompt>
-    </div>
-  );
-}
-
-function EvidenceStep({
-  evidence,
-}) {
-  return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
-        }
-      >
-        Now look at what Root
-        actually knows.
-      </h2>
-
-      <p
-        style={
-          styles.sectionLead
-        }
-      >
-        Separate measurement,
-        interpretation and
-        uncertainty before you
-        answer anything.
-      </p>
-
-      <div
-        style={
-          styles.evidenceGrid
-        }
-      >
-        <EvidenceCard
-          label="Measured"
-          title={
-            evidence.assessments
-          }
-          text="This is recorded evidence. It does not require interpretation."
-        />
-
-        <EvidenceCard
-          label="Confidence"
-          title={
-            evidence.confidence
-          }
-          text="The evidence is useful, but Root should remain cautious about organisation-wide conclusions."
-        />
-
-        <EvidenceCard
-          label="Participation"
-          title="Needs context"
-          text={
-            evidence.participation
-          }
-        />
-      </div>
-
-      <div
-        style={
-          styles.sherlockCard
-        }
-      >
-        <p
-          style={
-            styles.sherlockLabel
-          }
-        >
-          ROOT INTERPRETATION
-        </p>
-
-        <h3
-          style={
-            styles.sherlockTitle
-          }
-        >
-          The first headline may
-          not be the right
-          conclusion.
-        </h3>
-
-        <p
-          style={
-            styles.sherlockText
-          }
-        >
-          Ask whether the same
-          people contributed at
-          both measurement points,
-          whether participation
-          changed, and whether the
-          current sample is large
-          enough to support the
-          conclusion being made.
-        </p>
-
-        <strong
-          style={
-            styles.sherlockBottom
-          }
-        >
-          Root's job is not to win
-          the argument. It is to
-          stop the wrong conclusion
-          winning.
-        </strong>
-      </div>
-    </div>
-  );
-}
-
-function ObjectionsStep({
-  whatTheySaid,
-  setWhatTheySaid,
-  selectedObjection,
-  selectObjection,
-  analyseConcern,
-  objectionReady,
-  objection,
-}) {
-  return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
-        }
-      >
-        They said something.
-        Good.
-      </h2>
-
-      <p
-        style={
-          styles.sectionLead
-        }
-      >
-        Don't fire an answer back.
-        Capture what they actually
-        said, understand it, ask
-        permission, then respond.
-      </p>
-
-      <label
-        style={
-          styles.fieldWrap
-        }
-      >
-        <span
-          style={
-            styles.fieldLabel
-          }
-        >
-          They said...
-        </span>
-
-        <textarea
-          value={
-            whatTheySaid
-          }
-          onChange={(event) =>
-            setWhatTheySaid(
-              event.target
-                .value
-            )
-          }
-          placeholder={'e.g. "Only 20% completed a second assessment, so I am not convinced it worked."'}
-          style={
-            styles.textarea
-          }
-        />
-      </label>
-
-      <div
-        style={
-          styles.objectionTools
-        }
-      >
-        <label
-          style={{
-            ...styles.fieldWrap,
-
-            flex: 1,
-          }}
-        >
-          <span
-            style={
-              styles.fieldLabel
-            }
-          >
-            Or choose the concern
-          </span>
-
-          <select
-            value={
-              selectedObjection
-            }
-            onChange={(event) =>
-              selectObjection(
-                event.target
-                  .value
-              )
-            }
-            style={
-              styles.input
-            }
-          >
-            <option value="">
-              Select an objection...
-            </option>
-
-            {Object.entries(
-              OBJECTIONS
-            ).map(
-              ([
-                key,
-                item,
-              ]) => (
-                <option
-                  key={key}
-                  value={key}
-                >
-                  {item.label}
-                </option>
-              )
-            )}
-          </select>
-        </label>
-
-        <button
-          type="button"
-          className="companion-primary"
-          onClick={
-            analyseConcern
-          }
-          style={
-            styles.analyseButton
-          }
-        >
-          Interpret concern →
-        </button>
-      </div>
-
-      {objectionReady &&
-        objection && (
+        {reasoning.evidence?.length ? (
           <div
             style={
-              styles.objectionResult
+              styles.evidenceLines
             }
           >
-            <ReasoningBlock
-              number="01"
-              label="What the evidence says"
-              text={
-                objection.evidence
-              }
-            />
-
-            <ReasoningBlock
-              number="02"
-              label="Root's interpretation"
-              text={
-                objection.interpretation
-              }
-              dark
-            />
-
-            <ReasoningBlock
-              number="03"
-              label="Ask permission"
-              text={
-                objection.permission
-              }
-              quote
-            />
-
-            <ReasoningBlock
-              number="04"
-              label="How to respond"
-              text={
-                objection.response
-              }
-              quote
-            />
-
-            <ReasoningBlock
-              number="05"
-              label="Question back"
-              text={
-                objection.question
-              }
-              accent
-            />
-
-            <ReasoningBlock
-              number="06"
-              label="Commercial opportunity"
-              text={
-                objection.opportunity
-              }
-            />
-          </div>
-        )}
-
-      {!objectionReady && (
-        <QuietPrompt>
-          You don't need the clever
-          answer yet. First find out
-          what the objection really
-          is.
-        </QuietPrompt>
-      )}
-    </div>
-  );
-}
-
-function RecommendationStep({
-  recommendation,
-  setRecommendation,
-}) {
-  const recommendations = [
-    {
-      key: "continue",
-      title:
-        "Continue membership",
-      text:
-        "Root has earned the right to continue and the next evidence period should strengthen the organisation picture.",
-    },
-
-    {
-      key: "interpretation",
-      title:
-        "Executive interpretation session",
-      text:
-        "The organisation needs greater confidence in what the evidence means before making the subscription decision.",
-    },
-
-    {
-      key: "engagement",
-      title:
-        "Employee / manager re-engagement",
-      text:
-        "Participation or understanding appears to be limiting the strength of future evidence.",
-    },
-
-    {
-      key: "review",
-      title:
-        "Agree another review point",
-      text:
-        "More evidence is genuinely required before making a responsible recommendation.",
-    },
-  ];
-
-  return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
-        }
-      >
-        Make one clear
-        recommendation.
-      </h2>
-
-      <p
-        style={
-          styles.sectionLead
-        }
-      >
-        Don't give them four
-        conclusions. Decide what
-        the conversation and the
-        evidence support.
-      </p>
-
-      <div
-        style={
-          styles.recommendationList
-        }
-      >
-        {recommendations.map(
-          (item) => {
-            const active =
-              recommendation ===
-              item.key;
-
-            return (
-              <button
-                key={
-                  item.key
-                }
-                type="button"
-                onClick={() =>
-                  setRecommendation(
-                    item.key
-                  )
-                }
-                style={{
-                  ...styles.recommendationButton,
-
-                  ...(active
-                    ? styles.recommendationButtonActive
-                    : {}),
-                }}
-              >
-                <span
-                  style={
-                    styles.recommendationCheck
+            {reasoning.evidence.map(
+              (
+                line,
+                index
+              ) => (
+                <p
+                  key={
+                    index
                   }
                 >
-                  {active
-                    ? "✓"
-                    : "○"}
-                </span>
+                  {line}
+                </p>
+              )
+            )}
+          </div>
+        ) : (
+          "Root does not have enough measured evidence to quantify this point."
+        )}
+      </Reason>
 
+      {reasoning
+        .supportingFacts
+        ?.length >
+        0 && (
+        <div
+          style={
+            styles.supportFacts
+          }
+        >
+          {reasoning.supportingFacts.map(
+            (
+              fact,
+              index
+            ) => (
+              <div
+                key={
+                  `${fact.label}-${index}`
+                }
+              >
                 <span>
-                  <strong
-                    style={
-                      styles.recommendationTitle
-                    }
-                  >
-                    {item.title}
-                  </strong>
-
-                  <span
-                    style={
-                      styles.recommendationText
-                    }
-                  >
-                    {item.text}
-                  </span>
+                  {
+                    fact.label
+                  }
                 </span>
-              </button>
-            );
-          }
-        )}
-      </div>
 
-      <ScriptCard>
-        From everything we've
-        discussed, I think the most
-        sensible next step is to
-        continue from the evidence
-        we have rather than restart
-        the conversation from zero.
-        <br />
-        <br />
-        <strong>
-          Does that feel like a
-          fair reflection of where
-          we have got to?
-        </strong>
-      </ScriptCard>
-    </div>
-  );
-}
-
-function DecisionStep({
-  decision,
-  setDecision,
-}) {
-  return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
-        }
-      >
-        Ask for the decision.
-      </h2>
-
-      <p
-        style={
-          styles.sectionLead
-        }
-      >
-        You have listened. You have
-        interpreted the evidence.
-        You have made the
-        recommendation.
-      </p>
-
-      <div
-        style={
-          styles.decisionCard
-        }
-      >
-        <p
-          style={
-            styles.decisionPrompt
-          }
-        >
-          "Shall we continue?"
-        </p>
-
-        <p
-          style={
-            styles.decisionSub
-          }
-        >
-          That's enough.
-        </p>
-      </div>
-
-      <div
-        style={
-          styles.outcomeGrid
-        }
-      >
-        {[
-          [
-            "yes",
-            "Yes",
-            "Continue membership",
-          ],
-
-          [
-            "not_yet",
-            "Not yet",
-            "Understand what remains unresolved",
-          ],
-
-          [
-            "no",
-            "No",
-            "Learn why without trying to rescue it",
-          ],
-        ].map(
-          ([
-            key,
-            title,
-            text,
-          ]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() =>
-                setDecision(
-                  key
-                )
-              }
-              style={{
-                ...styles.outcomeButton,
-
-                ...(decision ===
-                key
-                  ? styles.outcomeButtonActive
-                  : {}),
-              }}
-            >
-              <strong>
-                {title}
-              </strong>
-
-              <span>
-                {text}
-              </span>
-            </button>
-          )
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CloseStep() {
-  return (
-    <div
-      style={
-        styles.closeWrap
-      }
-    >
-      <p
-        style={
-          styles.closeEyebrow
-        }
-      >
-        DECISION TIME
-      </p>
-
-      <h2
-        style={
-          styles.closeTitle
-        }
-      >
-        You have answered the
-        questions.
-      </h2>
-
-      <p
-        style={
-          styles.closeText
-        }
-      >
-        You have understood the
-        concern.
-        <br />
-        You have made the
-        recommendation.
-        <br />
-        You have asked for the
-        decision.
-      </p>
-
-      <div
-        style={
-          styles.windowsCard
-        }
-      >
-        <span
-          style={
-            styles.windowsRule
-          }
-        />
-
-        <p
-          style={
-            styles.windowsQuote
-          }
-        >
-          The next person to
-          speak...
-          <br />
-          <strong>
-            takes the windows
-            home.
-          </strong>
-        </p>
-
-        <span
-          style={
-            styles.windowsRule
-          }
-        />
-      </div>
-
-      <p
-        style={
-          styles.closeInstruction
-        }
-      >
-        Pause.
-        <br />
-        Don't rescue the silence.
-      </p>
-
-      <div
-        style={
-          styles.fearNaught
-        }
-      >
-        <RootEnso size={46} />
-
-        <span>
-          Fear Naught.
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ReflectionStep({
-  decision,
-  reflection,
-  setReflection,
-}) {
-  const outcome =
-    decision === "yes"
-      ? "Won"
-
-      : decision ===
-        "not_yet"
-      ? "Delayed"
-
-      : decision === "no"
-      ? "Lost"
-
-      : "Not recorded";
-
-  return (
-    <div>
-      <h2
-        style={
-          styles.sectionTitle
-        }
-      >
-        What did you learn?
-      </h2>
-
-      <p
-        style={
-          styles.sectionLead
-        }
-      >
-        The meeting is over. Don't
-        grade yourself. Capture the
-        lesson while it is still
-        fresh.
-      </p>
-
-      <div
-        style={
-          styles.reflectionOutcome
-        }
-      >
-        <span>
-          Outcome
-        </span>
-
-        <strong>
-          {outcome}
-        </strong>
-      </div>
-
-      <label
-        style={
-          styles.fieldWrap
-        }
-      >
-        <span
-          style={
-            styles.fieldLabel
-          }
-        >
-          What did you learn today?
-        </span>
-
-        <textarea
-          value={
-            reflection
-          }
-          onChange={(event) =>
-            setReflection(
-              event.target
-                .value
+                <strong>
+                  {
+                    fact.value
+                  }
+                </strong>
+              </div>
             )
+          )}
+        </div>
+      )}
+
+      <Reason
+        number="03"
+        label="What that means"
+        dark
+      >
+        {
+          reasoning.interpretation
+        }
+      </Reason>
+
+      <Reason
+        number="04"
+        label="What it does not mean"
+      >
+        {
+          reasoning.doesNotMean
+        }
+      </Reason>
+
+      <Reason
+        number="05"
+        label="Ask permission"
+        quote
+      >
+        {
+          reasoning.permission
+        }
+      </Reason>
+
+      <Reason
+        number="06"
+        label="How I would answer"
+        quote
+        accent
+      >
+        {
+          reasoning.suggestedResponse
+        }
+      </Reason>
+
+      <Reason
+        number="07"
+        label="Best question back"
+        quote
+      >
+        {
+          reasoning.questionBack
+        }
+      </Reason>
+
+      <Reason
+        number="08"
+        label="What this may mean commercially"
+      >
+        {
+          reasoning.commercialImplication
+        }
+      </Reason>
+
+      <div
+        style={
+          styles.resolutionBox
+        }
+      >
+        <div>
+          <p
+            style={
+              styles.panelLabel
+            }
+          >
+            AFTER THEIR RESPONSE
+          </p>
+
+          <strong>
+            Did that resolve the
+            concern?
+          </strong>
+        </div>
+
+        <div
+          style={
+            styles.resolutionButtons
           }
-          placeholder="What mattered? What surprised you? What would you do differently next time?"
-          style={{
-            ...styles.textarea,
+        >
+          <button
+            type="button"
+            onClick={
+              onResolved
+            }
+            style={
+              styles.resolvedButton
+            }
+          >
+            ✓ Yes
+          </button>
 
-            minHeight:
-              "180px",
-          }}
-        />
-      </label>
-
-      <QuietPrompt>
-        Win, lose or delay — the
-        conversation has value if
-        Root learns from it.
-      </QuietPrompt>
+          <button
+            type="button"
+            onClick={
+              onUnresolved
+            }
+            style={
+              styles.unresolvedButton
+            }
+          >
+            ○ Not yet
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function IntelRow({
-  label,
-  value,
-  accent = false,
+function Title({
+  children,
 }) {
   return (
-    <div
+    <h2
       style={
-        styles.intelRow
+        styles.title
       }
     >
-      <span
-        style={
-          styles.intelLabel
-        }
-      >
-        {label}
-      </span>
+      {children}
+    </h2>
+  );
+}
 
-      <strong
-        style={{
-          ...styles.intelValue,
-
-          ...(accent
-            ? styles.intelValueAccent
-            : {}),
-        }}
-      >
-        {value}
-      </strong>
-    </div>
+function Lead({
+  children,
+}) {
+  return (
+    <p
+      style={
+        styles.lead
+      }
+    >
+      {children}
+    </p>
   );
 }
 
@@ -2155,12 +2586,13 @@ function Field({
   label,
   value,
   onChange,
-  placeholder = "",
+  placeholder,
+  disabled = false,
 }) {
   return (
     <label
       style={
-        styles.fieldWrap
+        styles.field
       }
     >
       <span
@@ -2172,10 +2604,18 @@ function Field({
       </span>
 
       <input
-        value={value}
-        onChange={(event) =>
-          onChange(
-            event.target.value
+        value={
+          value || ""
+        }
+        disabled={
+          disabled
+        }
+        onChange={(
+          event
+        ) =>
+          onChange?.(
+            event.target
+              .value
           )
         }
         placeholder={
@@ -2189,68 +2629,42 @@ function Field({
   );
 }
 
-function ScriptCard({
+function Script({
   children,
 }) {
   return (
     <div
       style={
-        styles.scriptCard
+        styles.script
       }
     >
       <p
         style={
-          styles.scriptLabel
+          styles.panelLabelLight
         }
       >
         SAY IT YOUR WAY
       </p>
 
-      <div
-        style={
-          styles.scriptText
-        }
-      >
+      <div>
         {children}
       </div>
     </div>
   );
 }
 
-function QuestionCard({
+function Quiet({
   children,
 }) {
   return (
     <div
       style={
-        styles.questionCard
+        styles.quiet
       }
     >
-      <span
-        style={
-          styles.questionMark
-        }
-      >
-        ?
-      </span>
-
-      <span>
-        {children}
-      </span>
-    </div>
-  );
-}
-
-function QuietPrompt({
-  children,
-}) {
-  return (
-    <div
-      style={
-        styles.quietPrompt
-      }
-    >
-      <RootEnso size={34} />
+      <RootEnso
+        size={32}
+      />
 
       <p>
         {children}
@@ -2259,48 +2673,75 @@ function QuietPrompt({
   );
 }
 
-function EvidenceCard({
-  label,
-  title,
-  text,
+function Question({
+  children,
 }) {
   return (
-    <article
+    <div
       style={
-        styles.evidenceCard
+        styles.question
       }
     >
-      <p
-        style={
-          styles.evidenceLabel
-        }
-      >
-        {label}
-      </p>
+      <span>?</span>
 
-      <h3
-        style={
-          styles.evidenceTitle
-        }
-      >
-        {title}
-      </h3>
-
-      <p
-        style={
-          styles.evidenceText
-        }
-      >
-        {text}
+      <p>
+        {children}
       </p>
-    </article>
+    </div>
   );
 }
 
-function ReasoningBlock({
-  number,
+function Fact({
+  label,
+  value,
+}) {
+  return (
+    <div
+      style={
+        styles.fact
+      }
+    >
+      <span>
+        {label}
+      </span>
+
+      <strong>
+        {value}
+      </strong>
+    </div>
+  );
+}
+
+function EvidenceBlock({
   label,
   text,
+  good = false,
+}) {
+  return (
+    <div
+      style={{
+        ...styles.evidenceBlock,
+
+        ...(good
+          ? styles.evidenceBlockGood
+          : {}),
+      }}
+    >
+      <span>
+        {label}
+      </span>
+
+      <p>
+        {text}
+      </p>
+    </div>
+  );
+}
+
+function Reason({
+  number,
+  label,
+  children,
   dark = false,
   accent = false,
   quote = false,
@@ -2308,20 +2749,20 @@ function ReasoningBlock({
   return (
     <div
       style={{
-        ...styles.reasoningBlock,
+        ...styles.reason,
 
         ...(dark
-          ? styles.reasoningBlockDark
+          ? styles.reasonDark
           : {}),
 
         ...(accent
-          ? styles.reasoningBlockAccent
+          ? styles.reasonAccent
           : {}),
       }}
     >
       <div
         style={
-          styles.reasoningTop
+          styles.reasonTop
         }
       >
         <span>
@@ -2333,1781 +2774,930 @@ function ReasoningBlock({
         </strong>
       </div>
 
-      <p
+      <div
         style={{
-          ...styles.reasoningText,
+          ...styles.reasonBody,
 
           ...(quote
-            ? styles.reasoningQuote
+            ? styles.reasonQuote
             : {}),
         }}
       >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Recommendation({
+  active,
+  onClick,
+  title,
+  text,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={
+        onClick
+      }
+      style={{
+        ...styles.recommendation,
+
+        ...(active
+          ? styles.recommendationActive
+          : {}),
+      }}
+    >
+      <span>
+        {active
+          ? "✓"
+          : "○"}
+      </span>
+
+      <div>
+        <strong>
+          {title}
+        </strong>
+
+        <p>
+          {text}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+function Outcome({
+  active,
+  onClick,
+  title,
+  text,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={
+        onClick
+      }
+      style={{
+        ...styles.outcome,
+
+        ...(active
+          ? styles.outcomeActive
+          : {}),
+      }}
+    >
+      <strong>
+        {title}
+      </strong>
+
+      <span>
         {text}
-      </p>
+      </span>
+    </button>
+  );
+}
+
+function Intel({
+  label,
+  value,
+}) {
+  return (
+    <div
+      style={
+        styles.intel
+      }
+    >
+      <span>
+        {label}
+      </span>
+
+      <strong>
+        {value}
+      </strong>
     </div>
   );
 }
 
 const styles = {
   page: {
-    minHeight:
-      "100vh",
-
-    background:
-      "#F4EFE6",
-
-    color:
-      "#172018",
-
+    minHeight: "100vh",
+    background: "#F4EFE6",
+    color: "#172018",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif',
   },
 
+  loadingPage: {
+    minHeight: "100vh",
+    background: "#F4EFE6",
+    color: "#465346",
+    display: "grid",
+    placeItems: "center",
+    alignContent: "center",
+    gap: "18px",
+    padding: "30px",
+    textAlign: "center",
+  },
+
   header: {
-    position:
-      "sticky",
-
+    position: "sticky",
     top: 0,
-
-    zIndex: 40,
-
+    zIndex: 50,
     background:
-      "rgba(244,239,230,0.88)",
-
+      "rgba(244,239,230,0.9)",
     borderBottom:
       "1px solid rgba(38,52,39,0.08)",
-
     backdropFilter:
       "blur(22px)",
   },
 
   headerInner: {
-    width:
-      "100%",
-
-    maxWidth:
-      "1420px",
-
-    minHeight:
-      "80px",
-
-    margin:
-      "0 auto",
-
-    padding:
-      "14px 28px",
-
-    display:
-      "flex",
-
+    width: "100%",
+    maxWidth: "1420px",
+    minHeight: "80px",
+    margin: "0 auto",
+    padding: "14px 28px",
+    display: "flex",
     justifyContent:
       "space-between",
-
-    alignItems:
-      "center",
-
-    gap:
-      "24px",
+    alignItems: "center",
+    gap: "20px",
   },
 
-  brandWrap: {
-    display:
-      "flex",
-
-    alignItems:
-      "center",
-
-    gap:
-      "13px",
+  brand: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
   },
 
   brandName: {
-    fontSize:
-      "13px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.17em",
+    display: "block",
+    fontSize: "13px",
+    letterSpacing: "0.17em",
   },
 
-  brandDescriptor: {
-    marginTop:
-      "3px",
-
-    color:
-      "#657064",
-
-    fontSize:
-      "11px",
+  brandSub: {
+    display: "block",
+    marginTop: "3px",
+    color: "#657064",
+    fontSize: "11px",
   },
 
-  headerMeta: {
-    display:
-      "flex",
-
-    alignItems:
-      "center",
-
-    gap:
-      "16px",
+  headerRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
   },
 
-  privateBadge: {
-    padding:
-      "8px 11px",
-
-    borderRadius:
-      "999px",
-
+  founderBadge: {
+    padding: "8px 11px",
+    borderRadius: "999px",
     background:
-      "rgba(76,103,75,0.10)",
-
-    color:
-      "#52664F",
-
-    fontSize:
-      "10px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.08em",
-
+      "rgba(76,103,75,0.1)",
+    color: "#52664F",
+    fontSize: "10px",
+    fontWeight: "900",
     textTransform:
       "uppercase",
   },
 
-  exitLink: {
-    color:
-      "#485448",
-
-    fontSize:
-      "13px",
-
-    fontWeight:
-      "800",
-
-    textDecoration:
-      "none",
+  exit: {
+    color: "#485448",
+    textDecoration: "none",
+    fontSize: "13px",
+    fontWeight: "800",
   },
 
   hero: {
     padding:
-      "62px 28px 46px",
-
+      "58px 28px 44px",
     background:
       "radial-gradient(circle at 76% 26%, rgba(121,151,115,0.20), transparent 30%), linear-gradient(145deg, #F5F0E7 0%, #E8EEE4 100%)",
   },
 
   heroInner: {
-    width:
-      "100%",
-
-    maxWidth:
-      "1420px",
-
-    margin:
-      "0 auto",
+    width: "100%",
+    maxWidth: "1420px",
+    margin: "0 auto",
   },
 
-  heroEyebrow: {
-    margin:
-      "0 0 16px",
-
-    color:
-      "#5F705B",
-
-    fontSize:
-      "11px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.17em",
+  eyebrow: {
+    margin: "0 0 14px",
+    color: "#5F705B",
+    fontSize: "10px",
+    fontWeight: "900",
+    letterSpacing: "0.17em",
   },
 
   heroTitle: {
-    margin:
-      0,
-
-    maxWidth:
-      "950px",
-
+    margin: 0,
+    maxWidth: "950px",
     fontFamily:
       "Georgia, serif",
-
     fontSize:
-      "clamp(44px, 5.8vw, 78px)",
-
-    fontWeight:
-      "500",
-
-    lineHeight:
-      1.02,
-
-    letterSpacing:
-      "-0.05em",
+      "clamp(43px, 5.7vw, 76px)",
+    fontWeight: "500",
+    lineHeight: 1.02,
+    letterSpacing: "-0.05em",
   },
 
   heroAccent: {
-    color:
-      "#526D55",
+    color: "#526D55",
   },
 
   heroText: {
-    maxWidth:
-      "720px",
-
-    margin:
-      "22px 0 0",
-
-    color:
-      "#59635A",
-
-    fontSize:
-      "17px",
-
-    lineHeight:
-      1.7,
+    margin: "20px 0 0",
+    color: "#5B665B",
+    fontSize: "16px",
   },
 
   workspace: {
-    padding:
-      "28px",
+    padding: "28px",
   },
 
   layout: {
-    width:
-      "100%",
-
-    maxWidth:
-      "1420px",
-
-    margin:
-      "0 auto",
-
-    display:
-      "grid",
-
+    width: "100%",
+    maxWidth: "1420px",
+    margin: "0 auto",
+    display: "grid",
     gridTemplateColumns:
       "220px minmax(0, 1fr) 300px",
-
-    gap:
-      "18px",
-
-    alignItems:
-      "start",
+    gap: "18px",
+    alignItems: "start",
   },
 
   sidebar: {
-    position:
-      "sticky",
-
-    top:
-      "102px",
-
-    padding:
-      "22px",
-
-    borderRadius:
-      "26px",
-
+    position: "sticky",
+    top: "102px",
+    padding: "22px",
+    borderRadius: "26px",
     background:
-      "rgba(255,255,255,0.54)",
-
+      "rgba(255,255,255,0.55)",
     border:
       "1px solid rgba(255,255,255,0.86)",
-
     boxShadow:
       "0 18px 50px rgba(41,55,40,0.06)",
   },
 
-  panelEyebrow: {
-    margin:
-      "0 0 14px",
+  panelLabel: {
+    margin: "0 0 12px",
+    color: "#71806F",
+    fontSize: "9px",
+    fontWeight: "900",
+    letterSpacing: "0.14em",
+    textTransform:
+      "uppercase",
+  },
 
+  panelLabelLight: {
+    margin: "0 0 12px",
     color:
-      "#71806F",
-
-    fontSize:
-      "9px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.14em",
-
+      "rgba(255,255,255,0.52)",
+    fontSize: "9px",
+    fontWeight: "900",
+    letterSpacing: "0.14em",
     textTransform:
       "uppercase",
   },
 
   progressTrack: {
-    height:
-      "6px",
-
-    overflow:
-      "hidden",
-
-    borderRadius:
-      "999px",
-
+    height: "6px",
+    overflow: "hidden",
+    borderRadius: "999px",
     background:
       "rgba(61,82,59,0.09)",
   },
 
   progressFill: {
-    height:
-      "100%",
-
-    borderRadius:
-      "999px",
-
-    background:
-      "#526D55",
-
+    height: "100%",
+    borderRadius: "999px",
+    background: "#526D55",
     transition:
       "width 300ms ease",
   },
 
   progressMeta: {
-    marginTop:
-      "9px",
-
-    display:
-      "flex",
-
+    marginTop: "9px",
+    display: "flex",
     justifyContent:
       "space-between",
-
-    color:
-      "#667164",
-
-    fontSize:
-      "10px",
+    color: "#667164",
+    fontSize: "10px",
   },
 
   stepList: {
-    marginTop:
-      "22px",
-
-    display:
-      "grid",
-
-    gap:
-      "7px",
+    marginTop: "22px",
+    display: "grid",
+    gap: "7px",
   },
 
   stepButton: {
-    width:
-      "100%",
-
-    padding:
-      "10px",
-
-    border:
-      "1px solid transparent",
-
-    borderRadius:
-      "15px",
-
-    background:
-      "transparent",
-
-    color:
-      "#657064",
-
-    display:
-      "flex",
-
-    alignItems:
-      "center",
-
-    gap:
-      "10px",
-
-    textAlign:
-      "left",
-
-    cursor:
-      "pointer",
-
-    fontSize:
-      "12px",
-
-    fontWeight:
-      "700",
+    width: "100%",
+    padding: "10px",
+    border: "none",
+    borderRadius: "15px",
+    background: "transparent",
+    color: "#657064",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    cursor: "pointer",
+    textAlign: "left",
+    fontSize: "12px",
+    fontWeight: "700",
   },
 
   stepButtonActive: {
-    background:
-      "#263B2B",
-
-    color:
-      "#FFFFFF",
-
+    background: "#263B2B",
+    color: "#FFFFFF",
     boxShadow:
       "0 12px 28px rgba(38,59,43,0.16)",
   },
 
-  stepButtonComplete: {
-    color:
-      "#425343",
-  },
-
-  stepDot: {
-    width:
-      "25px",
-
-    height:
-      "25px",
-
-    flex:
-      "0 0 25px",
-
-    display:
-      "grid",
-
-    placeItems:
-      "center",
-
-    borderRadius:
-      "999px",
-
+  stepNumber: {
+    width: "24px",
+    height: "24px",
+    display: "grid",
+    placeItems: "center",
+    borderRadius: "999px",
     background:
-      "rgba(65,85,62,0.08)",
-
-    fontSize:
-      "9px",
-
-    fontWeight:
-      "900",
+      "rgba(105,124,103,0.10)",
+    fontSize: "9px",
+    fontWeight: "900",
   },
 
-  stepDotActive: {
+  historyMini: {
+    marginTop: "22px",
+    paddingTop: "18px",
+    borderTop:
+      "1px solid rgba(50,68,49,0.08)",
+    display: "grid",
+    gap: "5px",
+    color: "#536153",
+  },
+
+  mainCard: {
+    minHeight: "720px",
+    padding: "36px",
+    borderRadius: "32px",
     background:
-      "rgba(255,255,255,0.16)",
-
-    color:
-      "#FFFFFF",
-  },
-
-  stepDotComplete: {
-    background:
-      "rgba(74,107,69,0.12)",
-
-    color:
-      "#4B6849",
-  },
-
-  centre: {
-    minWidth:
-      0,
-  },
-
-  stageCard: {
-    minHeight:
-      "690px",
-
-    padding:
-      "36px",
-
-    borderRadius:
-      "32px",
-
-    background:
-      "linear-gradient(145deg, rgba(255,255,255,0.72), rgba(248,245,238,0.74))",
-
+      "linear-gradient(145deg, rgba(255,255,255,0.74), rgba(248,245,238,0.75))",
     border:
       "1px solid rgba(255,255,255,0.9)",
-
     boxShadow:
       "0 26px 76px rgba(40,54,39,0.09)",
   },
 
-  stageTop: {
-    marginBottom:
-      "32px",
-
-    paddingBottom:
-      "22px",
-
+  stageHeader: {
+    marginBottom: "30px",
+    paddingBottom: "20px",
     borderBottom:
       "1px solid rgba(51,66,50,0.08)",
-
-    display:
-      "flex",
-
+    display: "flex",
     justifyContent:
       "space-between",
-
     alignItems:
       "flex-start",
-
-    gap:
-      "20px",
-  },
-
-  stageEyebrow: {
-    margin:
-      "0 0 5px",
-
-    color:
-      "#667562",
-
-    fontSize:
-      "10px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.15em",
-
-    textTransform:
-      "uppercase",
   },
 
   stageNumber: {
-    color:
-      "#A0A99E",
-
+    color: "#A0A99E",
     fontFamily:
       "Georgia, serif",
-
-    fontSize:
-      "24px",
+    fontSize: "24px",
   },
 
   meetingBadge: {
-    padding:
-      "9px 12px",
-
-    borderRadius:
-      "999px",
-
+    padding: "9px 12px",
+    borderRadius: "999px",
     background:
       "rgba(76,103,75,0.08)",
-
-    color:
-      "#52644F",
-
-    fontSize:
-      "10px",
-
-    fontWeight:
-      "900",
+    color: "#52644F",
+    fontSize: "10px",
+    fontWeight: "900",
   },
 
-  sectionTitle: {
-    margin:
-      0,
-
-    maxWidth:
-      "740px",
-
-    color:
-      "#1D291F",
-
+  title: {
+    margin: 0,
+    maxWidth: "760px",
     fontFamily:
       "Georgia, serif",
-
     fontSize:
-      "clamp(35px, 4.3vw, 54px)",
-
-    fontWeight:
-      "500",
-
-    lineHeight:
-      1.07,
-
-    letterSpacing:
-      "-0.04em",
+      "clamp(35px, 4vw, 53px)",
+    fontWeight: "500",
+    lineHeight: 1.08,
+    letterSpacing: "-0.04em",
   },
 
-  sectionLead: {
-    maxWidth:
-      "720px",
-
-    margin:
-      "18px 0 28px",
-
-    color:
-      "#606961",
-
-    fontSize:
-      "16px",
-
-    lineHeight:
-      1.75,
+  lead: {
+    maxWidth: "720px",
+    margin: "17px 0 28px",
+    color: "#606961",
+    fontSize: "16px",
+    lineHeight: 1.75,
   },
 
   formGrid: {
-    display:
-      "grid",
-
+    display: "grid",
     gridTemplateColumns:
-      "repeat(auto-fit, minmax(240px, 1fr))",
-
-    gap:
-      "14px",
+      "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "13px",
   },
 
-  fieldWrap: {
-    display:
-      "grid",
-
-    gap:
-      "8px",
+  field: {
+    display: "grid",
+    gap: "8px",
+    marginBottom: "16px",
   },
 
   fieldLabel: {
-    color:
-      "#667164",
-
-    fontSize:
-      "10px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.09em",
-
+    color: "#667164",
+    fontSize: "10px",
+    fontWeight: "900",
+    letterSpacing: "0.09em",
     textTransform:
       "uppercase",
   },
 
   input: {
-    width:
-      "100%",
-
-    minHeight:
-      "50px",
-
-    padding:
-      "12px 14px",
-
+    width: "100%",
+    minHeight: "50px",
+    padding: "12px 14px",
     border:
       "1px solid rgba(47,66,47,0.11)",
-
-    borderRadius:
-      "15px",
-
-    outline:
-      "none",
-
+    borderRadius: "15px",
+    outline: "none",
     background:
       "rgba(255,255,255,0.72)",
-
-    color:
-      "#263026",
+    color: "#263026",
   },
 
   textarea: {
-    width:
-      "100%",
-
-    minHeight:
-      "125px",
-
-    resize:
-      "vertical",
-
-    padding:
-      "15px",
-
+    width: "100%",
+    minHeight: "125px",
+    padding: "15px",
     border:
       "1px solid rgba(47,66,47,0.11)",
-
-    borderRadius:
-      "18px",
-
-    outline:
-      "none",
-
+    borderRadius: "18px",
+    outline: "none",
+    resize: "vertical",
     background:
-      "rgba(255,255,255,0.72)",
-
-    color:
-      "#263026",
-
-    lineHeight:
-      1.65,
+      "rgba(255,255,255,0.74)",
+    color: "#263026",
+    lineHeight: 1.65,
   },
 
-  scriptCard: {
-    marginTop:
-      "26px",
-
-    padding:
-      "28px",
-
-    borderRadius:
-      "25px",
-
+  caseHeadline: {
+    marginTop: "22px",
+    padding: "25px",
+    borderRadius: "23px",
     background:
-      "#263B2B",
-
-    color:
-      "#FFFFFF",
-
-    boxShadow:
-      "0 20px 55px rgba(32,48,34,0.14)",
+      "linear-gradient(145deg, #E5EDDF, #F6F2EA)",
+    border:
+      "1px solid rgba(74,99,72,0.11)",
   },
 
-  scriptLabel: {
-    margin:
-      "0 0 18px",
-
-    color:
-      "rgba(255,255,255,0.52)",
-
-    fontSize:
-      "9px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.15em",
-  },
-
-  scriptText: {
+  script: {
+    marginTop: "24px",
+    padding: "28px",
+    borderRadius: "25px",
+    background: "#263B2B",
+    color: "#FFFFFF",
     fontFamily:
       "Georgia, serif",
-
     fontSize:
-      "clamp(19px, 2.2vw, 25px)",
-
-    lineHeight:
-      1.6,
+      "clamp(19px, 2vw, 24px)",
+    lineHeight: 1.6,
   },
 
-  quietPrompt: {
-    marginTop:
-      "24px",
-
-    padding:
-      "18px 20px",
-
-    borderRadius:
-      "20px",
-
+  quiet: {
+    marginTop: "22px",
+    padding: "17px 19px",
+    borderRadius: "19px",
     background:
       "rgba(229,236,224,0.72)",
-
-    display:
-      "flex",
-
-    alignItems:
-      "center",
-
-    gap:
-      "13px",
-
-    color:
-      "#596456",
-
-    fontSize:
-      "13px",
-
-    lineHeight:
-      1.6,
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+    color: "#596456",
+    fontSize: "13px",
   },
 
-  questionStack: {
-    marginBottom:
-      "22px",
-
-    display:
-      "grid",
-
-    gap:
-      "10px",
-  },
-
-  questionCard: {
-    padding:
-      "17px 18px",
-
-    borderRadius:
-      "18px",
-
+  question: {
+    marginBottom: "9px",
+    padding: "16px 18px",
+    borderRadius: "18px",
     background:
       "rgba(255,255,255,0.58)",
-
-    border:
-      "1px solid rgba(58,75,57,0.08)",
-
-    display:
-      "flex",
-
-    alignItems:
-      "center",
-
-    gap:
-      "13px",
-
-    color:
-      "#3D493C",
-
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    color: "#3D493C",
     fontFamily:
       "Georgia, serif",
-
-    fontSize:
-      "17px",
+    fontSize: "17px",
   },
 
-  questionMark: {
-    width:
-      "30px",
-
-    height:
-      "30px",
-
-    flex:
-      "0 0 30px",
-
-    display:
-      "grid",
-
-    placeItems:
-      "center",
-
-    borderRadius:
-      "999px",
-
-    background:
-      "rgba(80,107,77,0.10)",
-
-    color:
-      "#526D55",
-
-    fontWeight:
-      "900",
-  },
-
-  evidenceGrid: {
-    display:
-      "grid",
-
+  factGrid: {
+    display: "grid",
     gridTemplateColumns:
-      "repeat(auto-fit, minmax(190px, 1fr))",
-
-    gap:
-      "12px",
+      "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "10px",
   },
 
-  evidenceCard: {
-    padding:
-      "20px",
-
-    borderRadius:
-      "21px",
-
+  fact: {
+    padding: "18px",
+    borderRadius: "19px",
     background:
       "rgba(255,255,255,0.58)",
-
-    border:
-      "1px solid rgba(62,80,61,0.08)",
+    display: "grid",
+    gap: "12px",
   },
 
-  evidenceLabel: {
-    margin:
-      "0 0 22px",
-
-    color:
-      "#738071",
-
-    fontSize:
-      "9px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.13em",
-
-    textTransform:
-      "uppercase",
+  splitEvidence: {
+    marginTop: "14px",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "12px",
   },
 
-  evidenceTitle: {
-    margin:
-      0,
-
-    color:
-      "#273428",
-
-    fontFamily:
-      "Georgia, serif",
-
-    fontSize:
-      "24px",
-
-    fontWeight:
-      "500",
+  evidenceBlock: {
+    padding: "20px",
+    borderRadius: "20px",
+    background: "#F3EDE3",
   },
 
-  evidenceText: {
-    margin:
-      "11px 0 0",
-
-    color:
-      "#656E65",
-
-    fontSize:
-      "12px",
-
-    lineHeight:
-      1.65,
+  evidenceBlockGood: {
+    background: "#E4EDDF",
   },
 
-  sherlockCard: {
-    marginTop:
-      "18px",
-
-    padding:
-      "27px",
-
-    borderRadius:
-      "25px",
-
+  predictedBox: {
+    marginBottom: "20px",
+    padding: "20px",
+    borderRadius: "21px",
     background:
-      "linear-gradient(145deg, #E4ECDD, #F5F2EA)",
+      "rgba(229,236,224,0.72)",
+  },
 
+  predictedButtons: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+  },
+
+  predictedButton: {
+    padding: "10px 12px",
     border:
-      "1px solid rgba(70,96,68,0.11)",
+      "1px solid rgba(61,86,60,0.12)",
+    borderRadius: "999px",
+    background:
+      "rgba(255,255,255,0.70)",
+    color: "#41513F",
+    cursor: "pointer",
+    fontSize: "11px",
+    fontWeight: "800",
   },
 
-  sherlockLabel: {
-    margin:
-      "0 0 12px",
-
-    color:
-      "#637460",
-
-    fontSize:
-      "9px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.15em",
+  microText: {
+    display: "block",
+    marginTop: "12px",
+    color: "#748071",
+    fontSize: "9px",
   },
 
-  sherlockTitle: {
-    margin:
-      0,
-
-    color:
-      "#243126",
-
-    fontFamily:
-      "Georgia, serif",
-
-    fontSize:
-      "28px",
-
-    fontWeight:
-      "500",
-
-    lineHeight:
-      1.2,
+  primaryButton: {
+    minHeight: "50px",
+    padding: "13px 20px",
+    border: "none",
+    borderRadius: "16px",
+    background: "#263B2B",
+    color: "#FFFFFF",
+    cursor: "pointer",
+    fontWeight: "900",
   },
 
-  sherlockText: {
-    margin:
-      "14px 0 0",
-
-    color:
-      "#596359",
-
-    lineHeight:
-      1.75,
-  },
-
-  sherlockBottom: {
-    display:
-      "block",
-
-    marginTop:
-      "18px",
-
-    color:
-      "#41523F",
-
-    fontSize:
-      "13px",
-
-    lineHeight:
-      1.65,
-  },
-
-  objectionTools: {
-    marginTop:
-      "18px",
-
-    display:
-      "flex",
-
-    alignItems:
-      "end",
-
-    gap:
-      "12px",
-
-    flexWrap:
-      "wrap",
-  },
-
-  analyseButton: {
-    minHeight:
-      "50px",
-
-    padding:
-      "13px 18px",
-
+  secondaryButton: {
+    minHeight: "50px",
+    padding: "13px 18px",
     border:
-      "none",
-
-    borderRadius:
-      "16px",
-
+      "1px solid rgba(49,67,49,0.11)",
+    borderRadius: "16px",
     background:
-      "#263B2B",
-
-    color:
-      "#FFFFFF",
-
-    cursor:
-      "pointer",
-
-    fontWeight:
-      "900",
+      "rgba(255,255,255,0.54)",
+    color: "#4D594C",
+    cursor: "pointer",
+    fontWeight: "800",
   },
 
-  objectionResult: {
-    marginTop:
-      "22px",
-
-    display:
-      "grid",
-
-    gap:
-      "10px",
+  reasoningPanel: {
+    marginTop: "24px",
+    paddingTop: "24px",
+    borderTop:
+      "1px solid rgba(51,69,51,0.09)",
   },
 
-  reasoningBlock: {
-    padding:
-      "19px 21px",
+  reasoningHeader: {
+    color: "#52684F",
+    fontSize: "10px",
+    fontWeight: "900",
+    letterSpacing: "0.15em",
+  },
 
-    borderRadius:
-      "20px",
-
+  reason: {
+    marginTop: "10px",
+    padding: "19px 21px",
+    borderRadius: "20px",
     background:
-      "rgba(255,255,255,0.60)",
-
+      "rgba(255,255,255,0.62)",
     border:
       "1px solid rgba(58,76,57,0.08)",
   },
 
-  reasoningBlockDark: {
-    background:
-      "#293D2D",
-
-    color:
-      "#FFFFFF",
+  reasonDark: {
+    background: "#293D2D",
+    color: "#FFFFFF",
   },
 
-  reasoningBlockAccent: {
-    background:
-      "#E3ECDE",
-
-    border:
-      "1px solid rgba(79,108,75,0.13)",
+  reasonAccent: {
+    background: "#E1EBDD",
   },
 
-  reasoningTop: {
-    display:
-      "flex",
-
-    gap:
-      "12px",
-
-    alignItems:
-      "center",
-
-    color:
-      "inherit",
-
-    fontSize:
-      "10px",
-
-    letterSpacing:
-      "0.09em",
-
+  reasonTop: {
+    display: "flex",
+    gap: "11px",
+    fontSize: "9px",
+    letterSpacing: "0.09em",
     textTransform:
       "uppercase",
-
-    opacity:
-      0.72,
+    opacity: 0.7,
   },
 
-  reasoningText: {
-    margin:
-      "12px 0 0",
-
-    color:
-      "inherit",
-
-    fontSize:
-      "14px",
-
-    lineHeight:
-      1.72,
+  reasonBody: {
+    marginTop: "11px",
+    fontSize: "14px",
+    lineHeight: 1.72,
   },
 
-  reasoningQuote: {
+  reasonQuote: {
     fontFamily:
       "Georgia, serif",
-
-    fontSize:
-      "17px",
+    fontSize: "17px",
   },
 
-  recommendationList: {
-    display:
-      "grid",
-
-    gap:
-      "10px",
+  evidenceLines: {
+    display: "grid",
+    gap: "8px",
   },
 
-  recommendationButton: {
-    width:
-      "100%",
+  supportFacts: {
+    marginTop: "10px",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: "8px",
+  },
 
-    padding:
-      "18px",
+  resolutionBox: {
+    marginTop: "14px",
+    padding: "20px",
+    borderRadius: "20px",
+    background:
+      "rgba(231,237,226,0.76)",
+    display: "flex",
+    justifyContent:
+      "space-between",
+    gap: "16px",
+    flexWrap: "wrap",
+  },
 
+  resolutionButtons: {
+    display: "flex",
+    gap: "8px",
+  },
+
+  resolvedButton: {
+    padding: "11px 14px",
+    border: "none",
+    borderRadius: "14px",
+    background: "#526D55",
+    color: "#FFFFFF",
+    cursor: "pointer",
+    fontWeight: "900",
+  },
+
+  unresolvedButton: {
+    padding: "11px 14px",
+    border:
+      "1px solid rgba(62,81,61,0.13)",
+    borderRadius: "14px",
+    background: "#FFFFFF",
+    color: "#526052",
+    cursor: "pointer",
+    fontWeight: "900",
+  },
+
+  conversationMemory: {
+    marginTop: "24px",
+    padding: "20px",
+    borderRadius: "21px",
+    background:
+      "rgba(255,255,255,0.55)",
+  },
+
+  memoryRow: {
+    padding: "10px 0",
+    display: "flex",
+    gap: "10px",
+    borderBottom:
+      "1px solid rgba(50,68,49,0.06)",
+  },
+
+  recommendation: {
+    width: "100%",
+    marginBottom: "9px",
+    padding: "18px",
     border:
       "1px solid rgba(55,75,54,0.09)",
-
-    borderRadius:
-      "20px",
-
+    borderRadius: "20px",
     background:
       "rgba(255,255,255,0.54)",
-
-    display:
-      "grid",
-
+    display: "grid",
     gridTemplateColumns:
-      "34px 1fr",
-
-    gap:
-      "12px",
-
-    textAlign:
-      "left",
-
-    cursor:
-      "pointer",
+      "30px 1fr",
+    gap: "12px",
+    textAlign: "left",
+    cursor: "pointer",
   },
 
-  recommendationButtonActive: {
-    background:
-      "#E1EBDD",
-
-    border:
-      "1px solid rgba(75,106,72,0.18)",
-  },
-
-  recommendationCheck: {
-    width:
-      "30px",
-
-    height:
-      "30px",
-
-    display:
-      "grid",
-
-    placeItems:
-      "center",
-
-    borderRadius:
-      "999px",
-
-    background:
-      "rgba(77,108,74,0.10)",
-
-    color:
-      "#526D55",
-
-    fontWeight:
-      "900",
-  },
-
-  recommendationTitle: {
-    display:
-      "block",
-
-    color:
-      "#29362A",
-
-    fontFamily:
-      "Georgia, serif",
-
-    fontSize:
-      "18px",
-
-    fontWeight:
-      "500",
-  },
-
-  recommendationText: {
-    display:
-      "block",
-
-    marginTop:
-      "5px",
-
-    color:
-      "#677067",
-
-    fontSize:
-      "12px",
-
-    lineHeight:
-      1.6,
+  recommendationActive: {
+    background: "#E1EBDD",
   },
 
   decisionCard: {
-    padding:
-      "35px",
-
-    borderRadius:
-      "27px",
-
-    background:
-      "#263B2B",
-
-    color:
-      "#FFFFFF",
-
-    textAlign:
-      "center",
+    padding: "28px",
+    borderRadius: "25px",
+    background: "#263B2B",
+    color: "#FFFFFF",
+    textAlign: "center",
   },
 
-  decisionPrompt: {
-    margin:
-      0,
-
-    fontFamily:
-      "Georgia, serif",
-
-    fontSize:
-      "clamp(34px, 5vw, 52px)",
-  },
-
-  decisionSub: {
-    margin:
-      "12px 0 0",
-
-    color:
-      "rgba(255,255,255,0.58)",
-
-    fontSize:
-      "12px",
-  },
-
-  outcomeGrid: {
-    marginTop:
-      "16px",
-
-    display:
-      "grid",
-
+  outcomes: {
+    marginTop: "14px",
+    display: "grid",
     gridTemplateColumns:
-      "repeat(auto-fit, minmax(170px, 1fr))",
-
-    gap:
-      "10px",
+      "repeat(auto-fit, minmax(160px, 1fr))",
+    gap: "10px",
   },
 
-  outcomeButton: {
-    padding:
-      "18px",
-
+  outcome: {
+    padding: "18px",
     border:
       "1px solid rgba(52,71,51,0.09)",
-
-    borderRadius:
-      "19px",
-
+    borderRadius: "18px",
     background:
-      "rgba(255,255,255,0.56)",
-
-    color:
-      "#354135",
-
-    display:
-      "grid",
-
-    gap:
-      "6px",
-
-    cursor:
-      "pointer",
+      "rgba(255,255,255,0.58)",
+    display: "grid",
+    gap: "6px",
+    cursor: "pointer",
   },
 
-  outcomeButtonActive: {
-    background:
-      "#E2ECDF",
-
-    border:
-      "1px solid rgba(76,105,72,0.17)",
+  outcomeActive: {
+    background: "#E2ECDF",
   },
 
-  closeWrap: {
-    padding:
-      "20px 0",
-
-    textAlign:
-      "center",
-  },
-
-  closeEyebrow: {
-    margin:
-      "0 0 15px",
-
-    color:
-      "#667562",
-
-    fontSize:
-      "10px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.17em",
+  close: {
+    textAlign: "center",
+    padding: "18px 0",
   },
 
   closeTitle: {
-    margin:
-      0,
-
+    margin: 0,
     fontFamily:
       "Georgia, serif",
-
     fontSize:
-      "clamp(38px, 5vw, 58px)",
-
-    fontWeight:
-      "500",
-
-    lineHeight:
-      1.08,
-
-    letterSpacing:
-      "-0.04em",
+      "clamp(40px, 5vw, 58px)",
+    fontWeight: "500",
   },
 
-  closeText: {
-    margin:
-      "20px 0 0",
+  closeCopy: {
+    color: "#636C63",
+    lineHeight: 1.8,
+  },
 
-    color:
-      "#636C63",
-
+  windows: {
+    maxWidth: "590px",
+    margin: "34px auto",
+    padding: "30px",
+    borderRadius: "26px",
+    background: "#263B2B",
+    color: "#FFFFFF",
+    fontFamily:
+      "Georgia, serif",
     fontSize:
-      "15px",
-
-    lineHeight:
-      1.8,
+      "clamp(24px, 3.2vw, 36px)",
+    lineHeight: 1.4,
   },
 
-  windowsCard: {
-    maxWidth:
-      "590px",
-
-    margin:
-      "38px auto",
-
-    padding:
-      "30px",
-
-    borderRadius:
-      "26px",
-
-    background:
-      "#263B2B",
-
-    color:
-      "#FFFFFF",
-  },
-
-  windowsRule: {
-    display:
-      "block",
-
-    width:
-      "100%",
-
-    height:
-      "1px",
-
+  rule: {
+    display: "block",
+    height: "1px",
     background:
       "rgba(255,255,255,0.18)",
   },
 
-  windowsQuote: {
-    margin:
-      "28px 0",
-
+  silence: {
+    color: "#4E5D4D",
     fontFamily:
       "Georgia, serif",
-
-    fontSize:
-      "clamp(25px, 3.5vw, 37px)",
-
-    lineHeight:
-      1.4,
-  },
-
-  closeInstruction: {
-    color:
-      "#4E5D4D",
-
-    fontFamily:
-      "Georgia, serif",
-
-    fontSize:
-      "22px",
-
-    lineHeight:
-      1.7,
+    fontSize: "22px",
+    lineHeight: 1.7,
   },
 
   fearNaught: {
-    marginTop:
-      "26px",
-
-    display:
-      "flex",
-
-    justifyContent:
-      "center",
-
-    alignItems:
-      "center",
-
-    gap:
-      "10px",
-
-    color:
-      "#697367",
-
-    fontSize:
-      "12px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.09em",
-
+    marginTop: "24px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "10px",
+    color: "#697367",
+    fontSize: "11px",
+    fontWeight: "900",
+    letterSpacing: "0.1em",
     textTransform:
       "uppercase",
   },
 
-  reflectionOutcome: {
-    marginBottom:
-      "22px",
-
-    padding:
-      "20px",
-
-    borderRadius:
-      "20px",
-
-    background:
-      "#E4ECDF",
-
-    display:
-      "flex",
-
+  reflectionSummary: {
+    marginBottom: "10px",
+    padding: "18px",
+    borderRadius: "18px",
+    background: "#E4ECDF",
+    display: "flex",
     justifyContent:
       "space-between",
-
-    color:
-      "#50604E",
   },
 
-  footerActions: {
-    marginTop:
-      "36px",
-
-    paddingTop:
-      "22px",
-
+  actions: {
+    marginTop: "34px",
+    paddingTop: "22px",
     borderTop:
       "1px solid rgba(53,70,52,0.08)",
-
-    display:
-      "flex",
-
+    display: "flex",
     justifyContent:
       "space-between",
-
-    gap:
-      "12px",
-  },
-
-  primaryButton: {
-    minHeight:
-      "50px",
-
-    padding:
-      "13px 20px",
-
-    border:
-      "none",
-
-    borderRadius:
-      "16px",
-
-    background:
-      "#263B2B",
-
-    color:
-      "#FFFFFF",
-
-    cursor:
-      "pointer",
-
-    fontWeight:
-      "900",
-  },
-
-  secondaryButton: {
-    minHeight:
-      "50px",
-
-    padding:
-      "13px 18px",
-
-    border:
-      "1px solid rgba(49,67,49,0.11)",
-
-    borderRadius:
-      "16px",
-
-    background:
-      "rgba(255,255,255,0.52)",
-
-    color:
-      "#4D594C",
-
-    cursor:
-      "pointer",
-
-    fontWeight:
-      "800",
+    gap: "12px",
   },
 
   intelligence: {
-    position:
-      "sticky",
-
-    top:
-      "102px",
-
-    padding:
-      "24px",
-
-    borderRadius:
-      "26px",
-
+    position: "sticky",
+    top: "102px",
+    padding: "24px",
+    borderRadius: "26px",
     background:
       "rgba(255,255,255,0.56)",
-
     border:
       "1px solid rgba(255,255,255,0.88)",
-
     boxShadow:
       "0 18px 50px rgba(41,55,40,0.06)",
   },
 
-  intelligenceTitle: {
-    margin:
-      "0 0 22px",
-
+  orgName: {
+    margin: "0 0 20px",
     fontFamily:
       "Georgia, serif",
-
-    fontSize:
-      "26px",
-
-    fontWeight:
-      "500",
-
-    color:
-      "#263328",
+    fontSize: "26px",
+    fontWeight: "500",
   },
 
-  intelligenceList: {
-    display:
-      "grid",
-
-    gap:
-      "0",
-  },
-
-  intelRow: {
-    padding:
-      "12px 0",
-
+  intel: {
+    padding: "11px 0",
     borderBottom:
       "1px solid rgba(50,68,49,0.07)",
-
-    display:
-      "grid",
-
-    gap:
-      "4px",
+    display: "grid",
+    gap: "4px",
   },
 
-  intelLabel: {
-    color:
-      "#7A8478",
-
-    fontSize:
-      "9px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.09em",
-
-    textTransform:
-      "uppercase",
+  watch: {
+    marginTop: "18px",
+    padding: "18px",
+    borderRadius: "19px",
+    background: "#263B2B",
+    color: "#FFFFFF",
+    fontSize: "12px",
+    lineHeight: 1.65,
   },
 
-  intelValue: {
-    color:
-      "#394638",
-
-    fontSize:
-      "13px",
-
-    lineHeight:
-      1.45,
-  },
-
-  intelValueAccent: {
-    color:
-      "#527052",
-  },
-
-  watchCard: {
-    marginTop:
-      "18px",
-
-    padding:
-      "18px",
-
-    borderRadius:
-      "19px",
-
-    background:
-      "#263B2B",
-
-    color:
-      "#FFFFFF",
-  },
-
-  watchLabel: {
-    margin:
-      "0 0 9px",
-
-    color:
-      "rgba(255,255,255,0.46)",
-
-    fontSize:
-      "8px",
-
-    fontWeight:
-      "900",
-
-    letterSpacing:
-      "0.13em",
-  },
-
-  watchTitle: {
-    display:
-      "block",
-
+  rootWhisper: {
+    marginTop: "17px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    color: "#6D766B",
     fontFamily:
       "Georgia, serif",
-
-    fontSize:
-      "18px",
-
-    fontWeight:
-      "500",
-
-    lineHeight:
-      1.3,
-  },
-
-  watchText: {
-    margin:
-      "10px 0 0",
-
-    color:
-      "rgba(255,255,255,0.68)",
-
-    fontSize:
-      "11px",
-
-    lineHeight:
-      1.65,
-  },
-
-  companionNote: {
-    marginTop:
-      "18px",
-
-    display:
-      "flex",
-
-    alignItems:
-      "center",
-
-    gap:
-      "10px",
-
-    color:
-      "#6D766B",
-
-    fontFamily:
-      "Georgia, serif",
-
-    fontSize:
-      "12px",
-
-    lineHeight:
-      1.5,
+    fontSize: "12px",
   },
 };
