@@ -158,21 +158,79 @@ export default function OrganisationBillingPage() {
       .split(" ")[0] ||
     "";
 
-  function continueWithRoot() {
-    /*
-     * Stripe V2 checkout will be
-     * connected here next.
-     *
-     * For now we deliberately do not
-     * reuse the old V1 checkout because
-     * V2 organisation billing uses a
-     * different commercial model.
-     */
+  async function continueWithRoot() {
+  try {
+    const {
+      data: sessionData,
+      error: sessionError,
+    } =
+      await supabase.auth.getSession();
+
+    const accessToken =
+      sessionData?.session
+        ?.access_token;
+
+    if (
+      sessionError ||
+      !accessToken
+    ) {
+      window.alert(
+        "Root could not confirm your sign-in. Please sign in again."
+      );
+
+      return;
+    }
+
+    const response =
+      await fetch(
+        "/api/stripe/workplace-checkout",
+        {
+          method: "POST",
+
+          headers: {
+            Authorization:
+              `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data?.url
+    ) {
+      if (
+        data?.requiresConversation
+      ) {
+        window.location.href =
+          "/contact";
+
+        return;
+      }
+
+      window.alert(
+        data?.error ||
+          "Root could not open subscription checkout."
+      );
+
+      return;
+    }
+
+    window.location.href =
+      data.url;
+  } catch (error) {
+    console.error(
+      "Root Workplace checkout error:",
+      error
+    );
 
     window.alert(
-      "Root Workplace subscription checkout will open here once the V2 Stripe connection is completed."
+      "Root could not open subscription checkout."
     );
   }
+}
 
   function reviewWithDavid() {
     window.location.href =
