@@ -1,6 +1,7 @@
 "use client";
 
 import RootEnso from "../../components/RootEnso";
+import RootSolarSystem from "../../components/RootSolarSystem";
 
 const evidenceSteps = [
   {
@@ -315,9 +316,7 @@ export default function OrganisationsPage() {
   clearer over time.
   <br />
   <br />
-  <strong>Not another dashboard.</strong>
-  <br />
-  A better basis for decision making.
+  <strong>Evidence first. Better decisions follow.</strong>
 </p>
 
             <div
@@ -351,59 +350,11 @@ export default function OrganisationsPage() {
           </div>
 
           <div
-            className="root-hero-visual"
-            style={styles.heroVisual}
-          >
-            <div style={styles.heroGlow} />
-
-            <div style={styles.heroCircleOuter}>
-              <div style={styles.heroCircleMiddle}>
-                <div style={styles.heroCircleInner}>
-                  <RootEnso size={142} />
-
-                  <p style={styles.visualKicker}>
-                    ONE ROOT INTELLIGENCE
-                  </p>
-
-                  <strong style={styles.visualTitle}>
-                    Evidence becomes
-                    <br />
-                    understanding.
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            <div style={styles.floatingCardOne}>
-              <span style={styles.floatingLabel}>
-                Employee evidence
-              </span>
-
-              <strong style={styles.floatingValue}>
-                Private by design
-              </strong>
-            </div>
-
-            <div style={styles.floatingCardTwo}>
-              <span style={styles.floatingLabel}>
-                Leadership insight
-              </span>
-
-              <strong style={styles.floatingValue}>
-                Evidence led
-              </strong>
-            </div>
-
-            <div style={styles.floatingCardThree}>
-              <span style={styles.floatingLabel}>
-                Executive decisions
-              </span>
-
-              <strong style={styles.floatingValue}>
-                Clearer over time
-              </strong>
-            </div>
-          </div>
+  className="root-hero-visual"
+  style={styles.heroVisual}
+>
+  <RootSolarSystem />
+</div>
         </div>
       </section>
 
