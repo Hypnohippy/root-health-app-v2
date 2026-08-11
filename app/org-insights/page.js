@@ -7312,7 +7312,7 @@ organisationTreeCard: {
   background:
     "rgba(255,255,255,0.82)",
   border:
-    "1px solid rgba(24,24,24,0.08)",
+    "1px solid rgba(24,24,24,0.08)", 
   boxShadow:
     "0 12px 30px rgba(24,24,24,0.06)",
 },
