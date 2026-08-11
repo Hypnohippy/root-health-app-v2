@@ -294,24 +294,31 @@ export default function OrganisationsPage() {
               WORKFORCE WELLBEING, UNDERSTOOD
             </p>
 
-            <h1 style={styles.heroTitle}>
-              Stop guessing.
-              <br />
-              <span style={styles.heroTitleAccent}>
-                Start measuring.
-              </span>
-            </h1>
+           <h1 style={styles.heroTitle}>
+  What if your wellbeing data
+  <br />
+  could finally answer...
+  <br />
+  <span style={styles.heroTitleAccent}>
+    what&apos;s really happening?
+  </span>
+</h1>
 
-            <p style={styles.heroIntroduction}>
-              Root helps organisations understand employee wellbeing
-              through evidence, not assumptions.
-            </p>
+<p style={styles.heroIntroduction}>
+  Root helps leaders make better wellbeing decisions using
+  evidence instead of assumptions.
+</p>
 
-            <p style={styles.heroSupportingText}>
-              Employees receive private, practical support. Leadership
-              receives anonymous organisational intelligence, executive
-              reporting and a clearer basis for deciding what to do next.
-            </p>
+<p style={styles.heroSupportingText}>
+  Employees receive private, practical support. Leadership
+  receives anonymous organisational intelligence that becomes
+  clearer over time.
+  <br />
+  <br />
+  <strong>Not another dashboard.</strong>
+  <br />
+  A better basis for decision making.
+</p>
 
             <div
               className="root-button-row"
@@ -399,6 +406,79 @@ export default function OrganisationsPage() {
           </div>
         </div>
       </section>
+
+       <section className="root-section" style={styles.directorSection}>
+  <div style={styles.sectionInner}>
+    <div style={styles.centredHeading}>
+      <p style={styles.sectionEyebrow}>
+        WHY DIRECTORS CHOOSE ROOT
+      </p>
+
+      <h2 style={styles.sectionTitle}>
+        You probably already have enough data.
+      </h2>
+
+      <p style={styles.sectionIntroduction}>
+        The challenge is knowing what you can trust, what still
+        needs more evidence and what leadership should do next.
+      </p>
+    </div>
+
+    <div className="root-four-grid" style={styles.directorGrid}>
+      <article style={styles.directorCard}>
+        <span style={styles.directorTick}>✓</span>
+
+        <h3 style={styles.directorCardTitle}>
+          Know what the evidence supports
+        </h3>
+
+        <p style={styles.directorCardText}>
+          Root separates measured facts from emerging patterns
+          so leadership does not over-read incomplete evidence.
+        </p>
+      </article>
+
+      <article style={styles.directorCard}>
+        <span style={styles.directorTick}>✓</span>
+
+        <h3 style={styles.directorCardTitle}>
+          See where confidence is still developing
+        </h3>
+
+        <p style={styles.directorCardText}>
+          Participation, repeated evidence and organisational
+          context are considered before stronger conclusions are made.
+        </p>
+      </article>
+
+      <article style={styles.directorCard}>
+        <span style={styles.directorTick}>✓</span>
+
+        <h3 style={styles.directorCardTitle}>
+          Understand what deserves attention
+        </h3>
+
+        <p style={styles.directorCardText}>
+          Root identifies the areas that warrant leadership
+          attention without reducing the organisation to one headline.
+        </p>
+      </article>
+
+      <article style={styles.directorCard}>
+        <span style={styles.directorTick}>✓</span>
+
+        <h3 style={styles.directorCardTitle}>
+          Know what should happen next
+        </h3>
+
+        <p style={styles.directorCardText}>
+          Root turns evidence into clearer questions,
+          proportionate next steps and stronger executive decisions.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
 
       <section
         id="why-root"
@@ -636,13 +716,18 @@ export default function OrganisationsPage() {
           </p>
 
           <h2 style={styles.finalTitle}>
-            Better decisions begin with better understanding.
-          </h2>
+         Every organisation has a story.
+         <br />
+          Most never get to read it.
+         </h2>
 
           <p style={styles.finalText}>
-            Begin your 60-day organisation pilot and let Root build the
-            evidence picture with you.
-          </p>
+        Root helps you understand yours.
+         <br />
+         <br />
+        Begin your 60-day organisation pilot and let the evidence
+        earn your trust.
+        </p>
 
           <button
             type="button"
@@ -1015,6 +1100,55 @@ const styles = {
   floatingValue: {
     fontSize: "14px",
   },
+
+  directorSection: {
+  padding: "104px 28px",
+  background: "#EEF3EA",
+},
+
+directorGrid: {
+  marginTop: "58px",
+  display: "grid",
+  gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+  gap: "16px",
+},
+
+directorCard: {
+  minHeight: "265px",
+  padding: "28px",
+  borderRadius: "26px",
+  background: "rgba(255,255,255,0.62)",
+  border: "1px solid rgba(72,96,70,0.10)",
+  boxShadow: "0 20px 48px rgba(41,55,40,0.06)",
+},
+
+directorTick: {
+  display: "grid",
+  placeItems: "center",
+  width: "38px",
+  height: "38px",
+  borderRadius: "999px",
+  background: "rgba(82,109,85,0.11)",
+  color: "#526D55",
+  fontWeight: "900",
+  fontSize: "16px",
+},
+
+directorCardTitle: {
+  margin: "34px 0 12px",
+  color: "#223024",
+  fontFamily: "Georgia, serif",
+  fontSize: "24px",
+  fontWeight: "500",
+  lineHeight: 1.25,
+},
+
+directorCardText: {
+  margin: 0,
+  color: "#606860",
+  fontSize: "14px",
+  lineHeight: 1.75,
+},
 
   problemSection: {
     padding: "116px 28px",
