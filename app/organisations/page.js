@@ -295,13 +295,11 @@ export default function OrganisationsPage() {
               WORKFORCE WELLBEING, UNDERSTOOD
             </p>
 
-           <h1 style={styles.heroTitle}>
-  What if your wellbeing data
-  <br />
-  could finally answer...
+          <h1 style={styles.heroTitle}>
+  Understand
   <br />
   <span style={styles.heroTitleAccent}>
-    what&apos;s really happening?
+    before you decide.
   </span>
 </h1>
 
