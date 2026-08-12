@@ -36,6 +36,14 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function normaliseOrganisationName(
+  value
+) {
+  return clean(value)
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
 async function notifyFormspree(
   application
 ) {
@@ -61,6 +69,12 @@ async function notifyFormspree(
             contact_name:
               application.contact_name,
 
+            contact_email:
+              application.contact_email,
+
+            admin_email:
+              application.admin_email,
+
             organisation_name:
               application.organisation_name,
 
@@ -76,7 +90,7 @@ async function notifyFormspree(
               application.id,
 
             message:
-              `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}).`,
+              `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}). Authorised Root administrator: ${application.admin_email}.`,
           }),
         }
       );
@@ -130,6 +144,20 @@ export async function POST(request) {
         body.contactEmail
       ).toLowerCase();
 
+    /*
+     * Backwards compatible for the current
+     * registration page.
+     *
+     * Once we add the separate Administrator
+     * Email field to the form, body.adminEmail
+     * will be supplied explicitly.
+     */
+    const adminEmail =
+      clean(
+        body.adminEmail ||
+        contactEmail
+      ).toLowerCase();
+
     const employeeCount =
       clean(
         body.employeeCount
@@ -143,12 +171,13 @@ export async function POST(request) {
     if (
       !organisationName ||
       !contactName ||
-      !contactEmail
+      !contactEmail ||
+      !adminEmail
     ) {
       return NextResponse.json(
         {
           error:
-            "Please complete organisation name, contact name and work email.",
+            "Please complete organisation name, contact name, contact email and administrator email.",
         },
         {
           status: 400,
@@ -162,7 +191,21 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error:
-            "Please enter a valid work email address.",
+            "Please enter a valid organisation contact email address.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      !adminEmail.includes("@")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Please enter a valid Root administrator email address.",
         },
         {
           status: 400,
@@ -173,9 +216,22 @@ export async function POST(request) {
     const supabase =
       buildAdminClient();
 
+    /*
+     * IMPORTANT:
+     *
+     * One email address may legitimately be
+     * associated with several organisations.
+     *
+     * Therefore email alone must NEVER be used
+     * to decide that two applications are the same.
+     *
+     * We load pending applications for the contact
+     * email, then only treat one as a duplicate when
+     * the organisation name also matches.
+     */
     const {
       data:
-        existingApplication,
+        pendingApplications,
 
       error:
         existingError,
@@ -190,6 +246,7 @@ export async function POST(request) {
             organisation_name,
             contact_name,
             contact_email,
+            admin_email,
             employee_count,
             industry,
             status,
@@ -203,8 +260,7 @@ export async function POST(request) {
         .eq(
           "status",
           "pending"
-        )
-        .maybeSingle();
+        );
 
     if (existingError) {
       console.error(
@@ -223,18 +279,122 @@ export async function POST(request) {
       );
     }
 
+    const normalisedName =
+      normaliseOrganisationName(
+        organisationName
+      );
+
+    const existingApplication =
+      (
+        pendingApplications ||
+        []
+      ).find(
+        (application) =>
+          normaliseOrganisationName(
+            application.organisation_name
+          ) ===
+          normalisedName
+      ) || null;
+
+    /*
+     * Same organisation + same contact email
+     * + still pending = the same application.
+     *
+     * Different organisation with the same email
+     * is a legitimate new application.
+     */
     if (
       existingApplication
     ) {
+      /*
+       * If the authorised administrator has changed,
+       * keep the pending application current.
+       */
+      let currentApplication =
+        existingApplication;
+
+      if (
+        existingApplication.admin_email !==
+        adminEmail
+      ) {
+        const {
+          data:
+            updatedApplication,
+
+          error:
+            updateError,
+        } =
+          await supabase
+            .from(
+              "organisation_applications"
+            )
+            .update({
+              contact_name:
+                contactName,
+
+              admin_email:
+                adminEmail,
+
+              employee_count:
+                employeeCount ||
+                null,
+
+              industry:
+                industry ||
+                null,
+            })
+            .eq(
+              "id",
+              existingApplication.id
+            )
+            .select(
+              `
+                id,
+                organisation_name,
+                contact_name,
+                contact_email,
+                admin_email,
+                employee_count,
+                industry,
+                status,
+                created_at
+              `
+            )
+            .single();
+
+        if (
+          updateError ||
+          !updatedApplication
+        ) {
+          console.error(
+            "ROOT APPLICATION UPDATE ERROR:",
+            updateError
+          );
+
+          return NextResponse.json(
+            {
+              error:
+                "Root found your existing application but could not update it.",
+            },
+            {
+              status: 500,
+            }
+          );
+        }
+
+        currentApplication =
+          updatedApplication;
+      }
+
       await notifyFormspree(
-        existingApplication
+        currentApplication
       );
 
       return NextResponse.json({
         success: true,
 
         application:
-          existingApplication,
+          currentApplication,
 
         existing: true,
       });
@@ -262,6 +422,9 @@ export async function POST(request) {
           contact_email:
             contactEmail,
 
+          admin_email:
+            adminEmail,
+
           employee_count:
             employeeCount ||
             null,
@@ -279,6 +442,7 @@ export async function POST(request) {
             organisation_name,
             contact_name,
             contact_email,
+            admin_email,
             employee_count,
             industry,
             status,
@@ -311,7 +475,9 @@ export async function POST(request) {
     console.log(
       "ROOT WORKPLACE APPLICATION RECEIVED:",
       application.id,
-      application.contact_email
+      application.organisation_name,
+      application.contact_email,
+      application.admin_email
     );
 
     const notificationSent =
