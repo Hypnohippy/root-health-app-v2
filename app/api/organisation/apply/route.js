@@ -7,6 +7,9 @@ const supabaseUrl =
 const supabaseServiceRoleKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const formspreeEndpoint =
+  "https://formspree.io/f/xkgvgnkw";
+
 function buildAdminClient() {
   if (
     !supabaseUrl ||
@@ -33,24 +36,109 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+async function notifyFormspree(
+  application
+) {
+  try {
+    const response =
+      await fetch(
+        formspreeEndpoint,
+        {
+          method: "POST",
+
+          headers: {
+            Accept:
+              "application/json",
+
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            email:
+              application.contact_email,
+
+            contact_name:
+              application.contact_name,
+
+            organisation_name:
+              application.organisation_name,
+
+            employee_count:
+              application.employee_count ||
+              "Not provided",
+
+            industry:
+              application.industry ||
+              "Not provided",
+
+            application_id:
+              application.id,
+
+            message:
+              `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}).`,
+          }),
+        }
+      );
+
+    if (!response.ok) {
+      const errorText =
+        await response.text();
+
+      console.error(
+        "ROOT FORMSPREE NOTIFICATION ERROR:",
+        response.status,
+        errorText
+      );
+
+      return false;
+    }
+
+    console.log(
+      "ROOT FORMSPREE NOTIFICATION SENT:",
+      application.id
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      "ROOT FORMSPREE NOTIFICATION ERROR:",
+      error
+    );
+
+    return false;
+  }
+}
+
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const body =
+      await request.json();
 
     const organisationName =
-      clean(body.organisationName);
+      clean(
+        body.organisationName
+      );
 
     const contactName =
-      clean(body.contactName);
+      clean(
+        body.contactName
+      );
 
     const contactEmail =
-      clean(body.contactEmail).toLowerCase();
+      clean(
+        body.contactEmail
+      ).toLowerCase();
 
     const employeeCount =
-      clean(body.employeeCount);
+      clean(
+        body.employeeCount
+      );
 
     const industry =
-      clean(body.industry);
+      clean(
+        body.industry
+      );
 
     if (
       !organisationName ||
@@ -86,8 +174,11 @@ export async function POST(request) {
       buildAdminClient();
 
     const {
-      data: existingApplication,
-      error: existingError,
+      data:
+        existingApplication,
+
+      error:
+        existingError,
     } =
       await supabase
         .from(
@@ -132,18 +223,28 @@ export async function POST(request) {
       );
     }
 
-    if (existingApplication) {
+    if (
+      existingApplication
+    ) {
+      await notifyFormspree(
+        existingApplication
+      );
+
       return NextResponse.json({
         success: true,
+
         application:
           existingApplication,
+
         existing: true,
       });
     }
 
     const {
       data: application,
-      error: applicationError,
+
+      error:
+        applicationError,
     } =
       await supabase
         .from(
@@ -151,17 +252,26 @@ export async function POST(request) {
         )
         .insert({
           user_id: null,
+
           organisation_name:
             organisationName,
+
           contact_name:
             contactName,
+
           contact_email:
             contactEmail,
+
           employee_count:
-            employeeCount || null,
+            employeeCount ||
+            null,
+
           industry:
-            industry || null,
-          status: "pending",
+            industry ||
+            null,
+
+          status:
+            "pending",
         })
         .select(
           `
@@ -204,10 +314,19 @@ export async function POST(request) {
       application.contact_email
     );
 
+    const notificationSent =
+      await notifyFormspree(
+        application
+      );
+
     return NextResponse.json({
       success: true,
+
       application,
+
       existing: false,
+
+      notificationSent,
     });
   } catch (error) {
     console.error(
