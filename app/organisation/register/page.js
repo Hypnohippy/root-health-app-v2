@@ -13,7 +13,7 @@ export default function OrganisationRegisterPage() {
     useState("");
 
   const [employeeCount, setEmployeeCount] =
-    useState("51-250");
+    useState("51-150");
 
   const [industry, setIndustry] =
     useState("Healthcare");
@@ -290,10 +290,25 @@ export default function OrganisationRegisterPage() {
             )
           }
         >
-          <option>1-50</option>
-          <option>51-250</option>
-          <option>251-1000</option>
-          <option>1000+</option>
+        <option value="1-50">
+          Up to 50 employees
+       </option>
+
+       <option value="51-150">
+         51–150 employees
+       </option>
+
+        <option value="151-500">
+          151–500 employees
+        </option>
+
+        <option value="501-1000">
+          501–1,000 employees
+       </option>
+
+        <option value="1000+">
+          More than 1,000 employees
+       </option>
         </select>
 
         <label style={styles.label}>
