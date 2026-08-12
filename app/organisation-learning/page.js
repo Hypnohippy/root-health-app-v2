@@ -224,6 +224,30 @@ function addDays(date, days) {
   return result.toISOString().slice(0, 10);
 }
 
+function workforceSizeFromBand(
+  band
+) {
+  switch (band) {
+    case "1-50":
+      return 50;
+
+    case "51-150":
+      return 150;
+
+    case "151-500":
+      return 500;
+
+    case "501-1000":
+      return 1000;
+
+    case "1000+":
+      return 1001;
+
+    default:
+      return null;
+  }
+}
+
 function toggleArrayItem(items, value) {
   return items.includes(value)
     ? items.filter((item) => item !== value)
@@ -574,14 +598,62 @@ export default function OrganisationLearningPage() {
      * create a new organisation through this page.
      */
     if (membershipError || !member) {
-      setIsOnboarding(true);
-      setContactName(
-        user.user_metadata?.name || ""
-      );
-      setContactEmail(user.email || "");
-      setLoading(false);
-      return;
-    }
+  const inviteData =
+    user.user_metadata || {};
+
+  setIsOnboarding(true);
+
+  setContactName(
+    inviteData.name || ""
+  );
+
+  setContactEmail(
+    user.email || ""
+  );
+
+  if (
+    inviteData.organisation_name
+  ) {
+    setOrganisationName(
+      inviteData.organisation_name
+    );
+  }
+
+  const invitedEmployeeCount =
+    String(
+      inviteData.employee_count ||
+      ""
+    ).trim();
+
+  const validEmployeeBands = [
+    "1-50",
+    "51-150",
+    "151-500",
+    "501-1000",
+    "1000+",
+  ];
+
+  if (
+    validEmployeeBands.includes(
+      invitedEmployeeCount
+    )
+  ) {
+    setEmployeeCount(
+      invitedEmployeeCount
+    );
+  }
+
+  if (
+    inviteData.industry
+  ) {
+    setIndustry(
+      inviteData.industry
+    );
+  }
+
+  setLoading(false);
+  return;
+}
 
     const allowedRoles = [
       "hr_admin",
@@ -1021,28 +1093,72 @@ export default function OrganisationLearningPage() {
   }
   
     async function createOrganisationAndFirstReview() {
-    setSaving(true);
-    setErrorMessage("");
-    setMessage("");
+  setSaving(true);
+  setErrorMessage("");
+  setMessage("");
 
-    const cleanName = contactName.trim();
-    const cleanEmail = contactEmail
+  const cleanName =
+    contactName.trim();
+
+  const cleanEmail =
+    contactEmail
       .trim()
       .toLowerCase();
-    const cleanOrganisationName =
-      organisationName.trim();
 
-    if (
-      !cleanName ||
-      !cleanEmail ||
-      !cleanOrganisationName
-    ) {
+  const cleanOrganisationName =
+    organisationName.trim();
+
+  if (
+    !cleanName ||
+    !cleanEmail ||
+    !cleanOrganisationName
+  ) {
+    setErrorMessage(
+      "Please complete your name, work email and organisation name."
+    );
+
+    setSaving(false);
+    return;
+  }
+
+  const {
+    data: {
+      user: existingUser,
+    },
+  } =
+    await supabase.auth.getUser();
+
+  const isApprovedInvite =
+    existingUser
+      ?.user_metadata
+      ?.root_workplace_approved ===
+    true;
+
+  if (
+    !existingUser ||
+    isApprovedInvite
+  ) {
+    if (password.length < 8) {
       setErrorMessage(
-        "Please complete your name, work email and organisation name."
+        "Please create a password containing at least 8 characters."
       );
+
       setSaving(false);
       return;
     }
+
+    if (
+      password !==
+      confirmPassword
+    ) {
+      setErrorMessage(
+        "The passwords do not match."
+      );
+
+      setSaving(false);
+      return;
+    }
+  }
 
     const {
       data: { user: existingUser },
@@ -1130,6 +1246,31 @@ export default function OrganisationLearningPage() {
       }
     }
 
+    if (
+  user &&
+  isApprovedInvite
+) {
+  const {
+    error:
+      passwordUpdateError,
+  } =
+    await supabase.auth
+      .updateUser({
+        password,
+      });
+
+  if (
+    passwordUpdateError
+  ) {
+    setErrorMessage(
+      passwordUpdateError.message ||
+      "Root could not save your new password."
+    );
+
+    setSaving(false);
+    return;
+  }
+}
     const profileKey = crypto.randomUUID();
     const organisationCode =
       createOrganisationCode(
@@ -1223,9 +1364,18 @@ export default function OrganisationLearningPage() {
         name: cleanOrganisationName,
         contact_name: cleanName,
         contact_email: cleanEmail,
-        employee_count: employeeCount,
-        industry,
-        organisation_code: organisationCode,
+        employee_count:
+     employeeCount,
+
+      workforce_size:
+      workforceSizeFromBand(
+      employeeCount
+     ),
+
+     industry,
+
+     organisation_code:
+    organisationCode,
         trial_start: today,
         trial_end: trialEnd,
         status: "trial",
