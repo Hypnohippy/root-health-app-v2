@@ -1160,28 +1160,6 @@ export default function OrganisationLearningPage() {
     }
   }
 
-    const {
-      data: { user: existingUser },
-    } = await supabase.auth.getUser();
-
-    if (!existingUser) {
-      if (password.length < 8) {
-        setErrorMessage(
-          "Please create a password containing at least 8 characters."
-        );
-        setSaving(false);
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        setErrorMessage(
-          "The passwords do not match."
-        );
-        setSaving(false);
-        return;
-      }
-    }
-
     const hasAnyMeasure = Object.values(
       measures
     ).some((value) => value !== "");
