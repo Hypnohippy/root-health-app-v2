@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js"; 
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -65,6 +65,12 @@ function buildAuthClient() {
   );
 }
 
+function normaliseEmail(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
 async function requireRootAdmin(
   request
 ) {
@@ -116,11 +122,9 @@ async function requireRootAdmin(
   }
 
   const email =
-    String(
-      user.email || ""
-    )
-      .trim()
-      .toLowerCase();
+    normaliseEmail(
+      user.email
+    );
 
   if (
     !rootAdminEmails.includes(
@@ -141,6 +145,253 @@ async function requireRootAdmin(
   };
 }
 
+async function findAuthUserByEmail(
+  supabase,
+  email
+) {
+  const targetEmail =
+    normaliseEmail(email);
+
+  let page = 1;
+
+  const perPage = 1000;
+
+  while (true) {
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.admin
+        .listUsers({
+          page,
+          perPage,
+        });
+
+    if (error) {
+      throw error;
+    }
+
+    const users =
+      data?.users || [];
+
+    const matchedUser =
+      users.find(
+        (user) =>
+          normaliseEmail(
+            user.email
+          ) ===
+          targetEmail
+      ) || null;
+
+    if (matchedUser) {
+      return matchedUser;
+    }
+
+    if (
+      users.length <
+      perPage
+    ) {
+      return null;
+    }
+
+    page += 1;
+  }
+}
+
+function buildWorkplaceMetadata(
+  application
+) {
+  return {
+    name:
+      application.contact_name,
+
+    root_workplace_approved:
+      true,
+
+    root_workplace_application_id:
+      application.id,
+
+    organisation_name:
+      application.organisation_name,
+
+    employee_count:
+      application.employee_count,
+
+    industry:
+      application.industry,
+
+    organisation_contact_email:
+      application.contact_email,
+
+    root_admin_email:
+      application.admin_email,
+  };
+}
+
+async function sendSetupAccess(
+  supabase,
+  application
+) {
+  const adminEmail =
+    normaliseEmail(
+      application.admin_email
+    );
+
+  if (!adminEmail) {
+    throw new Error(
+      "This application has no authorised Root administrator email."
+    );
+  }
+
+  const existingUser =
+    await findAuthUserByEmail(
+      supabase,
+      adminEmail
+    );
+
+  const workplaceMetadata =
+    buildWorkplaceMetadata(
+      application
+    );
+
+  /*
+   * EXISTING ROOT USER
+   *
+   * One person may administer more than
+   * one organisation.
+   *
+   * Keep their existing Auth account,
+   * add the pending Workplace setup
+   * metadata and send a secure magic
+   * sign-in link.
+   */
+  if (existingUser) {
+    const existingMetadata =
+      existingUser.user_metadata &&
+      typeof existingUser.user_metadata ===
+        "object"
+        ? existingUser.user_metadata
+        : {};
+
+    const {
+      data:
+        updatedUserData,
+
+      error:
+        updateUserError,
+    } =
+      await supabase.auth.admin
+        .updateUserById(
+          existingUser.id,
+          {
+            user_metadata: {
+              ...existingMetadata,
+              ...workplaceMetadata,
+            },
+          }
+        );
+
+    if (updateUserError) {
+      throw updateUserError;
+    }
+
+    /*
+     * shouldCreateUser: false is important.
+     * This path is only for a person Root
+     * has already found in Auth.
+     */
+    const {
+      error:
+        magicLinkError,
+    } =
+      await supabase.auth
+        .signInWithOtp({
+          email: adminEmail,
+
+          options: {
+            shouldCreateUser:
+              false,
+
+            emailRedirectTo:
+              "https://roothealth.app/organisation-learning",
+          },
+        });
+
+    if (magicLinkError) {
+      throw magicLinkError;
+    }
+
+    return {
+      user:
+        updatedUserData?.user ||
+        existingUser,
+
+      accessType:
+        "existing_user",
+
+      invited:
+        false,
+
+      magicLinkSent:
+        true,
+    };
+  }
+
+  /*
+   * NEW ROOT USER
+   *
+   * For a genuinely new person, use
+   * Supabase's normal invitation flow.
+   */
+  const {
+    data:
+      inviteData,
+
+    error:
+      inviteError,
+  } =
+    await supabase.auth.admin
+      .inviteUserByEmail(
+        adminEmail,
+        {
+          redirectTo:
+            "https://roothealth.app/organisation-learning",
+
+          data:
+            workplaceMetadata,
+        }
+      );
+
+  const invitedUser =
+    inviteData?.user || null;
+
+  if (
+    inviteError ||
+    !invitedUser
+  ) {
+    throw (
+      inviteError ||
+      new Error(
+        "Root could not create the Workplace invitation."
+      )
+    );
+  }
+
+  return {
+    user:
+      invitedUser,
+
+    accessType:
+      "new_user",
+
+    invited:
+      true,
+
+    magicLinkSent:
+      false,
+  };
+}
+
 export async function GET(request) {
   try {
     const admin =
@@ -154,7 +405,8 @@ export async function GET(request) {
           error: admin.error,
         },
         {
-          status: admin.status,
+          status:
+            admin.status,
         }
       );
     }
@@ -177,6 +429,7 @@ export async function GET(request) {
             organisation_name,
             contact_name,
             contact_email,
+            admin_email,
             employee_count,
             industry,
             status,
@@ -211,6 +464,7 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
+
       applications:
         data || [],
     });
@@ -242,10 +496,12 @@ export async function POST(request) {
     if (!admin.authorised) {
       return NextResponse.json(
         {
-          error: admin.error,
+          error:
+            admin.error,
         },
         {
-          status: admin.status,
+          status:
+            admin.status,
         }
       );
     }
@@ -255,7 +511,8 @@ export async function POST(request) {
 
     const applicationId =
       String(
-        body?.applicationId || ""
+        body?.applicationId ||
+        ""
       ).trim();
 
     if (!applicationId) {
@@ -274,7 +531,9 @@ export async function POST(request) {
       buildAdminClient();
 
     const {
-      data: application,
+      data:
+        application,
+
       error:
         applicationError,
     } =
@@ -289,6 +548,7 @@ export async function POST(request) {
             organisation_name,
             contact_name,
             contact_email,
+            admin_email,
             employee_count,
             industry,
             status,
@@ -323,8 +583,11 @@ export async function POST(request) {
     ) {
       return NextResponse.json({
         success: true,
+
         application,
-        alreadyApproved: true,
+
+        alreadyApproved:
+          true,
       });
     }
 
@@ -343,59 +606,58 @@ export async function POST(request) {
       );
     }
 
-    const {
-      data: inviteData,
-      error: inviteError,
-    } =
-      await supabase.auth.admin
-        .inviteUserByEmail(
-          application.contact_email,
-          {
-            redirectTo:
-              "https://roothealth.app/organisation-learning",
-
-            data: {
-              name:
-                application.contact_name,
-
-              root_workplace_approved:
-                true,
-
-              root_workplace_application_id:
-                application.id,
-
-              organisation_name:
-                application.organisation_name,
-
-              employee_count:
-                application.employee_count,
-
-              industry:
-                application.industry,
-            },
-          }
-        );
-
-    const invitedUser =
-      inviteData?.user || null;
-
     if (
-      inviteError ||
-      !invitedUser
+      !application.admin_email
     ) {
+      return NextResponse.json(
+        {
+          error:
+            "This application has no authorised Root administrator email.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    let setupAccess;
+
+    try {
+      setupAccess =
+        await sendSetupAccess(
+          supabase,
+          application
+        );
+    } catch (setupError) {
       console.error(
-        "ROOT WORKPLACE INVITE ERROR:",
-        inviteError
+        "ROOT WORKPLACE SETUP ACCESS ERROR:",
+        setupError
       );
 
       return NextResponse.json(
         {
           error:
-            inviteError?.message ||
-            "Root could not send the Workplace setup invitation.",
+            setupError?.message ||
+            "Root could not send the Workplace setup access email.",
         },
         {
           status: 400,
+        }
+      );
+    }
+
+    const setupUser =
+      setupAccess?.user ||
+      null;
+
+    if (!setupUser?.id) {
+      return NextResponse.json(
+        {
+          error:
+            "Root sent the setup request but could not identify the authorised administrator.",
+        },
+        {
+          status: 500,
         }
       );
     }
@@ -413,7 +675,7 @@ export async function POST(request) {
         )
         .update({
           user_id:
-            invitedUser.id,
+            setupUser.id,
 
           status:
             "approved",
@@ -433,6 +695,7 @@ export async function POST(request) {
             organisation_name,
             contact_name,
             contact_email,
+            admin_email,
             employee_count,
             industry,
             status,
@@ -454,7 +717,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error:
-            "The invitation was sent, but Root could not update the application status. Please check Supabase before approving again.",
+            "Root sent the setup access email, but could not update the application status. Please check Supabase before approving again.",
         },
         {
           status: 500,
@@ -465,7 +728,9 @@ export async function POST(request) {
     console.log(
       "ROOT WORKPLACE APPLICATION APPROVED:",
       application.id,
-      application.contact_email
+      application.organisation_name,
+      application.admin_email,
+      setupAccess.accessType
     );
 
     return NextResponse.json({
@@ -474,7 +739,14 @@ export async function POST(request) {
       application:
         approvedApplication,
 
-      invited: true,
+      accessType:
+        setupAccess.accessType,
+
+      invited:
+        setupAccess.invited,
+
+      magicLinkSent:
+        setupAccess.magicLinkSent,
     });
   } catch (error) {
     console.error(
