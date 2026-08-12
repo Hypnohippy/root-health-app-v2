@@ -12,6 +12,9 @@ export default function OrganisationRegisterPage() {
   const [contactEmail, setContactEmail] =
     useState("");
 
+  const [adminEmail, setAdminEmail] =
+    useState("");
+
   const [employeeCount, setEmployeeCount] =
     useState("51-150");
 
@@ -34,10 +37,11 @@ export default function OrganisationRegisterPage() {
     if (
       !name.trim() ||
       !contactName.trim() ||
-      !contactEmail.trim()
+      !contactEmail.trim() ||
+      !adminEmail.trim()
     ) {
       setError(
-        "Please complete organisation name, contact name and work email."
+        "Please complete organisation name, contact name, organisation contact email and Root administrator email."
       );
 
       setLoading(false);
@@ -65,6 +69,11 @@ export default function OrganisationRegisterPage() {
 
               contactEmail:
                 contactEmail
+                  .trim()
+                  .toLowerCase(),
+
+              adminEmail:
+                adminEmail
                   .trim()
                   .toLowerCase(),
 
@@ -169,13 +178,25 @@ export default function OrganisationRegisterPage() {
 
             <p>
               <strong>
-                Work email
+                Organisation contact email
               </strong>
 
               <br />
 
               {
                 createdOrg.contact_email
+              }
+            </p>
+
+            <p>
+              <strong>
+                Root administrator
+              </strong>
+
+              <br />
+
+              {
+                createdOrg.admin_email
               }
             </p>
 
@@ -191,11 +212,11 @@ export default function OrganisationRegisterPage() {
           </div>
 
           <p style={styles.smallText}>
-            Once approved, the
-            authorised organisation
-            contact will receive secure
-            instructions for setting up
-            Root Workplace and inviting
+            Once approved, the authorised
+            Root administrator will
+            receive secure instructions
+            for setting up Workplace
+            access and inviting
             employees.
           </p>
 
@@ -262,7 +283,7 @@ export default function OrganisationRegisterPage() {
         />
 
         <label style={styles.label}>
-          Work email
+          Organisation contact email
         </label>
 
         <input
@@ -274,8 +295,39 @@ export default function OrganisationRegisterPage() {
               e.target.value
             )
           }
-          placeholder="e.g. emma@company.co.uk"
+          placeholder="e.g. enquiries@company.co.uk"
         />
+
+        <p style={styles.fieldHelp}>
+          This is where Root can contact
+          your organisation about the
+          application. It may be a shared
+          company mailbox.
+        </p>
+
+        <label style={styles.label}>
+          Authorised Root administrator email
+        </label>
+
+        <input
+          type="email"
+          style={styles.input}
+          value={adminEmail}
+          onChange={(e) =>
+            setAdminEmail(
+              e.target.value
+            )
+          }
+          placeholder="e.g. emma.jones@company.co.uk"
+        />
+
+        <p style={styles.fieldHelp}>
+          This should belong to the person
+          who will sign in to Root and
+          administer Workplace. It can be
+          the same as the contact email if
+          appropriate.
+        </p>
 
         <label style={styles.label}>
           Number of employees
@@ -290,25 +342,25 @@ export default function OrganisationRegisterPage() {
             )
           }
         >
-        <option value="1-50">
-          Up to 50 employees
-       </option>
+          <option value="1-50">
+            Up to 50 employees
+          </option>
 
-       <option value="51-150">
-         51–150 employees
-       </option>
+          <option value="51-150">
+            51–150 employees
+          </option>
 
-        <option value="151-500">
-          151–500 employees
-        </option>
+          <option value="151-500">
+            151–500 employees
+          </option>
 
-        <option value="501-1000">
-          501–1,000 employees
-       </option>
+          <option value="501-1000">
+            501–1,000 employees
+          </option>
 
-        <option value="1000+">
-          More than 1,000 employees
-       </option>
+          <option value="1000+">
+            More than 1,000 employees
+          </option>
         </select>
 
         <label style={styles.label}>
@@ -445,6 +497,13 @@ const styles = {
       "1px solid rgba(24,24,24,0.16)",
     fontSize: "15px",
     boxSizing: "border-box",
+  },
+
+  fieldHelp: {
+    margin: "7px 2px 0",
+    color: "#777064",
+    fontSize: "13px",
+    lineHeight: "1.55",
   },
 
   button: {
