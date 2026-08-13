@@ -424,17 +424,25 @@ export async function GET(request) {
         )
         .select(
           `
-            id,
-            user_id,
-            organisation_name,
-            contact_name,
-            contact_email,
-            admin_email,
-            employee_count,
-            industry,
-            status,
-            reviewed_at,
-            created_at
+           id,
+user_id,
+organisation_name,
+organisation_type,
+legal_entity_number,
+organisation_domain,
+contact_name,
+contact_email,
+admin_email,
+employee_count,
+industry,
+root_customer_group_id,
+trial_eligibility_status,
+trial_eligibility_reason,
+trial_eligibility_checked_at,
+trial_override,
+status,
+reviewed_at,
+created_at
           `
         )
         .order(
@@ -544,16 +552,24 @@ export async function POST(request) {
         .select(
           `
             id,
-            user_id,
-            organisation_name,
-            contact_name,
-            contact_email,
-            admin_email,
-            employee_count,
-            industry,
-            status,
-            reviewed_at,
-            created_at
+user_id,
+organisation_name,
+organisation_type,
+legal_entity_number,
+organisation_domain,
+contact_name,
+contact_email,
+admin_email,
+employee_count,
+industry,
+root_customer_group_id,
+trial_eligibility_status,
+trial_eligibility_reason,
+trial_eligibility_checked_at,
+trial_override,
+status,
+reviewed_at,
+created_at
           `
         )
         .eq(
@@ -691,16 +707,24 @@ export async function POST(request) {
         .select(
           `
             id,
-            user_id,
-            organisation_name,
-            contact_name,
-            contact_email,
-            admin_email,
-            employee_count,
-            industry,
-            status,
-            reviewed_at,
-            created_at
+user_id,
+organisation_name,
+organisation_type,
+legal_entity_number,
+organisation_domain,
+contact_name,
+contact_email,
+admin_email,
+employee_count,
+industry,
+root_customer_group_id,
+trial_eligibility_status,
+trial_eligibility_reason,
+trial_eligibility_checked_at,
+trial_override,
+status,
+reviewed_at,
+created_at
           `
         )
         .single();
