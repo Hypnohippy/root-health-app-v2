@@ -39,46 +39,139 @@ export default function LoginPage() {
       return;
     }
 
-    const { data: membership, error: membershipError } = await supabase
-      .from("organisation_members")
-      .select(
-        "id, organisation_id, profile_key, email, name, department, role"
-      )
-      .eq("user_id", data.user.id)
-      .maybeSingle();
+    const {
+  data: memberships,
+  error: membershipError,
+} = await supabase
+  .from("organisation_members")
+  .select(
+    "id, organisation_id, profile_key, email, name, department, role"
+  )
+  .eq("user_id", data.user.id);
 
-    if (membershipError) {
-      setMessage(
-        "You are signed in, but Root could not verify your organisation access."
-      );
-      setLoading(false);
-      return;
-    }
+if (membershipError) {
+  setMessage(
+    "You are signed in, but Root could not verify your organisation access."
+  );
+  setLoading(false);
+  return;
+}
 
-    if (!membership) {
-      window.location.href = "/organisation/join";
-      return;
-    }
+const safeMemberships =
+  Array.isArray(memberships)
+    ? memberships
+    : [];
 
-    localStorage.setItem("root_profile_key_v1", membership.profile_key);
+if (safeMemberships.length === 0) {
+  /*
+   * A Root user may legitimately have
+   * Personal access without belonging
+   * to an organisation.
+   */
+  await getRootIdentity();
 
-    localStorage.setItem(
-      "root_profile_v1",
-      JSON.stringify({
-        profile_key: membership.profile_key,
-        email: membership.email || data.user.email,
-        name: membership.name || "",
-        department: membership.department || "",
-      })
+  window.location.href = "/";
+  return;
+}
+
+/*
+ * A person may belong to several
+ * organisations.
+ *
+ * Prefer the organisation Root remembers
+ * as active. Then fall back to the older
+ * organisation storage key. If neither
+ * exists, use the first membership.
+ */
+const rememberedOrganisationId =
+  localStorage.getItem(
+    "root_active_organisation_v1"
+  );
+
+let legacyOrganisationId = null;
+
+try {
+  const storedOrganisation =
+    JSON.parse(
+      localStorage.getItem(
+        "root_organisation_v1"
+      ) || "null"
     );
 
-    localStorage.setItem(
-      "root_organisation_v1",
-      JSON.stringify({
-        organisation_id: membership.organisation_id,
-        role: membership.role || "employee",
-      })
-    );
+  legacyOrganisationId =
+    storedOrganisation
+      ?.organisation_id ||
+    null;
+} catch {
+  legacyOrganisationId = null;
+}
+
+const membership =
+  safeMemberships.find(
+    (item) =>
+      item.organisation_id ===
+      rememberedOrganisationId
+  ) ||
+  safeMemberships.find(
+    (item) =>
+      item.organisation_id ===
+      legacyOrganisationId
+  ) ||
+  safeMemberships[0];
+
+localStorage.setItem(
+  "root_profile_key_v1",
+  membership.profile_key
+);
+
+localStorage.setItem(
+  "root_active_organisation_v1",
+  membership.organisation_id
+);
+
+localStorage.setItem(
+  "root_profile_v1",
+  JSON.stringify({
+    profile_key:
+      membership.profile_key,
+
+    email:
+      membership.email ||
+      data.user.email,
+
+    name:
+      membership.name ||
+      "",
+
+    department:
+      membership.department ||
+      "",
+  })
+);
+
+localStorage.setItem(
+  "root_organisation_v1",
+  JSON.stringify({
+    organisation_id:
+      membership.organisation_id,
+
+    role:
+      membership.role ||
+      "employee",
+  })
+);
+
+localStorage.setItem(
+  "root_hr_org_v1",
+  JSON.stringify({
+    organisation_id:
+      membership.organisation_id,
+
+    role:
+      membership.role ||
+      "employee",
+  })
+);
 
     await getRootIdentity();
 
