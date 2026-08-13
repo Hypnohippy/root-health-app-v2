@@ -128,6 +128,10 @@ async function notifyFormspree(
             organisation_name:
               application.organisation_name,
 
+            organisation_type:
+              application.organisation_type ||
+            "Not provided",
+
             employee_count:
               application.employee_count ||
               "Not provided",
@@ -224,7 +228,12 @@ export async function POST(request) {
         body.industry
       );
 
-      const legalEntityNumber =
+      const organisationType =
+  clean(
+    body.organisationType
+  );
+
+const legalEntityNumber =
   normaliseLegalEntityNumber(
     body.legalEntityNumber
   );
@@ -401,10 +410,16 @@ created_at
             )
             .update({
               contact_name:
-  contactName,
+              contactName,
 
              admin_email:
               adminEmail,
+
+             organisation_type:
+              organisationType ||
+             null,
+
+             
 
              legal_entity_number:
               legalEntityNumber ||
@@ -503,6 +518,10 @@ created_at
           admin_email:
             adminEmail,
 
+          organisation_type:
+            organisationType ||
+         null,
+
           legal_entity_number:
             legalEntityNumber ||
          null,
@@ -523,19 +542,22 @@ created_at
             "pending",
         })
         .select(
-          `
-            id,
-            organisation_name,
-            contact_name,
-            contact_email,
-            admin_email,
-            employee_count,
-            industry,
-            status,
-            created_at
-          `
-        )
-        .single();
+  `
+    id,
+    organisation_name,
+    contact_name,
+    contact_email,
+    admin_email,
+    organisation_type,
+    legal_entity_number,
+    organisation_domain,
+    employee_count,
+    industry,
+    status,
+    created_at
+  `
+)
+.single();
 
     if (
       applicationError ||
