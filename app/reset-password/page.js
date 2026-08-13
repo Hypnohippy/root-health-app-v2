@@ -20,57 +20,43 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] =
     useState(false);
 
-  const [checkingRecovery, setCheckingRecovery] =
-    useState(true);
+  const [tokenHash, setTokenHash] =
+    useState("");
 
   const [recoveryReady, setRecoveryReady] =
     useState(false);
 
+  const [checkingLink, setCheckingLink] =
+    useState(true);
+
   useEffect(() => {
-    let mounted = true;
-
-    const {
-      data: {
-        subscription,
-      },
-    } =
-      supabase.auth.onAuthStateChange(
-        (event, session) => {
-          if (!mounted) {
-            return;
-          }
-
-          if (
-            event ===
-            "PASSWORD_RECOVERY"
-          ) {
-            setRecoveryReady(true);
-            setCheckingRecovery(false);
-            return;
-          }
-
-          /*
-           * Supabase may already have restored
-           * the recovery session before this
-           * component subscribes.
-           *
-           * If there is a live session while
-           * we are on the reset-password page,
-           * allow the reset screen to remain
-           * available.
-           */
-          if (
-            event ===
-              "INITIAL_SESSION" &&
-            session
-          ) {
-            setRecoveryReady(true);
-            setCheckingRecovery(false);
-          }
-        }
+    const params =
+      new URLSearchParams(
+        window.location.search
       );
 
-    async function checkExistingSession() {
+    const token =
+      params.get("token_hash") || "";
+
+    const type =
+      params.get("type") || "";
+
+    if (
+      token &&
+      type === "recovery"
+    ) {
+      setTokenHash(token);
+      setCheckingLink(false);
+      return;
+    }
+
+    /*
+     * If the user already verified the
+     * recovery token in this browser,
+     * allow the password form to remain
+     * available.
+     */
+    async function checkSession() {
       const {
         data: {
           session,
@@ -78,32 +64,68 @@ export default function ResetPasswordPage() {
       } =
         await supabase.auth.getSession();
 
-      if (!mounted) {
-        return;
-      }
-
       if (session) {
         setRecoveryReady(true);
       }
 
-      setCheckingRecovery(false);
+      setCheckingLink(false);
     }
 
-    checkExistingSession();
-
-    return () => {
-      mounted = false;
-
-      subscription.unsubscribe();
-    };
+    checkSession();
   }, []);
+
+  async function beginRecovery() {
+    if (!tokenHash) {
+      setMessage(
+        "This password reset link is not valid. Please request a new reset email."
+      );
+
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    const {
+      error,
+    } =
+      await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: "recovery",
+      });
+
+    if (error) {
+      setMessage(
+        error.message ||
+        "This password reset link could not be verified."
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    /*
+     * The token has now been deliberately
+     * consumed by the human pressing the
+     * button, not by the email scanner.
+     */
+    window.history.replaceState(
+      {},
+      document.title,
+      "/reset-password"
+    );
+
+    setTokenHash("");
+    setRecoveryReady(true);
+    setLoading(false);
+  }
 
   async function updatePassword() {
     setMessage("");
 
     if (!recoveryReady) {
       setMessage(
-        "This password reset link is not active. Please request a new reset email."
+        "Please verify your password reset link first."
       );
 
       return;
@@ -156,8 +178,8 @@ export default function ResetPasswordPage() {
     );
 
     /*
-     * End the recovery session so the next
-     * sign-in genuinely tests the new password.
+     * Sign out so the next login proves
+     * the new password works normally.
      */
     await supabase.auth.signOut();
 
@@ -169,7 +191,7 @@ export default function ResetPasswordPage() {
     }, 1500);
   }
 
-  if (checkingRecovery) {
+  if (checkingLink) {
     return (
       <main style={styles.page}>
         <section style={styles.card}>
@@ -197,37 +219,59 @@ export default function ResetPasswordPage() {
           Root Health
         </p>
 
-        <h1 style={styles.title}>
-          Choose a new password
-        </h1>
-
-        <p style={styles.text}>
-          Enter your new password below.
-          Once saved, you can sign in
-          normally using that password.
-        </p>
-
         {!recoveryReady ? (
           <>
-            <p style={styles.message}>
-              This reset session is no
-              longer active. Request a
-              fresh reset email and use
-              the link in that message.
+            <h1 style={styles.title}>
+              Reset your password
+            </h1>
+
+            <p style={styles.text}>
+              Your reset request is ready.
+              Press the button below to
+              continue securely.
             </p>
 
-            <button
-              style={styles.button}
-              onClick={() => {
-                window.location.href =
-                  "/forgot-password";
-              }}
-            >
-              Request New Reset Link
-            </button>
+            {tokenHash ? (
+              <button
+                style={styles.button}
+                onClick={beginRecovery}
+                disabled={loading}
+              >
+                {loading
+                  ? "Verifying..."
+                  : "Continue to reset password"}
+              </button>
+            ) : (
+              <button
+                style={styles.button}
+                onClick={() => {
+                  window.location.href =
+                    "/forgot-password";
+                }}
+              >
+                Request New Reset Link
+              </button>
+            )}
+
+            {message ? (
+              <p style={styles.message}>
+                {message}
+              </p>
+            ) : null}
           </>
         ) : (
           <>
+            <h1 style={styles.title}>
+              Choose a new password
+            </h1>
+
+            <p style={styles.text}>
+              Enter your new password
+              below. Once saved, you can
+              sign in normally using the
+              new password.
+            </p>
+
             <input
               type="password"
               placeholder="New password"
@@ -254,9 +298,7 @@ export default function ResetPasswordPage() {
 
             <button
               style={styles.button}
-              onClick={
-                updatePassword
-              }
+              onClick={updatePassword}
               disabled={loading}
             >
               {loading
@@ -292,7 +334,8 @@ const styles = {
     borderRadius: "34px",
     background:
       "rgba(255,255,255,0.75)",
-    backdropFilter: "blur(20px)",
+    backdropFilter:
+      "blur(20px)",
     border:
       "1px solid rgba(255,255,255,0.85)",
     boxShadow:
