@@ -181,7 +181,7 @@ export default function WorkplaceApplicationsPage() {
       }
 
       setMessage(
-        `Approved. Root has sent the secure Workplace setup invitation to ${result.application.contact_email}.`
+        `Approved. Root has sent the secure Workplace setup access email to ${result.application.admin_email}.`
       );
 
       setApprovingId(null);
@@ -408,14 +408,25 @@ export default function WorkplaceApplicationsPage() {
                         </p>
 
                         <p>
-                          <strong>
-                            Email
-                          </strong>
-                          <br />
-                          {
-                            application.contact_email
-                          }
-                        </p>
+  <strong>
+    Organisation contact
+  </strong>
+  <br />
+  {
+    application.contact_email
+  }
+</p>
+
+<p>
+  <strong>
+    Root administrator
+  </strong>
+  <br />
+  {
+    application.admin_email ||
+    application.contact_email
+  }
+</p>
 
                         <p>
                           <strong>
