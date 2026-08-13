@@ -71,6 +71,324 @@ function normaliseEmail(value) {
     .toLowerCase();
 }
 
+function normaliseText(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function normaliseLegalEntityNumber(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
+}
+
+async function assessTrialEligibility(
+  supabase,
+  application
+) {
+  const evidence = [];
+
+  const legalEntityNumber =
+    normaliseLegalEntityNumber(
+      application.legal_entity_number
+    );
+
+  const organisationDomain =
+    normaliseText(
+      application.organisation_domain
+    );
+
+  const adminEmail =
+    normaliseEmail(
+      application.admin_email
+    );
+
+  /*
+   * 1. EXISTING CUSTOMER GROUP
+   *
+   * This is our strongest commercial relationship.
+   */
+  if (
+    application.root_customer_group_id
+  ) {
+    const {
+      data: customerGroup,
+      error: customerGroupError,
+    } = await supabase
+      .from("root_customer_groups")
+      .select(
+        `
+          id,
+          display_name,
+          complimentary_pilot_used,
+          complimentary_pilot_started_at,
+          complimentary_pilot_organisation_id
+        `
+      )
+      .eq(
+        "id",
+        application.root_customer_group_id
+      )
+      .maybeSingle();
+
+    if (customerGroupError) {
+      console.error(
+        "ROOT DETECTIVE CUSTOMER GROUP ERROR:",
+        customerGroupError
+      );
+    }
+
+    if (
+      customerGroup?.complimentary_pilot_used
+    ) {
+      evidence.push(
+        `This application belongs to the existing Root customer group "${customerGroup.display_name}", which has already received a complimentary pilot.`
+      );
+
+      return {
+        status: "previously_benefited",
+        reason: evidence.join(" "),
+      };
+    }
+
+    if (customerGroup) {
+      evidence.push(
+        `Root already recognises this application as part of the customer group "${customerGroup.display_name}".`
+      );
+    }
+  }
+
+  /*
+   * 2. EXACT LEGAL ENTITY
+   *
+   * A previous trial for the same legal entity is
+   * strong evidence that the complimentary benefit
+   * has already been used.
+   */
+  if (legalEntityNumber) {
+    const {
+      data: legalMatches,
+      error: legalMatchError,
+    } = await supabase
+      .from("organisation_trial_registry")
+      .select("*")
+      .eq(
+        "legal_entity_number",
+        legalEntityNumber
+      )
+      .limit(10);
+
+    if (legalMatchError) {
+      console.error(
+        "ROOT DETECTIVE LEGAL ENTITY ERROR:",
+        legalMatchError
+      );
+    }
+
+    if (
+      Array.isArray(legalMatches) &&
+      legalMatches.length > 0
+    ) {
+      evidence.push(
+        "This legal entity appears in Root's previous trial registry."
+      );
+
+      return {
+        status: "previously_benefited",
+        reason: evidence.join(" "),
+      };
+    }
+  }
+
+  /*
+   * 3. DOMAIN RELATIONSHIP
+   *
+   * A domain match is useful evidence, but it is
+   * NOT enough on its own to deny another pilot.
+   */
+  let domainMatches = [];
+
+  if (organisationDomain) {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("organisation_applications")
+      .select(
+        `
+          id,
+          organisation_name,
+          organisation_domain,
+          admin_email,
+          root_customer_group_id,
+          status,
+          created_at
+        `
+      )
+      .eq(
+        "organisation_domain",
+        organisationDomain
+      )
+      .neq(
+        "id",
+        application.id
+      )
+      .limit(20);
+
+    if (error) {
+      console.error(
+        "ROOT DETECTIVE DOMAIN ERROR:",
+        error
+      );
+    } else {
+      domainMatches = data || [];
+    }
+
+    if (domainMatches.length > 0) {
+      evidence.push(
+        `Root found ${domainMatches.length} previous application${domainMatches.length === 1 ? "" : "s"} using the same organisation domain.`
+      );
+    }
+  }
+
+  /*
+   * 4. ADMINISTRATOR RELATIONSHIP
+   *
+   * Again: evidence, NOT proof.
+   *
+   * An HR consultant or adviser may administer
+   * several completely unrelated organisations.
+   */
+  let adminMatches = [];
+
+  if (adminEmail) {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("organisation_applications")
+      .select(
+        `
+          id,
+          organisation_name,
+          organisation_domain,
+          admin_email,
+          root_customer_group_id,
+          status,
+          created_at
+        `
+      )
+      .eq(
+        "admin_email",
+        adminEmail
+      )
+      .neq(
+        "id",
+        application.id
+      )
+      .limit(20);
+
+    if (error) {
+      console.error(
+        "ROOT DETECTIVE ADMIN ERROR:",
+        error
+      );
+    } else {
+      adminMatches = data || [];
+    }
+
+    if (adminMatches.length > 0) {
+      evidence.push(
+        `The proposed Root administrator has appeared on ${adminMatches.length} previous Workplace application${adminMatches.length === 1 ? "" : "s"}.`
+      );
+    }
+  }
+
+  /*
+   * 5. COMBINED RELATIONSHIPS
+   *
+   * Domain + administrator together are much more
+   * interesting than either signal individually.
+   */
+  const samePreviousApplication =
+    domainMatches.some(
+      (domainMatch) =>
+        adminMatches.some(
+          (adminMatch) =>
+            adminMatch.id ===
+            domainMatch.id
+        )
+    );
+
+  if (samePreviousApplication) {
+    evidence.push(
+      "At least one previous application used both the same organisation domain and the same Root administrator."
+    );
+  }
+
+  /*
+   * 6. KNOWN CUSTOMER-GROUP RELATIONSHIP
+   *
+   * A previous related application may already have
+   * been assigned to a Root customer group.
+   */
+  const relatedGroupIds = [
+    ...domainMatches,
+    ...adminMatches,
+  ]
+    .map(
+      (match) =>
+        match.root_customer_group_id
+    )
+    .filter(Boolean);
+
+  if (relatedGroupIds.length > 0) {
+    evidence.push(
+      "One or more related applications are already associated with a Root customer group."
+    );
+
+    return {
+      status: "review",
+      reason: evidence.join(" "),
+    };
+  }
+
+  /*
+   * 7. FINAL ASSESSMENT
+   */
+  if (
+    samePreviousApplication ||
+    (
+      domainMatches.length > 0 &&
+      adminMatches.length > 0
+    )
+  ) {
+    return {
+      status: "review",
+      reason: evidence.join(" "),
+    };
+  }
+
+  if (
+    domainMatches.length > 0 ||
+    adminMatches.length > 0
+  ) {
+    return {
+      status: "review",
+      reason: evidence.join(" "),
+    };
+  }
+
+  return {
+    status: "eligible",
+    reason:
+      "Root found no meaningful previous customer relationship in the evidence currently available.",
+  };
+}
+
 async function requireRootAdmin(
   request
 ) {
@@ -470,12 +788,117 @@ created_at
       );
     }
 
-    return NextResponse.json({
-      success: true,
+    const applications =
+  data || [];
 
-      applications:
-        data || [],
-    });
+const assessedApplications =
+  await Promise.all(
+    applications.map(
+      async (application) => {
+        /*
+         * Historical applications that are already
+         * approved remain visible, but Detective is
+         * primarily assessing pending applications.
+         */
+        if (
+          application.status !== "pending"
+        ) {
+          return application;
+        }
+
+        const assessment =
+          await assessTrialEligibility(
+            supabase,
+            application
+          );
+
+        const checkedAt =
+          new Date().toISOString();
+
+        const {
+          data: updatedApplication,
+          error: assessmentUpdateError,
+        } = await supabase
+          .from(
+            "organisation_applications"
+          )
+          .update({
+            trial_eligibility_status:
+              assessment.status,
+
+            trial_eligibility_reason:
+              assessment.reason,
+
+            trial_eligibility_checked_at:
+              checkedAt,
+          })
+          .eq(
+            "id",
+            application.id
+          )
+          .select(
+            `
+              id,
+              user_id,
+              organisation_name,
+              organisation_type,
+              legal_entity_number,
+              organisation_domain,
+              contact_name,
+              contact_email,
+              admin_email,
+              employee_count,
+              industry,
+              root_customer_group_id,
+              trial_eligibility_status,
+              trial_eligibility_reason,
+              trial_eligibility_checked_at,
+              trial_override,
+              status,
+              reviewed_at,
+              created_at
+            `
+          )
+          .single();
+
+        if (
+          assessmentUpdateError ||
+          !updatedApplication
+        ) {
+          console.error(
+            "ROOT DETECTIVE SAVE ERROR:",
+            assessmentUpdateError
+          );
+
+          /*
+           * Don't break the Applications page merely
+           * because Detective could not save her notes.
+           */
+          return {
+            ...application,
+
+            trial_eligibility_status:
+              assessment.status,
+
+            trial_eligibility_reason:
+              assessment.reason,
+
+            trial_eligibility_checked_at:
+              checkedAt,
+          };
+        }
+
+        return updatedApplication;
+      }
+    )
+  );
+
+return NextResponse.json({
+  success: true,
+
+  applications:
+    assessedApplications,
+});
   } catch (error) {
     console.error(
       "ROOT APPLICATION ADMIN GET ERROR:",
