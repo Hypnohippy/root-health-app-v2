@@ -392,7 +392,7 @@ export default function WorkplaceApplicationsPage() {
                         }
                       </h3>
 
-                      <div
+                                           <div
                         style={
                           styles.details
                         }
@@ -403,30 +403,33 @@ export default function WorkplaceApplicationsPage() {
                           </strong>
                           <br />
                           {
-                            application.contact_name
+                            application.contact_name ||
+                            "Not supplied"
                           }
                         </p>
 
                         <p>
-  <strong>
-    Organisation contact
-  </strong>
-  <br />
-  {
-    application.contact_email
-  }
-</p>
+                          <strong>
+                            Organisation contact
+                          </strong>
+                          <br />
+                          {
+                            application.contact_email ||
+                            "Not supplied"
+                          }
+                        </p>
 
-<p>
-  <strong>
-    Root administrator
-  </strong>
-  <br />
-  {
-    application.admin_email ||
-    application.contact_email
-  }
-</p>
+                        <p>
+                          <strong>
+                            Root administrator
+                          </strong>
+                          <br />
+                          {
+                            application.admin_email ||
+                            application.contact_email ||
+                            "Not supplied"
+                          }
+                        </p>
 
                         <p>
                           <strong>
@@ -449,6 +452,95 @@ export default function WorkplaceApplicationsPage() {
                             "Not supplied"
                           }
                         </p>
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: "22px",
+                          marginBottom: "18px",
+                          padding: "18px",
+                          borderRadius: "18px",
+                          border:
+                            "1px solid rgba(24,24,24,0.10)",
+                          background:
+                            "rgba(255,255,255,0.55)",
+                        }}
+                      >
+                        <p
+                          style={{
+                            margin: "0 0 8px",
+                            fontSize: "12px",
+                            fontWeight: "800",
+                            textTransform:
+                              "uppercase",
+                            letterSpacing:
+                              "0.12em",
+                            color: "#657257",
+                          }}
+                        >
+                          Root trial check
+                        </p>
+
+                        <p
+                          style={{
+                            margin: "0 0 10px",
+                            fontSize: "18px",
+                            fontWeight: "800",
+                            color: "#181818",
+                          }}
+                        >
+                          {
+                            application.trial_eligibility_status ===
+                            "eligible"
+                              ? "🟢 Likely eligible"
+                              : application.trial_eligibility_status ===
+                                "previously_benefited"
+                              ? "🔴 Previously benefited"
+                              : application.trial_eligibility_status ===
+                                "review"
+                              ? "🟠 Review required"
+                              : "⚪ Not yet checked"
+                          }
+                        </p>
+
+                        <p
+                          style={{
+                            margin: 0,
+                            lineHeight: 1.65,
+                            color: "#5A554D",
+                          }}
+                        >
+                          {
+                            application.trial_eligibility_reason ||
+                            "Root has not yet completed the trial eligibility check for this application."
+                          }
+                        </p>
+
+                        {
+                          application.trial_eligibility_checked_at
+                            ? (
+                              <p
+                                style={{
+                                  margin:
+                                    "12px 0 0",
+                                  fontSize:
+                                    "12px",
+                                  color:
+                                    "#777168",
+                                }}
+                              >
+                                Checked{" "}
+                                {
+                                  new Date(
+                                    application.trial_eligibility_checked_at
+                                  ).toLocaleString(
+                                    "en-GB"
+                                  )
+                                }
+                              </p>
+                            )
+                            : null
+                        }
                       </div>
 
                       <button
