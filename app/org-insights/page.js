@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { getRootIdentity } from "../../lib/rootIdentity";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
@@ -1021,44 +1022,55 @@ useEffect(() => {
 ]);
 
   const loadDashboard = async () => {
-    setLoading(true);
-    const {
-  data: { user },
-  error: authError,
-} = await supabase.auth.getUser();
+  setLoading(true);
 
-if (authError || !user) {
-  window.location.href = "/login";
-  return;
-}
+  /*
+   * ROOT WORKPLACE IDENTITY
+   *
+   * Root Identity is now the source of truth for deciding
+   * which Workplace organisation this person is currently using.
+   *
+   * A single Root user may belong to several organisations,
+   * so we must not use .maybeSingle() against user_id here.
+   */
 
-const { data: membership, error: membershipError } = await supabase
-  .from("organisation_members")
-  .select(
-    "id, organisation_id, profile_key, email, name, department, role"
-  )
-  .eq("user_id", user.id)
-  .maybeSingle();
+  const identity = await getRootIdentity();
 
-if (membershipError || !membership) {
-  await supabase.auth.signOut();
-  window.location.href = "/login";
-  return;
-}
+  if (!identity) {
+    window.location.href = "/login";
+    return;
+  }
 
-setCurrentMembership(membership);
+  if (!identity.capabilities?.canUseWorkplace) {
+    window.location.href = "/";
+    return;
+  }
 
-const allowedRoles = [
-  "hr_admin",
-  "organisation_admin",
-];
+  const membership =
+    identity.workplace?.activeOrganisation || null;
 
-if (!allowedRoles.includes(membership.role)) {
-  window.location.href = "/";
-  return;
-}
+  if (!membership) {
+    console.error(
+      "Root Workplace could not find an active organisation membership."
+    );
 
-const orgId = membership.organisation_id;
+    window.location.href = "/choose-experience";
+    return;
+  }
+
+  const allowedRoles = [
+    "hr_admin",
+    "organisation_admin",
+  ];
+
+  if (!allowedRoles.includes(membership.role)) {
+    window.location.href = "/";
+    return;
+  }
+
+  setCurrentMembership(membership);
+
+  const orgId = membership.organisation_id;
 
 localStorage.setItem("root_profile_key_v1", membership.profile_key);
 
