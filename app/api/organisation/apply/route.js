@@ -87,10 +87,16 @@ async function notifyFormspree(
               "Not provided",
 
             application_id:
-              application.id,
+  application.id,
 
-            message:
-              `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}). Authorised Root administrator: ${application.admin_email}.`,
+review_application:
+  "https://roothealth.app/workplace-applications",
+
+message:
+  `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}). Authorised Root administrator: ${application.admin_email}.
+
+Review and approve this application here:
+https://roothealth.app/workplace-applications`,
           }),
         }
       );
