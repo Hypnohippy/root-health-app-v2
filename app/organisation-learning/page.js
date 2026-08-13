@@ -518,6 +518,8 @@ export default function OrganisationLearningPage() {
   const [contactEmail, setContactEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [requiresPassword, setRequiresPassword] =
+  useState(true);
 
   const [organisationName, setOrganisationName] = useState("");
   const [employeeCount, setEmployeeCount] = useState("51-150");
@@ -563,187 +565,392 @@ export default function OrganisationLearningPage() {
   }, []);
 
     async function loadPage() {
-    setLoading(true);
-    setErrorMessage("");
+  setLoading(true);
+  setErrorMessage("");
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-    /*
-     * No signed-in user means this page becomes the new organisation
-     * onboarding journey instead of redirecting to login.
-     */
-    if (authError || !user) {
-      setIsOnboarding(true);
-      setOrganisation(null);
-      setMembership(null);
-      setPreviousReview(null);
-      setReviewHistory([]);
-      setLoading(false);
-      return;
-    }
+  /*
+   * No authenticated Root account yet.
+   *
+   * This remains available for the original
+   * new-organisation onboarding journey.
+   */
+  if (authError || !user) {
+    setIsOnboarding(true);
+    setRequiresPassword(true);
+    setOrganisation(null);
+    setMembership(null);
+    setPreviousReview(null);
+    setReviewHistory([]);
+    setLoading(false);
+    return;
+  }
 
-    const { data: member, error: membershipError } = await supabase
-      .from("organisation_members")
-      .select(
-        "id, organisation_id, profile_key, email, name, department, role"
-      )
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    /*
-     * A signed-in private user who has no workplace membership may also
-     * create a new organisation through this page.
-     */
-    if (membershipError || !member) {
   const inviteData =
     user.user_metadata || {};
 
-  setIsOnboarding(true);
-
-  setContactName(
-    inviteData.name || ""
-  );
-
-  setContactEmail(
-    user.email || ""
-  );
-
-  if (
-    inviteData.organisation_name
-  ) {
-    setOrganisationName(
-      inviteData.organisation_name
-    );
-  }
-
-  const invitedEmployeeCount =
+  const approvedApplicationId =
     String(
-      inviteData.employee_count ||
+      inviteData.root_workplace_application_id ||
       ""
     ).trim();
 
-  const validEmployeeBands = [
-    "1-50",
-    "51-150",
-    "151-500",
-    "501-1000",
-    "1000+",
-  ];
+  const approvedOrganisationName =
+    String(
+      inviteData.organisation_name ||
+      ""
+    ).trim();
 
-  if (
-    validEmployeeBands.includes(
-      invitedEmployeeCount
-    )
-  ) {
-    setEmployeeCount(
-      invitedEmployeeCount
+  const hasApprovedOrganisationSetup =
+    inviteData.root_workplace_approved ===
+      true &&
+    Boolean(approvedApplicationId) &&
+    Boolean(approvedOrganisationName);
+
+  /*
+   * IMPORTANT:
+   *
+   * An approved organisation setup takes
+   * priority over memberships the person
+   * already has.
+   *
+   * This is what allows one director to
+   * administer Company A, Company B and
+   * Company C using ONE Root account.
+   */
+  if (hasApprovedOrganisationSetup) {
+    const {
+      data: existingProfile,
+      error: profileError,
+    } = await supabase
+      .from("profiles")
+      .select("id, profile_key")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error(
+        "ROOT WORKPLACE SETUP PROFILE CHECK ERROR:",
+        profileError
+      );
+    }
+
+    /*
+     * A completely new Root user must choose
+     * their password.
+     *
+     * An existing Root user bringing another
+     * company already has an account/password
+     * and must NOT create another one.
+     */
+    setRequiresPassword(
+      !existingProfile
     );
-  }
 
-  if (
-    inviteData.industry
-  ) {
-    setIndustry(
-      inviteData.industry
+    setIsOnboarding(true);
+    setOrganisation(null);
+    setMembership(null);
+    setPreviousReview(null);
+    setReviewHistory([]);
+
+    setContactName(
+      inviteData.name ||
+      existingProfile?.name ||
+      ""
     );
-  }
 
-  setLoading(false);
-  return;
-}
+    setContactEmail(
+      user.email || ""
+    );
 
-    const allowedRoles = [
-      "hr_admin",
-      "organisation_admin",
+    setOrganisationName(
+      approvedOrganisationName
+    );
+
+    const invitedEmployeeCount =
+      String(
+        inviteData.employee_count ||
+        ""
+      ).trim();
+
+    const validEmployeeBands = [
+      "1-50",
+      "51-150",
+      "151-500",
+      "501-1000",
+      "1000+",
     ];
 
-    if (!allowedRoles.includes(member.role)) {
-      window.location.href = "/";
-      return;
-    }
-
-    setIsOnboarding(false);
-
-    setMembership({
-      ...member,
-      user_id: user.id,
-    });
-
-    localStorage.setItem(
-      "root_profile_key_v1",
-      member.profile_key
-    );
-
-    localStorage.setItem(
-      "root_hr_org_v1",
-      JSON.stringify({
-        organisation_id: member.organisation_id,
-        role: member.role,
-      })
-    );
-
-    const { data: org, error: organisationError } =
-      await supabase
-        .from("organisations")
-        .select("*")
-        .eq("id", member.organisation_id)
-        .maybeSingle();
-
-    if (organisationError) {
-      setErrorMessage(
-        "Root could not load this organisation. Please refresh the page."
-      );
-      setLoading(false);
-      return;
-    }
-
-    setOrganisation(org || null);
-
-    const { data: reviews, error: reviewError } =
-      await supabase
-        .from("organisation_learning_reviews")
-        .select("*")
-        .eq("organisation_id", member.organisation_id)
-        .order("created_at", {
-          ascending: false,
-        })
-        .limit(12);
-
-    if (reviewError) {
-      console.error(
-        "Organisation review load error:",
-        reviewError
-      );
-
-      setErrorMessage(
-        "The page is ready, but Root could not load previous organisation reviews."
+    if (
+      validEmployeeBands.includes(
+        invitedEmployeeCount
+      )
+    ) {
+      setEmployeeCount(
+        invitedEmployeeCount
       );
     }
 
-    const safeReviews = Array.isArray(reviews)
-      ? reviews
-      : [];
-
-    const latestReview = safeReviews[0] || null;
-
-    setPreviousReview(latestReview);
-    setReviewHistory(safeReviews);
-
-    if (latestReview?.watch_items?.length) {
-      setSelectedWatchItems(
-        latestReview.watch_items
+    if (inviteData.industry) {
+      setIndustry(
+        inviteData.industry
       );
     }
 
     setLoading(false);
+    return;
   }
 
-  const reflection = useMemo(
-    () =>
-      buildRootReflection({
+  /*
+   * Normal Workplace use.
+   *
+   * A user may legitimately belong to
+   * several organisations, so this must
+   * return an ARRAY rather than maybeSingle().
+   */
+  const {
+    data: memberships,
+    error: membershipError,
+  } = await supabase
+    .from("organisation_members")
+    .select(
+      "id, organisation_id, profile_key, email, name, department, role"
+    )
+    .eq("user_id", user.id);
+
+  if (membershipError) {
+    console.error(
+      "Organisation membership load error:",
+      membershipError
+    );
+
+    setErrorMessage(
+      "Root could not load your organisation memberships."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  const allowedRoles = [
+    "hr_admin",
+    "organisation_admin",
+  ];
+
+  const workplaceMemberships =
+    (memberships || []).filter(
+      (item) =>
+        allowedRoles.includes(
+          item.role
+        )
+    );
+
+  /*
+   * Signed-in Root user with no Workplace
+   * organisation yet.
+   */
+  if (
+    workplaceMemberships.length === 0
+  ) {
+    setIsOnboarding(true);
+    setRequiresPassword(false);
+    setOrganisation(null);
+    setMembership(null);
+    setPreviousReview(null);
+    setReviewHistory([]);
+
+    setContactName(
+      inviteData.name || ""
+    );
+
+    setContactEmail(
+      user.email || ""
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  /*
+   * Work out which organisation the person
+   * is currently operating.
+   *
+   * Prefer Root's active-organisation memory.
+   * Fall back to the older HR storage key,
+   * then finally the first valid membership.
+   */
+  const rememberedOrganisationId =
+    localStorage.getItem(
+      "root_active_organisation_v1"
+    );
+
+  let legacyOrganisationId = null;
+
+  try {
+    const legacyMembership =
+      JSON.parse(
+        localStorage.getItem(
+          "root_hr_org_v1"
+        ) || "null"
+      );
+
+    legacyOrganisationId =
+      legacyMembership
+        ?.organisation_id ||
+      null;
+  } catch {
+    legacyOrganisationId = null;
+  }
+
+  const member =
+    workplaceMemberships.find(
+      (item) =>
+        item.organisation_id ===
+        rememberedOrganisationId
+    ) ||
+    workplaceMemberships.find(
+      (item) =>
+        item.organisation_id ===
+        legacyOrganisationId
+    ) ||
+    workplaceMemberships[0] ||
+    null;
+
+  if (!member) {
+    setErrorMessage(
+      "Root could not identify your active organisation."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  setRequiresPassword(false);
+  setIsOnboarding(false);
+
+  setMembership({
+    ...member,
+    user_id: user.id,
+  });
+
+  localStorage.setItem(
+    "root_profile_key_v1",
+    member.profile_key
+  );
+
+  localStorage.setItem(
+  "root_active_organisation_v1",
+  newOrganisation.id
+);
+
+  localStorage.setItem(
+    "root_active_organisation_v1",
+    member.organisation_id
+  );
+
+  localStorage.setItem(
+    "root_hr_org_v1",
+    JSON.stringify({
+      organisation_id:
+        member.organisation_id,
+
+      role:
+        member.role,
+    })
+  );
+
+  const {
+    data: org,
+    error: organisationError,
+  } = await supabase
+    .from("organisations")
+    .select("*")
+    .eq(
+      "id",
+      member.organisation_id
+    )
+    .maybeSingle();
+
+  if (organisationError) {
+    setErrorMessage(
+      "Root could not load this organisation. Please refresh the page."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  setOrganisation(
+    org || null
+  );
+
+  const {
+    data: reviews,
+    error: reviewError,
+  } = await supabase
+    .from(
+      "organisation_learning_reviews"
+    )
+    .select("*")
+    .eq(
+      "organisation_id",
+      member.organisation_id
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false,
+      }
+    )
+    .limit(12);
+
+  if (reviewError) {
+    console.error(
+      "Organisation review load error:",
+      reviewError
+    );
+
+    setErrorMessage(
+      "The page is ready, but Root could not load previous organisation reviews."
+    );
+  }
+
+  const safeReviews =
+    Array.isArray(reviews)
+      ? reviews
+      : [];
+
+  const latestReview =
+    safeReviews[0] || null;
+
+  setPreviousReview(
+    latestReview
+  );
+
+  setReviewHistory(
+    safeReviews
+  );
+
+  if (
+    latestReview
+      ?.watch_items
+      ?.length
+  ) {
+    setSelectedWatchItems(
+      latestReview.watch_items
+    );
+  }
+
+ setLoading(false);
+}
+
+const reflection = useMemo(
+  () =>
+    buildRootReflection({
         measures,
         previousReview,
         selectedEvents,
@@ -1129,36 +1336,36 @@ export default function OrganisationLearningPage() {
     await supabase.auth.getUser();
 
   const isApprovedInvite =
-    existingUser
-      ?.user_metadata
-      ?.root_workplace_approved ===
-    true;
+  existingUser
+    ?.user_metadata
+    ?.root_workplace_approved ===
+  true;
+
+if (
+  !existingUser ||
+  requiresPassword
+) {
+  if (password.length < 8) {
+    setErrorMessage(
+      "Please create a password containing at least 8 characters."
+    );
+
+    setSaving(false);
+    return;
+  }
 
   if (
-    !existingUser ||
-    isApprovedInvite
+    password !==
+    confirmPassword
   ) {
-    if (password.length < 8) {
-      setErrorMessage(
-        "Please create a password containing at least 8 characters."
-      );
+    setErrorMessage(
+      "The passwords do not match."
+    );
 
-      setSaving(false);
-      return;
-    }
-
-    if (
-      password !==
-      confirmPassword
-    ) {
-      setErrorMessage(
-        "The passwords do not match."
-      );
-
-      setSaving(false);
-      return;
-    }
+    setSaving(false);
+    return;
   }
+}
 
     const hasAnyMeasure = Object.values(
       measures
@@ -1226,7 +1433,8 @@ export default function OrganisationLearningPage() {
 
     if (
   user &&
-  isApprovedInvite
+  isApprovedInvite &&
+  requiresPassword
 ) {
   const {
     error:
@@ -1499,6 +1707,49 @@ export default function OrganisationLearningPage() {
         joined_at: Date.now(),
       })
     );
+    if (isApprovedInvite) {
+  const currentMetadata =
+    user.user_metadata || {};
+
+  const {
+    error:
+      metadataClearError,
+  } =
+    await supabase.auth
+      .updateUser({
+        data: {
+          ...currentMetadata,
+
+          root_workplace_approved:
+            false,
+
+          root_workplace_application_id:
+            null,
+
+          organisation_name:
+            null,
+
+          employee_count:
+            null,
+
+          industry:
+            null,
+
+          organisation_contact_email:
+            null,
+
+          root_admin_email:
+            null,
+        },
+      });
+
+  if (metadataClearError) {
+    console.error(
+      "ROOT WORKPLACE SETUP METADATA CLEAR ERROR:",
+      metadataClearError
+    );
+  }
+}
 
     setActiveExperience("workplace");
     await getRootIdentity();
@@ -1756,35 +2007,39 @@ window.scrollTo({
                   />
                 </label>
 
-                <label className="onboardingField">
-                  <span>Create password</span>
+                {requiresPassword && (
+  <>
+    <label className="onboardingField">
+      <span>Create password</span>
 
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) =>
-                      setPassword(
-                        event.target.value
-                      )
-                    }
-                    placeholder="At least 8 characters"
-                  />
-                </label>
+      <input
+        type="password"
+        value={password}
+        onChange={(event) =>
+          setPassword(
+            event.target.value
+          )
+        }
+        placeholder="At least 8 characters"
+      />
+    </label>
 
-                <label className="onboardingField">
-                  <span>Confirm password</span>
+    <label className="onboardingField">
+      <span>Confirm password</span>
 
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(event) =>
-                      setConfirmPassword(
-                        event.target.value
-                      )
-                    }
-                    placeholder="Repeat your password"
-                  />
-                </label>
+      <input
+        type="password"
+        value={confirmPassword}
+        onChange={(event) =>
+          setConfirmPassword(
+            event.target.value
+          )
+        }
+        placeholder="Repeat your password"
+      />
+    </label>
+  </>
+)}
 
                 <label className="onboardingField">
                   <span>Organisation name</span>
