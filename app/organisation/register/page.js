@@ -21,6 +21,20 @@ export default function OrganisationRegisterPage() {
   const [industry, setIndustry] =
     useState("Healthcare");
 
+  const [organisationType, setOrganisationType] =
+    useState("");
+
+  const [legalEntityNumber, setLegalEntityNumber] =
+    useState("");
+
+      const registrationRequired =
+    organisationType === "limited_company" ||
+    organisationType === "llp";
+
+  const registrationRelevant =
+    registrationRequired ||
+    organisationType === "registered_charity";
+
   const [loading, setLoading] =
     useState(false);
 
@@ -34,14 +48,27 @@ export default function OrganisationRegisterPage() {
     setLoading(true);
     setError("");
 
-    if (
+        if (
       !name.trim() ||
       !contactName.trim() ||
       !contactEmail.trim() ||
-      !adminEmail.trim()
+      !adminEmail.trim() ||
+      !organisationType
     ) {
       setError(
-        "Please complete organisation name, contact name, organisation contact email and Root administrator email."
+        "Please complete organisation name, organisation type, contact name, organisation contact email and Root administrator email."
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    if (
+      registrationRequired &&
+      !legalEntityNumber.trim()
+    ) {
+      setError(
+        "Please enter the organisation's registration number."
       );
 
       setLoading(false);
@@ -77,9 +104,16 @@ export default function OrganisationRegisterPage() {
                   .trim()
                   .toLowerCase(),
 
-              employeeCount,
+                            employeeCount,
 
               industry,
+
+              organisationType,
+
+              legalEntityNumber:
+                legalEntityNumber
+                  .trim()
+                  .toUpperCase(),
             }),
           }
         );
@@ -266,6 +300,101 @@ export default function OrganisationRegisterPage() {
           }
           placeholder="e.g. Sony UK"
         />
+
+                <label style={styles.label}>
+          Organisation type
+        </label>
+
+        <select
+          style={styles.input}
+          value={organisationType}
+          onChange={(e) => {
+            setOrganisationType(
+              e.target.value
+            );
+
+            setLegalEntityNumber("");
+          }}
+        >
+          <option value="">
+            Please select
+          </option>
+
+          <option value="limited_company">
+            Limited company
+          </option>
+
+          <option value="llp">
+            Limited Liability Partnership (LLP)
+          </option>
+
+          <option value="registered_charity">
+            Registered charity
+          </option>
+
+          <option value="sole_trader">
+            Sole trader
+          </option>
+
+          <option value="partnership">
+            Partnership
+          </option>
+
+          <option value="public_education">
+            Public body, education or similar
+          </option>
+
+          <option value="overseas">
+            Overseas organisation
+          </option>
+
+          <option value="other">
+            Other / not sure
+          </option>
+        </select>
+
+        <p style={styles.fieldHelp}>
+          This helps Root verify the organisation
+          appropriately without asking for
+          information that does not apply to you.
+        </p>
+
+        {registrationRelevant ? (
+          <>
+            <label style={styles.label}>
+              {organisationType ===
+              "registered_charity"
+                ? "Registration number"
+                : "Company registration number"}
+              {registrationRequired
+                ? " *"
+                : ""}
+            </label>
+
+            <input
+              style={styles.input}
+              value={legalEntityNumber}
+              onChange={(e) =>
+                setLegalEntityNumber(
+                  e.target.value
+                )
+              }
+              placeholder={
+                organisationType ===
+                "registered_charity"
+                  ? "Charity or company registration number"
+                  : "e.g. 12345678"
+              }
+            />
+
+            <p style={styles.fieldHelp}>
+              {organisationType ===
+              "registered_charity"
+                ? "Enter the relevant charity or company registration number if your organisation has one."
+                : "This helps Root recognise the legal organisation and protect the complimentary pilot programme."}
+            </p>
+          </>
+        ) : null}
 
         <label style={styles.label}>
           Your name
