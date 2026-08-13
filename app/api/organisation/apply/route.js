@@ -44,6 +44,56 @@ function normaliseOrganisationName(
     .replace(/\s+/g, " ");
 }
 
+function normaliseLegalEntityNumber(
+  value
+) {
+  return clean(value)
+    .toUpperCase()
+    .replace(/\s+/g, "");
+}
+
+function domainFromEmail(
+  value
+) {
+  const email =
+    clean(value).toLowerCase();
+
+  const parts =
+    email.split("@");
+
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const domain =
+    parts[1].trim();
+
+  if (!domain) {
+    return null;
+  }
+
+  const freeEmailDomains = [
+    "gmail.com",
+    "googlemail.com",
+    "outlook.com",
+    "hotmail.com",
+    "hotmail.co.uk",
+    "live.com",
+    "icloud.com",
+    "yahoo.com",
+    "yahoo.co.uk",
+    "aol.com",
+  ];
+
+  if (
+    freeEmailDomains.includes(domain)
+  ) {
+    return null;
+  }
+
+  return domain;
+}
+
 async function notifyFormspree(
   application
 ) {
@@ -93,7 +143,7 @@ review_application:
   "https://roothealth.app/workplace-applications",
 
 message:
-  `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}). Authorised Root administrator: ${application.admin_email}.
+  `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}). Authorised Root administrator: ${application.admin_email}. Legal entity number: ${application.legal_entity_number || "Not provided"}. Organisation domain: ${application.organisation_domain || "Not identified"}.
 
 Review and approve this application here:
 https://roothealth.app/workplace-applications`,
@@ -174,6 +224,19 @@ export async function POST(request) {
         body.industry
       );
 
+      const legalEntityNumber =
+  normaliseLegalEntityNumber(
+    body.legalEntityNumber
+  );
+
+const organisationDomain =
+  domainFromEmail(
+    contactEmail
+  ) ||
+  domainFromEmail(
+    adminEmail
+  );
+
     if (
       !organisationName ||
       !contactName ||
@@ -248,15 +311,17 @@ export async function POST(request) {
         )
         .select(
           `
-            id,
-            organisation_name,
-            contact_name,
-            contact_email,
-            admin_email,
-            employee_count,
-            industry,
-            status,
-            created_at
+           id,
+organisation_name,
+contact_name,
+contact_email,
+admin_email,
+legal_entity_number,
+organisation_domain,
+employee_count,
+industry,
+status,
+created_at
           `
         )
         .eq(
@@ -336,18 +401,25 @@ export async function POST(request) {
             )
             .update({
               contact_name:
-                contactName,
+  contactName,
 
-              admin_email:
-                adminEmail,
+             admin_email:
+              adminEmail,
 
-              employee_count:
-                employeeCount ||
-                null,
+             legal_entity_number:
+              legalEntityNumber ||
+              null,
+
+             organisation_domain:
+              organisationDomain,
+
+             employee_count:
+               employeeCount ||
+               null,
 
               industry:
-                industry ||
-                null,
+               industry ||
+               null,
             })
             .eq(
               "id",
@@ -430,6 +502,14 @@ export async function POST(request) {
 
           admin_email:
             adminEmail,
+
+          legal_entity_number:
+            legalEntityNumber ||
+         null,
+
+      organisation_domain:
+     organisationDomain,
+            
 
           employee_count:
             employeeCount ||
