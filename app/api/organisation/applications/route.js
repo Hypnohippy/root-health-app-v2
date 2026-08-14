@@ -1686,6 +1686,87 @@ created_at
       );
     }
 
+        if (
+      decision === "hold"
+    ) {
+      const {
+        data: heldApplication,
+        error: holdError,
+      } = await supabase
+        .from(
+          "organisation_applications"
+        )
+        .update({
+          status: "hold",
+
+          reviewed_at:
+            new Date().toISOString(),
+        })
+        .eq(
+          "id",
+          application.id
+        )
+        .select(
+          `
+            id,
+            user_id,
+            organisation_name,
+            organisation_type,
+            legal_entity_number,
+            organisation_domain,
+            contact_name,
+            contact_email,
+            admin_email,
+            employee_count,
+            industry,
+            root_customer_group_id,
+            trial_eligibility_status,
+            trial_eligibility_reason,
+            trial_eligibility_checked_at,
+            trial_override,
+            status,
+            reviewed_at,
+            created_at
+          `
+        )
+        .single();
+
+      if (
+        holdError ||
+        !heldApplication
+      ) {
+        console.error(
+          "ROOT WORKPLACE HOLD ERROR:",
+          holdError
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Root could not place this application on hold.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      console.log(
+        "ROOT WORKPLACE APPLICATION HELD:",
+        application.id,
+        application.organisation_name
+      );
+
+      return NextResponse.json({
+        success: true,
+
+        application:
+          heldApplication,
+
+        decision: "hold",
+      });
+    }
+
     if (
       !application.admin_email
     ) {
