@@ -1911,7 +1911,7 @@ created_at
       });
     }
 
-        if (
+            if (
       decision === "decline"
     ) {
       const decidedAt =
@@ -2003,7 +2003,64 @@ created_at
         );
       }
 
-            return NextResponse.json({
+      console.log(
+        "ROOT WORKPLACE PILOT DECLINED:",
+        application.id,
+        application.organisation_name
+      );
+
+      let emailSent = false;
+      let emailError = null;
+
+      try {
+        await sendPilotDeclineEmail(
+          declinedApplication
+        );
+
+        const emailSentAt =
+          new Date().toISOString();
+
+        const {
+          error: emailStampError,
+        } = await supabase
+          .from(
+            "organisation_applications"
+          )
+          .update({
+            decline_email_sent_at:
+              emailSentAt,
+          })
+          .eq(
+            "id",
+            application.id
+          );
+
+        if (emailStampError) {
+          console.error(
+            "ROOT DECLINE EMAIL STAMP ERROR:",
+            emailStampError
+          );
+
+          emailError =
+            "The decline email was sent, but Root could not record the delivery time.";
+        } else {
+          declinedApplication.decline_email_sent_at =
+            emailSentAt;
+
+          emailSent = true;
+        }
+      } catch (declineEmailError) {
+        console.error(
+          "ROOT DECLINE EMAIL ERROR:",
+          declineEmailError
+        );
+
+        emailError =
+          declineEmailError?.message ||
+          "Root recorded the decision but could not send the applicant email.";
+      }
+
+      return NextResponse.json({
         success: true,
 
         application:
@@ -2011,6 +2068,10 @@ created_at
 
         decision:
           "decline",
+
+        emailSent,
+
+        emailError,
       });
     }
 
