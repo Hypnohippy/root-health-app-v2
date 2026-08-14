@@ -111,12 +111,33 @@ export default function WorkplaceApplicationsPage() {
     }
   }
 
-  async function approveApplication(
-    applicationId
+    async function decideApplication(
+    application,
+    decision
   ) {
+    const applicationId =
+      application.id;
+
+    let confirmationMessage = "";
+
+    if (decision === "approve") {
+      confirmationMessage =
+        "Approve this organisation and send the authorised Root administrator their secure Workplace setup invitation?";
+    }
+
+    if (decision === "hold") {
+      confirmationMessage =
+        "Place this application on hold for manual review? No invitation or decline email will be sent.";
+    }
+
+    if (decision === "decline") {
+      confirmationMessage =
+        "Decline this organisation's complimentary pilot application? Root will email the organisation contact explaining the decision and how to ask for a review.";
+    }
+
     const confirmed =
       window.confirm(
-        "Approve this organisation and send the authorised contact their secure Root Workplace setup invitation?"
+        confirmationMessage
       );
 
     if (!confirmed) {
@@ -136,7 +157,7 @@ export default function WorkplaceApplicationsPage() {
 
       if (!token) {
         setError(
-          "Please sign in again before approving an application."
+          "Please sign in again before making an application decision."
         );
 
         setApprovingId(null);
@@ -160,6 +181,7 @@ export default function WorkplaceApplicationsPage() {
             body:
               JSON.stringify({
                 applicationId,
+                decision,
               }),
           }
         );
@@ -173,28 +195,54 @@ export default function WorkplaceApplicationsPage() {
       ) {
         setError(
           result?.error ||
-          "Root could not approve this application."
+          "Root could not record this application decision."
         );
 
         setApprovingId(null);
         return;
       }
 
-      setMessage(
-        `Approved. Root has sent the secure Workplace setup access email to ${result.application.admin_email}.`
-      );
+      if (decision === "approve") {
+        setMessage(
+          `Approved. Root has sent the secure Workplace setup access email to ${result.application.admin_email}.`
+        );
+      }
+
+      if (decision === "hold") {
+        setMessage(
+          `${application.organisation_name} has been placed on hold for manual review. No applicant email has been sent.`
+        );
+      }
+
+      if (decision === "decline") {
+        if (result.emailSent) {
+          setMessage(
+            `${application.organisation_name}'s complimentary pilot has been declined and Root has emailed ${result.application.contact_email}.`
+          );
+        } else {
+          setMessage(
+            `${application.organisation_name}'s complimentary pilot has been declined, but the applicant email was not confirmed as sent.`
+          );
+
+          if (result.emailError) {
+            setError(
+              result.emailError
+            );
+          }
+        }
+      }
 
       setApprovingId(null);
 
       await loadApplications();
-    } catch (approveError) {
+    } catch (decisionError) {
       console.error(
-        "ROOT APPLICATION APPROVAL ERROR:",
-        approveError
+        "ROOT APPLICATION DECISION ERROR:",
+        decisionError
       );
 
       setError(
-        "Root could not approve this application."
+        "Root could not record this application decision."
       );
 
       setApprovingId(null);
@@ -543,31 +591,109 @@ export default function WorkplaceApplicationsPage() {
                         }
                       </div>
 
-                      <button
-                        type="button"
-                        disabled={
-                          approvingId ===
-                          application.id
-                        }
+                                            <div
                         style={{
-                          ...styles.approveButton,
-
-                          ...(approvingId ===
-                          application.id
-                            ? styles.approveButtonDisabled
-                            : {}),
+                          display: "grid",
+                          gap: "10px",
+                          marginTop: "19px",
                         }}
-                        onClick={() =>
-                          approveApplication(
-                            application.id
-                          )
-                        }
                       >
-                        {approvingId ===
-                        application.id
-                          ? "Approving..."
-                          : "Approve & send setup invitation"}
-                      </button>
+                        <button
+                          type="button"
+                          disabled={
+                            approvingId ===
+                            application.id
+                          }
+                          style={{
+                            ...styles.approveButton,
+
+                            marginTop: 0,
+
+                            ...(approvingId ===
+                            application.id
+                              ? styles.approveButtonDisabled
+                              : {}),
+                          }}
+                          onClick={() =>
+                            decideApplication(
+                              application,
+                              "approve"
+                            )
+                          }
+                        >
+                          {approvingId ===
+                          application.id
+                            ? "Working..."
+                            : "Approve & send setup invitation"}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={
+                            approvingId ===
+                            application.id
+                          }
+                          style={{
+                            ...styles.approveButton,
+
+                            marginTop: 0,
+
+                            background:
+                              "#E9E1C8",
+
+                            color:
+                              "#655522",
+
+                            ...(approvingId ===
+                            application.id
+                              ? styles.approveButtonDisabled
+                              : {}),
+                          }}
+                          onClick={() =>
+                            decideApplication(
+                              application,
+                              "hold"
+                            )
+                          }
+                        >
+                          Hold for manual review
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={
+                            approvingId ===
+                            application.id
+                          }
+                          style={{
+                            ...styles.approveButton,
+
+                            marginTop: 0,
+
+                            background:
+                              "#F3DFDC",
+
+                            color:
+                              "#842F29",
+
+                            border:
+                              "1px solid rgba(132,47,41,0.12)",
+
+                            ...(approvingId ===
+                            application.id
+                              ? styles.approveButtonDisabled
+                              : {}),
+                          }}
+                          onClick={() =>
+                            decideApplication(
+                              application,
+                              "decline"
+                            )
+                          }
+                        >
+                          Decline complimentary pilot
+                        </button>
+                      </div>
                     </article>
                   )
                 )}
