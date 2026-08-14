@@ -494,7 +494,7 @@ async function getCompaniesHouseEvidence(
       reason:
         "Companies House verified the organisation and returned available officer, control and director appointment information.",
     };
-    
+
   } catch (error) {
     console.error(
       "ROOT COMPANIES HOUSE REQUEST ERROR:",
@@ -683,8 +683,143 @@ async function assessTrialEligibility(
     }
   }
 
+    /*
+   * 3. COMPANIES HOUSE RELATED ENTITIES
+   *
+   * Companies House may show that a current
+   * director or LLP member is also associated
+   * with other legal entities.
+   *
+   * A director relationship by itself is NOT
+   * proof that the applicant has previously
+   * benefited from Root.
+   *
+   * However, if one of those related legal
+   * entities appears in Root's trial registry,
+   * that is strong evidence requiring review.
+   */
+  const relatedCompanies =
+    Array.isArray(
+      companiesHouse.relatedCompanies
+    )
+      ? companiesHouse.relatedCompanies
+      : [];
+
+  const relatedCompanyNumbers =
+    [
+      ...new Set(
+        relatedCompanies
+          .map((company) =>
+            normaliseLegalEntityNumber(
+              company.companyNumber
+            )
+          )
+          .filter(Boolean)
+      ),
+    ];
+
+  let relatedTrialMatches = [];
+
+  if (
+    relatedCompanyNumbers.length > 0
+  ) {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from(
+        "organisation_trial_registry"
+      )
+      .select("*")
+      .in(
+        "legal_entity_number",
+        relatedCompanyNumbers
+      )
+      .limit(50);
+
+    if (error) {
+      console.error(
+        "ROOT DETECTIVE RELATED ENTITY ERROR:",
+        error
+      );
+    } else {
+      relatedTrialMatches =
+        data || [];
+    }
+  }
+
+  if (
+    relatedTrialMatches.length > 0
+  ) {
+    const matchedNumbers =
+      new Set(
+        relatedTrialMatches
+          .map((match) =>
+            normaliseLegalEntityNumber(
+              match.legal_entity_number
+            )
+          )
+          .filter(Boolean)
+      );
+
+    const matchedCompanies =
+      relatedCompanies.filter(
+        (company) =>
+          matchedNumbers.has(
+            normaliseLegalEntityNumber(
+              company.companyNumber
+            )
+          )
+      );
+
+    const matchedNames =
+      [
+        ...new Set(
+          matchedCompanies
+            .map(
+              (company) =>
+                company.companyName
+            )
+            .filter(Boolean)
+        ),
+      ];
+
+    if (matchedNames.length > 0) {
+      evidence.push(
+        `Companies House shows a current director or LLP member associated with ${matchedNames.join(
+          ", "
+        )}, and ${
+          matchedNames.length === 1
+            ? "that legal entity appears"
+            : "those legal entities appear"
+        } in Root's previous trial registry.`
+      );
+    } else {
+      evidence.push(
+        "Companies House shows a current director or LLP member associated with another legal entity that appears in Root's previous trial registry."
+      );
+    }
+
+    return {
+      status: "review",
+      reason: evidence.join(" "),
+    };
+  }
+
+  if (
+    relatedCompanyNumbers.length > 0
+  ) {
+    evidence.push(
+      `Companies House found ${relatedCompanyNumbers.length} other legal ${
+        relatedCompanyNumbers.length === 1
+          ? "entity"
+          : "entities"
+      } associated through a current director or LLP member, but Root found no matching previous trial in its registry.`
+    );
+  }
+
   /*
-   * 3. DOMAIN RELATIONSHIP
+   * 4. DOMAIN RELATIONSHIP
    *
    * A domain match is useful evidence, but it is
    * NOT enough on its own to deny another pilot.
