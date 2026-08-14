@@ -85,6 +85,263 @@ function normaliseLegalEntityNumber(value) {
     .replace(/\s+/g, "");
 }
 
+async function getCompaniesHouseEvidence(
+  legalEntityNumber
+) {
+  const companyNumber =
+    normaliseLegalEntityNumber(
+      legalEntityNumber
+    );
+
+  if (!companyNumber) {
+    return {
+      status: "not_applicable",
+      companyNumber: null,
+      companyName: null,
+      companyStatus: null,
+      officers: [],
+      personsWithSignificantControl: [],
+      reason:
+        "No Companies House registration number was supplied.",
+    };
+  }
+
+  const apiKey =
+    process.env.COMPANIES_HOUSE_API_KEY;
+
+  if (!apiKey) {
+    console.error(
+      "ROOT COMPANIES HOUSE ERROR: API key missing."
+    );
+
+    return {
+      status: "unavailable",
+      companyNumber,
+      companyName: null,
+      companyStatus: null,
+      officers: [],
+      personsWithSignificantControl: [],
+      reason:
+        "Companies House verification is currently unavailable.",
+    };
+  }
+
+  const authorisation =
+    `Basic ${Buffer.from(
+      `${apiKey}:`
+    ).toString("base64")}`;
+
+  const headers = {
+    Authorization: authorisation,
+    Accept: "application/json",
+  };
+
+  const baseUrl =
+    "https://api.company-information.service.gov.uk";
+
+  try {
+    const profileResponse =
+      await fetch(
+        `${baseUrl}/company/${encodeURIComponent(
+          companyNumber
+        )}`,
+        {
+          method: "GET",
+          headers,
+          cache: "no-store",
+        }
+      );
+
+    if (profileResponse.status === 404) {
+      return {
+        status: "not_found",
+        companyNumber,
+        companyName: null,
+        companyStatus: null,
+        officers: [],
+        personsWithSignificantControl: [],
+        reason:
+          "Companies House could not verify this registration number.",
+      };
+    }
+
+    if (!profileResponse.ok) {
+      console.error(
+        "ROOT COMPANIES HOUSE PROFILE ERROR:",
+        profileResponse.status
+      );
+
+      return {
+        status: "unavailable",
+        companyNumber,
+        companyName: null,
+        companyStatus: null,
+        officers: [],
+        personsWithSignificantControl: [],
+        reason:
+          "Companies House verification is currently unavailable.",
+      };
+    }
+
+    const profile =
+      await profileResponse.json();
+
+    const [
+      officersResponse,
+      pscResponse,
+    ] = await Promise.all([
+      fetch(
+        `${baseUrl}/company/${encodeURIComponent(
+          companyNumber
+        )}/officers?items_per_page=100`,
+        {
+          method: "GET",
+          headers,
+          cache: "no-store",
+        }
+      ),
+
+      fetch(
+        `${baseUrl}/company/${encodeURIComponent(
+          companyNumber
+        )}/persons-with-significant-control?items_per_page=100&start_index=0&register_view=false`,
+        {
+          method: "GET",
+          headers,
+          cache: "no-store",
+        }
+      ),
+    ]);
+
+    let officers = [];
+
+    if (officersResponse.ok) {
+      const officersData =
+        await officersResponse.json();
+
+      officers = (
+        officersData.items || []
+      ).map((officer) => ({
+        name:
+          officer.name || null,
+
+        role:
+          officer.officer_role ||
+          null,
+
+        appointedOn:
+          officer.appointed_on ||
+          null,
+
+        resignedOn:
+          officer.resigned_on ||
+          null,
+
+        active:
+          !officer.resigned_on,
+
+        appointmentsLink:
+          officer.links
+            ?.officer
+            ?.appointments ||
+          null,
+      }));
+    } else {
+      console.error(
+        "ROOT COMPANIES HOUSE OFFICERS ERROR:",
+        officersResponse.status
+      );
+    }
+
+    let personsWithSignificantControl =
+      [];
+
+    if (pscResponse.ok) {
+      const pscData =
+        await pscResponse.json();
+
+      personsWithSignificantControl = (
+        pscData.items || []
+      ).map((person) => ({
+        name:
+          person.name || null,
+
+        kind:
+          person.kind || null,
+
+        notifiedOn:
+          person.notified_on ||
+          null,
+
+        ceasedOn:
+          person.ceased_on ||
+          null,
+
+        active:
+          !person.ceased_on,
+
+        naturesOfControl:
+          person.natures_of_control ||
+          [],
+      }));
+    } else if (
+      pscResponse.status !== 404
+    ) {
+      console.error(
+        "ROOT COMPANIES HOUSE PSC ERROR:",
+        pscResponse.status
+      );
+    }
+
+    return {
+      status: "verified",
+
+      companyNumber:
+        profile.company_number ||
+        companyNumber,
+
+      companyName:
+        profile.company_name ||
+        null,
+
+      companyStatus:
+        profile.company_status ||
+        null,
+
+      companyType:
+        profile.type ||
+        null,
+
+      incorporationDate:
+        profile.date_of_creation ||
+        null,
+
+      officers,
+
+      personsWithSignificantControl,
+
+      reason:
+        "Companies House verified the organisation and returned available officer and control information.",
+    };
+  } catch (error) {
+    console.error(
+      "ROOT COMPANIES HOUSE REQUEST ERROR:",
+      error
+    );
+
+    return {
+      status: "unavailable",
+      companyNumber,
+      companyName: null,
+      companyStatus: null,
+      officers: [],
+      personsWithSignificantControl: [],
+      reason:
+        "Companies House verification is currently unavailable.",
+    };
+  }
+}
+
 async function assessTrialEligibility(
   supabase,
   application
