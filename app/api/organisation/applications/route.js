@@ -346,7 +346,7 @@ async function assessTrialEligibility(
   supabase,
   application
 ) {
-  const evidence = [];
+    const evidence = [];
 
   const legalEntityNumber =
     normaliseLegalEntityNumber(
@@ -362,6 +362,57 @@ async function assessTrialEligibility(
     normaliseEmail(
       application.admin_email
     );
+
+  /*
+   * COMPANIES HOUSE VERIFICATION
+   *
+   * This is independent evidence about the
+   * supplied UK legal entity.
+   *
+   * Failure to verify is NEVER treated as proof
+   * that an applicant is ineligible.
+   */
+  const companiesHouse =
+    await getCompaniesHouseEvidence(
+      legalEntityNumber
+    );
+
+  if (
+    companiesHouse.status ===
+    "verified"
+  ) {
+    evidence.push(
+      `Companies House verified ${companiesHouse.companyName || "the organisation"} (${companiesHouse.companyNumber}).`
+    );
+
+    if (
+      companiesHouse.companyStatus &&
+      companiesHouse.companyStatus !==
+        "active"
+    ) {
+      evidence.push(
+        `Companies House reports the company status as "${companiesHouse.companyStatus}".`
+      );
+    }
+  }
+
+  if (
+    companiesHouse.status ===
+    "not_found"
+  ) {
+    evidence.push(
+      "Companies House could not verify the supplied registration number."
+    );
+  }
+
+  if (
+    companiesHouse.status ===
+    "unavailable"
+  ) {
+    evidence.push(
+      "Companies House verification was unavailable, so no eligibility conclusion has been drawn from that check."
+    );
+  }
 
   /*
    * 1. EXISTING CUSTOMER GROUP
