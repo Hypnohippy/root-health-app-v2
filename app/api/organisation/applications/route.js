@@ -2003,13 +2003,7 @@ created_at
         );
       }
 
-      console.log(
-        "ROOT WORKPLACE PILOT DECLINED:",
-        application.id,
-        application.organisation_name
-      );
-
-      return NextResponse.json({
+            return NextResponse.json({
         success: true,
 
         application:
