@@ -1671,22 +1671,34 @@ created_at
       });
     }
 
+        const actionableStatuses = [
+      "pending",
+      "hold",
+    ];
+
     if (
-      application.status !==
-      "pending"
+      !actionableStatuses.includes(
+        application.status
+      )
     ) {
       return NextResponse.json(
         {
           error:
-            `This application is currently ${application.status}.`,
+            application.status ===
+            "approved"
+              ? "This Workplace application has already been approved."
+              : application.status ===
+                "declined"
+              ? "This Workplace application has already been declined."
+              : "This Workplace application can no longer be actioned.",
         },
         {
-          status: 400,
+          status: 409,
         }
       );
     }
 
-        if (
+    if (
       decision === "hold"
     ) {
       const {
