@@ -1555,11 +1555,37 @@ export async function POST(request) {
     const body =
       await request.json();
 
-    const applicationId =
+        const applicationId =
       String(
         body?.applicationId ||
         ""
       ).trim();
+
+    const decision =
+      String(
+        body?.decision ||
+        "approve"
+      )
+        .trim()
+        .toLowerCase();
+
+    if (
+      ![
+        "approve",
+        "hold",
+        "decline",
+      ].includes(decision)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Root did not recognise that application decision.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     if (!applicationId) {
       return NextResponse.json(
