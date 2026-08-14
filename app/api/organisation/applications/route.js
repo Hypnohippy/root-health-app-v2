@@ -1810,6 +1810,115 @@ created_at
       });
     }
 
+        if (
+      decision === "decline"
+    ) {
+      const decidedAt =
+        new Date().toISOString();
+
+      const {
+        data: declinedApplication,
+        error: declineError,
+      } = await supabase
+        .from(
+          "organisation_applications"
+        )
+        .update({
+          status:
+            "declined",
+
+          pilot_decision:
+            "declined",
+
+          pilot_decision_reason:
+            application.trial_eligibility_status ||
+            "manual_review",
+
+          pilot_decision_note:
+            application.trial_eligibility_reason ||
+            "Complimentary pilot declined following Root review.",
+
+          pilot_decided_at:
+            decidedAt,
+
+          pilot_decided_by:
+            admin.user.id,
+
+          reviewed_at:
+            decidedAt,
+        })
+        .eq(
+          "id",
+          application.id
+        )
+        .select(
+          `
+            id,
+            user_id,
+            organisation_name,
+            organisation_type,
+            legal_entity_number,
+            organisation_domain,
+            contact_name,
+            contact_email,
+            admin_email,
+            employee_count,
+            industry,
+            root_customer_group_id,
+            trial_eligibility_status,
+            trial_eligibility_reason,
+            trial_eligibility_checked_at,
+            trial_override,
+            pilot_decision,
+            pilot_decision_reason,
+            pilot_decision_note,
+            pilot_decided_at,
+            pilot_decided_by,
+            decline_email_sent_at,
+            status,
+            reviewed_at,
+            created_at
+          `
+        )
+        .single();
+
+      if (
+        declineError ||
+        !declinedApplication
+      ) {
+        console.error(
+          "ROOT WORKPLACE DECLINE ERROR:",
+          declineError
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Root could not record the complimentary pilot decision.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      console.log(
+        "ROOT WORKPLACE PILOT DECLINED:",
+        application.id,
+        application.organisation_name
+      );
+
+      return NextResponse.json({
+        success: true,
+
+        application:
+          declinedApplication,
+
+        decision:
+          "decline",
+      });
+    }
+
     if (
       !application.admin_email
     ) {
