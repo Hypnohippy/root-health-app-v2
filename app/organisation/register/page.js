@@ -24,10 +24,20 @@ export default function OrganisationRegisterPage() {
   const [organisationType, setOrganisationType] =
     useState("");
 
-  const [legalEntityNumber, setLegalEntityNumber] =
+    const [legalEntityNumber, setLegalEntityNumber] =
     useState("");
 
-      const registrationRequired =
+  const [
+    associatedBusinessDeclared,
+    setAssociatedBusinessDeclared,
+  ] = useState(false);
+
+  const [
+    associatedBusinessName,
+    setAssociatedBusinessName,
+  ] = useState("");
+
+  const registrationRequired =
     organisationType === "limited_company" ||
     organisationType === "llp";
 
@@ -44,11 +54,11 @@ export default function OrganisationRegisterPage() {
   const [createdOrg, setCreatedOrg] =
     useState(null);
 
-  async function startPilot() {
+    async function startPilot() {
     setLoading(true);
     setError("");
 
-        if (
+    if (
       !name.trim() ||
       !contactName.trim() ||
       !contactEmail.trim() ||
@@ -69,6 +79,18 @@ export default function OrganisationRegisterPage() {
     ) {
       setError(
         "Please enter the organisation's registration number."
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    if (
+      associatedBusinessDeclared &&
+      !associatedBusinessName.trim()
+    ) {
+      setError(
+        "Please enter the parent, group or associated business name."
       );
 
       setLoading(false);
@@ -104,7 +126,7 @@ export default function OrganisationRegisterPage() {
                   .trim()
                   .toLowerCase(),
 
-                            employeeCount,
+              employeeCount,
 
               industry,
 
@@ -114,6 +136,13 @@ export default function OrganisationRegisterPage() {
                 legalEntityNumber
                   .trim()
                   .toUpperCase(),
+
+              associatedBusinessDeclared,
+
+              associatedBusinessName:
+                associatedBusinessDeclared
+                  ? associatedBusinessName.trim()
+                  : "",
             }),
           }
         );
@@ -392,6 +421,73 @@ export default function OrganisationRegisterPage() {
               "registered_charity"
                 ? "Enter the relevant charity or company registration number if your organisation has one."
                 : "This helps Root recognise the legal organisation and protect the complimentary pilot programme."}
+            </p>
+          </>
+        ) : null}
+
+                <label style={styles.label}>
+          Is this organisation part of, owned by,
+          controlled by, or associated with another
+          business or group?
+        </label>
+
+        <select
+          style={styles.input}
+          value={
+            associatedBusinessDeclared
+              ? "yes"
+              : "no"
+          }
+          onChange={(e) => {
+            const isAssociated =
+              e.target.value === "yes";
+
+            setAssociatedBusinessDeclared(
+              isAssociated
+            );
+
+            if (!isAssociated) {
+              setAssociatedBusinessName("");
+            }
+          }}
+        >
+          <option value="no">
+            No
+          </option>
+
+          <option value="yes">
+            Yes
+          </option>
+        </select>
+
+        <p style={styles.fieldHelp}>
+          This helps Root understand whether your
+          organisation is part of a wider business
+          relationship when reviewing complimentary
+          pilot eligibility.
+        </p>
+
+        {associatedBusinessDeclared ? (
+          <>
+            <label style={styles.label}>
+              Parent, group or associated business name
+            </label>
+
+            <input
+              style={styles.input}
+              value={associatedBusinessName}
+              onChange={(e) =>
+                setAssociatedBusinessName(
+                  e.target.value
+                )
+              }
+              placeholder="e.g. Smith Developments Group"
+            />
+
+            <p style={styles.fieldHelp}>
+              Please give the main business or group
+              name that this organisation is associated
+              with.
             </p>
           </>
         ) : null}
