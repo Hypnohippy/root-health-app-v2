@@ -1698,9 +1698,12 @@ created_at
       );
     }
 
-    if (
+        if (
       decision === "hold"
     ) {
+      const decidedAt =
+        new Date().toISOString();
+
       const {
         data: heldApplication,
         error: holdError,
@@ -1709,10 +1712,32 @@ created_at
           "organisation_applications"
         )
         .update({
-          status: "hold",
+          /*
+           * Keep the application operationally
+           * pending so it remains on the Founder
+           * decision screen.
+           */
+          status: "pending",
+
+          pilot_decision:
+            "hold",
+
+          pilot_decision_reason:
+            application.trial_eligibility_status ||
+            "manual_review",
+
+          pilot_decision_note:
+            application.trial_eligibility_reason ||
+            "Held for manual review.",
+
+          pilot_decided_at:
+            decidedAt,
+
+          pilot_decided_by:
+            admin.user.id,
 
           reviewed_at:
-            new Date().toISOString(),
+            decidedAt,
         })
         .eq(
           "id",
@@ -1736,6 +1761,12 @@ created_at
             trial_eligibility_reason,
             trial_eligibility_checked_at,
             trial_override,
+            pilot_decision,
+            pilot_decision_reason,
+            pilot_decision_note,
+            pilot_decided_at,
+            pilot_decided_by,
+            decline_email_sent_at,
             status,
             reviewed_at,
             created_at
