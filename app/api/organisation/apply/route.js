@@ -233,18 +233,28 @@ export async function POST(request) {
     body.organisationType
   );
 
-const legalEntityNumber =
-  normaliseLegalEntityNumber(
+      const legalEntityNumber =
+   normaliseLegalEntityNumber(
     body.legalEntityNumber
   );
 
-const organisationDomain =
-  domainFromEmail(
+      const organisationDomain =
+   domainFromEmail(
     contactEmail
   ) ||
   domainFromEmail(
     adminEmail
   );
+
+      const associatedBusinessDeclared =
+     body.associatedBusinessDeclared === true;
+
+      const associatedBusinessName =
+    associatedBusinessDeclared
+    ? clean(
+        body.associatedBusinessName
+      )
+    : "";
 
     if (
       !organisationName ||
@@ -408,33 +418,40 @@ created_at
             .from(
               "organisation_applications"
             )
-            .update({
+                        .update({
               contact_name:
-              contactName,
+                contactName,
 
-             admin_email:
-              adminEmail,
+              admin_email:
+                adminEmail,
 
-             organisation_type:
-              organisationType ||
-             null,
+              organisation_type:
+                organisationType ||
+                null,
 
-             
+              legal_entity_number:
+                legalEntityNumber ||
+                null,
 
-             legal_entity_number:
-              legalEntityNumber ||
-              null,
+              organisation_domain:
+                organisationDomain,
 
-             organisation_domain:
-              organisationDomain,
+              associated_business_declared:
+                associatedBusinessDeclared,
 
-             employee_count:
-               employeeCount ||
-               null,
+              associated_business_name:
+                associatedBusinessDeclared
+                  ? associatedBusinessName ||
+                    null
+                  : null,
+
+              employee_count:
+                employeeCount ||
+                null,
 
               industry:
-               industry ||
-               null,
+                industry ||
+                null,
             })
             .eq(
               "id",
@@ -503,7 +520,7 @@ created_at
         .from(
           "organisation_applications"
         )
-        .insert({
+                .insert({
           user_id: null,
 
           organisation_name:
@@ -520,15 +537,23 @@ created_at
 
           organisation_type:
             organisationType ||
-         null,
+            null,
 
           legal_entity_number:
             legalEntityNumber ||
-         null,
+            null,
 
-      organisation_domain:
-     organisationDomain,
-            
+          organisation_domain:
+            organisationDomain,
+
+          associated_business_declared:
+            associatedBusinessDeclared,
+
+          associated_business_name:
+            associatedBusinessDeclared
+              ? associatedBusinessName ||
+                null
+              : null,
 
           employee_count:
             employeeCount ||
