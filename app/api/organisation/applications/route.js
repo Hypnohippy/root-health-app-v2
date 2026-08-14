@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import nodemailer from "nodemailer";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -83,6 +84,106 @@ function normaliseLegalEntityNumber(value) {
     .trim()
     .toUpperCase()
     .replace(/\s+/g, "");
+}
+
+async function sendPilotDeclineEmail(
+  application
+) {
+  const smtpUser =
+    String(
+      process.env.ROOT_SMTP_USER ||
+      ""
+    ).trim();
+
+  const smtpPassword =
+    String(
+      process.env.ROOT_SMTP_PASSWORD ||
+      ""
+    ).trim();
+
+  const smtpFrom =
+    String(
+      process.env.ROOT_SMTP_FROM ||
+      smtpUser
+    ).trim();
+
+  const contactEmail =
+    normaliseEmail(
+      application.contact_email
+    );
+
+  if (
+    !smtpUser ||
+    !smtpPassword ||
+    !smtpFrom
+  ) {
+    throw new Error(
+      "Root Workplace email is not configured."
+    );
+  }
+
+  if (!contactEmail) {
+    throw new Error(
+      "This application has no organisation contact email."
+    );
+  }
+
+  const transporter =
+    nodemailer.createTransport({
+      service: "gmail",
+
+      auth: {
+        user: smtpUser,
+        pass: smtpPassword,
+      },
+    });
+
+  const organisationName =
+    String(
+      application.organisation_name ||
+      "your organisation"
+    ).trim();
+
+  const contactName =
+    String(
+      application.contact_name ||
+      ""
+    ).trim();
+
+  const greeting =
+    contactName
+      ? `Dear ${contactName},`
+      : "Hello,";
+
+  const subject =
+    "Your Root Workplace complimentary pilot application";
+
+  const text = `${greeting}
+
+Thank you for applying for the Root Workplace complimentary 60-day pilot for ${organisationName}.
+
+Based on the information currently available to us, we are unable to offer this organisation a complimentary pilot at this time.
+
+This decision relates only to eligibility for the complimentary pilot. It does not prevent your organisation from using Root Workplace.
+
+We recognise that company structures and business relationships can be complex. If any of the information we have relied upon is incorrect, incomplete, or does not accurately represent your organisation's circumstances, simply reply to this email with the relevant details and we will review the decision.
+
+Kind regards,
+
+Root Workplace`;
+
+  await transporter.sendMail({
+    from: smtpFrom,
+    to: contactEmail,
+    replyTo: smtpUser,
+    subject,
+    text,
+  });
+
+  return {
+    sent: true,
+    to: contactEmail,
+  };
 }
 
 async function getCompaniesHouseEvidence(
