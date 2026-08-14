@@ -293,6 +293,173 @@ async function getCompaniesHouseEvidence(
       );
     }
 
+        const activeDirectors =
+      officers.filter(
+        (officer) =>
+          officer.active &&
+          (
+            officer.role === "director" ||
+            officer.role ===
+              "corporate-director" ||
+            officer.role ===
+              "llp-member" ||
+            officer.role ===
+              "llp-designated-member" ||
+            officer.role ===
+              "corporate-llp-member" ||
+            officer.role ===
+              "corporate-llp-designated-member"
+          ) &&
+          officer.appointmentsLink
+      );
+
+    const directorAppointments = [];
+
+    /*
+     * Keep this deliberately bounded.
+     *
+     * We only need enough relationship evidence
+     * for a human approval decision, not a complete
+     * corporate intelligence database.
+     */
+    for (
+      const director of
+        activeDirectors.slice(0, 10)
+    ) {
+      try {
+        const appointmentsUrl =
+          director.appointmentsLink
+            .startsWith("http")
+            ? director.appointmentsLink
+            : `${baseUrl}${director.appointmentsLink}`;
+
+        const appointmentsResponse =
+          await fetch(
+            appointmentsUrl,
+            {
+              method: "GET",
+              headers,
+              cache: "no-store",
+            }
+          );
+
+        if (
+          !appointmentsResponse.ok
+        ) {
+          console.error(
+            "ROOT COMPANIES HOUSE APPOINTMENTS ERROR:",
+            appointmentsResponse.status,
+            director.name
+          );
+
+          continue;
+        }
+
+        const appointmentsData =
+          await appointmentsResponse.json();
+
+        const appointments =
+          (
+            appointmentsData.items ||
+            []
+          )
+            .map(
+              (appointment) => ({
+                officerName:
+                  director.name ||
+                  appointment.name ||
+                  null,
+
+                companyName:
+                  appointment
+                    .appointed_to
+                    ?.company_name ||
+                  null,
+
+                companyNumber:
+                  appointment
+                    .appointed_to
+                    ?.company_number ||
+                  null,
+
+                companyStatus:
+                  appointment
+                    .appointed_to
+                    ?.company_status ||
+                  null,
+
+                appointedOn:
+                  appointment.appointed_on ||
+                  appointment.appointed_before ||
+                  null,
+
+                resignedOn:
+                  appointment.resigned_on ||
+                  null,
+
+                active:
+                  !appointment.resigned_on,
+              })
+            )
+            .filter(
+              (appointment) =>
+                appointment.companyNumber
+            );
+
+        directorAppointments.push(
+          ...appointments
+        );
+      } catch (appointmentsError) {
+        console.error(
+          "ROOT COMPANIES HOUSE APPOINTMENTS REQUEST ERROR:",
+          director.name,
+          appointmentsError
+        );
+      }
+    }
+
+    const relatedCompanies =
+      Array.from(
+        new Map(
+          directorAppointments
+            .filter(
+              (appointment) =>
+                normaliseLegalEntityNumber(
+                  appointment.companyNumber
+                ) !==
+                normaliseLegalEntityNumber(
+                  profile.company_number ||
+                    companyNumber
+                )
+            )
+            .map(
+              (appointment) => [
+                normaliseLegalEntityNumber(
+                  appointment.companyNumber
+                ),
+                {
+                  companyNumber:
+                    normaliseLegalEntityNumber(
+                      appointment.companyNumber
+                    ),
+
+                  companyName:
+                    appointment.companyName,
+
+                  companyStatus:
+                    appointment.companyStatus,
+
+                  officerName:
+                    appointment.officerName,
+
+                  active:
+                    appointment.active,
+                },
+              ]
+            )
+        ).values()
+      );
+
     return {
       status: "verified",
 
@@ -320,9 +487,14 @@ async function getCompaniesHouseEvidence(
 
       personsWithSignificantControl,
 
+      directorAppointments,
+
+      relatedCompanies,
+
       reason:
-        "Companies House verified the organisation and returned available officer and control information.",
+        "Companies House verified the organisation and returned available officer, control and director appointment information.",
     };
+    
   } catch (error) {
     console.error(
       "ROOT COMPANIES HOUSE REQUEST ERROR:",
