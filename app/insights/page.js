@@ -76,7 +76,7 @@ useEffect(() => {
   let profileKey = getCurrentProfileKey();
 
   if (!profileKey) {
-    setLoading(false);
+    setLoading(false); 
     return;
   }
 
