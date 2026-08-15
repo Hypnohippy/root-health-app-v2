@@ -39,6 +39,25 @@ export default function LoginPage() {
       return;
     }
 
+        /*
+     * If this person came here while
+     * joining an employer's Workplace
+     * Programme, finish that journey
+     * before choosing their normal Root
+     * experience.
+     */
+    const pendingOrganisationJoin =
+      localStorage.getItem(
+        "root_pending_organisation_join_v1"
+      );
+
+    if (pendingOrganisationJoin) {
+      window.location.href =
+        "/organisation/join?resume=1";
+
+      return;
+    }
+
     const {
   data: memberships,
   error: membershipError,
