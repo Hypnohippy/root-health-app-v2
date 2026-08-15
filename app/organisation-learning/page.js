@@ -3362,12 +3362,20 @@ window.scrollTo({
               )}
 
               <section className="glassCard">
-                <p className="sectionLabel">Organisation context</p>
-                <h2>What has happened since the last review?</h2>
+                               <p className="sectionLabel">
+                  Organisation context
+                </p>
+
+                <h2>
+                  {spreadsheetMovementSummary
+                    ? "What was happening in your organisation during this period?"
+                    : "What has happened since the last review?"}
+                </h2>
 
                 <p className="cardIntro">
-                  Select any business events that may help Root interpret the
-                  organisation&apos;s anonymous wellbeing evidence.
+                  {spreadsheetMovementSummary
+                    ? "Root can see movement in the evidence, but it does not know why it happened. Tell Root about any significant business events or changes that occurred during the same period so it can begin learning the wider context."
+                    : "Select any business events that may help Root interpret the organisation's anonymous wellbeing evidence."}
                 </p>
 
                 <div className="choiceGrid">
@@ -3513,7 +3521,7 @@ window.scrollTo({
                   </div>
 
                   <div>
-                    <span>Evidence confidence</span>
+                    <span>Organisation learning confidence</span>
                     <strong>{confidence.label}</strong>
                     <p>{confidence.detail}</p>
                   </div>
