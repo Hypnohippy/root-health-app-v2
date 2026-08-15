@@ -93,6 +93,102 @@ function domainFromEmail(
 
   return domain;
 }
+async function sendApplicationReceivedEmail(
+  application
+) {
+  const smtpUser =
+    String(
+      process.env.ROOT_SMTP_USER ||
+      ""
+    ).trim();
+
+  const smtpPassword =
+    String(
+      process.env.ROOT_SMTP_PASSWORD ||
+      ""
+    ).trim();
+
+  const smtpFrom =
+    String(
+      process.env.ROOT_SMTP_FROM ||
+      smtpUser
+    ).trim();
+
+  if (
+    !smtpUser ||
+    !smtpPassword ||
+    !smtpFrom
+  ) {
+    throw new Error(
+      "Root Workplace email service is not configured."
+    );
+  }
+
+  const nodemailerModule =
+    await import("nodemailer");
+
+  const nodemailer =
+    nodemailerModule.default ||
+    nodemailerModule;
+
+  const transporter =
+    nodemailer.createTransport({
+      service: "gmail",
+
+      auth: {
+        user: smtpUser,
+        pass: smtpPassword,
+      },
+    });
+
+  const contactName =
+    String(
+      application.contact_name ||
+      ""
+    ).trim();
+
+  const organisationName =
+    String(
+      application.organisation_name ||
+      "your organisation"
+    ).trim();
+
+  await transporter.sendMail({
+    from:
+      `"Root Workplace" <${smtpFrom}>`,
+
+    to:
+      application.contact_email,
+
+    subject:
+      "We've received your Root Workplace application",
+
+    text:
+`Dear ${contactName || "there"},
+
+Thank you for applying to join the Root Workplace Programme for ${organisationName}.
+
+Your application has been received and is now awaiting review.
+
+Root reviews Workplace applications before creating organisation access. No Workplace account or administrator permissions have been created at this stage.
+
+If the application is approved, the authorised Root administrator will receive secure instructions for setting up Workplace access.
+
+You do not need to do anything while the application is being reviewed. If we need any further information, we'll contact you.
+
+Kind regards,
+
+Root Workplace`,
+  });
+
+  console.log(
+    "ROOT APPLICATION RECEIPT EMAIL SENT:",
+    application.id,
+    application.contact_email
+  );
+
+  return true;
+}
 
 async function notifyFormspree(
   application
@@ -617,6 +713,23 @@ created_at
       await notifyFormspree(
         application
       );
+
+    let receiptEmailSent =
+      false;
+
+    try {
+      await sendApplicationReceivedEmail(
+        application
+      );
+
+      receiptEmailSent =
+        true;
+    } catch (receiptEmailError) {
+      console.error(
+        "ROOT APPLICATION RECEIPT EMAIL ERROR:",
+        receiptEmailError
+      );
+    }
 
     return NextResponse.json({
       success: true,
