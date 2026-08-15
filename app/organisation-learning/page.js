@@ -1022,13 +1022,119 @@ const reflection = useMemo(
     };
   }, [reviewHistory.length]);
 
-  const detectedCount = useMemo(
+    const detectedCount = useMemo(
     () =>
       Object.values(detectedMeasures).filter(
-        (value) => value !== "" && value !== null && value !== undefined
+        (value) =>
+          value !== "" &&
+          value !== null &&
+          value !== undefined
       ).length,
     [detectedMeasures]
   );
+
+  const spreadsheetMovementSummary =
+    useMemo(() => {
+      const findings =
+        Array.isArray(
+          organisationIntelligence
+            ?.findings
+        )
+          ? organisationIntelligence
+              .findings
+              .filter(
+                (finding) =>
+                  finding?.type ===
+                  "trend"
+              )
+          : [];
+
+      if (findings.length === 0) {
+        return null;
+      }
+
+      /*
+       * One measure may eventually produce
+       * several findings.
+       *
+       * For this immediate upload reward,
+       * count each organisation measure once.
+       */
+      const findingsByMeasure =
+        new Map();
+
+      findings.forEach(
+        (finding) => {
+          if (
+            finding?.measureKey &&
+            !findingsByMeasure.has(
+              finding.measureKey
+            )
+          ) {
+            findingsByMeasure.set(
+              finding.measureKey,
+              finding
+            );
+          }
+        }
+      );
+
+      const uniqueFindings =
+        [
+          ...findingsByMeasure.values(),
+        ];
+
+      let improving = 0;
+      let worsening = 0;
+
+      uniqueFindings.forEach(
+        (finding) => {
+          const isWorsening =
+            finding.lowerIsBetter
+              ? finding.direction ===
+                "increasing"
+              : finding.direction ===
+                "decreasing";
+
+          if (isWorsening) {
+            worsening += 1;
+          } else {
+            improving += 1;
+          }
+        }
+      );
+
+      const total =
+        uniqueFindings.length;
+
+      let headline = "";
+
+      if (
+        improving === total &&
+        total > 0
+      ) {
+        headline =
+          `All ${total} recognised measures show positive movement`;
+      } else if (
+        worsening === total &&
+        total > 0
+      ) {
+        headline =
+          `All ${total} recognised measures need closer attention`;
+      } else {
+        headline =
+          `${improving} of ${total} recognised measures show positive movement`;
+      }
+
+      return {
+        total,
+        improving,
+        worsening,
+        headline,
+      };
+    }, [
+      organisationIntelligence,
+    ]);
 
  function goBackToOrganisationInsights() {
   window.location.href = "/org-insights";
@@ -2726,7 +2832,7 @@ window.scrollTo({
       Root noticed
     </p>
 
-    <h3
+        <h3
       style={{
         margin: "0 0 10px",
         color: "#232a25",
@@ -2734,7 +2840,9 @@ window.scrollTo({
         lineHeight: 1.2,
       }}
     >
-      What the available evidence may be showing
+      {spreadsheetMovementSummary
+        ? "Root found something useful"
+        : "What the available evidence may be showing"}
     </h3>
 
     <p
@@ -2748,6 +2856,96 @@ window.scrollTo({
       review available to Root. They describe measured movement and do not
       prove why the movement occurred.
     </p>
+
+
+        {spreadsheetMovementSummary ? (
+      <div
+        style={{
+          margin:
+            "0 0 20px",
+          padding:
+            "20px",
+          borderRadius:
+            "20px",
+          background:
+            "rgba(72, 119, 84, 0.09)",
+          border:
+            "1px solid rgba(72, 119, 84, 0.18)",
+        }}
+      >
+        <strong
+          style={{
+            display:
+              "block",
+            color:
+              "#2f5b3c",
+            fontSize:
+              "1.15rem",
+            lineHeight:
+              1.4,
+          }}
+        >
+          {
+            spreadsheetMovementSummary.headline
+          }
+        </strong>
+
+        <p
+          style={{
+            margin:
+              "8px 0 0",
+            color:
+              "#55635a",
+            lineHeight:
+              1.6,
+          }}
+        >
+          Root identified measurable
+          movement across{" "}
+          {
+            spreadsheetMovementSummary.total
+          }{" "}
+          organisation measure
+          {
+            spreadsheetMovementSummary.total ===
+            1
+              ? ""
+              : "s"
+          }
+          .{" "}
+          {
+            spreadsheetMovementSummary.improving
+          }{" "}
+          show positive movement
+          {
+            spreadsheetMovementSummary.worsening >
+            0
+              ? ` and ${spreadsheetMovementSummary.worsening} may need closer attention`
+              : ""
+          }
+          .
+        </p>
+
+        <p
+          style={{
+            margin:
+              "10px 0 0",
+            color:
+              "#69736c",
+            fontSize:
+              "0.86rem",
+            lineHeight:
+              1.55,
+          }}
+        >
+          Root can see what changed.
+          The next step is to understand
+          what was happening in your
+          organisation while that
+          movement occurred.
+        </p>
+      </div>
+    ) : null}
 
     {Array.isArray(organisationIntelligence.findings) &&
     organisationIntelligence.findings.length > 0 ? (
