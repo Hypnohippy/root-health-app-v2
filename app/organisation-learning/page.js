@@ -130,7 +130,10 @@ function formatCurrency(value) {
   }).format(number);
 }
 
-function formatDetectedMeasureValue(measureKey, value) {
+function formatDetectedMeasureValue(
+  measureKey,
+  value
+) {
   if (
     value === null ||
     value === undefined ||
@@ -139,8 +142,32 @@ function formatDetectedMeasureValue(measureKey, value) {
     return "—";
   }
 
-  if (measureKey === "agency_spend") {
+  if (
+    measureKey === "agency_spend"
+  ) {
     return formatCurrency(value);
+  }
+
+  if (
+    measureKey === "turnover"
+  ) {
+    const number =
+      Number(value);
+
+    if (Number.isNaN(number)) {
+      return "—";
+    }
+
+    const percentage =
+      number <= 1
+        ? number * 100
+        : number;
+
+    return `${Number(
+      percentage.toFixed(2)
+    ).toLocaleString(
+      "en-GB"
+    )}%`;
   }
 
   return formatNumber(value);
@@ -1128,7 +1155,35 @@ const reflection = useMemo(
           return;
         }
 
-        importedMeasures[measureKey] = String(mapping.value);
+                let importedValue =
+          Number(mapping.value);
+
+        /*
+         * Excel stores percentage-formatted cells
+         * as decimal fractions.
+         *
+         * Example:
+         * 6.7% is normally supplied by XLSX as 0.067.
+         *
+         * Root's organisation review uses percentage
+         * points, so normalise a turnover fraction
+         * before it reaches the review.
+         */
+        if (
+          measureKey === "turnover" &&
+          importedValue >= 0 &&
+          importedValue <= 1
+        ) {
+          importedValue =
+            importedValue * 100;
+        }
+
+        importedMeasures[measureKey] =
+          String(
+            Number(
+              importedValue.toFixed(2)
+            )
+          );
 
         importedSources[measureKey] = [
           `Sheet: ${mapping.sheetName}`,
