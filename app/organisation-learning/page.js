@@ -1868,6 +1868,18 @@ if (
         joined_at: Date.now(),
       })
     );
+        /*
+     * The organisation just created must become
+     * the active Workplace organisation immediately.
+     *
+     * A Root user may administer more than one
+     * organisation, so an older active-organisation
+     * memory must not win after new setup.
+     */
+    localStorage.setItem(
+      "root_active_organisation_v1",
+      newOrganisation.id
+    );
     if (isApprovedInvite) {
   const currentMetadata =
     user.user_metadata || {};
