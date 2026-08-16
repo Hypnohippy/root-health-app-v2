@@ -97,9 +97,87 @@ export default function OrganisationJoinPage() {
     }
   }
 
-  async function resumePendingJoin() {
-    const pending =
+    async function resumePendingJoin() {
+    /*
+     * First try the browser's remembered
+     * organisation.
+     */
+    let pending =
       readPendingJoin();
+
+    /*
+     * Email confirmation may open in a
+     * different tab/browser context where
+     * localStorage is unavailable.
+     *
+     * In that case recover the organisation
+     * code carried in the confirmation URL.
+     */
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const returnCode =
+      String(
+        params.get("code") || ""
+      )
+        .trim()
+        .toUpperCase();
+
+    if (
+      (
+        !pending?.organisation_id ||
+        !pending?.organisation_code
+      ) &&
+      returnCode
+    ) {
+      const {
+        data: organisationData,
+        error: organisationError,
+      } =
+        await supabase
+          .from("organisations")
+          .select(
+            "id, name, organisation_code"
+          )
+          .eq(
+            "organisation_code",
+            returnCode
+          )
+          .maybeSingle();
+
+      if (
+        organisationError ||
+        !organisationData
+      ) {
+        console.error(
+          "Root could not recover the pending organisation:",
+          organisationError
+        );
+
+        setError(
+          "Root could not recover your Workplace invitation. Please enter your organisation code again."
+        );
+
+        return;
+      }
+
+      pending = {
+        organisation_id:
+          organisationData.id,
+
+        organisation_name:
+          organisationData.name,
+
+        organisation_code:
+          organisationData.organisation_code,
+      };
+
+      rememberPendingJoin(
+        organisationData
+      );
+    }
 
     if (
       !pending?.organisation_id ||
@@ -112,7 +190,7 @@ export default function OrganisationJoinPage() {
       pending.organisation_code
     );
 
-    setVerifiedOrganisation({
+    const organisationData = {
       id:
         pending.organisation_id,
 
@@ -121,35 +199,37 @@ export default function OrganisationJoinPage() {
 
       organisation_code:
         pending.organisation_code,
-    });
+    };
+
+    setVerifiedOrganisation(
+      organisationData
+    );
 
     const {
       data: {
         user,
       },
+      error: userError,
     } =
       await supabase.auth.getUser();
 
-    if (!user) {
+    if (
+      userError ||
+      !user
+    ) {
+      /*
+       * Before email confirmation this is
+       * perfectly normal. Keep the verified
+       * organisation visible and wait.
+       */
       return;
     }
 
     await completeOrganisationJoin(
       user,
-      {
-        id:
-          pending.organisation_id,
-
-        name:
-          pending.organisation_name,
-
-        organisation_code:
-          pending.organisation_code,
-      }
+      organisationData
     );
   }
-
-  async function verifyOrganisation() {
     setLoading(true);
     setError("");
     setAccountMessage("");
@@ -522,11 +602,18 @@ export default function OrganisationJoinPage() {
       error:
         signUpError,
     } =
-      await supabase.auth.signUp({
+            await supabase.auth.signUp({
         email:
           cleanEmail,
 
         password,
+
+        options: {
+          emailRedirectTo:
+            `${window.location.origin}/organisation/join?resume=1&code=${encodeURIComponent(
+              verifiedOrganisation.organisation_code
+            )}`,
+        },
       });
 
     if (signUpError) {
