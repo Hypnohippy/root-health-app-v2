@@ -145,47 +145,95 @@ const { error } = await supabase
   
     if (error) {
   console.error("ASSESSMENT SAVE ERROR:", error);
-  alert(error.message || "Something went wrong saving this check-in.");
-} else {
-  const profileKey = localStorage.getItem("root_profile_key_v1");
 
-  if (profileKey) {
-    await supabase
-      .from("organisation_members")
-      .update({
-        baseline_completed_at: new Date().toISOString(),
-      })
-      .eq("profile_key", profileKey)
-      .is("baseline_completed_at", null);
-  }
+  alert(
+    error.message ||
+      "Something went wrong saving this check-in."
+  );
 
-  setSaved(true);
-      setNotes("");
+  setSaving(false);
+  return;
+}
 
-      if (typeof window !== "undefined") {
-        const params = new URLSearchParams(window.location.search);
-        const fromOrientation = params.get("from") === "orientation";
+/*
+ * The assessment has now been saved successfully.
+ *
+ * IMPORTANT:
+ * Use the same profileKey that was used for the assessment.
+ * Do not re-read it from localStorage here because Workplace
+ * employees may have a different personal/workplace identity.
+ */
 
-        if (fromOrientation) {
-  localStorage.setItem("root_orientation_complete_v1", "true");
+const {
+  error: baselineError,
+} = await supabase
+  .from("organisation_members")
+  .update({
+    baseline_completed_at: new Date().toISOString(),
+  })
+  .eq("profile_key", profileKey)
+  .is("baseline_completed_at", null);
 
-  if (profileKey) {
-    await supabase
+if (baselineError) {
+  console.error(
+    "BASELINE COMPLETION ERROR:",
+    baselineError
+  );
+}
+
+setSaved(true);
+setNotes("");
+
+if (typeof window !== "undefined") {
+  const params = new URLSearchParams(
+    window.location.search
+  );
+
+  const fromOrientation =
+    params.get("from") === "orientation";
+
+  if (fromOrientation) {
+    /*
+     * Mark the actual profile that completed
+     * this assessment as orientation complete.
+     */
+
+    const {
+      error: orientationError,
+    } = await supabase
       .from("profiles")
       .update({
         orientation_completed: true,
       })
       .eq("profile_key", profileKey);
-  }
 
-  setTimeout(() => {
-    window.location.href = "/onboarding-complete";
-  }, 900);
-}
-      }
+    if (orientationError) {
+      console.error(
+        "ORIENTATION COMPLETION ERROR:",
+        orientationError
+      );
+
+      alert(
+        "Your wellbeing picture was saved, but Root could not complete your onboarding. Please try again."
+      );
+
+      setSaving(false);
+      return;
     }
 
-    setSaving(false);
+    localStorage.setItem(
+      "root_orientation_complete_v1",
+      "true"
+    );
+
+    setTimeout(() => {
+      window.location.href =
+        "/onboarding-complete";
+    }, 900);
+  }
+}
+
+setSaving(false);
   };
 
   return (
