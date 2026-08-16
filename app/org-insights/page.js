@@ -4568,10 +4568,10 @@ We look forward to welcoming you.
     </div>
 
     <div style={styles.participationStatusPill}>
-      {snapshot.participation.followUpCheckins > 0
-        ? "Live evidence updating"
-        : "Building baseline"}
-    </div>
+  {snapshot?.participation?.followUpCheckins > 0
+    ? "Live evidence updating"
+    : "Building baseline"}
+</div>
   </div>
 
   {!snapshot?.participation ? (
