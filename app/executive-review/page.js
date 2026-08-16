@@ -1,6 +1,6 @@
 "use client";
 
-import { requireHRMembership } from "../../lib/authGuard";
+import { getRootIdentity } from "../../lib/rootIdentity";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
@@ -600,14 +600,39 @@ export default function ExecutiveReviewPage() {
   const loadData = async () => {
     setLoading(true);
 
-    const access = await requireHRMembership();
+    const identity = await getRootIdentity();
 
-if (!access.allowed) {
-  window.location.href = access.redirectTo;
+if (!identity) {
+  window.location.href = "/login";
   return;
 }
 
-const membership = access.membership;
+if (!identity.capabilities?.canUseWorkplace) {
+  window.location.href = "/";
+  return;
+}
+
+const membership =
+  identity.workplace?.activeOrganisation || null;
+
+if (!membership) {
+  console.error(
+    "Root Executive Review could not find an active organisation membership."
+  );
+
+  window.location.href = "/choose-experience";
+  return;
+}
+
+const allowedRoles = [
+  "hr_admin",
+  "organisation_admin",
+];
+
+if (!allowedRoles.includes(membership.role)) {
+  window.location.href = "/";
+  return;
+}
 
 localStorage.setItem(
   "root_hr_org_v1",
