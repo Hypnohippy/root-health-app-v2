@@ -225,11 +225,13 @@ export default function OrganisationJoinPage() {
       return;
     }
 
-    await completeOrganisationJoin(
+        await completeOrganisationJoin(
       user,
       organisationData
     );
   }
+
+  async function verifyOrganisation() {
     setLoading(true);
     setError("");
     setAccountMessage("");
