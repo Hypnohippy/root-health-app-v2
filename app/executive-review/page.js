@@ -280,12 +280,18 @@ function buildExecutiveReasoning({
     return {
       knows: [
         `${Number(
-          participation?.activated || 0
-        )} employee account${
-          Number(participation?.activated || 0) === 1
-            ? " has"
-            : "s have"
-        } been activated.`,
+  participation?.activated ??
+  snapshot?.activated ??
+  0
+)} employee account${
+  Number(
+    participation?.activated ??
+    snapshot?.activated ??
+    0
+  ) === 1
+    ? " has"
+    : "s have"
+} been activated.`,
         `${supportInteractions} anonymous support interaction${
           supportInteractions === 1 ? " has" : "s have"
         } been recorded.`,
@@ -1488,11 +1494,13 @@ return (
         </p>
 
         <p>
-  {confidenceScore >= 75
+  {!hasWorkforceBaseline
+    ? "Root does not yet have a completed workforce wellbeing baseline. Confidence will begin to develop as employees complete their starting assessments."
+    : confidenceScore >= 75
     ? "The current confidence rating indicates that the findings are supported by repeated evidence. Continued participation will help confirm whether these patterns remain stable over time."
     : confidenceScore >= 50
     ? "The current confidence rating indicates that useful patterns are emerging, although further participation and follow-up comparisons are needed before wider organisational trends can be confirmed."
-    : "The current confidence rating reflects an early evidence base. This does not invalidate the baseline; further participation and follow-up comparisons are needed before wider organisational trends can be confirmed."}
+    : "The current confidence rating reflects an early evidence base. Further participation and follow-up comparisons are needed before wider organisational trends can be confirmed."}
 </p>
       </div>
     </section>
@@ -1500,17 +1508,29 @@ return (
     {/* PAGE 4 — MEASURED EVIDENCE */}
     <section className="report-page" style={styles.reportPage}>
       <PageHeader
-        kicker={hasComparison ? "Trend Analysis" : "Baseline Evidence"}
-        title={
-          hasComparison
-            ? "Wellbeing movement over time"
-            : "Current wellbeing baseline"
-        }
-        subtitle={
-          hasComparison
-            ? "Lower difficulty scores indicate improvement. Current severity remains important even where movement is positive."
-            : "Difficulty scores run from 0–10. Lower scores indicate fewer reported difficulties."
-        }
+        kicker={
+  hasComparison
+    ? "Trend Analysis"
+    : hasWorkforceBaseline
+    ? "Baseline Evidence"
+    : "Awaiting Evidence"
+}
+
+title={
+  hasComparison
+    ? "Wellbeing movement over time"
+    : hasWorkforceBaseline
+    ? "Current wellbeing baseline"
+    : "Awaiting workforce wellbeing baseline"
+}
+
+subtitle={
+  hasComparison
+    ? "Lower difficulty scores indicate improvement. Current severity remains important even where movement is positive."
+    : hasWorkforceBaseline
+    ? "Difficulty scores run from 0–10. Lower scores indicate fewer reported difficulties."
+    : "No employee wellbeing scores are reported until completed baseline assessments are available."
+}
       />
 
      <LineChart rows={visibleTrendRows} />
@@ -1585,27 +1605,27 @@ return (
 
       <div style={styles.executiveNarrative}>
         <h3>Stress</h3>
-        <p>{executiveNarrative.stressCommentary}</p>
+        <p>{reportNarrative.stressCommentary}</p>
 
         <h3>Burnout</h3>
-        <p>{executiveNarrative.burnoutCommentary}</p>
+        <p>{reportNarrative.burnoutCommentary}</p>
 
         <h3>Recovery &amp; Sleep</h3>
-        <p>{executiveNarrative.recoverySleepCommentary}</p>
+        <p>{reportNarrative.recoverySleepCommentary}</p>
 
         <h3>Mood &amp; Focus</h3>
-        <p>{executiveNarrative.additionalCommentary}</p>
+        <p>{reportNarrative.additionalCommentary}</p>
       </div>
 
       <div style={styles.insightPanel}>
        <h3>Emerging pattern</h3>
-<p>{executiveNarrative.detected}</p>
+<p>{reportNarrative.detected}</p>
 
 <h3>Potential organisational impact</h3>
-<p>{executiveNarrative.meaning}</p>
+<p>{reportNarrative.meaning}</p>
 
 <h3>Next review focus</h3>
-<p>{executiveNarrative.watchingNext}</p>
+<p>{reportNarrative.watchingNext}</p>
       </div>
     </section>
 
@@ -1628,10 +1648,10 @@ return (
 
       <div style={styles.executiveNarrative}>
         <h3>What organisations typically do next</h3>
-        <p>{executiveNarrative.typicalNextStep}</p>
+        <p>{reportNarrative.typicalNextStep}</p>
 
         <h3>Root&apos;s forecast</h3>
-        <p>{executiveNarrative.forecast}</p>
+        <p>{reportNarrative.forecast}</p>
 
         <div style={styles.recommendationFeature}>
           <p style={styles.recommendationLabel}>
@@ -1645,12 +1665,12 @@ return (
 
         <div style={styles.decisionCard}>
           <h3>Why Root recommends this</h3>
-          <p>{executiveNarrative.recommendationReason}</p>
+          <p>{reportNarrative.recommendationReason}</p>
         </div>
 
         <div style={styles.decisionCard}>
           <h3>Potential business impact if unchanged</h3>
-          <p>{executiveNarrative.businessImpact}</p>
+          <p>{reportNarrative.businessImpact}</p>
         </div>
       </div>
     </section>
@@ -1666,19 +1686,19 @@ return (
       <div style={styles.decisionPageContent}>
         <div style={styles.decisionCard}>
           <h3>Expected outcome</h3>
-          <p>{executiveNarrative.expectedOutcome}</p>
+          <p>{reportNarrative.expectedOutcome}</p>
         </div>
 
         <div style={styles.decisionCard}>
           <h3>Why board approval is recommended</h3>
-          <p>{executiveNarrative.boardApproval}</p>
+          <p>{reportNarrative.boardApproval}</p>
         </div>
 
         <div style={styles.decisionCard}>
           <h3>How success will be measured</h3>
 
           <ul style={styles.decisionList}>
-            {(executiveNarrative.successMeasures || []).map((item) => (
+            {(reportNarrative.successMeasures || []).map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -1687,7 +1707,7 @@ return (
         <div style={styles.closingCard}>
           <h3>Executive Closing Summary</h3>
           <p>
-  {String(executiveNarrative.closingSummary || "").replace(
+  {String(reportNarrative.closingSummary || "").replace(
     /The strongest anonymous workforce theme is No challenge data yet\.\s*/i,
     "No reliable anonymous workforce theme has yet been established. "
   )}
