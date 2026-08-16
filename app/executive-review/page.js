@@ -274,7 +274,52 @@ function buildExecutiveReasoning({
   supportInteractions,
   participation,
   hasComparison,
+  hasWorkforceBaseline,
 }) {
+  if (!hasWorkforceBaseline) {
+    return {
+      knows: [
+        `${Number(
+          participation?.activated || 0
+        )} employee account${
+          Number(participation?.activated || 0) === 1
+            ? " has"
+            : "s have"
+        } been activated.`,
+        `${supportInteractions} anonymous support interaction${
+          supportInteractions === 1 ? " has" : "s have"
+        } been recorded.`,
+        "Root does not yet have a completed employee wellbeing baseline.",
+      ],
+
+      suspects: [
+        "Root does not yet have enough employee wellbeing evidence to support an organisational hypothesis.",
+      ],
+
+      unknowns: [
+        "Root cannot yet identify the organisation's main wellbeing pressures because no completed workforce baseline is available.",
+        "Root cannot yet describe improvement, deterioration or stability.",
+        "Root cannot yet determine whether any wellbeing pattern is concentrated within particular teams, roles or working conditions.",
+      ],
+
+      alternatives: [
+        "There is not yet enough workforce wellbeing evidence to compare alternative explanations.",
+      ],
+
+      confidenceBuilders: [
+        "Completed employee baseline assessments.",
+        "Broader participation across teams and roles.",
+        "Continued anonymous support engagement as the baseline develops.",
+        "Later matched check-ins that allow Root to measure genuine movement.",
+      ],
+
+      priority:
+        "Establish the workforce baseline",
+
+      recommendedAction:
+        "Invite and support sufficient employee participation to establish the organisation's first anonymous wellbeing baseline before selecting a targeted wellbeing initiative.",
+    };
+  }
   const initiative =
     snapshot?.initiative || {};
 
@@ -851,7 +896,67 @@ const highestMeasured =
 
 const matchedParticipants = Number(
   participation.matchedParticipants || 0
+
 );
+
+const hasWorkforceBaseline =
+  assessments.length > 0;
+
+  const reportNarrative =
+  hasWorkforceBaseline
+    ? executiveNarrative
+    : {
+        ...executiveNarrative,
+
+        stressCommentary:
+          "No employee stress baseline has been completed yet. Root will describe the organisation's starting stress position once sufficient anonymous baseline evidence is available.",
+
+        burnoutCommentary:
+          "No employee burnout baseline has been completed yet. Root is not inferring burnout severity without workforce evidence.",
+
+        recoverySleepCommentary:
+          "Root does not yet have employee sleep or recovery baseline evidence. These measures will become available as employees complete their starting assessments.",
+
+        additionalCommentary:
+          "Root does not yet have employee mood or focus baseline evidence.",
+
+        detected:
+          "No workforce wellbeing pattern has been established yet. Root is currently building the organisation's evidence base.",
+
+        meaning:
+          "There is not yet enough employee wellbeing evidence to support an organisational interpretation.",
+
+        watchingNext:
+          "Root will first watch participation and baseline completion. Once sufficient anonymous evidence exists, it will begin identifying the areas that genuinely deserve leadership attention.",
+
+        typicalNextStep:
+          "At this stage, organisations normally focus on participation, clear communication and establishing a trustworthy anonymous baseline before selecting targeted wellbeing interventions.",
+
+        forecast:
+          "As employees complete baseline assessments, Root will establish the organisation's starting wellbeing position. Later matched check-ins will then allow Root to identify genuine movement.",
+
+        recommendationReason:
+          "Root is deliberately withholding a targeted wellbeing recommendation because no completed employee baseline is currently available.",
+
+        businessImpact:
+          "Root does not yet have sufficient workforce wellbeing evidence to estimate the organisational significance of any specific wellbeing issue.",
+
+        expectedOutcome:
+          "The immediate objective is a sufficiently representative anonymous workforce baseline that can support proportionate future decisions.",
+
+        boardApproval:
+          "No targeted wellbeing initiative requires board approval at this stage. Leadership should support participation and allow Root to establish a reliable baseline first.",
+
+        successMeasures: [
+          "Increase baseline participation.",
+          "Reach the anonymous reporting threshold.",
+          "Establish a reliable starting wellbeing position.",
+          "Create sufficient evidence for the next Executive Review.",
+        ],
+
+        closingSummary:
+          "This report does not yet establish a workforce wellbeing baseline. Root currently has organisation context and participation information, but it is waiting for completed employee assessments before drawing conclusions about workforce wellbeing.",
+      };
 
 const privacyMinimum = Number(
   snapshot?.privacyMinimum || 5
@@ -869,6 +974,7 @@ const executiveReasoning =
     supportInteractions,
     participation,
     hasComparison,
+    hasWorkforceBaseline,
   });
 
 const confidenceDisplay = `${confidenceLabel}${
@@ -1003,9 +1109,10 @@ return (
   </span>
 
   <strong>
-    Stage {maturity.level} –{" "}
-    {maturity.label}
-  </strong>
+  {hasWorkforceBaseline
+    ? `Stage ${maturity.level} – ${maturity.label}`
+    : "Stage 0 – Awaiting Workforce Baseline"}
+</strong>
 
   <small>
     Organisational learning stage, not released trend confidence
