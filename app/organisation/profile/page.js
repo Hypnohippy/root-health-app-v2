@@ -1,245 +1,633 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { supabase } from "../../../lib/supabase";
 
 function makeProfileKey() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+  if (
+    typeof crypto !== "undefined" &&
+    crypto.randomUUID
+  ) {
     return crypto.randomUUID();
   }
 
-  return `profile-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `profile-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
 }
 
 export default function OrganisationProfilePage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [age, setAge] = useState("");
-  const [department, setDepartment] = useState("");
-  const [organisationUnits, setOrganisationUnits] =
-  useState([]);
-  const [organisationUnitId, setOrganisationUnitId] =
-  useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [name, setName] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
+  const [age, setAge] =
+    useState("");
+
+  const [department, setDepartment] =
+    useState("");
+
+  const [
+    organisationUnits,
+    setOrganisationUnits,
+  ] = useState([]);
+
+  const [
+    organisationUnitId,
+    setOrganisationUnitId,
+  ] = useState("");
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
   useEffect(() => {
-  loadOrganisationUnits();
-}, []);
+    loadAuthenticatedEmployee();
+    loadOrganisationUnits();
+  }, []);
 
-async function loadOrganisationUnits() {
-  const organisation = JSON.parse(
-    localStorage.getItem("root_organisation_v1") || "{}"
-  );
-
-  if (!organisation.organisation_id) {
-    return;
-  }
-
-  const {
-    data,
-    error: unitError,
-  } = await supabase
-    .from("organisation_units")
-    .select(
-      "id, name, unit_type, parent_unit_id, active"
-    )
-    .eq(
-      "organisation_id",
-      organisation.organisation_id
-    )
-    .eq("active", true)
-    .order("name", {
-      ascending: true,
-    });
-
-  if (unitError) {
-    console.error(
-      "Could not load organisational units:",
-      unitError
-    );
-    return;
-  }
-
-  setOrganisationUnits(
-    Array.isArray(data) ? data : []
-  );
-}
-
-async function saveProfile() {
-  setSaving(true);
-  setError("");
-
-  if (!name.trim() || !email.trim()) {
-  setError("Please enter your name and work email.");
-  setSaving(false);
-  return;
-}
-
-  const organisation = JSON.parse(
-    localStorage.getItem("root_organisation_v1") || "{}"
-  );
-
-  if (!organisation.organisation_id) {
-    setError("Organisation not found. Please join your organisation again.");
-    setSaving(false);
-    return;
-  }
-
-  const profileKey =
-    localStorage.getItem("root_profile_key_v1") || makeProfileKey();
-
-  const { error } = await supabase.from("profiles").upsert(
-  {
-    profile_key: profileKey,
-name: name.trim(),
-email: email.trim().toLowerCase(),
-age: age.trim(),
-    department: department.trim(),
-    organisation_id: organisation.organisation_id,
-    organisation_name: organisation.organisation_name,
-  },
-  { onConflict: "profile_key" }
-);
-
-  if (error) {
-    setError(error.message || "Could not save profile.");
-    setSaving(false);
-    return;
-  }
-
-  const { error: memberError } = await supabase
-    .from("organisation_members")
-    .upsert(
-      {
-        organisation_id: organisation.organisation_id,
-        profile_key: profileKey,
-email: email.trim().toLowerCase(),
-name: name.trim(),
-department: department.trim(),
-role: "employee",
-        activated_at: new Date().toISOString(),
+  async function loadAuthenticatedEmployee() {
+    const {
+      data: {
+        user,
       },
-      { onConflict: "organisation_id,profile_key" }
+      error: userError,
+    } =
+      await supabase.auth.getUser();
+
+    if (
+      userError ||
+      !user
+    ) {
+      setError(
+        "Root could not verify your signed-in account. Please sign in again."
+      );
+
+      return;
+    }
+
+    /*
+     * The authenticated Supabase email is
+     * the source of truth.
+     *
+     * Do not allow old browser/localStorage
+     * profile data to replace it.
+     */
+    setEmail(
+      user.email || ""
     );
 
-  if (memberError) {
-    setError(memberError.message || "Could not connect employee to organisation.");
-    setSaving(false);
-    return;
+    /*
+     * If Root already knows this person's
+     * personal profile, restore the details.
+     */
+    const {
+      data: existingProfile,
+      error: profileError,
+    } =
+      await supabase
+        .from("profiles")
+        .select(
+          `
+            user_id,
+            profile_key,
+            name,
+            email,
+            age,
+            department
+          `
+        )
+        .eq(
+          "user_id",
+          user.id
+        )
+        .maybeSingle();
+
+    if (profileError) {
+      console.error(
+        "Could not load Root personal profile:",
+        profileError
+      );
+
+      return;
+    }
+
+    if (existingProfile) {
+      setName(
+        existingProfile.name ||
+        ""
+      );
+
+      setAge(
+        existingProfile.age ??
+        ""
+      );
+
+      setDepartment(
+        existingProfile.department ||
+        ""
+      );
+
+      if (
+        existingProfile.profile_key
+      ) {
+        localStorage.setItem(
+          "root_profile_key_v1",
+          existingProfile.profile_key
+        );
+      }
+    }
   }
 
-  localStorage.setItem("root_profile_key_v1", profileKey);
+  async function loadOrganisationUnits() {
+    let organisation = {};
 
-  localStorage.setItem(
-    "root_profile_v1",
-    JSON.stringify({
-     profile_key: profileKey,
-name: name.trim(),
-email: email.trim().toLowerCase(),
-age: age.trim(),
-      department: department.trim(),
-      organisation_id: organisation.organisation_id,
-      organisation_name: organisation.organisation_name,
-    })
-  );
+    try {
+      organisation =
+        JSON.parse(
+          localStorage.getItem(
+            "root_organisation_v1"
+          ) || "{}"
+        );
+    } catch {
+      organisation = {};
+    }
 
-  setSaving(false);
-  window.location.href = "/orientation";
-}
+    if (
+      !organisation.organisation_id
+    ) {
+      return;
+    }
+
+    const {
+      data,
+      error: unitError,
+    } =
+      await supabase
+        .from(
+          "organisation_units"
+        )
+        .select(
+          `
+            id,
+            name,
+            unit_type,
+            parent_unit_id,
+            active
+          `
+        )
+        .eq(
+          "organisation_id",
+          organisation.organisation_id
+        )
+        .eq(
+          "active",
+          true
+        )
+        .order(
+          "name",
+          {
+            ascending: true,
+          }
+        );
+
+    if (unitError) {
+      console.error(
+        "Could not load organisational units:",
+        unitError
+      );
+
+      return;
+    }
+
+    setOrganisationUnits(
+      Array.isArray(data)
+        ? data
+        : []
+    );
+  }
+
+  async function saveProfile() {
+    setSaving(true);
+    setError("");
+
+    const {
+      data: {
+        user,
+      },
+      error: userError,
+    } =
+      await supabase.auth.getUser();
+
+    if (
+      userError ||
+      !user
+    ) {
+      setError(
+        "Root could not verify your signed-in account. Please sign in again."
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    const authenticatedEmail =
+      String(
+        user.email || ""
+      )
+        .trim()
+        .toLowerCase();
+
+    if (
+      !name.trim() ||
+      !authenticatedEmail
+    ) {
+      setError(
+        "Please enter your name. Root also needs a valid signed-in email address."
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    let organisation = {};
+
+    try {
+      organisation =
+        JSON.parse(
+          localStorage.getItem(
+            "root_organisation_v1"
+          ) || "{}"
+        );
+    } catch {
+      organisation = {};
+    }
+
+    if (
+      !organisation.organisation_id
+    ) {
+      setError(
+        "Organisation not found. Please join your organisation again."
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    /*
+     * Personal Root profile
+     *
+     * One authenticated Root user has one
+     * personal profile, even if they later
+     * belong to several organisations.
+     */
+    const {
+      data: existingProfile,
+      error:
+        existingProfileError,
+    } =
+      await supabase
+        .from("profiles")
+        .select(
+          "user_id, profile_key"
+        )
+        .eq(
+          "user_id",
+          user.id
+        )
+        .maybeSingle();
+
+    if (existingProfileError) {
+      setError(
+        existingProfileError.message ||
+        "Root could not check your existing profile."
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    const membershipProfileKey =
+      localStorage.getItem(
+        "root_profile_key_v1"
+      ) ||
+      makeProfileKey();
+
+    const personalProfileKey =
+      existingProfile?.profile_key ||
+      membershipProfileKey;
+
+    const {
+      error: profileError,
+    } =
+      await supabase
+        .from("profiles")
+        .upsert(
+          {
+            user_id:
+              user.id,
+
+            profile_key:
+              personalProfileKey,
+
+            name:
+              name.trim(),
+
+            email:
+              authenticatedEmail,
+
+            age:
+              age.trim(),
+
+            department:
+              department.trim(),
+
+            organisation_id:
+              organisation.organisation_id,
+
+            organisation_name:
+              organisation.organisation_name,
+          },
+          {
+            onConflict:
+              "profile_key",
+          }
+        );
+
+    if (profileError) {
+      setError(
+        profileError.message ||
+        "Could not save profile."
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    /*
+     * Workplace membership
+     *
+     * This is organisation-specific.
+     * It must remain connected to the
+     * authenticated Supabase user.
+     */
+    const {
+      error: memberError,
+    } =
+      await supabase
+        .from(
+          "organisation_members"
+        )
+        .upsert(
+          {
+            organisation_id:
+              organisation.organisation_id,
+
+            user_id:
+              user.id,
+
+            profile_key:
+              membershipProfileKey,
+
+            email:
+              authenticatedEmail,
+
+            name:
+              name.trim(),
+
+            department:
+              department.trim(),
+
+            organisation_unit_id:
+              organisationUnitId ||
+              null,
+
+            role:
+              "employee",
+
+            activated_at:
+              new Date()
+                .toISOString(),
+          },
+          {
+            onConflict:
+              "organisation_id,profile_key",
+          }
+        );
+
+    if (memberError) {
+      setError(
+        memberError.message ||
+        "Could not connect employee to organisation."
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    localStorage.setItem(
+      "root_profile_key_v1",
+      personalProfileKey
+    );
+
+    localStorage.setItem(
+      "root_active_organisation_v1",
+      organisation.organisation_id
+    );
+
+    localStorage.setItem(
+      "root_profile_v1",
+      JSON.stringify({
+        profile_key:
+          personalProfileKey,
+
+        user_id:
+          user.id,
+
+        name:
+          name.trim(),
+
+        email:
+          authenticatedEmail,
+
+        age:
+          age.trim(),
+
+        department:
+          department.trim(),
+
+        organisation_id:
+          organisation.organisation_id,
+
+        organisation_name:
+          organisation.organisation_name,
+      })
+    );
+
+    setEmail(
+      authenticatedEmail
+    );
+
+    setSaving(false);
+
+    window.location.href =
+      "/orientation";
+  }
 
   return (
     <main style={styles.page}>
       <section style={styles.card}>
-        <p style={styles.kicker}>Root Workplace</p>
-
-        <h1 style={styles.title}>Tell Root a little about yourself</h1>
-
-        <p style={styles.text}>Your personal profile helps Root support you.</p>
-
-        <p style={styles.text}>
-          Your organisation only sees anonymous wellbeing trends.
+        <p style={styles.kicker}>
+          Root Workplace
         </p>
 
-<label style={styles.label}>Work email *</label>
-<input
-  style={styles.input}
-  value={email}
-  onChange={(e) => setEmail(e.target.value)}
-  placeholder="e.g. david@company.co.uk"
-/>
-        <label style={styles.label}>Your name *</label>
+        <h1 style={styles.title}>
+          Tell Root a little about yourself
+        </h1>
+
+        <p style={styles.text}>
+          Your personal profile helps
+          Root support you.
+        </p>
+
+        <p style={styles.text}>
+          Your organisation only sees
+          anonymous wellbeing trends.
+        </p>
+
+        <label style={styles.label}>
+          Work email
+        </label>
+
+        <input
+          type="email"
+          style={{
+            ...styles.input,
+            background:
+              "rgba(24,24,24,0.045)",
+          }}
+          value={email}
+          readOnly
+          placeholder="Your signed-in email"
+        />
+
+        <p style={styles.emailHint}>
+          This is the email connected to
+          your private Root account.
+        </p>
+
+        <label style={styles.label}>
+          Your name *
+        </label>
+
         <input
           style={styles.input}
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(event) =>
+            setName(
+              event.target.value
+            )
+          }
           placeholder="e.g. David Prince"
         />
 
-        <label style={styles.label}>Age (optional)</label>
+        <label style={styles.label}>
+          Age (optional)
+        </label>
+
         <input
           style={styles.input}
           value={age}
-          onChange={(e) => setAge(e.target.value)}
+          onChange={(event) =>
+            setAge(
+              event.target.value
+            )
+          }
           placeholder="e.g. 61"
         />
 
         <label style={styles.label}>
-  Where do you work? (optional)
-</label>
+          Where do you work? (optional)
+        </label>
 
-{organisationUnits.length > 0 ? (
-  <select
-    style={styles.input}
-    value={organisationUnitId}
-    onChange={(e) => {
-      const selectedId =
-        e.target.value;
+        {organisationUnits.length >
+        0 ? (
+          <select
+            style={styles.input}
+            value={
+              organisationUnitId
+            }
+            onChange={(event) => {
+              const selectedId =
+                event.target.value;
 
-      setOrganisationUnitId(
-        selectedId
-      );
+              setOrganisationUnitId(
+                selectedId
+              );
 
-      const selectedUnit =
-        organisationUnits.find(
-          (unit) =>
-            unit.id === selectedId
-        );
+              const selectedUnit =
+                organisationUnits.find(
+                  (unit) =>
+                    unit.id ===
+                    selectedId
+                );
 
-      setDepartment(
-        selectedUnit?.name || ""
-      );
-    }}
-  >
-    <option value="">
-      Select your area
-    </option>
+              setDepartment(
+                selectedUnit?.name ||
+                ""
+              );
+            }}
+          >
+            <option value="">
+              Select your area
+            </option>
 
-    {organisationUnits.map(
-      (unit) => (
-        <option
-          key={unit.id}
-          value={unit.id}
+            {organisationUnits.map(
+              (unit) => (
+                <option
+                  key={unit.id}
+                  value={unit.id}
+                >
+                  {unit.name}
+                </option>
+              )
+            )}
+          </select>
+        ) : (
+          <input
+            style={styles.input}
+            value={department}
+            onChange={(event) =>
+              setDepartment(
+                event.target.value
+              )
+            }
+            placeholder="e.g. HR, Finance, Operations"
+          />
+        )}
+
+        {error ? (
+          <p style={styles.error}>
+            {error}
+          </p>
+        ) : null}
+
+        <button
+          style={styles.button}
+          onClick={saveProfile}
+          disabled={saving}
         >
-          {unit.name}
-        </option>
-      )
-    )}
-  </select>
-) : (
-  <input
-    style={styles.input}
-    value={department}
-    onChange={(e) =>
-      setDepartment(e.target.value)
-    }
-    placeholder="e.g. HR, Finance, Operations"
-  />
-)}
-
-        {error ? <p style={styles.error}>{error}</p> : null}
-
-        <button style={styles.button} onClick={saveProfile} disabled={saving}>
-          {saving ? "Saving..." : "Continue to Orientation"}
+          {saving
+            ? "Saving..."
+            : "Continue to Orientation"}
         </button>
       </section>
     </main>
@@ -255,15 +643,20 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
   },
+
   card: {
     width: "100%",
     maxWidth: "720px",
     padding: "38px",
     borderRadius: "36px",
-    background: "rgba(255,255,255,0.76)",
-    border: "1px solid rgba(255,255,255,0.85)",
-    boxShadow: "0 28px 90px rgba(20,18,15,0.14)",
+    background:
+      "rgba(255,255,255,0.76)",
+    border:
+      "1px solid rgba(255,255,255,0.85)",
+    boxShadow:
+      "0 28px 90px rgba(20,18,15,0.14)",
   },
+
   kicker: {
     margin: "0 0 10px",
     textTransform: "uppercase",
@@ -272,17 +665,20 @@ const styles = {
     fontWeight: "800",
     color: "#776C5B",
   },
+
   title: {
     margin: "0 0 16px",
     fontSize: "42px",
     color: "#181818",
     letterSpacing: "-0.04em",
   },
+
   text: {
     color: "#4D463B",
     lineHeight: "1.8",
     fontSize: "16px",
   },
+
   label: {
     display: "block",
     marginTop: "18px",
@@ -290,14 +686,25 @@ const styles = {
     fontWeight: "800",
     color: "#181818",
   },
+
   input: {
     width: "100%",
     padding: "14px",
     borderRadius: "16px",
-    border: "1px solid rgba(24,24,24,0.16)",
+    border:
+      "1px solid rgba(24,24,24,0.16)",
     fontSize: "15px",
     boxSizing: "border-box",
   },
+
+  emailHint: {
+    margin:
+      "7px 0 0",
+    color: "#776C5B",
+    fontSize: "13px",
+    lineHeight: "1.5",
+  },
+
   button: {
     marginTop: "24px",
     width: "100%",
@@ -309,6 +716,7 @@ const styles = {
     cursor: "pointer",
     fontWeight: "800",
   },
+
   error: {
     marginTop: "16px",
     color: "#9F1D1D",
