@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
@@ -198,6 +198,7 @@ export default function JournalPage() {
   const [showJourneyInsights, setShowJourneyInsights] = useState(false);
   const [listeningStep, setListeningStep] = useState(null);
   const [voiceSupported, setVoiceSupported] = useState(false);
+  const recognitionRef = useRef(null);
 
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
@@ -275,7 +276,7 @@ const { error } = await supabase.from("journal_entries").insert([
   const updateResponse = (value) => {
     setResponses((prev) => ({ ...prev, [step]: value }));
   };
-  const startVoiceInput = () => {
+ const startVoiceInput = () => {
   if (typeof window === "undefined") return;
 
   const SpeechRecognition =
@@ -286,43 +287,90 @@ const { error } = await supabase.from("journal_entries").insert([
     return;
   }
 
+  // If this step is already listening, clicking again stops it.
+  if (recognitionRef.current && listeningStep === step) {
+    recognitionRef.current.stop();
+    return;
+  }
+
+  // Stop any previous recognition session before starting another.
+  if (recognitionRef.current) {
+    try {
+      recognitionRef.current.stop();
+    } catch (error) {
+      console.log("Previous voice session already stopped:", error);
+    }
+  }
+
   const recognition = new SpeechRecognition();
 
   recognition.lang = "en-GB";
-  recognition.interimResults = false;
-  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.continuous = true;
 
+  recognitionRef.current = recognition;
   setListeningStep(step);
 
-  recognition.onresult = (event) => {
-    const transcript = event.results?.[0]?.[0]?.transcript || "";
+  let finalTranscript = "";
 
-    if (!transcript.trim()) return;
+  recognition.onresult = (event) => {
+    let interimTranscript = "";
+
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      const transcript = event.results[i][0]?.transcript || "";
+
+      if (event.results[i].isFinal) {
+        finalTranscript += `${transcript} `;
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+
+    const spokenText = `${finalTranscript}${interimTranscript}`.trim();
+
+    if (!spokenText) return;
 
     setResponses((prev) => {
       const existing = prev[step] || "";
-      const nextValue = existing.trim()
-        ? `${existing.trim()}\n\n${transcript.trim()}`
-        : transcript.trim();
 
       return {
         ...prev,
-        [step]: nextValue,
+        [step]: existing.trim()
+          ? `${existing.trim()}\n\n${spokenText}`
+          : spokenText,
       };
     });
   };
 
-  recognition.onerror = () => {
+  recognition.onerror = (event) => {
+    console.error("Journal voice recognition error:", event.error);
+
+    if (
+      event.error !== "no-speech" &&
+      event.error !== "aborted"
+    ) {
+      alert(
+        `Root voice could not continue: ${event.error}. Please check microphone permission and try again.`
+      );
+    }
+
+    recognitionRef.current = null;
     setListeningStep(null);
   };
 
   recognition.onend = () => {
+    recognitionRef.current = null;
     setListeningStep(null);
   };
 
-  recognition.start();
+  try {
+    recognition.start();
+  } catch (error) {
+    console.error("Could not start Journal voice input:", error);
+    recognitionRef.current = null;
+    setListeningStep(null);
+  }
 };
-
   const buildEntry = () => {
     return config.prompts
       .map((prompt, index) => `${prompt}\n${responses[index] || ""}`)
