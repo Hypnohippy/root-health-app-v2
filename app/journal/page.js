@@ -6,6 +6,10 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { getCurrentProfileKey } from "../../lib/currentUser";
+import {
+  createRootDictation,
+  transcribeRootAudio,
+} from "../../lib/rootDictation";
 const quickCheckIns = [
   { emoji: "😔", label: "Heavy" },
   { emoji: "⚡", label: "Wired" },
@@ -196,9 +200,10 @@ export default function JournalPage() {
   const [selectedCheckIn, setSelectedCheckIn] = useState(null);
   const [journey, setJourney] = useState(null);
   const [showJourneyInsights, setShowJourneyInsights] = useState(false);
-  const [listeningStep, setListeningStep] = useState(null);
-  const [voiceSupported, setVoiceSupported] = useState(false);
-  const recognitionRef = useRef(null);
+  const [recordingStep, setRecordingStep] = useState(null);
+  const [transcribingStep, setTranscribingStep] = useState(null);
+  const [dictationError, setDictationError] = useState("");
+  const dictationRef = useRef(null);
 
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
@@ -220,14 +225,7 @@ export default function JournalPage() {
     console.log(err);
   }
 }, []);
-  useEffect(() => {
-  if (typeof window === "undefined") return;
-
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  setVoiceSupported(Boolean(SpeechRecognition));
-}, []);
+  
 
   const loadEntries = async (profileKey) => {
     const { data } = await supabase
@@ -276,99 +274,80 @@ const { error } = await supabase.from("journal_entries").insert([
   const updateResponse = (value) => {
     setResponses((prev) => ({ ...prev, [step]: value }));
   };
- const startVoiceInput = () => {
-  if (typeof window === "undefined") return;
+ const startVoiceInput = async () => {
+  setDictationError("");
 
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert("Voice input is not supported in this browser yet.");
-    return;
-  }
-
-  // If this step is already listening, clicking again stops it.
-  if (recognitionRef.current && listeningStep === step) {
-    recognitionRef.current.stop();
-    return;
-  }
-
-  // Stop any previous recognition session before starting another.
-  if (recognitionRef.current) {
-    try {
-      recognitionRef.current.stop();
-    } catch (error) {
-      console.log("Previous voice session already stopped:", error);
-    }
-  }
-
-  const recognition = new SpeechRecognition();
-
-  recognition.lang = "en-GB";
-  recognition.interimResults = true;
-  recognition.continuous = true;
-
-  recognitionRef.current = recognition;
-  setListeningStep(step);
-
-  let finalTranscript = "";
-
-  recognition.onresult = (event) => {
-    let interimTranscript = "";
-
-    for (let i = event.resultIndex; i < event.results.length; i += 1) {
-      const transcript = event.results[i][0]?.transcript || "";
-
-      if (event.results[i].isFinal) {
-        finalTranscript += `${transcript} `;
-      } else {
-        interimTranscript += transcript;
-      }
+  try {
+    if (!dictationRef.current) {
+      dictationRef.current = createRootDictation();
     }
 
-    const spokenText = `${finalTranscript}${interimTranscript}`.trim();
+    const dictation = dictationRef.current;
 
-    if (!spokenText) return;
+    if (!dictation.isSupported()) {
+      setDictationError(
+        "Audio recording is not supported in this browser."
+      );
+      return;
+    }
+
+    await dictation.start();
+
+    setRecordingStep(step);
+  } catch (error) {
+    console.error(
+      "Could not start Journal dictation:",
+      error
+    );
+
+    setRecordingStep(null);
+
+    setDictationError(
+      error?.message ||
+        "Root could not start the microphone."
+    );
+  }
+};
+
+const stopVoiceInput = async () => {
+  if (!dictationRef.current) return;
+
+  const recordedStep = recordingStep;
+
+  setRecordingStep(null);
+  setTranscribingStep(recordedStep);
+  setDictationError("");
+
+  try {
+    const audioFile =
+      await dictationRef.current.stop();
+
+    const transcript =
+      await transcribeRootAudio(audioFile);
 
     setResponses((prev) => {
-      const existing = prev[step] || "";
+      const existing =
+        prev[recordedStep] || "";
 
       return {
         ...prev,
-        [step]: existing.trim()
-          ? `${existing.trim()}\n\n${spokenText}`
-          : spokenText,
+        [recordedStep]: existing.trim()
+          ? `${existing.trim()}\n\n${transcript}`
+          : transcript,
       };
     });
-  };
-
-  recognition.onerror = (event) => {
-    console.error("Journal voice recognition error:", event.error);
-
-    if (
-      event.error !== "no-speech" &&
-      event.error !== "aborted"
-    ) {
-      alert(
-        `Root voice could not continue: ${event.error}. Please check microphone permission and try again.`
-      );
-    }
-
-    recognitionRef.current = null;
-    setListeningStep(null);
-  };
-
-  recognition.onend = () => {
-    recognitionRef.current = null;
-    setListeningStep(null);
-  };
-
-  try {
-    recognition.start();
   } catch (error) {
-    console.error("Could not start Journal voice input:", error);
-    recognitionRef.current = null;
-    setListeningStep(null);
+    console.error(
+      "Journal dictation failed:",
+      error
+    );
+
+    setDictationError(
+      error?.message ||
+        "Root could not transcribe that recording."
+    );
+  } finally {
+    setTranscribingStep(null);
   }
 };
   const buildEntry = () => {
@@ -541,18 +520,57 @@ const { error } = await supabase.from("journal_entries").insert([
               onChange={(e) => updateResponse(e.target.value)}
               placeholder="Write a little, or just a few words..."
             />
-                {voiceSupported && (
+               <div>
   <button
     type="button"
     style={{
       ...styles.voiceInputButton,
-      ...(listeningStep === step ? styles.voiceInputButtonActive : {}),
+      ...(recordingStep === step
+        ? styles.voiceInputButtonActive
+        : {}),
+      opacity:
+        transcribingStep === step
+          ? 0.65
+          : 1,
     }}
-    onClick={startVoiceInput}
+    disabled={transcribingStep !== null}
+    onClick={
+      recordingStep === step
+        ? stopVoiceInput
+        : startVoiceInput
+    }
   >
-    {listeningStep === step ? "Listening..." : "🎙️ Speak instead"}
+    {transcribingStep === step
+      ? "Transcribing..."
+      : recordingStep === step
+      ? "⏹ Stop & transcribe"
+      : "🎙️ Speak instead"}
   </button>
-)}
+
+  {recordingStep === step && (
+    <p
+      style={{
+        margin: "10px 0 0",
+        fontSize: "13px",
+        color: "#5A554D",
+      }}
+    >
+      Recording — take your time. Root will continue listening until you press Stop.
+    </p>
+  )}
+
+  {dictationError && (
+    <p
+      style={{
+        margin: "10px 0 0",
+        fontSize: "13px",
+        color: "#7A342F",
+      }}
+    >
+      {dictationError}
+    </p>
+  )}
+</div>
 
             <div style={styles.buttonRow}>
               {step > 0 ? (
