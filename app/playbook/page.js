@@ -151,11 +151,12 @@ const profileKey = identity?.personal?.profileKey;
   recognition.start();
 };
   const saveEntry = async () => {
-    const session = requireRootProfile();
-
-if (!session) return;
-
-const profileKey = session.profileKey;
+  if (!profileKey) {
+    alert(
+      "Root could not find your profile. Please refresh the page and try again."
+    );
+    return;
+  }
     const cleanTitle = title.trim();
     const cleanContent = content.trim();
 
@@ -411,20 +412,17 @@ const profileKey = session.profileKey;
                     <button
                  style={styles.smallViewButton}
                   onClick={() => {
-               setOpenEntryId(entry.id);
-               setReviewEntry(entry);
-               setReviewInstruction("");
-                setReviewPreview("");
+  setOpenEntryId(entry.id);
+  setReviewEntry(entry);
+  setReviewInstruction("");
+  setReviewPreview("");
 
-
-startReviewVoiceInput(entry);
-
-setTimeout(() => {
-  reviewRef.current?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-}, 150);
+  setTimeout(() => {
+    reviewRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, 150);
 }}
 >
                  Review with Root Voice
@@ -462,12 +460,26 @@ setTimeout(() => {
     />
 
     <button
-      style={styles.saveButton}
-      disabled={reviewing}
-      onClick={() => runPlaybookReview(reviewInstruction)}
-      >  
-      {reviewing ? "Root is thinking..." : "Continue with Root"}
-    </button>
+  style={styles.saveButton}
+  disabled={reviewing}
+  onClick={() => {
+    if (reviewInstruction.trim()) {
+      runPlaybookReview(
+        reviewInstruction,
+        reviewEntry
+      );
+      return;
+    }
+
+    startReviewVoiceInput(reviewEntry);
+  }}
+>
+  {reviewing
+    ? "Root is thinking..."
+    : reviewInstruction.trim()
+    ? "Continue with Root"
+    : "🎙️ Continue with Root Voice"}
+</button>
 
     {reviewPreview && (
       <>
@@ -563,26 +575,18 @@ setTimeout(() => {
                     <button
                      style={styles.viewButton}
                     onClick={() => {
-                   setOpenEntryId(entry.id);
-                   setReviewEntry(entry);
-                   setReviewInstruction("");
-setReviewPreview("");
+  setOpenEntryId(entry.id);
+  setReviewEntry(entry);
+  setReviewInstruction("");
+  setReviewPreview("");
 
-setTimeout(() => {
-  reviewRef.current?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-
-  startReviewVoiceInput(entry);
-}, 250);
-                   setTimeout(() => {
-  reviewRef.current?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-}, 150);
-                      }}
+  setTimeout(() => {
+    reviewRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, 150);
+}}
 >
                        Review with Root Voice
                         </button>
