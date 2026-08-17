@@ -34,7 +34,10 @@ export default function PlaybookPage() {
   const [reviewPreview, setReviewPreview] = useState("");
   const [reviewing, setReviewing] = useState(false);
   const [reviewStatus, setReviewStatus] = useState("");
+  const [reviewListening, setReviewListening] = useState(false);
   const reviewRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const voiceTranscriptRef = useRef("");
   const [openEntryId, setOpenEntryId] = useState(null);
 
   const [title, setTitle] = useState("");
@@ -119,40 +122,158 @@ export default function PlaybookPage() {
 
   setReviewing(false);
 };
-  const startReviewVoiceInput = (entryForReview = reviewEntry) => {
+  const startReviewVoiceInput = (
+  entryForReview = reviewEntry
+) => {
   if (typeof window === "undefined") return;
 
   const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    alert("Voice input is not supported in this browser yet.");
+    alert(
+      "Voice input is not supported in this browser yet."
+    );
+    return;
+  }
+
+  /*
+   * If Root is already listening, this click means
+   * the user has finished speaking.
+   */
+  if (reviewListening && recognitionRef.current) {
+    setReviewListening(false);
+
+    try {
+      recognitionRef.current.stop();
+    } catch (error) {
+      console.log(
+        "Root voice was already stopping:",
+        error
+      );
+    }
+
     return;
   }
 
   const recognition = new SpeechRecognition();
 
   recognition.lang = "en-GB";
-  recognition.interimResults = false;
-  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.continuous = true;
+
+  recognitionRef.current = recognition;
+  voiceTranscriptRef.current = "";
+
+  setReviewInstruction("");
+  setReviewStatus("");
+  setReviewListening(true);
 
   recognition.onresult = (event) => {
-  const transcript =
-    event.results?.[0]?.[0]?.transcript || "";
+    let finalText = "";
+    let interimText = "";
 
-  if (!transcript.trim()) return;
+    for (
+      let index = event.resultIndex;
+      index < event.results.length;
+      index += 1
+    ) {
+      const text =
+        event.results[index]?.[0]?.transcript || "";
 
-  const finalInstruction = transcript.trim();
+      if (event.results[index].isFinal) {
+        finalText += `${text} `;
+      } else {
+        interimText += text;
+      }
+    }
 
-  setReviewInstruction(finalInstruction);
+    if (finalText.trim()) {
+      voiceTranscriptRef.current = [
+        voiceTranscriptRef.current,
+        finalText.trim(),
+      ]
+        .filter(Boolean)
+        .join(" ");
+    }
 
-  setTimeout(() => {
+    const visibleText = [
+      voiceTranscriptRef.current,
+      interimText.trim(),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
 
-    runPlaybookReview(finalInstruction, entryForReview);
-  }, 300);
-};
+    setReviewInstruction(visibleText);
+  };
 
-  recognition.start();
+  recognition.onerror = (event) => {
+    console.error(
+      "PLAYBOOK VOICE ERROR:",
+      event.error
+    );
+
+    if (
+      event.error !== "no-speech" &&
+      event.error !== "aborted"
+    ) {
+      alert(
+        `Root voice could not continue: ${event.error}.`
+      );
+    }
+
+    setReviewListening(false);
+    recognitionRef.current = null;
+  };
+
+  recognition.onend = () => {
+    recognitionRef.current = null;
+
+    const finalInstruction =
+      voiceTranscriptRef.current.trim();
+
+    /*
+     * If the browser stopped recognition itself while
+     * the user was still speaking, restart it.
+     */
+    if (reviewListening) {
+      try {
+        recognition.start();
+        recognitionRef.current = recognition;
+        return;
+      } catch (error) {
+        console.log(
+          "Root voice could not restart:",
+          error
+        );
+      }
+    }
+
+    setReviewListening(false);
+
+    if (finalInstruction) {
+      setReviewInstruction(finalInstruction);
+
+      runPlaybookReview(
+        finalInstruction,
+        entryForReview
+      );
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch (error) {
+    console.error(
+      "PLAYBOOK VOICE START ERROR:",
+      error
+    );
+
+    recognitionRef.current = null;
+    setReviewListening(false);
+  }
 };
   const saveEntry = async () => {
   if (!profileKey) {
@@ -467,6 +588,11 @@ export default function PlaybookPage() {
   style={styles.saveButton}
   disabled={reviewing}
   onClick={() => {
+    if (reviewListening) {
+      startReviewVoiceInput(reviewEntry);
+      return;
+    }
+
     if (reviewInstruction.trim()) {
       runPlaybookReview(
         reviewInstruction,
@@ -480,6 +606,8 @@ export default function PlaybookPage() {
 >
   {reviewing
     ? "Root is thinking..."
+    : reviewListening
+    ? "⏹ Finished speaking"
     : reviewInstruction.trim()
     ? "Continue with Root"
     : "🎙️ Continue with Root Voice"}
@@ -487,7 +615,8 @@ export default function PlaybookPage() {
 
     {reviewPreview && (
   <>
-    {reviewStatus === "updated" && (
+    {(reviewStatus === "updated" ||
+      reviewStatus === "saved") && (
       <div
         style={{
           padding: "14px 18px",
@@ -500,7 +629,9 @@ export default function PlaybookPage() {
           lineHeight: "1.6",
         }}
       >
-        ✓ Root has applied your requested change.
+        {reviewStatus === "saved"
+  ? "✓ Saved to your Playbook."
+  : "✓ Root has applied your requested change."}
         <div
           style={{
             marginTop: "3px",
@@ -508,7 +639,9 @@ export default function PlaybookPage() {
             opacity: 0.78,
           }}
         >
-          Review the updated version below, then save it when you're happy.
+          {reviewStatus === "saved"
+  ? "Your updated Playbook entry is now saved."
+  : "Review the updated version below, then save it when you're happy."}
         </div>
       </div>
     )}
@@ -545,8 +678,8 @@ export default function PlaybookPage() {
             setReviewEntry(null);
             setReviewInstruction("");
             setReviewPreview("");
-          }}
-        >
+            }}
+            >
           Save update
         </button>
       </>
