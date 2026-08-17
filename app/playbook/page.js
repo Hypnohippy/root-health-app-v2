@@ -22,7 +22,7 @@ const categories = [
 
 export default function PlaybookPage() {
   const { identity } = useRoot();
-const profileKey = identity?.personal?.profileKey;
+  const profileKey = identity?.personal?.profileKey;
   const [entries, setEntries] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,6 +33,7 @@ const profileKey = identity?.personal?.profileKey;
   const [reviewInstruction, setReviewInstruction] = useState("");
   const [reviewPreview, setReviewPreview] = useState("");
   const [reviewing, setReviewing] = useState(false);
+  const [reviewStatus, setReviewStatus] = useState("");
   const reviewRef = useRef(null);
   const [openEntryId, setOpenEntryId] = useState(null);
 
@@ -92,6 +93,7 @@ const profileKey = identity?.personal?.profileKey;
   const runPlaybookReview = async (instructionText, entryForReview = reviewEntry) => {
   if (!entryForReview || !instructionText.trim()) return;
 
+  setReviewStatus("");
   setReviewing(true);
 
   const res = await fetch("/api/playbook-review", {
@@ -108,10 +110,12 @@ const profileKey = identity?.personal?.profileKey;
   const json = await res.json();
 
   if (json.ok) {
-    setReviewPreview(json.updatedContent);
-  } else {
-    alert(json.error || "Root could not review this entry.");
-  }
+  setReviewPreview(json.updatedContent);
+  setReviewStatus("updated");
+} else {
+  setReviewStatus("");
+  alert(json.error || "Root could not review this entry.");
+}
 
   setReviewing(false);
 };
@@ -482,8 +486,34 @@ const profileKey = identity?.personal?.profileKey;
 </button>
 
     {reviewPreview && (
-      <>
-        <p style={styles.formLabel}>Updated preview</p>
+  <>
+    {reviewStatus === "updated" && (
+      <div
+        style={{
+          padding: "14px 18px",
+          borderRadius: "18px",
+          background: "rgba(36,50,36,0.08)",
+          border: "1px solid rgba(36,50,36,0.14)",
+          color: "#243224",
+          fontSize: "14px",
+          fontWeight: "700",
+          lineHeight: "1.6",
+        }}
+      >
+        ✓ Root has applied your requested change.
+        <div
+          style={{
+            marginTop: "3px",
+            fontWeight: "500",
+            opacity: 0.78,
+          }}
+        >
+          Review the updated version below, then save it when you're happy.
+        </div>
+      </div>
+    )}
+
+    <p style={styles.formLabel}>Updated preview</p>
 
         <textarea
           style={styles.textarea}
