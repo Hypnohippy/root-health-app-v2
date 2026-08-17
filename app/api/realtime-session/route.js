@@ -16,6 +16,25 @@ function summariseList(title, items = [], fields = []) {
     .join("\n")}`;
 }
 
+function summariseProfile(profile) {
+  if (!profile) {
+    return "Saved personal profile: none recorded.";
+  }
+
+  return `
+Saved personal profile:
+Name: ${profile.name || "unknown"}
+Age: ${profile.age || "unknown"}
+Height: ${profile.height || "unknown"}
+Weight: ${profile.weight || "unknown"}
+Goal: ${profile.goal || "unknown"}
+Medical conditions: ${profile.conditions || "none recorded"}
+Medications: ${profile.medications || "none recorded"}
+Allergies or intolerances: ${profile.allergies || "none recorded"}
+Diet style: ${profile.diet || "unknown"}
+`.trim();
+}
+
 export async function POST(req) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -27,13 +46,14 @@ export async function POST(req) {
     const body = await req.json();
 
     const {
-      sdp,
-      coachMode,
-      history = [],
-      mindEntries = [],
-      journalEntries = [],
-      name = "",
-    } = body;
+  sdp,
+  coachMode,
+  profile = null,
+  history = [],
+  mindEntries = [],
+  journalEntries = [],
+  name = "",
+} = body;
 
     if (!sdp) {
       return new Response("Missing SDP offer", { status: 400 });
@@ -41,6 +61,8 @@ export async function POST(req) {
 
     const rootContext = `
 Active mode: ${coachMode || "auto"}
+
+${summariseProfile(profile)}
 
 ${summariseList("Recent body signals", history, [
   "signal",
@@ -225,6 +247,35 @@ Use phrases like:
 - from what Root has noticed
 - based on your recent reflections
 - from the information available
+
+PERSONAL SAFETY CONTEXT RULES:
+
+The Saved personal profile is persistent Root context supplied by the user.
+
+Treat saved medical conditions, medications, allergies and intolerances as important safety constraints, not casual preferences.
+
+Before recommending:
+- meals
+- foods
+- supplements
+- exercise
+- training programmes
+- recovery plans
+- lifestyle changes
+
+check the saved personal profile for relevant conditions, medications, allergies, intolerances and physical limitations.
+
+Never knowingly recommend a food or ingredient that conflicts with a recorded allergy or intolerance.
+
+If the user has a recorded medical condition that could materially affect strenuous exercise or a demanding physical programme, take that condition into account before suggesting progression.
+
+Where appropriate, recommend suitable medical or professional clearance rather than casually prescribing strenuous activity.
+
+Preferences and goals may shape a recommendation.
+
+Recorded safety constraints take priority over preferences and goals.
+
+Do not invent contraindications that are not present in the profile or current conversation.
 
 Do not diagnose.
 Do not claim to treat or cure.
