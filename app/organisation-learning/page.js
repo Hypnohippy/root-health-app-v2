@@ -875,9 +875,9 @@ export default function OrganisationLearningPage() {
 );
 
   localStorage.setItem(
-    "root_active_organisation_v1",
-    member.organisation_id
-  );
+  "root_active_organisation_v1",
+  member.organisation_id
+);
 
   localStorage.setItem(
     "root_hr_org_v1",
