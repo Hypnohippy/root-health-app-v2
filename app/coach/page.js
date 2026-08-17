@@ -987,6 +987,7 @@ console.log("VOICE CONTEXT SENT:", {
  body: JSON.stringify({
   sdp: offer.sdp,
   coachMode,
+  profile,
   history,
   mindEntries,
   journalEntries,
