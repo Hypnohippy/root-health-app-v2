@@ -277,55 +277,87 @@ function buildExecutiveReasoning({
   hasWorkforceBaseline,
 }) {
   if (!hasWorkforceBaseline) {
-    return {
-      knows: [
-        `${Number(
-  participation?.activated ??
-  snapshot?.activated ??
-  0
-)} employee account${
-  Number(
+  const activatedEmployees = Number(
     participation?.activated ??
-    snapshot?.activated ??
-    0
-  ) === 1
-    ? " has"
-    : "s have"
-} been activated.`,
-        `${supportInteractions} anonymous support interaction${
-          supportInteractions === 1 ? " has" : "s have"
-        } been recorded.`,
-        "Root does not yet have a completed employee wellbeing baseline.",
-      ],
+      snapshot?.activated ??
+      0
+  );
 
-      suspects: [
-        "Root does not yet have enough employee wellbeing evidence to support an organisational hypothesis.",
-      ],
+  const baselineParticipants = Number(
+    participation?.baselineCompleted ??
+      snapshot?.baselineCompleted ??
+      0
+  );
 
-      unknowns: [
-        "Root cannot yet identify the organisation's main wellbeing pressures because no completed workforce baseline is available.",
-        "Root cannot yet describe improvement, deterioration or stability.",
-        "Root cannot yet determine whether any wellbeing pattern is concentrated within particular teams, roles or working conditions.",
-      ],
+  const privacyMinimum = Number(
+    participation?.privacyMinimum ??
+      snapshot?.privacyMinimum ??
+      5
+  );
 
-      alternatives: [
-        "There is not yet enough workforce wellbeing evidence to compare alternative explanations.",
-      ],
+  const remainingBaselineParticipants =
+    Math.max(
+      privacyMinimum - baselineParticipants,
+      0
+    );
 
-      confidenceBuilders: [
-        "Completed employee baseline assessments.",
-        "Broader participation across teams and roles.",
-        "Continued anonymous support engagement as the baseline develops.",
-        "Later matched check-ins that allow Root to measure genuine movement.",
-      ],
+  return {
+    knows: [
+      `${activatedEmployees} employee account${
+        activatedEmployees === 1
+          ? " has"
+          : "s have"
+      } been activated.`,
 
-      priority:
-        "Establish the workforce baseline",
+      `${baselineParticipants} employee baseline${
+        baselineParticipants === 1
+          ? " has"
+          : "s have"
+      } been completed.`,
 
-      recommendedAction:
-        "Invite and support sufficient employee participation to establish the organisation's first anonymous wellbeing baseline before selecting a targeted wellbeing initiative.",
-    };
-  }
+      `${supportInteractions} anonymous support interaction${
+        supportInteractions === 1
+          ? " has"
+          : "s have"
+      } been recorded.`,
+
+      `Root requires at least ${privacyMinimum} completed employee baselines before releasing an anonymous organisation-level wellbeing picture.`,
+    ],
+
+    suspects: [
+      "Root is deliberately withholding an organisational wellbeing hypothesis until the anonymous baseline threshold is reached.",
+    ],
+
+    unknowns: [
+      "Root cannot yet release the organisation's main wellbeing pressures because the anonymous workforce baseline threshold has not been reached.",
+      "Root cannot yet describe organisation-level improvement, deterioration or stability.",
+      "Root cannot yet determine whether any wellbeing pattern is concentrated within particular teams, roles or working conditions.",
+    ],
+
+    alternatives: [
+      "There is not yet enough anonymous workforce evidence to compare alternative explanations safely.",
+    ],
+
+    confidenceBuilders: [
+      remainingBaselineParticipants > 0
+        ? `${remainingBaselineParticipants} more employee baseline${
+            remainingBaselineParticipants === 1
+              ? ""
+              : "s"
+          } needed to reach the anonymous reporting threshold.`
+        : "The anonymous baseline reporting threshold has been reached.",
+      "Broader participation across teams and roles.",
+      "Continued anonymous support engagement as the evidence base develops.",
+      "Later matched check-ins that allow Root to measure genuine movement.",
+    ],
+
+    priority:
+      "Establish the workforce baseline",
+
+    recommendedAction:
+      "Invite and support sufficient employee participation to establish the organisation's first anonymous wellbeing baseline before selecting a targeted wellbeing initiative.",
+  };
+}
   const initiative =
     snapshot?.initiative || {};
 
