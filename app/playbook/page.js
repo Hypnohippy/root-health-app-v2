@@ -685,9 +685,17 @@ const stopReviewVoiceInput = async (
               )
             );
 
-            setReviewEntry(null);
-            setReviewInstruction("");
-            setReviewPreview("");
+            setReviewEntry((current) =>
+          current
+           ? {
+        ...current,
+        content: reviewPreview,
+         }
+        : current
+       );
+
+setReviewInstruction("");
+setReviewStatus("saved");
             }}
             >
           Save update
