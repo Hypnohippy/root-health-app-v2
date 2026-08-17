@@ -742,7 +742,7 @@ const styles = {
   fieldHint: {
   margin: "4px 0 8px",
   color: "#776C5B",
-  fontSize: "13px",
+  fontSize: "13px", 
   lineHeight: "1.55",
 },
 
