@@ -416,21 +416,16 @@ const profileKey = session.profileKey;
                setReviewInstruction("");
                 setReviewPreview("");
 
+
+startReviewVoiceInput(entry);
+
 setTimeout(() => {
   reviewRef.current?.scrollIntoView({
     behavior: "smooth",
     block: "start",
   });
-
-  startReviewVoiceInput(entry);
-}, 250);
-               setTimeout(() => {
-  reviewRef.current?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
 }, 150);
-               }}
+}}
 >
                  Review with Root Voice
             </button>
