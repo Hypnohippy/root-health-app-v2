@@ -64,25 +64,36 @@ export default function ProfilePage() {
   setSaving(true);
 
   try {
-    const profileKey = getProfileKey();
+  const profileKey = getProfileKey();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    alert("Root could not confirm your signed-in account.");
+    return;
+  }
 
     const { error } = await supabase
-      .from("profiles")
-      .upsert(
-        {
-          profile_key: profileKey,
-          name: profile.name,
-          age: profile.age,
-          height: profile.height,
-          weight: profile.weight,
-          goal: profile.goal,
-          conditions: profile.conditions,
-          medications: profile.medications,
-          allergies: profile.allergies,
-          diet: profile.diet,
-        },
-        { onConflict: "profile_key" }
-      );
+  .from("profiles")
+  .upsert(
+    {
+      user_id: user.id,
+      profile_key: profileKey,
+      name: profile.name,
+      age: profile.age,
+      height: profile.height,
+      weight: profile.weight,
+      goal: profile.goal,
+      conditions: profile.conditions,
+      medications: profile.medications,
+      allergies: profile.allergies,
+      diet: profile.diet,
+    },
+    { onConflict: "profile_key" }
+  );
 
     if (error) {
       console.error("Save profile error:", error);
