@@ -6856,7 +6856,8 @@ rootParticipationText: {
 participantMovementResults: {
   display: "flex",
   flexWrap: "wrap",
-  gap: "12px",
+  alignItems: "center",
+  gap: "10px 24px",
   marginTop: "16px",
   padding: "16px 20px",
   borderRadius: "20px",
@@ -6865,6 +6866,7 @@ participantMovementResults: {
   color: "#3F392F",
   fontSize: "14px",
   fontWeight: "700",
+  lineHeight: "1.4",
 },
 
 participantDept: {
