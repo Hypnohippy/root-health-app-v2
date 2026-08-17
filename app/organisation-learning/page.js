@@ -865,30 +865,22 @@ export default function OrganisationLearningPage() {
   });
 
   localStorage.setItem(
-    "root_profile_key_v1",
-    member.profile_key
-  );
-
-  localStorage.setItem(
-  "root_active_organisation_v1",
-  newOrganisation.id
+  "root_profile_key_v1",
+  member.profile_key
 );
 
-  localStorage.setItem(
+localStorage.setItem(
   "root_active_organisation_v1",
   member.organisation_id
 );
 
-  localStorage.setItem(
-    "root_hr_org_v1",
-    JSON.stringify({
-      organisation_id:
-        member.organisation_id,
-
-      role:
-        member.role,
-    })
-  );
+localStorage.setItem(
+  "root_hr_org_v1",
+  JSON.stringify({
+    organisation_id: member.organisation_id,
+    role: member.role,
+  })
+);
 
   const {
     data: org,
