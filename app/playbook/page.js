@@ -6,6 +6,10 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { useRoot } from "../../context/RootContext";
+import {
+  createRootDictation,
+  transcribeRootAudio,
+} from "../../lib/rootDictation";
 
 
 const categories = [
@@ -34,11 +38,14 @@ export default function PlaybookPage() {
   const [reviewPreview, setReviewPreview] = useState("");
   const [reviewing, setReviewing] = useState(false);
   const [reviewStatus, setReviewStatus] = useState("");
-  const [reviewListening, setReviewListening] = useState(false);
-  const reviewRef = useRef(null);
-  const recognitionRef = useRef(null);
-  const voiceTranscriptRef = useRef("");
-  const [openEntryId, setOpenEntryId] = useState(null);
+  const [reviewRecording, setReviewRecording] = useState(false);
+  const [reviewTranscribing, setReviewTranscribing] = useState(false);
+  const [reviewVoiceError, setReviewVoiceError] = useState("");
+
+const reviewRef = useRef(null);
+const dictationRef = useRef(null);
+
+const [openEntryId, setOpenEntryId] = useState(null);
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("General");
@@ -122,157 +129,108 @@ export default function PlaybookPage() {
 
   setReviewing(false);
 };
-  const startReviewVoiceInput = (
-  entryForReview = reviewEntry
-) => {
-  if (typeof window === "undefined") return;
-
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert(
-      "Voice input is not supported in this browser yet."
-    );
-    return;
-  }
-
-  /*
-   * If Root is already listening, this click means
-   * the user has finished speaking.
-   */
-  if (reviewListening && recognitionRef.current) {
-    setReviewListening(false);
-
-    try {
-      recognitionRef.current.stop();
-    } catch (error) {
-      console.log(
-        "Root voice was already stopping:",
-        error
-      );
-    }
-
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-
-  recognition.lang = "en-GB";
-  recognition.interimResults = true;
-  recognition.continuous = true;
-
-  recognitionRef.current = recognition;
-  voiceTranscriptRef.current = "";
-
-  setReviewInstruction("");
+  const startReviewVoiceInput = async () => {
+  setReviewVoiceError("");
   setReviewStatus("");
-  setReviewListening(true);
-
-  recognition.onresult = (event) => {
-    let finalText = "";
-    let interimText = "";
-
-    for (
-      let index = event.resultIndex;
-      index < event.results.length;
-      index += 1
-    ) {
-      const text =
-        event.results[index]?.[0]?.transcript || "";
-
-      if (event.results[index].isFinal) {
-        finalText += `${text} `;
-      } else {
-        interimText += text;
-      }
-    }
-
-    if (finalText.trim()) {
-      voiceTranscriptRef.current = [
-        voiceTranscriptRef.current,
-        finalText.trim(),
-      ]
-        .filter(Boolean)
-        .join(" ");
-    }
-
-    const visibleText = [
-      voiceTranscriptRef.current,
-      interimText.trim(),
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
-
-    setReviewInstruction(visibleText);
-  };
-
-  recognition.onerror = (event) => {
-    console.error(
-      "PLAYBOOK VOICE ERROR:",
-      event.error
-    );
-
-    if (
-      event.error !== "no-speech" &&
-      event.error !== "aborted"
-    ) {
-      alert(
-        `Root voice could not continue: ${event.error}.`
-      );
-    }
-
-    setReviewListening(false);
-    recognitionRef.current = null;
-  };
-
-  recognition.onend = () => {
-    recognitionRef.current = null;
-
-    const finalInstruction =
-      voiceTranscriptRef.current.trim();
-
-    /*
-     * If the browser stopped recognition itself while
-     * the user was still speaking, restart it.
-     */
-    if (reviewListening) {
-      try {
-        recognition.start();
-        recognitionRef.current = recognition;
-        return;
-      } catch (error) {
-        console.log(
-          "Root voice could not restart:",
-          error
-        );
-      }
-    }
-
-    setReviewListening(false);
-
-    if (finalInstruction) {
-      setReviewInstruction(finalInstruction);
-
-      runPlaybookReview(
-        finalInstruction,
-        entryForReview
-      );
-    }
-  };
 
   try {
-    recognition.start();
+    if (!dictationRef.current) {
+      dictationRef.current =
+        createRootDictation();
+    }
+
+    const dictation =
+      dictationRef.current;
+
+    if (!dictation.isSupported()) {
+      setReviewVoiceError(
+        "Audio recording is not supported in this browser."
+      );
+      return;
+    }
+
+    /*
+     * Begin a genuine audio recording.
+     *
+     * Unlike browser SpeechRecognition,
+     * Root will keep recording until the
+     * user decides they have finished.
+     */
+
+    await dictation.start();
+
+    setReviewRecording(true);
   } catch (error) {
     console.error(
-      "PLAYBOOK VOICE START ERROR:",
+      "Could not start Playbook dictation:",
       error
     );
 
-    recognitionRef.current = null;
-    setReviewListening(false);
+    setReviewRecording(false);
+
+    setReviewVoiceError(
+      error?.message ||
+        "Root could not start the microphone."
+    );
+  }
+};
+
+const stopReviewVoiceInput = async (
+  entryForReview = reviewEntry
+) => {
+  if (!dictationRef.current) return;
+
+  setReviewRecording(false);
+  setReviewTranscribing(true);
+  setReviewVoiceError("");
+
+  try {
+    /*
+     * Stop the recording only because
+     * the USER has chosen to stop.
+     */
+
+    const audioFile =
+      await dictationRef.current.stop();
+
+    /*
+     * Send the completed recording through
+     * Root's new transcription route.
+     */
+
+    const transcript =
+      await transcribeRootAudio(
+        audioFile
+      );
+
+    setReviewInstruction(transcript);
+
+    /*
+     * Playbook differs from Journal here:
+     *
+     * Journal leaves the transcript for the
+     * user to edit.
+     *
+     * Playbook immediately uses the spoken
+     * instruction to revise the selected plan.
+     */
+
+    await runPlaybookReview(
+      transcript,
+      entryForReview
+    );
+  } catch (error) {
+    console.error(
+      "Playbook dictation failed:",
+      error
+    );
+
+    setReviewVoiceError(
+      error?.message ||
+        "Root could not transcribe that recording."
+    );
+  } finally {
+    setReviewTranscribing(false);
   }
 };
   const saveEntry = async () => {
@@ -585,11 +543,23 @@ export default function PlaybookPage() {
     />
 
     <button
-  style={styles.saveButton}
-  disabled={reviewing}
+  style={{
+    ...styles.saveButton,
+    opacity:
+      reviewing ||
+      reviewTranscribing
+        ? 0.7
+        : 1,
+  }}
+  disabled={
+    reviewing ||
+    reviewTranscribing
+  }
   onClick={() => {
-    if (reviewListening) {
-      startReviewVoiceInput(reviewEntry);
+    if (reviewRecording) {
+      stopReviewVoiceInput(
+        reviewEntry
+      );
       return;
     }
 
@@ -601,17 +571,57 @@ export default function PlaybookPage() {
       return;
     }
 
-    startReviewVoiceInput(reviewEntry);
+    startReviewVoiceInput();
   }}
 >
   {reviewing
     ? "Root is thinking..."
-    : reviewListening
+    : reviewTranscribing
+    ? "Transcribing..."
+    : reviewRecording
     ? "⏹ Finished speaking"
     : reviewInstruction.trim()
     ? "Continue with Root"
     : "🎙️ Continue with Root Voice"}
 </button>
+{reviewRecording && (
+  <p
+    style={{
+      margin: "2px 0 0",
+      fontSize: "13px",
+      lineHeight: "1.6",
+      color: "#5E5549",
+    }}
+  >
+    Recording — take your time. Root will continue listening until you press Finished speaking.
+  </p>
+)}
+
+{reviewTranscribing && (
+  <p
+    style={{
+      margin: "2px 0 0",
+      fontSize: "13px",
+      lineHeight: "1.6",
+      color: "#5E5549",
+    }}
+  >
+    Root is turning your recording into text...
+  </p>
+)}
+
+{reviewVoiceError && (
+  <p
+    style={{
+      margin: "2px 0 0",
+      fontSize: "13px",
+      lineHeight: "1.6",
+      color: "#8B2E22",
+    }}
+  >
+    {reviewVoiceError}
+  </p>
+)}
 
     {reviewPreview && (
   <>
