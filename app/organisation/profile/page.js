@@ -282,6 +282,26 @@ export default function OrganisationProfilePage() {
       return;
     }
 
+    if (
+  organisationUnits.length === 0
+) {
+  setError(
+    "Your organisation has not yet set up its workplace structure. Please ask your organisation administrator to complete this before continuing."
+  );
+
+  setSaving(false);
+  return;
+}
+
+if (!organisationUnitId) {
+  setError(
+    "Please tell Root where you mainly work. If you are not sure which area to choose, select “I’m not sure”."
+  );
+
+  setSaving(false);
+  return;
+}
+
     /*
      * Personal Root profile
      *
@@ -407,9 +427,9 @@ export default function OrganisationProfilePage() {
               department.trim(),
 
             organisation_unit_id:
-              organisationUnitId ||
-              null,
-
+            organisationUnitId === "__unsure__"
+            ? null
+            : organisationUnitId,
             role:
               "employee",
 
@@ -555,65 +575,79 @@ export default function OrganisationProfilePage() {
         />
 
         <label style={styles.label}>
-          Where do you work? (optional)
-        </label>
+  Where do you mainly work? *
+</label>
 
-        {organisationUnits.length >
-        0 ? (
-          <select
-            style={styles.input}
-            value={
-              organisationUnitId
-            }
-            onChange={(event) => {
-              const selectedId =
-                event.target.value;
+<p style={styles.fieldHint}>
+  Choose the team, department, site or area that best
+  represents where you normally work.
+</p>
 
-              setOrganisationUnitId(
-                selectedId
-              );
+<p style={styles.fieldHint}>
+  Root uses this to understand workplace patterns while
+  protecting your individual wellbeing information.
+</p>
 
-              const selectedUnit =
-                organisationUnits.find(
-                  (unit) =>
-                    unit.id ===
-                    selectedId
-                );
+{organisationUnits.length > 0 ? (
+  <select
+    style={styles.input}
+    value={organisationUnitId}
+    onChange={(event) => {
+      const selectedId =
+        event.target.value;
 
-              setDepartment(
-                selectedUnit?.name ||
-                ""
-              );
-            }}
-          >
-            <option value="">
-              Select your area
-            </option>
+      setOrganisationUnitId(
+        selectedId
+      );
 
-            {organisationUnits.map(
-              (unit) => (
-                <option
-                  key={unit.id}
-                  value={unit.id}
-                >
-                  {unit.name}
-                </option>
-              )
-            )}
-          </select>
-        ) : (
-          <input
-            style={styles.input}
-            value={department}
-            onChange={(event) =>
-              setDepartment(
-                event.target.value
-              )
-            }
-            placeholder="e.g. HR, Finance, Operations"
-          />
-        )}
+      if (
+        selectedId ===
+        "__unsure__"
+      ) {
+        setDepartment("");
+        return;
+      }
 
+      const selectedUnit =
+        organisationUnits.find(
+          (unit) =>
+            unit.id ===
+            selectedId
+        );
+
+      setDepartment(
+        selectedUnit?.name ||
+        ""
+      );
+    }}
+  >
+    <option value="">
+      Select the area that best fits your work
+    </option>
+
+    {organisationUnits.map(
+      (unit) => (
+        <option
+          key={unit.id}
+          value={unit.id}
+        >
+          {unit.name}
+        </option>
+      )
+    )}
+
+    <option value="__unsure__">
+      I’m not sure which area to choose
+    </option>
+  </select>
+) : (
+  <div style={styles.structureNotice}>
+    Your organisation has not yet set up its workplace
+    structure. An organisation administrator needs to do
+    this before Root can accurately connect your workplace
+    information.
+  </div>
+)}
         {error ? (
           <p style={styles.error}>
             {error}
@@ -704,6 +738,23 @@ const styles = {
     fontSize: "13px",
     lineHeight: "1.5",
   },
+
+  fieldHint: {
+  margin: "4px 0 8px",
+  color: "#776C5B",
+  fontSize: "13px",
+  lineHeight: "1.55",
+},
+
+structureNotice: {
+  padding: "14px 16px",
+  borderRadius: "16px",
+  background: "rgba(138,108,61,0.08)",
+  border: "1px solid rgba(138,108,61,0.16)",
+  color: "#6A5840",
+  fontSize: "14px",
+  lineHeight: "1.6",
+},
 
   button: {
     marginTop: "24px",
