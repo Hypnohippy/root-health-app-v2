@@ -52,7 +52,7 @@ export default function AssessmentPage() {
     burnout_score: 5,
   });
 
-  const [assessmentType, setAssessmentType] = useState("checkin");
+  
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -130,6 +130,60 @@ if (activeExperience === "workplace") {
     organisation.organisation_id ||
     null;
 }
+/*
+ * ROOT ASSESSMENT TYPE
+ *
+ * The employee does not decide whether an assessment
+ * is a baseline or a check-in.
+ *
+ * The first assessment for this profile within this
+ * organisation becomes the baseline automatically.
+ *
+ * Every later assessment becomes a check-in.
+ */
+
+let baselineQuery = supabase
+  .from("wellbeing_assessments")
+  .select("id")
+  .eq("profile_key", profileKey)
+  .eq("assessment_type", "baseline");
+
+if (organisationId) {
+  baselineQuery = baselineQuery.eq(
+    "organisation_id",
+    organisationId
+  );
+} else {
+  baselineQuery = baselineQuery.is(
+    "organisation_id",
+    null
+  );
+}
+
+const {
+  data: existingBaselines,
+  error: baselineLookupError,
+} = await baselineQuery.limit(1);
+
+if (baselineLookupError) {
+  console.error(
+    "BASELINE LOOKUP ERROR:",
+    baselineLookupError
+  );
+
+  alert(
+    "Root could not confirm whether this is your first assessment. Please try again."
+  );
+
+  setSaving(false);
+  return;
+}
+
+const assessmentType =
+  Array.isArray(existingBaselines) &&
+  existingBaselines.length > 0
+    ? "checkin"
+    : "baseline";
 
 const { error } = await supabase
   .from("wellbeing_assessments")
@@ -267,18 +321,6 @@ setSaving(false);
                 shifts over time, and guide you with more care.
               </p>
             </div>
-
-            <label style={styles.label}>What kind of check-in is this?</label>
-
-            <select
-              style={styles.select}
-              value={assessmentType}
-              onChange={(event) => setAssessmentType(event.target.value)}
-            >
-              <option value="baseline">First Reflection</option>
-              <option value="checkin">Today's Check-In</option>
-              <option value="final">Review & Reflection</option>
-            </select>
 
             <div style={styles.questionStack}>
               {questions.map(([key, label, help]) => (
