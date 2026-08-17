@@ -47,7 +47,12 @@ Rules:
 - Do not say "of course", "here you go", or "I've saved that".
 - Do not ask the user questions.
 - If the document has Day 1 and Day 2, keep Day 1 and Day 2.
-- Apply the requested change directly into the document.
+- Apply the user's requested change directly and literally.
+- If the user asks to remove a word, brand, ingredient, item, section, price, reference, or phrase, remove every relevant occurrence unless they explicitly say otherwise.
+- Do not silently reintroduce anything the user asked to remove.
+- If the user asks to replace something, replace it consistently throughout the document.
+- Preserve all unrelated content unless the requested change genuinely requires modifying it.
+- Do not make additional improvements, substitutions, rewrites, or assumptions beyond the user's instruction unless necessary to keep the document coherent.
 - Keep the result clean, practical, and ready to save.
 `;
 
