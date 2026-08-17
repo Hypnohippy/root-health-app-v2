@@ -900,13 +900,22 @@ const highestMeasured =
     )[0] ||
   null;
 
-const matchedParticipants = Number(
+  const matchedParticipants = Number(
   participation.matchedParticipants || 0
+ );
 
-);
+  const privacyMinimum = Number(
+  participation.privacyMinimum ||
+  snapshot?.privacyMinimum ||
+  5
+ );
 
-const hasWorkforceBaseline =
-  assessments.length > 0;
+  const baselineParticipants = Number(
+  participation.baselineCompleted || 0
+ );
+
+  const hasWorkforceBaseline =
+  baselineParticipants >= privacyMinimum;
 
   const reportNarrative =
   hasWorkforceBaseline
@@ -964,9 +973,6 @@ const hasWorkforceBaseline =
           "This report does not yet establish a workforce wellbeing baseline. Root currently has organisation context and participation information, but it is waiting for completed employee assessments before drawing conclusions about workforce wellbeing.",
       };
 
-const privacyMinimum = Number(
-  snapshot?.privacyMinimum || 5
-);
 
 const hasComparison =
   matchedParticipants >= privacyMinimum;
