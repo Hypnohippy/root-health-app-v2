@@ -400,6 +400,43 @@ if (!organisationUnitId) {
      * authenticated Supabase user.
      */
     const {
+  data: existingMembership,
+  error: existingMembershipError,
+} =
+  await supabase
+    .from("organisation_members")
+    .select(
+      `
+        id,
+        role
+      `
+    )
+    .eq(
+      "organisation_id",
+      organisation.organisation_id
+    )
+    .eq(
+      "user_id",
+      user.id
+    )
+    .maybeSingle();
+
+if (existingMembershipError) {
+  setError(
+    existingMembershipError.message ||
+      "Root could not check your existing organisation role."
+  );
+
+  setSaving(false);
+  return;
+}
+
+const protectedRole =
+  existingMembership?.role === "organisation_admin" ||
+  existingMembership?.role === "hr_admin"
+    ? existingMembership.role
+    : "employee";
+    const {
       error: memberError,
     } =
       await supabase
@@ -431,7 +468,7 @@ if (!organisationUnitId) {
             ? null
             : organisationUnitId,
             role:
-              "employee",
+            protectedRole,
 
             activated_at:
               new Date()
