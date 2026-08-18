@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import {
   getRootIdentity,
   getStoredRootIdentity,
+  setActiveOrganisation,
 } from "../../lib/rootIdentity";
 
 export default function LoginPage() {
@@ -15,31 +16,45 @@ export default function LoginPage() {
 
   const handleLogin = async (event) => {
     event.preventDefault();
+
     setLoading(true);
     setMessage("");
 
-    const normalisedEmail = email.trim().toLowerCase();
+    const normalisedEmail =
+      email.trim().toLowerCase();
 
     if (!normalisedEmail || !password) {
-      setMessage("Please enter your email address and password.");
-      setLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: normalisedEmail,
-      password,
-    });
-
-    if (error || !data?.user) {
       setMessage(
-        error?.message || "Root could not sign you in. Please check your details."
+        "Please enter your email address and password."
       );
+
       setLoading(false);
       return;
     }
 
-        /*
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.signInWithPassword({
+        email: normalisedEmail,
+        password,
+      });
+
+    if (
+      error ||
+      !data?.user
+    ) {
+      setMessage(
+        error?.message ||
+          "Root could not sign you in. Please check your details."
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    /*
      * If this person came here while
      * joining an employer's Workplace
      * Programme, finish that journey
@@ -59,185 +74,252 @@ export default function LoginPage() {
     }
 
     const {
-  data: memberships,
-  error: membershipError,
-} = await supabase
-  .from("organisation_members")
-  .select(
-    "id, organisation_id, profile_key, email, name, department, role"
-  )
-  .eq("user_id", data.user.id);
+      data: memberships,
+      error: membershipError,
+    } =
+      await supabase
+        .from("organisation_members")
+        .select(
+          `
+            id,
+            organisation_id,
+            organisation_unit_id,
+            profile_key,
+            email,
+            name,
+            department,
+            role
+          `
+        )
+        .eq(
+          "user_id",
+          data.user.id
+        );
 
-if (membershipError) {
-  setMessage(
-    "You are signed in, but Root could not verify your organisation access."
-  );
-  setLoading(false);
-  return;
-}
+    if (membershipError) {
+      setMessage(
+        "You are signed in, but Root could not verify your organisation access."
+      );
 
-const safeMemberships =
-  Array.isArray(memberships)
-    ? memberships
-    : [];
+      setLoading(false);
+      return;
+    }
 
-if (safeMemberships.length === 0) {
-  /*
-   * A Root user may legitimately have
-   * Personal access without belonging
-   * to an organisation.
-   */
-  await getRootIdentity();
+    const safeMemberships =
+      Array.isArray(memberships)
+        ? memberships
+        : [];
 
-  window.location.href = "/";
-  return;
-}
+    /*
+     * NO ORGANISATION MEMBERSHIP
+     *
+     * This is a normal Direct-to-Public
+     * Root user.
+     */
+    if (
+      safeMemberships.length === 0
+    ) {
+      localStorage.removeItem(
+        "root_active_organisation_v1"
+      );
 
-/*
- * A person may belong to several
- * organisations.
- *
- * Prefer the organisation Root remembers
- * as active. Then fall back to the older
- * organisation storage key. If neither
- * exists, use the first membership.
- */
-const rememberedOrganisationId =
-  localStorage.getItem(
-    "root_active_organisation_v1"
-  );
+      await getRootIdentity();
 
-let legacyOrganisationId = null;
+      window.location.href = "/";
+      return;
+    }
 
-try {
-  const storedOrganisation =
-    JSON.parse(
-      localStorage.getItem(
-        "root_organisation_v1"
-      ) || "null"
+    /*
+     * MULTIPLE ORGANISATIONS
+     *
+     * Root must never guess.
+     *
+     * The authenticated person explicitly
+     * chooses which organisation/context
+     * they want to use.
+     */
+    if (
+      safeMemberships.length > 1
+    ) {
+      localStorage.removeItem(
+        "root_active_organisation_v1"
+      );
+
+      localStorage.removeItem(
+        "root_hr_org_v1"
+      );
+
+      /*
+       * Keep the memberships temporarily
+       * so the next page can show the
+       * legitimate choices belonging to
+       * this authenticated account.
+       */
+      localStorage.setItem(
+        "root_pending_organisation_choices_v1",
+        JSON.stringify(
+          safeMemberships
+        )
+      );
+
+      await getRootIdentity();
+
+      window.location.href =
+        "/choose-organisation";
+
+      return;
+    }
+
+    /*
+     * ONE ORGANISATION ONLY
+     *
+     * With no ambiguity, Root may safely
+     * establish that organisation.
+     */
+    const membership =
+      safeMemberships[0];
+
+    setActiveOrganisation(
+      membership.organisation_id
     );
 
-  legacyOrganisationId =
-    storedOrganisation
-      ?.organisation_id ||
-    null;
-} catch {
-  legacyOrganisationId = null;
-}
+    localStorage.setItem(
+      "root_profile_key_v1",
+      membership.profile_key
+    );
 
-const membership =
-  safeMemberships.find(
-    (item) =>
-      item.organisation_id ===
-      rememberedOrganisationId
-  ) ||
-  safeMemberships.find(
-    (item) =>
-      item.organisation_id ===
-      legacyOrganisationId
-  ) ||
-  safeMemberships[0];
+    localStorage.setItem(
+      "root_profile_v1",
+      JSON.stringify({
+        profile_key:
+          membership.profile_key,
 
-localStorage.setItem(
-  "root_profile_key_v1",
-  membership.profile_key
-);
+        email:
+          membership.email ||
+          data.user.email ||
+          "",
 
-localStorage.setItem(
-  "root_active_organisation_v1",
-  membership.organisation_id
-);
+        name:
+          membership.name ||
+          "",
 
-localStorage.setItem(
-  "root_profile_v1",
-  JSON.stringify({
-    profile_key:
-      membership.profile_key,
+        department:
+          membership.department ||
+          "",
+      })
+    );
 
-    email:
-      membership.email ||
-      data.user.email,
+    localStorage.setItem(
+      "root_organisation_v1",
+      JSON.stringify({
+        organisation_id:
+          membership.organisation_id,
 
-    name:
-      membership.name ||
-      "",
+        role:
+          membership.role ||
+          "employee",
+      })
+    );
 
-    department:
-      membership.department ||
-      "",
-  })
-);
+    if (
+      membership.role ===
+        "hr_admin" ||
+      membership.role ===
+        "organisation_admin"
+    ) {
+      localStorage.setItem(
+        "root_hr_org_v1",
+        JSON.stringify({
+          organisation_id:
+            membership.organisation_id,
 
-localStorage.setItem(
-  "root_organisation_v1",
-  JSON.stringify({
-    organisation_id:
-      membership.organisation_id,
+          role:
+            membership.role,
+        })
+      );
+    } else {
+      localStorage.removeItem(
+        "root_hr_org_v1"
+      );
+    }
 
-    role:
-      membership.role ||
-      "employee",
-  })
-);
-
-localStorage.setItem(
-  "root_hr_org_v1",
-  JSON.stringify({
-    organisation_id:
-      membership.organisation_id,
-
-    role:
-      membership.role ||
-      "employee",
-  })
-);
+    localStorage.removeItem(
+      "root_pending_organisation_choices_v1"
+    );
 
     await getRootIdentity();
 
-const identity = getStoredRootIdentity();
+    const identity =
+      getStoredRootIdentity();
 
-if (!identity) {
-  window.location.href = "/";
-  return;
-}
+    if (!identity) {
+      window.location.href = "/";
+      return;
+    }
 
-if (!identity.capabilities.canUseWorkplace) {
-  window.location.href = "/";
-  return;
-}
+    if (
+      !identity.capabilities
+        ?.canUseWorkplace
+    ) {
+      window.location.href = "/";
+      return;
+    }
 
-if (identity.activeExperience === "workplace") {
-  window.location.href = "/org-insights";
-  return;
-}
+    if (
+      identity.activeExperience ===
+      "workplace"
+    ) {
+      window.location.href =
+        "/org-insights";
 
-if (identity.activeExperience === "personal") {
-  window.location.href = "/";
-  return;
-}
+      return;
+    }
 
-window.location.href = "/choose-experience";
+    if (
+      identity.activeExperience ===
+      "personal"
+    ) {
+      window.location.href = "/";
+      return;
+    }
+
+    window.location.href =
+      "/choose-experience";
   };
 
   return (
     <main style={styles.page}>
       <section style={styles.card}>
-        <p style={styles.kicker}>Root Health</p>
-
-        <h1 style={styles.title}>Welcome back</h1>
-
-        <p style={styles.intro}>
-          Sign in to return to your personal Root experience or organisation
-          dashboard.
+        <p style={styles.kicker}>
+          Root Health
         </p>
 
-        <form onSubmit={handleLogin} style={styles.form}>
+        <h1 style={styles.title}>
+          Welcome back
+        </h1>
+
+        <p style={styles.intro}>
+          Sign in to Root. If you use Root
+          through more than one organisation,
+          we&apos;ll let you choose where you
+          want to continue.
+        </p>
+
+        <form
+          onSubmit={handleLogin}
+          style={styles.form}
+        >
           <label style={styles.label}>
             Email address
+
             <input
               type="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) =>
+                setEmail(
+                  event.target.value
+                )
+              }
               autoComplete="email"
               style={styles.input}
               required
@@ -246,54 +328,77 @@ window.location.href = "/choose-experience";
 
           <label style={styles.label}>
             Password
+
             <input
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) =>
+                setPassword(
+                  event.target.value
+                )
+              }
               autoComplete="current-password"
               style={styles.input}
               required
             />
           </label>
 
-          {message ? <p style={styles.message}>{message}</p> : null}
+          {message ? (
+            <p style={styles.message}>
+              {message}
+            </p>
+          ) : null}
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
+          <button
+            type="submit"
+            style={styles.button}
+            disabled={loading}
+          >
+            {loading
+              ? "Signing in..."
+              : "Sign in"}
           </button>
         </form>
 
         <div style={styles.actions}>
-  <button
-    type="button"
-    style={styles.secondaryButton}
-    onClick={() => {
-      window.location.href = "/organisation/join";
-    }}
-  >
-    Join your employer's Workplace Programme
-  </button>
+          <button
+            type="button"
+            style={
+              styles.secondaryButton
+            }
+            onClick={() => {
+              window.location.href =
+                "/organisation/join";
+            }}
+          >
+            Join your employer&apos;s
+            Workplace Programme
+          </button>
 
-  <button
-    type="button"
-    style={styles.secondaryButton}
-    onClick={() => {
-      window.location.href = "/organisation/register";
-    }}
-  >
-    Apply for Root Workplace
-  </button>
+          <button
+            type="button"
+            style={
+              styles.secondaryButton
+            }
+            onClick={() => {
+              window.location.href =
+                "/organisation/register";
+            }}
+          >
+            Apply for Root Workplace
+          </button>
 
-  <button
-    type="button"
-    style={styles.linkButton}
-    onClick={() => {
-      window.location.href = "/forgot-password";
-    }}
-  >
-    Forgot your password?
-  </button>
-</div>
+          <button
+            type="button"
+            style={styles.linkButton}
+            onClick={() => {
+              window.location.href =
+                "/forgot-password";
+            }}
+          >
+            Forgot your password?
+          </button>
+        </div>
       </section>
     </main>
   );
@@ -317,98 +422,158 @@ const styles = {
     maxWidth: "480px",
     padding: "38px",
     borderRadius: "34px",
-    background: "rgba(255,255,255,0.72)",
-    border: "1px solid rgba(255,255,255,0.9)",
-    boxShadow: "0 30px 90px rgba(32,38,28,0.16)",
-    backdropFilter: "blur(20px)",
+    background:
+      "rgba(255,255,255,0.72)",
+    border:
+      "1px solid rgba(255,255,255,0.9)",
+    boxShadow:
+      "0 30px 90px rgba(32,38,28,0.16)",
+    backdropFilter:
+      "blur(20px)",
   },
 
   kicker: {
-    margin: "0 0 12px",
-    color: "#657257",
-    fontSize: "12px",
-    fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: "0.14em",
+    margin:
+      "0 0 12px",
+    color:
+      "#657257",
+    fontSize:
+      "12px",
+    fontWeight:
+      "800",
+    textTransform:
+      "uppercase",
+    letterSpacing:
+      "0.14em",
   },
 
   title: {
-    margin: "0 0 12px",
-    fontSize: "42px",
-    letterSpacing: "-0.045em",
+    margin:
+      "0 0 12px",
+    fontSize:
+      "42px",
+    letterSpacing:
+      "-0.045em",
   },
 
   intro: {
-    margin: "0 0 28px",
-    color: "#5b5b55",
-    lineHeight: "1.7",
+    margin:
+      "0 0 28px",
+    color:
+      "#5b5b55",
+    lineHeight:
+      "1.7",
   },
 
   form: {
-    display: "grid",
-    gap: "18px",
+    display:
+      "grid",
+    gap:
+      "18px",
   },
 
   label: {
-    display: "grid",
-    gap: "8px",
-    fontWeight: "700",
+    display:
+      "grid",
+    gap:
+      "8px",
+    fontWeight:
+      "700",
   },
 
   input: {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "14px 16px",
-    borderRadius: "16px",
-    border: "1px solid rgba(24,24,24,0.14)",
-    background: "rgba(255,255,255,0.9)",
-    fontSize: "16px",
-    outline: "none",
+    width:
+      "100%",
+    boxSizing:
+      "border-box",
+    padding:
+      "14px 16px",
+    borderRadius:
+      "16px",
+    border:
+      "1px solid rgba(24,24,24,0.14)",
+    background:
+      "rgba(255,255,255,0.9)",
+    fontSize:
+      "16px",
+    outline:
+      "none",
   },
 
   message: {
-    margin: 0,
-    padding: "12px 14px",
-    borderRadius: "14px",
-    background: "rgba(180,70,55,0.1)",
-    color: "#8a3127",
-    lineHeight: "1.5",
+    margin:
+      0,
+    padding:
+      "12px 14px",
+    borderRadius:
+      "14px",
+    background:
+      "rgba(180,70,55,0.1)",
+    color:
+      "#8a3127",
+    lineHeight:
+      "1.5",
   },
 
   button: {
-    border: "none",
-    borderRadius: "999px",
-    padding: "15px 20px",
-    background: "#181818",
-    color: "#ffffff",
-    fontWeight: "800",
-    cursor: "pointer",
+    border:
+      "none",
+    borderRadius:
+      "999px",
+    padding:
+      "15px 20px",
+    background:
+      "#181818",
+    color:
+      "#ffffff",
+    fontWeight:
+      "800",
+    cursor:
+      "pointer",
   },
 
   secondaryButton: {
-    width: "100%",
-    marginTop: "16px",
-    border: "1px solid rgba(24,24,24,0.12)",
-    borderRadius: "999px",
-    padding: "13px 18px",
-    background: "rgba(255,255,255,0.55)",
-    color: "#181818",
-    fontWeight: "700",
-    cursor: "pointer",
+    width:
+      "100%",
+    marginTop:
+      "16px",
+    border:
+      "1px solid rgba(24,24,24,0.12)",
+    borderRadius:
+      "999px",
+    padding:
+      "13px 18px",
+    background:
+      "rgba(255,255,255,0.55)",
+    color:
+      "#181818",
+    fontWeight:
+      "700",
+    cursor:
+      "pointer",
   },
+
   actions: {
-  display: "grid",
-  gap: "12px",
-  marginTop: "20px",
-},
+    display:
+      "grid",
+    gap:
+      "12px",
+    marginTop:
+      "20px",
+  },
 
-linkButton: {
-  border: "none",
-  background: "transparent",
-  color: "#5A6D55",
-  cursor: "pointer",
-  fontWeight: "700",
-  textDecoration: "underline",
-},
-
+  linkButton: {
+    border:
+      "none",
+    background:
+      "transparent",
+    color:
+      "#5A6D55",
+    cursor:
+      "pointer",
+    fontWeight:
+      "700",
+    textDecoration:
+      "underline",
+  },
 };
