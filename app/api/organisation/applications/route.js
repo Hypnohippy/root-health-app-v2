@@ -1264,8 +1264,12 @@ function buildWorkplaceMetadata(
 
 async function sendSetupAccess(
   supabase,
-  application
+  application,
+  approvedByUser
 ) {
+  const crypto =
+    await import("node:crypto");
+
   const adminEmail =
     normaliseEmail(
       application.admin_email
@@ -1277,152 +1281,251 @@ async function sendSetupAccess(
     );
   }
 
-  const existingUser =
-    await findAuthUserByEmail(
-      supabase,
-      adminEmail
-    );
-
-  const workplaceMetadata =
-    buildWorkplaceMetadata(
-      application
-    );
-
   /*
-   * EXISTING ROOT USER
+   * ROOT SECURE SETUP INVITATION
    *
-   * One person may administer more than
-   * one organisation.
+   * Email is the delivery address only.
    *
-   * Keep their existing Auth account,
-   * add the pending Workplace setup
-   * metadata and send a secure magic
-   * sign-in link.
+   * It does NOT identify the human and
+   * it does NOT grant organisation access.
+   *
+   * The unique, one-time invitation is
+   * the authority for this setup journey.
    */
-  if (existingUser) {
-    const existingMetadata =
-      existingUser.user_metadata &&
-      typeof existingUser.user_metadata ===
-        "object"
-        ? existingUser.user_metadata
-        : {};
 
-    const {
-      data:
-        updatedUserData,
+  const rawToken =
+    crypto.randomBytes(32)
+      .toString("hex");
 
-      error:
-        updateUserError,
-    } =
-      await supabase.auth.admin
-        .updateUserById(
-          existingUser.id,
-          {
-            user_metadata: {
-              ...existingMetadata,
-              ...workplaceMetadata,
-            },
-          }
-        );
+  const tokenHash =
+    crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
 
-    if (updateUserError) {
-      throw updateUserError;
-    }
-
-    /*
-     * shouldCreateUser: false is important.
-     * This path is only for a person Root
-     * has already found in Auth.
-     */
-    const {
-      error:
-        magicLinkError,
-    } =
-      await supabase.auth
-        .signInWithOtp({
-          email: adminEmail,
-
-          options: {
-            shouldCreateUser:
-              false,
-
-            emailRedirectTo:
-              "https://roothealth.app/organisation-learning",
-          },
-        });
-
-    if (magicLinkError) {
-      throw magicLinkError;
-    }
-
-    return {
-      user:
-        updatedUserData?.user ||
-        existingUser,
-
-      accessType:
-        "existing_user",
-
-      invited:
-        false,
-
-      magicLinkSent:
-        true,
-    };
-  }
+  const expiresAt =
+    new Date(
+      Date.now() +
+        48 * 60 * 60 * 1000
+    ).toISOString();
 
   /*
-   * NEW ROOT USER
+   * If approval is intentionally repeated,
+   * revoke any older live invitation first.
    *
-   * For a genuinely new person, use
-   * Supabase's normal invitation flow.
+   * This means there can be only one usable
+   * setup credential for this application.
    */
   const {
-    data:
-      inviteData,
-
-    error:
-      inviteError,
+    error: revokeError,
   } =
-    await supabase.auth.admin
-      .inviteUserByEmail(
-        adminEmail,
-        {
-          redirectTo:
-            "https://roothealth.app/organisation-learning",
+    await supabase
+      .from(
+        "organisation_setup_invites"
+      )
+      .update({
+        status:
+          "revoked",
 
-          data:
-            workplaceMetadata,
-        }
+        revoked_at:
+          new Date().toISOString(),
+      })
+      .eq(
+        "application_id",
+        application.id
+      )
+      .eq(
+        "status",
+        "pending"
       );
 
-  const invitedUser =
-    inviteData?.user || null;
+  if (revokeError) {
+    throw revokeError;
+  }
+
+  const {
+    data: setupInvite,
+    error: setupInviteError,
+  } =
+    await supabase
+      .from(
+        "organisation_setup_invites"
+      )
+      .insert({
+        application_id:
+          application.id,
+
+        intended_email:
+          adminEmail,
+
+        intended_role:
+          "organisation_admin",
+
+        token_hash:
+          tokenHash,
+
+        status:
+          "pending",
+
+        expires_at:
+          expiresAt,
+
+        created_by:
+          approvedByUser?.id ||
+          null,
+      })
+      .select(
+        `
+          id,
+          application_id,
+          intended_email,
+          intended_role,
+          status,
+          expires_at
+        `
+      )
+      .single();
 
   if (
-    inviteError ||
-    !invitedUser
+    setupInviteError ||
+    !setupInvite
   ) {
     throw (
-      inviteError ||
+      setupInviteError ||
       new Error(
-        "Root could not create the Workplace invitation."
+        "Root could not create the secure Workplace setup invitation."
       )
     );
   }
 
+  const setupUrl =
+    `https://roothealth.app/workplace-setup` +
+    `?token=${encodeURIComponent(
+      rawToken
+    )}`;
+
+  /*
+   * Send the invitation ourselves rather
+   * than letting Supabase Auth decide
+   * whether this email belongs to an
+   * existing Root user.
+   */
+
+  const smtpUser =
+    String(
+      process.env.ROOT_SMTP_USER ||
+        ""
+    ).trim();
+
+  const smtpPassword =
+    String(
+      process.env.ROOT_SMTP_PASSWORD ||
+        ""
+    ).trim();
+
+  const smtpFrom =
+    String(
+      process.env.ROOT_SMTP_FROM ||
+        smtpUser
+    ).trim();
+
+  if (
+    !smtpUser ||
+    !smtpPassword ||
+    !smtpFrom
+  ) {
+    throw new Error(
+      "Root Workplace email is not configured."
+    );
+  }
+
+  const transporter =
+    nodemailer.createTransport({
+      service:
+        "gmail",
+
+      auth: {
+        user:
+          smtpUser,
+
+        pass:
+          smtpPassword,
+      },
+    });
+
+  const organisationName =
+    String(
+      application.organisation_name ||
+        "your organisation"
+    ).trim();
+
+  const contactName =
+    String(
+      application.contact_name ||
+        ""
+    ).trim();
+
+  const greeting =
+    contactName
+      ? `Dear ${contactName},`
+      : "Hello,";
+
+  const subject =
+    "Set up your Root Workplace access";
+
+  const text =
+`${greeting}
+
+Your organisation's application to join Root Workplace for ${organisationName} has been approved.
+
+You have been invited to set up the authorised Root Workplace administrator account.
+
+This setup invitation is unique to this approval and can only be used once.
+
+Set up Root Workplace:
+
+${setupUrl}
+
+This invitation expires in 48 hours.
+
+If another Root account is currently signed in on your device, Root will ask you to continue with the account intended for this invitation before any organisation access is created.
+
+If you were not expecting this invitation, you can safely ignore this email.
+
+Kind regards,
+
+Root Workplace`;
+
+  await transporter.sendMail({
+    from:
+      smtpFrom,
+
+    to:
+      adminEmail,
+
+    replyTo:
+      smtpUser,
+
+    subject,
+
+    text,
+  });
+
   return {
     user:
-      invitedUser,
+      null,
 
     accessType:
-      "new_user",
+      "secure_setup_invite",
 
     invited:
       true,
 
     magicLinkSent:
       false,
+
+    setupInviteId:
+      setupInvite.id,
   };
 }
 
@@ -2093,10 +2196,11 @@ created_at
 
     try {
       setupAccess =
-        await sendSetupAccess(
-          supabase,
-          application
-        );
+  await sendSetupAccess(
+    supabase,
+    application,
+    admin.user
+  );
     } catch (setupError) {
       console.error(
         "ROOT WORKPLACE SETUP ACCESS ERROR:",
