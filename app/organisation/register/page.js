@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 export default function OrganisationRegisterPage() {
+  const [
+    accessPath,
+    setAccessPath,
+  ] = useState("trial");
+
   const [name, setName] =
     useState("");
 
@@ -54,7 +62,31 @@ export default function OrganisationRegisterPage() {
   const [createdOrg, setCreatedOrg] =
     useState(null);
 
-    async function startPilot() {
+  useEffect(() => {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const requestedPath =
+    String(
+      params.get("path") ||
+        "trial"
+    )
+      .trim()
+      .toLowerCase();
+
+  setAccessPath(
+    requestedPath === "paid"
+      ? "paid"
+      : "trial"
+  );
+  }, []);
+
+  const isPaid =
+  accessPath === "paid";  
+
+    async function submitApplication() {
     setLoading(true);
     setError("");
 
@@ -140,9 +172,11 @@ export default function OrganisationRegisterPage() {
               associatedBusinessDeclared,
 
               associatedBusinessName:
-                associatedBusinessDeclared
-                  ? associatedBusinessName.trim()
-                  : "",
+              associatedBusinessDeclared
+              ? associatedBusinessName.trim()
+              : "",
+
+accessPath,
             }),
           }
         );
@@ -195,23 +229,21 @@ export default function OrganisationRegisterPage() {
           </p>
 
           <h1 style={styles.title}>
-            Application received ✅
+            {isPaid
+              ? "Root Workplace details received ✅"
+              : "Application received ✅"}
           </h1>
 
           <p style={styles.text}>
-            Thank you for applying to
-            join the Root Workplace
-            Programme.
+            {isPaid
+              ? "Thank you for choosing to join Root Workplace."
+              : "Thank you for applying to join the Root Workplace Programme."}
           </p>
 
           <p style={styles.text}>
-            Root will review the
-            organisation details before
-            creating workplace access.
-            Submitting this application
-            does not create an
-            organisation dashboard or
-            grant HR permissions.
+            {isPaid
+              ? "Root has received your organisation details. The next step is to confirm your membership and billing before secure Workplace access is created."
+              : "Root will review the organisation details before creating workplace access. Submitting this application does not create an organisation dashboard or grant HR permissions."}
           </p>
 
           <div style={styles.successBox}>
@@ -265,22 +297,23 @@ export default function OrganisationRegisterPage() {
 
             <p>
               <strong>
-                Application status
+               {isPaid
+                 ? "Membership status"
+                 : "Application status"}
               </strong>
 
-              <br />
+            <br />
 
-              Pending review
+            {isPaid
+              ? "Awaiting membership confirmation"
+              : "Pending review"}
             </p>
           </div>
 
           <p style={styles.smallText}>
-            Once approved, the authorised
-            Root administrator will
-            receive secure instructions
-            for setting up Workplace
-            access and inviting
-            employees.
+            {isPaid
+              ? "Once membership is confirmed, the authorised Root administrator will receive secure instructions for setting up Workplace access and inviting employees."
+              : "Once approved, the authorised Root administrator will receive secure instructions for setting up Workplace access and inviting employees."}
           </p>
 
           <button
@@ -305,8 +338,9 @@ export default function OrganisationRegisterPage() {
         </p>
 
         <h1 style={styles.title}>
-          Apply for the Root Workplace
-          Programme
+           {isPaid
+             ? "Join Root Workplace"
+             : "Apply for the Root Workplace Programme"}
         </h1>
 
         <p style={styles.text}>
@@ -420,6 +454,8 @@ export default function OrganisationRegisterPage() {
               {organisationType ===
               "registered_charity"
                 ? "Enter the relevant charity or company registration number if your organisation has one."
+                : isPaid
+                ? "This helps Root verify the legal organisation connected to the membership."
                 : "This helps Root recognise the legal organisation and protect the complimentary pilot programme."}
             </p>
           </>
@@ -461,10 +497,9 @@ export default function OrganisationRegisterPage() {
         </select>
 
         <p style={styles.fieldHelp}>
-          This helps Root understand whether your
-          organisation is part of a wider business
-          relationship when reviewing complimentary
-          pilot eligibility.
+            {isPaid
+              ? "This helps Root understand the wider business or group relationship connected to your organisation."
+              : "This helps Root understand whether your organisation is part of a wider business relationship when reviewing complimentary pilot eligibility."}
         </p>
 
         {associatedBusinessDeclared ? (
@@ -643,17 +678,20 @@ export default function OrganisationRegisterPage() {
               ? styles.buttonDisabled
               : {}),
           }}
-          onClick={startPilot}
+          onClick={submitApplication}
           disabled={loading}
         >
           {loading
-            ? "Submitting application..."
-            : "Apply for Root Workplace"}
+            ? "Submitting..."
+           : isPaid
+           ? "Continue with Root Workplace"
+           : "Apply for Root Workplace"}
         </button>
 
         <p style={styles.formNote}>
-          No account or payment is
-          required to apply.
+          {isPaid
+            ? "No trial is attached to this route. Membership and billing are confirmed before Workplace access is created."
+            : "No account or payment is required to apply."}
         </p>
       </section>
     </main>
