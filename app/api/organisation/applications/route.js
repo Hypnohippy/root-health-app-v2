@@ -2219,21 +2219,6 @@ created_at
       );
     }
 
-    const setupUser =
-      setupAccess?.user ||
-      null;
-
-    if (!setupUser?.id) {
-      return NextResponse.json(
-        {
-          error:
-            "Root sent the setup request but could not identify the authorised administrator.",
-        },
-        {
-          status: 500,
-        }
-      );
-    }
 
     const {
       data:
@@ -2247,16 +2232,25 @@ created_at
           "organisation_applications"
         )
         .update({
-          user_id:
-            setupUser.id,
+  /*
+   * Do NOT assign application.user_id yet.
+   *
+   * Approval creates an invitation,
+   * not an administrator.
+   *
+   * The authenticated human will only
+   * be attached after securely redeeming
+   * the setup invitation.
+   */
+  user_id: null,
 
-          status:
-            "approved",
+  status:
+    "approved",
 
-          reviewed_at:
-            new Date()
-              .toISOString(),
-        })
+  reviewed_at:
+    new Date()
+      .toISOString(),
+})
         .eq(
           "id",
           application.id
