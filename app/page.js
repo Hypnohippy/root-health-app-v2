@@ -141,7 +141,7 @@ const pendingWorkplaceSetup =
     "root_workplace_setup_token_v1"
   );
 
-if (pendingWorkplaceSetup) {
+if (pendingWorkplaceSetup) { 
   window.location.href =
     "/workplace-setup";
   return;
