@@ -70,9 +70,9 @@ export default function WorkplaceSetupPage() {
       ).trim();
 
     const storedToken =
-      sessionStorage.getItem(
-        TOKEN_STORAGE_KEY
-      ) || "";
+  localStorage.getItem(
+    TOKEN_STORAGE_KEY
+  ) || "";
 
     const setupToken =
       queryToken ||
@@ -91,10 +91,10 @@ export default function WorkplaceSetupPage() {
      * Keep the secret only for this browser
      * session, then remove it from the URL.
      */
-    sessionStorage.setItem(
-      TOKEN_STORAGE_KEY,
-      setupToken
-    );
+    localStorage.setItem(
+     TOKEN_STORAGE_KEY,
+    setupToken
+  );
 
     if (queryToken) {
       window.history.replaceState(
