@@ -2234,7 +2234,7 @@ created_at
         .update({
   /*
    * Do NOT assign application.user_id yet.
-   *
+   * 
    * Approval creates an invitation,
    * not an administrator.
    *
