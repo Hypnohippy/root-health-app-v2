@@ -480,13 +480,13 @@ created_at
           contactEmail
         )
         .eq(
-          "status",
-          "pending"
-        .eq(
+           "status",
+           "pending"
+        )
+       .eq(
           "access_path",
           accessPath
-     )
-        );
+      );
 
     if (existingError) {
       console.error(
