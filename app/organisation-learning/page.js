@@ -632,9 +632,9 @@ const secureSetupMode =
 
 if (secureSetupMode) {
   const pendingSetupToken =
-    sessionStorage.getItem(
-      "root_workplace_setup_token_v1"
-    ) || "";
+  localStorage.getItem(
+    "root_workplace_setup_token_v1"
+  ) || "";
 
   if (
     authError ||
@@ -1907,8 +1907,8 @@ if (secureSetupToken) {
    * session storage after redemption.
    */
 
-  sessionStorage.removeItem(
-    "root_workplace_setup_token_v1"
+  localStorage.removeItem(
+  "root_workplace_setup_token_v1"
   );
 
   setActiveExperience(
