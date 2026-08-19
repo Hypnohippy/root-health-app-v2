@@ -1613,6 +1613,7 @@ const {
   daysElapsed,
   daysRemaining,
   progress: trialProgress,
+  isTrial,
 } = trialStatus;
  
 
@@ -5080,34 +5081,42 @@ We look forward to welcoming you.
     </button>
   </div>
 </section>        
-              <section style={styles.heroCard}>
-                <div>
-                  <p style={styles.heroLabel}>Organisation Review Period</p>
-                 <h2 style={styles.heroTitle}>
-  {organisation?.name || "Workforce Wellbeing Review"}
-</h2>
-                  <p style={styles.heroText}>
-  Day {daysElapsed} of {totalTrialDays}
-</p>
+              {isTrial ? (
+  <section style={styles.heroCard}>
+    <div>
+      <p style={styles.heroLabel}>
+        Organisation Review Period
+      </p>
 
-<p style={styles.heroText}>
-  {daysRemaining} days remaining
-</p>
+      <h2 style={styles.heroTitle}>
+        {organisation?.name ||
+          "Workforce Wellbeing Review"}
+      </h2>
 
-<p style={styles.heroText}>
-  Review cycle progress: {Math.round(trialProgress)}%
-</p>
-                </div>
+      <p style={styles.heroText}>
+        Day {daysElapsed} of {totalTrialDays}
+      </p>
 
-                <div style={styles.progressTrack}>
-                  <div
-                    style={{
-                      ...styles.progressFill,
-                      width: `${trialProgress}%`,
-                    }}
-                  />
-                </div>
-              </section>
+      <p style={styles.heroText}>
+        {daysRemaining} days remaining
+      </p>
+
+      <p style={styles.heroText}>
+        Review cycle progress:{" "}
+        {Math.round(trialProgress)}%
+      </p>
+    </div>
+
+    <div style={styles.progressTrack}>
+      <div
+        style={{
+          ...styles.progressFill,
+          width: `${trialProgress}%`,
+        }}
+      />
+    </div>
+  </section>
+) : null}
 
               <section style={styles.executiveGrid}>
                 <ExecutiveCard
