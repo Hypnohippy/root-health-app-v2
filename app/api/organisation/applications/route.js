@@ -1573,6 +1573,7 @@ admin_email,
 employee_count,
 industry,
 root_customer_group_id,
+access_path,
 trial_eligibility_status,
 trial_eligibility_reason,
 trial_eligibility_checked_at,
@@ -1669,6 +1670,7 @@ const assessedApplications =
               employee_count,
               industry,
               root_customer_group_id,
+              access_path,
               trial_eligibility_status,
               trial_eligibility_reason,
               trial_eligibility_checked_at,
@@ -1831,6 +1833,7 @@ admin_email,
 employee_count,
 industry,
 root_customer_group_id,
+access_path,
 trial_eligibility_status,
 trial_eligibility_reason,
 trial_eligibility_checked_at,
@@ -1860,6 +1863,67 @@ created_at
         }
       );
     }
+
+    /*
+ * ==========================================================
+ * COMMERCIAL ENTRY PATH
+ *
+ * Trial applications use the Founder
+ * complimentary-pilot decision workflow.
+ *
+ * Direct paid applications must never be
+ * accidentally processed as a complimentary
+ * pilot application.
+ * ==========================================================
+ */
+
+const accessPath =
+  String(
+    application.access_path ||
+      "trial"
+  )
+    .trim()
+    .toLowerCase();
+
+if (
+  accessPath === "paid" &&
+  (
+    decision === "hold" ||
+    decision === "decline"
+  )
+) {
+  return NextResponse.json(
+    {
+      error:
+        "Direct Root Workplace membership applications do not use complimentary pilot hold or decline decisions.",
+    },
+    {
+      status: 400,
+    }
+  );
+}
+/*
+ * Paid access will be enabled by the
+ * confirmed billing route, not by the
+ * complimentary-pilot approval button.
+ *
+ * Keep this locked until that payment
+ * hand-off is connected.
+ */
+if (
+  accessPath === "paid" &&
+  decision === "approve"
+) {
+  return NextResponse.json(
+    {
+      error:
+        "Direct Root Workplace membership must be confirmed through the paid signup and billing route.",
+    },
+    {
+      status: 400,
+    }
+  );
+}
 
     if (
       application.status ===
@@ -1961,6 +2025,7 @@ created_at
             employee_count,
             industry,
             root_customer_group_id,
+            access_path,
             trial_eligibility_status,
             trial_eligibility_reason,
             trial_eligibility_checked_at,
