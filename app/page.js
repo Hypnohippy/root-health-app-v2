@@ -136,6 +136,17 @@ export default function Home() {
 
   const profileKey = identity?.personal?.profileKey;
 
+const pendingWorkplaceSetup =
+  localStorage.getItem(
+    "root_workplace_setup_token_v1"
+  );
+
+if (pendingWorkplaceSetup) {
+  window.location.href =
+    "/workplace-setup";
+  return;
+}
+
 if (!identity?.personal?.orientationCompleted) {
   window.location.href = "/orientation";
   return;
