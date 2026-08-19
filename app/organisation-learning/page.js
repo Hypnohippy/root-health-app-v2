@@ -540,6 +540,10 @@ export default function OrganisationLearningPage() {
   const [previousReview, setPreviousReview] = useState(null);
   const [reviewHistory, setReviewHistory] = useState([]);
   const [isOnboarding, setIsOnboarding] = useState(false);
+  const [
+  secureSetupToken,
+  setSecureSetupToken,
+] = useState("");
 
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -599,6 +603,187 @@ export default function OrganisationLearningPage() {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
+
+  /*
+ * ==========================================================
+ * SECURE WORKPLACE SETUP
+ *
+ * A new organisation approved through
+ * Root Workplace must arrive through the
+ * one-time secure setup invitation.
+ *
+ * The invitation has already established
+ * which organisation is being created.
+ *
+ * The authenticated Root account must
+ * also match that invitation before this
+ * page will allow onboarding to continue.
+ * ==========================================================
+ */
+
+const pageParams =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const secureSetupMode =
+  pageParams.get("setup") ===
+  "secure";
+
+if (secureSetupMode) {
+  const pendingSetupToken =
+    sessionStorage.getItem(
+      "root_workplace_setup_token_v1"
+    ) || "";
+
+  if (
+    authError ||
+    !user
+  ) {
+    window.location.href =
+      "/workplace-setup";
+
+    return;
+  }
+
+  if (!pendingSetupToken) {
+    setErrorMessage(
+      "Root could not find the secure Workplace setup invitation. Please return to your invitation email."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  const previewResponse =
+    await fetch(
+      `/api/organisation/setup-invite?token=${encodeURIComponent(
+        pendingSetupToken
+      )}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+  const previewResult =
+    await previewResponse.json();
+
+  if (
+    !previewResponse.ok ||
+    !previewResult?.success
+  ) {
+    setErrorMessage(
+      previewResult?.error ||
+        "Root could not verify the secure Workplace setup invitation."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  const intendedEmail =
+    String(
+      previewResult
+        ?.invitation
+        ?.intendedEmail ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const signedInEmail =
+    String(
+      user.email ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    !intendedEmail ||
+    signedInEmail !==
+      intendedEmail
+  ) {
+    window.location.href =
+      "/workplace-setup";
+
+    return;
+  }
+
+  const secureApplication =
+    previewResult.application ||
+    {};
+
+  setSecureSetupToken(
+    pendingSetupToken
+  );
+
+  setIsOnboarding(true);
+
+  setRequiresPassword(false);
+
+  setOrganisation(null);
+  setMembership(null);
+  setPreviousReview(null);
+  setReviewHistory([]);
+
+  setContactName(
+    user.user_metadata?.name ||
+      user.user_metadata
+        ?.full_name ||
+      secureApplication
+        .contactName ||
+      ""
+  );
+
+  setContactEmail(
+    user.email ||
+      intendedEmail
+  );
+
+  setOrganisationName(
+    secureApplication
+      .organisationName ||
+      ""
+  );
+
+  const secureEmployeeCount =
+    String(
+      secureApplication
+        .employeeCount ||
+        ""
+    ).trim();
+
+  const secureEmployeeBands = [
+    "1-50",
+    "51-150",
+    "151-500",
+    "501-1000",
+    "1000+",
+  ];
+
+  if (
+    secureEmployeeBands.includes(
+      secureEmployeeCount
+    )
+  ) {
+    setEmployeeCount(
+      secureEmployeeCount
+    );
+  }
+
+  if (
+    secureApplication.industry
+  ) {
+    setIndustry(
+      secureApplication.industry
+    );
+  }
+
+  setLoading(false);
+  return;
+}
 
   /*
    * No authenticated Root account yet.
@@ -1537,6 +1722,206 @@ if (
       setSaving(false);
       return;
     }
+
+    /*
+ * ==========================================================
+ * SECURE WORKPLACE INVITATION REDEMPTION
+ *
+ * Approved Workplace setup must not create
+ * the organisation or administrator permission
+ * directly in browser code.
+ *
+ * The secure server/database path verifies:
+ *
+ * - the authenticated Root user
+ * - the exact invitation
+ * - invitation state and expiry
+ * - the approved application
+ * - organisation creation
+ * - organisation_admin permission
+ * - the first learning review
+ * - final one-time redemption
+ * ==========================================================
+ */
+
+if (secureSetupToken) {
+  const {
+    data: {
+      session,
+    },
+    error: sessionError,
+  } =
+    await supabase.auth.getSession();
+
+  if (
+    sessionError ||
+    !session?.access_token
+  ) {
+    setErrorMessage(
+      "Your Root session could not be verified. Please return to the secure Workplace invitation and sign in again."
+    );
+
+    setSaving(false);
+    return;
+  }
+
+  const secureResponse =
+    await fetch(
+      "/api/organisation/setup-invite",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          Authorization:
+            `Bearer ${session.access_token}`,
+        },
+
+        body:
+          JSON.stringify({
+            token:
+              secureSetupToken,
+
+            adminName:
+              cleanName,
+
+            measures: {
+              sickness_days:
+                toDatabaseNumber(
+                  measures.sickness_days
+                ),
+
+              turnover:
+                toDatabaseNumber(
+                  measures.turnover
+                ),
+
+              agency_spend:
+                toDatabaseNumber(
+                  measures.agency_spend
+                ),
+
+              overtime_hours:
+                toDatabaseNumber(
+                  measures.overtime_hours
+                ),
+
+              vacancies:
+                toDatabaseNumber(
+                  measures.vacancies
+                ),
+            },
+
+            businessEvents:
+              selectedEvents,
+
+            businessEventNotes:
+              businessEventNotes.trim() ||
+              null,
+
+            initiatives:
+              selectedInitiatives,
+
+            initiativeNotes:
+              initiativeNotes.trim() ||
+              null,
+
+            watchItems:
+              selectedWatchItems,
+
+            rootReflection:
+              reflection,
+
+            confidenceLabel:
+              "Emerging",
+          }),
+      }
+    );
+
+  const secureResult =
+    await secureResponse.json();
+
+  if (
+    !secureResponse.ok ||
+    !secureResult?.success
+  ) {
+    setErrorMessage(
+      secureResult?.error ||
+        "Root could not complete the secure Workplace setup."
+    );
+
+    setSaving(false);
+    return;
+  }
+
+  /*
+   * At this point the database transaction
+   * has successfully created everything.
+   */
+
+  localStorage.setItem(
+    "root_profile_key_v1",
+    secureResult.profileKey
+  );
+
+  localStorage.setItem(
+    "root_hr_org_v1",
+    JSON.stringify({
+      organisation_id:
+        secureResult.organisationId,
+
+      role:
+        secureResult.role ||
+        "organisation_admin",
+    })
+  );
+
+  localStorage.setItem(
+    "root_organisation_v1",
+    JSON.stringify({
+      organisation_id:
+        secureResult.organisationId,
+
+      organisation_name:
+        cleanOrganisationName,
+
+      role:
+        secureResult.role ||
+        "organisation_admin",
+
+      joined_at:
+        Date.now(),
+    })
+  );
+
+  localStorage.setItem(
+    "root_active_organisation_v1",
+    secureResult.organisationId
+  );
+
+  /*
+   * The invitation is one-use.
+   * Remove the raw token from browser
+   * session storage after redemption.
+   */
+
+  sessionStorage.removeItem(
+    "root_workplace_setup_token_v1"
+  );
+
+  setActiveExperience(
+    "workplace"
+  );
+
+  await getRootIdentity();
+
+  window.location.href =
+    "/org-insights";
+
+  return;
+}
 
     let user = existingUser;
 
