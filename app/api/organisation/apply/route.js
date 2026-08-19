@@ -147,6 +147,9 @@ async function sendApplicationReceivedEmail(
       ""
     ).trim();
 
+  const isPaid =
+    application.access_path === "paid";
+
   const organisationName =
     String(
       application.organisation_name ||
@@ -160,11 +163,25 @@ async function sendApplicationReceivedEmail(
     to:
       application.contact_email,
 
-    subject:
-      "We've received your Root Workplace application",
+    subject: isPaid
+  ? "We've received your Root Workplace membership details"
+  : "We've received your Root Workplace application",
 
-    text:
-`Dear ${contactName || "there"},
+text: isPaid
+  ? `Dear ${contactName || "there"},
+
+Thank you for choosing Root Workplace for ${organisationName}.
+
+We've received your organisation and administrator details.
+
+No Workplace account or administrator permissions have been created yet. The next step is to confirm your Root Workplace membership and billing.
+
+Once membership is confirmed, the authorised Root administrator will receive secure instructions for setting up Workplace access.
+
+Kind regards,
+
+Root Workplace`
+  : `Dear ${contactName || "there"},
 
 Thank you for applying to join the Root Workplace Programme for ${organisationName}.
 
@@ -239,11 +256,19 @@ async function notifyFormspree(
             application_id:
   application.id,
 
-review_application:
+  access_path:
+  application.access_path ||
+  "trial",
+
+  review_application:
   "https://roothealth.app/workplace-applications",
 
 message:
-  `New Root Workplace application from ${application.organisation_name}. Contact: ${application.contact_name} (${application.contact_email}). Authorised Root administrator: ${application.admin_email}. Legal entity number: ${application.legal_entity_number || "Not provided"}. Organisation domain: ${application.organisation_domain || "Not identified"}.
+  `New Root Workplace ${
+    application.access_path === "paid"
+      ? "direct membership request"
+      : "complimentary pilot application"
+  } from ${application.organisation_name}.
 
 Review and approve this application here:
 https://roothealth.app/workplace-applications`,
@@ -316,23 +341,33 @@ export async function POST(request) {
 
     const employeeCount =
       clean(
-        body.employeeCount
+    body.employeeCount
       );
 
     const industry =
       clean(
-        body.industry
+    body.industry
       );
 
-      const organisationType =
-  clean(
-    body.organisationType
-  );
+    const requestedAccessPath =
+      clean(
+    body.accessPath
+    ).toLowerCase();
 
-      const legalEntityNumber =
-   normaliseLegalEntityNumber(
-    body.legalEntityNumber
-  );
+    const accessPath =
+      requestedAccessPath === "paid"
+      ? "paid"
+      : "trial";
+
+    const organisationType =
+      clean(
+    body.organisationType
+      );
+
+    const legalEntityNumber =
+      normaliseLegalEntityNumber(
+     body.legalEntityNumber
+       );
 
       const organisationDomain =
    domainFromEmail(
@@ -435,6 +470,7 @@ legal_entity_number,
 organisation_domain,
 employee_count,
 industry,
+access_path,
 status,
 created_at
           `
@@ -446,6 +482,10 @@ created_at
         .eq(
           "status",
           "pending"
+        .eq(
+          "access_path",
+          accessPath
+     )
         );
 
     if (existingError) {
@@ -548,6 +588,9 @@ created_at
               industry:
                 industry ||
                 null,
+
+              access_path:
+                accessPath,
             })
             .eq(
               "id",
@@ -562,6 +605,7 @@ created_at
                 admin_email,
                 employee_count,
                 industry,
+                access_path,
                 status,
                 created_at
               `
@@ -659,6 +703,9 @@ created_at
             industry ||
             null,
 
+          access_path:
+            accessPath,
+
           status:
             "pending",
         })
@@ -674,6 +721,7 @@ created_at
     organisation_domain,
     employee_count,
     industry,
+    access_path,
     status,
     created_at
   `
