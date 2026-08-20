@@ -1834,6 +1834,7 @@ employee_count,
 industry,
 root_customer_group_id,
 access_path,
+payment_status,
 trial_eligibility_status,
 trial_eligibility_reason,
 trial_eligibility_checked_at,
@@ -1912,7 +1913,9 @@ if (
  */
 if (
   accessPath === "paid" &&
-  decision === "approve"
+  decision === "approve" &&
+  application.payment_status !==
+    "paid"
 ) {
   return NextResponse.json(
     {
