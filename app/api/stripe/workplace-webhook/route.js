@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import nodemailer from "nodemailer";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -72,9 +73,463 @@ async function updateOrganisation({
   }
 }
 
+async function sendPaidSetupAccess(
+  supabase,
+  application
+) {
+  const crypto =
+    await import("node:crypto");
+
+  const adminEmail =
+    String(
+      application.admin_email ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (!adminEmail) {
+    throw new Error(
+      "Paid Workplace application has no authorised administrator email."
+    );
+  }
+
+  /*
+   * Create a unique one-time setup credential.
+   *
+   * Email is only the delivery address.
+   * The token is the authority for creating
+   * Workplace access.
+   */
+  const rawToken =
+    crypto.randomBytes(32)
+      .toString("hex");
+
+  const tokenHash =
+    crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+  const expiresAt =
+    new Date(
+      Date.now() +
+        48 * 60 * 60 * 1000
+    ).toISOString();
+
+  /*
+   * Stripe may retry webhooks.
+   *
+   * Revoke any previous live setup
+   * invitation before issuing a fresh one.
+   */
+  const {
+    error: revokeError,
+  } =
+    await supabase
+      .from(
+        "organisation_setup_invites"
+      )
+      .update({
+        status:
+          "revoked",
+
+        revoked_at:
+          new Date().toISOString(),
+      })
+      .eq(
+        "application_id",
+        application.id
+      )
+      .eq(
+        "status",
+        "pending"
+      );
+
+  if (revokeError) {
+    throw revokeError;
+  }
+
+  const {
+    data: setupInvite,
+    error: setupInviteError,
+  } =
+    await supabase
+      .from(
+        "organisation_setup_invites"
+      )
+      .insert({
+        application_id:
+          application.id,
+
+        intended_email:
+          adminEmail,
+
+        intended_role:
+          "organisation_admin",
+
+        token_hash:
+          tokenHash,
+
+        status:
+          "pending",
+
+        expires_at:
+          expiresAt,
+
+        /*
+         * This invitation was authorised
+         * by confirmed Stripe payment,
+         * not by a Root admin button.
+         */
+        created_by:
+          null,
+      })
+      .select(
+        `
+          id,
+          application_id,
+          intended_email,
+          intended_role,
+          status,
+          expires_at
+        `
+      )
+      .single();
+
+  if (
+    setupInviteError ||
+    !setupInvite
+  ) {
+    throw (
+      setupInviteError ||
+      new Error(
+        "Root could not create the paid Workplace setup invitation."
+      )
+    );
+  }
+
+  const setupUrl =
+    `https://roothealth.app/workplace-setup` +
+    `?token=${encodeURIComponent(
+      rawToken
+    )}`;
+
+  const smtpUser =
+    String(
+      process.env.ROOT_SMTP_USER ||
+        ""
+    ).trim();
+
+  const smtpPassword =
+    String(
+      process.env
+        .ROOT_SMTP_PASSWORD ||
+        ""
+    ).trim();
+
+  const smtpFrom =
+    String(
+      process.env.ROOT_SMTP_FROM ||
+        smtpUser
+    ).trim();
+
+  if (
+    !smtpUser ||
+    !smtpPassword ||
+    !smtpFrom
+  ) {
+    throw new Error(
+      "Root Workplace email is not configured."
+    );
+  }
+
+  const transporter =
+    nodemailer.createTransport({
+      service:
+        "gmail",
+
+      auth: {
+        user:
+          smtpUser,
+
+        pass:
+          smtpPassword,
+      },
+    });
+
+  const organisationName =
+    String(
+      application
+        .organisation_name ||
+        "your organisation"
+    ).trim();
+
+  const contactName =
+    String(
+      application.contact_name ||
+        ""
+    ).trim();
+
+  const greeting =
+    contactName
+      ? `Dear ${contactName},`
+      : "Hello,";
+
+  const subject =
+    "Welcome to Root Workplace";
+
+  const text =
+`${greeting}
+
+Your Root Workplace membership for ${organisationName} has been confirmed.
+
+Your subscription is active and your secure organisation setup is ready.
+
+You have been invited to set up the authorised Root Workplace administrator account.
+
+This setup invitation is unique and can only be used once.
+
+Set up Root Workplace:
+
+${setupUrl}
+
+This invitation expires in 48 hours.
+
+If another Root account is currently signed in on your device, Root will ask you to continue with the account intended for this invitation before any organisation access is created.
+
+If you were not expecting this invitation, you can safely ignore this email.
+
+Kind regards,
+
+Root Workplace`;
+
+  await transporter.sendMail({
+    from:
+      smtpFrom,
+
+    to:
+      adminEmail,
+
+    replyTo:
+      smtpUser,
+
+    subject,
+
+    text,
+  });
+
+  return setupInvite;
+}
+
+async function activateDirectPaidFromCheckout(
+  session
+) {
+  const applicationId =
+    session?.metadata
+      ?.application_id;
+
+  if (!applicationId) {
+    throw new Error(
+      "Direct paid checkout completed without an application ID."
+    );
+  }
+
+  const supabase =
+    buildAdminClient();
+
+  const {
+    data: application,
+    error: applicationError,
+  } =
+    await supabase
+      .from(
+        "organisation_applications"
+      )
+      .select(
+        `
+          id,
+          organisation_name,
+          contact_name,
+          contact_email,
+          admin_email,
+          employee_count,
+          industry,
+          status,
+          access_path,
+          payment_status
+        `
+      )
+      .eq(
+        "id",
+        applicationId
+      )
+      .maybeSingle();
+
+  if (
+    applicationError ||
+    !application
+  ) {
+    throw (
+      applicationError ||
+      new Error(
+        "Root could not find the paid Workplace application."
+      )
+    );
+  }
+
+  if (
+    application.access_path !==
+    "paid"
+  ) {
+    throw new Error(
+      "Stripe payment was linked to an application that is not a direct paid membership."
+    );
+  }
+
+  const subscriptionId =
+    typeof session.subscription ===
+    "string"
+      ? session.subscription
+      : session.subscription?.id ||
+        null;
+
+  const customerId =
+    typeof session.customer ===
+    "string"
+      ? session.customer
+      : session.customer?.id ||
+        null;
+
+  let subscriptionStatus =
+    "active";
+
+  if (subscriptionId) {
+    const subscription =
+      await stripe.subscriptions.retrieve(
+        subscriptionId
+      );
+
+    subscriptionStatus =
+      String(
+        subscription?.status ||
+          ""
+      ).toLowerCase();
+
+    if (
+      subscriptionStatus !==
+        "active" &&
+      subscriptionStatus !==
+        "trialing"
+    ) {
+      console.log(
+        "ROOT DIRECT PAID CHECKOUT WAITING:",
+        applicationId,
+        subscriptionStatus
+      );
+
+      return;
+    }
+  }
+
+  const now =
+    new Date().toISOString();
+
+  const {
+    error: applicationUpdateError,
+  } =
+    await supabase
+      .from(
+        "organisation_applications"
+      )
+      .update({
+        status:
+          "approved",
+
+        reviewed_at:
+          now,
+
+        payment_status:
+          "paid",
+
+        stripe_checkout_session_id:
+          session.id ||
+          null,
+
+        stripe_customer_id:
+          customerId,
+
+        stripe_subscription_id:
+          subscriptionId,
+
+        paid_at:
+          now,
+      })
+      .eq(
+        "id",
+        application.id
+      );
+
+  if (applicationUpdateError) {
+    throw applicationUpdateError;
+  }
+
+  /*
+   * Payment establishes commercial
+   * entitlement.
+   *
+   * The secure one-time invitation still
+   * establishes who may create the
+   * organisation and administrator access.
+   */
+  await sendPaidSetupAccess(
+    supabase,
+    application
+  );
+
+  console.log(
+    "ROOT DIRECT WORKPLACE PAYMENT CONFIRMED:",
+    application.id,
+    application.organisation_name
+  );
+}
+
 async function activateFromCheckout(
   session
 ) {
+  const accessPath =
+    String(
+      session?.metadata
+        ?.access_path ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const applicationId =
+    session?.metadata
+      ?.application_id;
+
+  /*
+   * DIRECT PAID CUSTOMER
+   */
+  if (
+    accessPath === "paid" &&
+    applicationId
+  ) {
+    await activateDirectPaidFromCheckout(
+      session
+    );
+
+    return;
+  }
+
+  /*
+   * EXISTING ORGANISATION
+   *
+   * Keep the existing trial-to-paid
+   * conversion path unchanged.
+   */
   const organisationId =
     session?.metadata
       ?.organisation_id;
