@@ -62,6 +62,14 @@ export default function OrganisationRegisterPage() {
   const [createdOrg, setCreatedOrg] =
     useState(null);
 
+  const [referralCode, setReferralCode] =
+    useState("");
+
+  const [
+    referralCampaignCode,
+    setReferralCampaignCode,
+  ] = useState("");
+
   useEffect(() => {
   const params =
     new URLSearchParams(
@@ -80,6 +88,17 @@ export default function OrganisationRegisterPage() {
     requestedPath === "paid"
       ? "paid"
       : "trial"
+  );
+    setReferralCode(
+    String(params.get("ref") || "")
+      .trim()
+      .toLowerCase()
+  );
+
+  setReferralCampaignCode(
+    String(params.get("campaign") || "")
+      .trim()
+      .toLowerCase()
   );
   }, []);
 
@@ -176,7 +195,17 @@ export default function OrganisationRegisterPage() {
               ? associatedBusinessName.trim()
               : "",
 
-accessPath,
+              accessPath,
+
+              referralCode:
+                isPaid
+                  ? referralCode
+                  : "",
+
+              referralCampaignCode:
+                isPaid
+                  ? referralCampaignCode
+                  : "",
             }),
           }
         );
