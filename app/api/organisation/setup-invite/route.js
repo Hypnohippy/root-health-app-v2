@@ -173,7 +173,8 @@ export async function GET(request) {
               industry,
               organisation_type,
               legal_entity_number,
-              status
+              status,
+              access_path
             )
           `
         )
@@ -357,6 +358,14 @@ export async function GET(request) {
         legalEntityNumber:
           application
             .legal_entity_number,
+          accessPath:
+  String(
+    application.access_path ||
+      "trial"
+  )
+    .trim()
+    .toLowerCase(),
+    
       },
     });
   } catch (error) {
