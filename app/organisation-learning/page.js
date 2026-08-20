@@ -544,6 +544,10 @@ export default function OrganisationLearningPage() {
   secureSetupToken,
   setSecureSetupToken,
 ] = useState("");
+  const [
+  onboardingAccessPath,
+  setOnboardingAccessPath,
+] = useState("trial");
 
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -714,6 +718,15 @@ if (secureSetupMode) {
   const secureApplication =
     previewResult.application ||
     {};
+
+  setOnboardingAccessPath(
+  String(
+    secureApplication.accessPath ||
+      "trial"
+  )
+    .trim()
+    .toLowerCase()
+  );
 
   setSecureSetupToken(
     pendingSetupToken
