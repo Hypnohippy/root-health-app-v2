@@ -2449,9 +2449,11 @@ window.scrollTo({
     : "Organisation Learning Review"}
 </h1>
 
-            <p className="subtitle">
+           <p className="subtitle">
   {isOnboarding
-    ? "Tell Root about your organisation, establish its first evidence baseline and begin your supported 60-day workplace pilot."
+    ? onboardingAccessPath === "paid"
+      ? "Tell Root about your organisation and establish its first evidence baseline so your Root Workplace membership can begin."
+      : "Tell Root about your organisation, establish its first evidence baseline and begin your supported 60-day workplace pilot."
     : "Help Root understand what has changed across your organisation. Root combines this context with anonymous workforce evidence to build a clearer and more useful picture over time."}
 </p>
 
@@ -2685,10 +2687,10 @@ window.scrollTo({
                 </strong>
 
                 <span>
-                  Root creates one account, enables personal and
-                  workplace access, creates the organisation, saves
-                  this first review and begins the 60-day pilot.
-                </span>
+                  {onboardingAccessPath === "paid"
+                    ? "Root creates one account, enables personal and workplace access, creates the organisation and saves this first review so your Root Workplace membership can begin."
+                    : "Root creates one account, enables personal and workplace access, creates the organisation, saves this first review and begins the 60-day pilot."}
+                 </span>
               </div>
             </section>
           )}
@@ -3937,12 +3939,14 @@ window.scrollTo({
   disabled={saving}
 >
   {saving
-    ? isOnboarding
-      ? "Creating your Root organisation..."
-      : "Updating organisation picture..."
-    : isOnboarding
-      ? "Create Organisation & Begin 60-Day Pilot"
-      : "Update Organisation Picture"}
+  ? isOnboarding
+    ? "Creating your Root organisation..."
+    : "Updating organisation picture..."
+  : isOnboarding
+    ? onboardingAccessPath === "paid"
+      ? "Create Organisation & Begin Root Workplace"
+      : "Create Organisation & Begin 60-Day Pilot"
+    : "Update Organisation Picture"}
 </button>
             </div>
 
