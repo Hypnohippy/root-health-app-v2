@@ -1917,15 +1917,219 @@ if (
   application.payment_status !==
     "paid"
 ) {
-  return NextResponse.json(
-    {
-      error:
-        "Direct Root Workplace membership must be confirmed through the paid signup and billing route.",
-    },
-    {
-      status: 400,
-    }
+  const reviewedAt =
+    new Date().toISOString();
+
+  const checkoutUrl =
+    `https://roothealth.app/organisations/checkout` +
+    `?application_id=${encodeURIComponent(
+      application.id
+    )}`;
+
+  const smtpUser =
+    String(
+      process.env.ROOT_SMTP_USER ||
+      ""
+    ).trim();
+
+  const smtpPassword =
+    String(
+      process.env.ROOT_SMTP_PASSWORD ||
+      ""
+    ).trim();
+
+  const smtpFrom =
+    String(
+      process.env.ROOT_SMTP_FROM ||
+      smtpUser
+    ).trim();
+
+  if (
+    !smtpUser ||
+    !smtpPassword ||
+    !smtpFrom
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Root Workplace email is not configured.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+
+  const billingEmail =
+    normaliseEmail(
+      application.admin_email ||
+      application.contact_email
+    );
+
+  if (!billingEmail) {
+    return NextResponse.json(
+      {
+        error:
+          "This application has no email address for membership billing.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  const transporter =
+    nodemailer.createTransport({
+      service: "gmail",
+
+      auth: {
+        user: smtpUser,
+        pass: smtpPassword,
+      },
+    });
+
+  const organisationName =
+    String(
+      application.organisation_name ||
+      "your organisation"
+    ).trim();
+
+  const contactName =
+    String(
+      application.contact_name ||
+      ""
+    ).trim();
+
+  const greeting =
+    contactName
+      ? `Dear ${contactName},`
+      : "Hello,";
+
+  const subject =
+    "Continue your Root Workplace membership";
+
+  const text =
+`${greeting}
+
+Your Root Workplace membership application for ${organisationName} has been approved to continue to secure billing.
+
+No organisation access or administrator permissions have been created yet.
+
+Please continue to secure Root Workplace billing here:
+
+${checkoutUrl}
+
+Once Stripe confirms your subscription, the authorised Root administrator will receive a separate secure setup invitation.
+
+Kind regards,
+
+Root Workplace`;
+
+  try {
+    await transporter.sendMail({
+      from: smtpFrom,
+      to: billingEmail,
+      replyTo: smtpUser,
+      subject,
+      text,
+    });
+  } catch (emailError) {
+    console.error(
+      "ROOT PAID BILLING EMAIL ERROR:",
+      emailError
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Root could not send the paid membership continuation email.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+
+  const {
+    data: updatedApplication,
+    error: updateError,
+  } =
+    await supabase
+      .from(
+        "organisation_applications"
+      )
+      .update({
+        /*
+         * Keep status pending until Stripe confirms
+         * successful payment.
+         */
+        status: "pending",
+
+        reviewed_at:
+          reviewedAt,
+      })
+      .eq(
+        "id",
+        application.id
+      )
+      .select(
+        `
+          id,
+          organisation_name,
+          contact_name,
+          contact_email,
+          admin_email,
+          employee_count,
+          access_path,
+          payment_status,
+          status,
+          reviewed_at
+        `
+      )
+      .single();
+
+  if (
+    updateError ||
+    !updatedApplication
+  ) {
+    console.error(
+      "ROOT PAID APPROVAL SAVE ERROR:",
+      updateError
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Root sent the billing email but could not record the paid application review.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+
+  console.log(
+    "ROOT PAID APPLICATION APPROVED FOR BILLING:",
+    application.id,
+    application.organisation_name,
+    billingEmail
   );
+
+  return NextResponse.json({
+    success: true,
+
+    application:
+      updatedApplication,
+
+    decision:
+      "approve",
+
+    billingRequired:
+      true,
+
+    billingEmailSent:
+      true,
+  });
 }
 
     if (
