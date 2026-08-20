@@ -4416,11 +4416,11 @@ We look forward to welcoming you.
       )}
     </section>
   )}
-          {!loading && (
-  <section
-  id="pilot-progress"
-  style={styles.pilotProgressCard}
->
+                    {!loading && isTrial && (
+            <section
+            id="pilot-progress"
+            style={styles.pilotProgressCard}
+          >
     <div>
       <p style={styles.panelLabel}>Pilot Progress</p>
       <h2 style={styles.panelTitle}>
