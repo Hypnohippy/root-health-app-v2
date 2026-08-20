@@ -358,6 +358,19 @@ export async function POST(request) {
       requestedAccessPath === "paid"
       ? "paid"
       : "trial";
+          const referralCode =
+      accessPath === "paid"
+        ? clean(
+            body.referralCode
+          ).toLowerCase()
+        : "";
+
+    const referralCampaignCode =
+      accessPath === "paid"
+        ? clean(
+            body.referralCampaignCode
+          ).toLowerCase()
+        : "";
 
     const organisationType =
       clean(
@@ -434,6 +447,178 @@ export async function POST(request) {
 
     const supabase =
       buildAdminClient();
+
+          /*
+     * INTRODUCER ATTRIBUTION
+     *
+     * The browser supplies referral codes only.
+     * Commission terms are NEVER accepted from the client.
+     *
+     * Root resolves the introducer and campaign here and
+     * snapshots the commercial agreement that applies when
+     * the organisation enters through this route.
+     */
+
+    let introducerAttribution = {
+      introducer_id: null,
+      introducer_campaign_id: null,
+      referral_code: null,
+      referral_campaign_code: null,
+      commission_percent_at_conversion: null,
+      commission_basis_at_conversion: null,
+      commission_structure_at_conversion: null,
+      referral_attributed_at: null,
+    };
+
+    if (
+      accessPath === "paid" &&
+      referralCode
+    ) {
+      const {
+        data: introducer,
+        error: introducerError,
+      } = await supabase
+        .from("organisation_introducers")
+        .select(`
+          id,
+          referral_code,
+          commission_percent,
+          commission_basis,
+          commission_structure,
+          status,
+          agreement_start_date,
+          agreement_end_date
+        `)
+        .eq(
+          "referral_code",
+          referralCode
+        )
+        .eq(
+          "status",
+          "active"
+        )
+        .maybeSingle();
+
+      if (introducerError) {
+        console.error(
+          "ROOT INTRODUCER LOOKUP ERROR:",
+          introducerError
+        );
+      }
+
+      if (introducer) {
+        const today =
+          new Date()
+            .toISOString()
+            .slice(0, 10);
+
+        const agreementActive =
+          (!introducer.agreement_start_date ||
+            introducer.agreement_start_date <=
+              today) &&
+          (!introducer.agreement_end_date ||
+            introducer.agreement_end_date >=
+              today);
+
+        if (agreementActive) {
+          let campaign = null;
+
+          if (referralCampaignCode) {
+            const {
+              data: matchedCampaign,
+              error: campaignError,
+            } = await supabase
+              .from(
+                "organisation_introducer_campaigns"
+              )
+              .select(`
+                id,
+                campaign_code,
+                status,
+                starts_at,
+                ends_at
+              `)
+              .eq(
+                "introducer_id",
+                introducer.id
+              )
+              .eq(
+                "campaign_code",
+                referralCampaignCode
+              )
+              .eq(
+                "status",
+                "active"
+              )
+              .maybeSingle();
+
+            if (campaignError) {
+              console.error(
+                "ROOT INTRODUCER CAMPAIGN LOOKUP ERROR:",
+                campaignError
+              );
+            }
+
+            if (matchedCampaign) {
+              const now =
+                new Date();
+
+              const startsAt =
+                matchedCampaign.starts_at
+                  ? new Date(
+                      matchedCampaign.starts_at
+                    )
+                  : null;
+
+              const endsAt =
+                matchedCampaign.ends_at
+                  ? new Date(
+                      matchedCampaign.ends_at
+                    )
+                  : null;
+
+              const campaignActive =
+                (!startsAt ||
+                  startsAt <= now) &&
+                (!endsAt ||
+                  endsAt >= now);
+
+              if (campaignActive) {
+                campaign =
+                  matchedCampaign;
+              }
+            }
+          }
+
+          introducerAttribution = {
+            introducer_id:
+              introducer.id,
+
+            introducer_campaign_id:
+              campaign?.id || null,
+
+            referral_code:
+              introducer.referral_code,
+
+            referral_campaign_code:
+              campaign?.campaign_code ||
+              null,
+
+            commission_percent_at_conversion:
+              introducer.commission_percent,
+
+            commission_basis_at_conversion:
+              introducer.commission_basis,
+
+            commission_structure_at_conversion:
+              introducer.commission_structure,
+
+            referral_attributed_at:
+              new Date().toISOString(),
+          };
+        }
+      }
+    }
 
     /*
      * IMPORTANT:
@@ -703,8 +888,10 @@ created_at
             industry ||
             null,
 
-          access_path:
+                    access_path:
             accessPath,
+
+          ...introducerAttribution,
 
           status:
             "pending",
