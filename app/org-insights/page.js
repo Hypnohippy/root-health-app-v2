@@ -1240,6 +1240,7 @@ const {
   activated,
   baselineCompleted,
   engagementScore,
+  workforceParticipation,
   supportInteractions,
   baselineScore,
   currentScore,
@@ -4416,50 +4417,170 @@ We look forward to welcoming you.
       )}
     </section>
   )}
-                    {!loading && isTrial && (
-            <section
-            id="pilot-progress"
-            style={styles.pilotProgressCard}
-          >
+                              {!loading && (
+  <section
+    id="pilot-progress"
+    style={styles.pilotProgressCard}
+  >
     <div>
-      <p style={styles.panelLabel}>Pilot Progress</p>
+      <p style={styles.panelLabel}>
+        Workforce Participation
+      </p>
+
       <h2 style={styles.panelTitle}>
-        {organisation?.name || "Organisation"} is on Day {daysElapsed} of {totalTrialDays}
+        {workforceParticipation?.workforceSize
+          ? `${workforceParticipation.joined} of ${
+              String(
+                organisation?.employee_count || ""
+              ).includes("-") ||
+              String(
+                organisation?.employee_count || ""
+              ).includes("+")
+                ? "up to "
+                : ""
+            }${workforceParticipation.workforceSize} employees have joined Root`
+          : `${workforceParticipation?.joined || 0} employees have joined Root`}
       </h2>
+
       <p style={styles.panelDescription}>
-        Root is tracking participation, activation and baseline completion so HR can see whether the pilot is gaining momentum.
+        Participation determines how broad the evidence behind
+        Root&apos;s organisation-level learning can become. Wider
+        participation gives Root a stronger basis for understanding
+        the workforce while individual employee information remains
+        private.
       </p>
     </div>
 
     <div style={styles.pilotProgressGrid}>
       <div style={styles.pilotProgressItem}>
-        <span>Invited</span>
-        <strong>{invited}</strong>
+        <span>Workforce</span>
+        <strong>
+          {workforceParticipation?.workforceSize || "—"}
+        </strong>
       </div>
 
       <div style={styles.pilotProgressItem}>
-        <span>Activated</span>
-        <strong>{activated}</strong>
+        <span>Joined</span>
+        <strong>
+          {workforceParticipation?.joined || 0}
+        </strong>
       </div>
 
       <div style={styles.pilotProgressItem}>
-        <span>Baselines</span>
-        <strong>{baselineCompleted}</strong>
+        <span>Baseline depth</span>
+        <strong>
+          {workforceParticipation?.baselineCompleted || 0}
+        </strong>
       </div>
 
       <div style={styles.pilotProgressItem}>
-        <span>Engagement</span>
-        <strong>{engagementScore !== null ? `${engagementScore}%` : "—"}</strong>
+        <span>Returning</span>
+        <strong>
+          {workforceParticipation?.returningParticipants || 0}
+        </strong>
       </div>
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "16px",
+        marginTop: "22px",
+        marginBottom: "8px",
+        flexWrap: "wrap",
+      }}
+    >
+      <strong
+        style={{
+          fontSize: "14px",
+          color: "#181818",
+        }}
+      >
+        Workforce reach
+      </strong>
+
+      <strong
+        style={{
+          fontSize: "14px",
+          color: "#181818",
+        }}
+      >
+        {workforceParticipation?.reachRate !== null &&
+        workforceParticipation?.reachRate !== undefined
+          ? `${workforceParticipation.reachRate}%`
+          : "Awaiting workforce size"}
+      </strong>
     </div>
 
     <div style={styles.pilotTrack}>
       <div
         style={{
           ...styles.pilotFill,
-          width: `${engagementScore !== null ? engagementScore : 0}%`,
+          width: `${
+            workforceParticipation?.reachRate !== null &&
+            workforceParticipation?.reachRate !== undefined
+              ? workforceParticipation.reachRate
+              : 0
+          }%`,
         }}
       />
+    </div>
+
+    <div
+      style={{
+        marginTop: "22px",
+        padding: "20px",
+        borderRadius: "22px",
+        background: "rgba(255,255,255,0.48)",
+        border: "1px solid rgba(255,255,255,0.72)",
+      }}
+    >
+      <p
+        style={{
+          ...styles.panelLabel,
+          marginBottom: "8px",
+        }}
+      >
+        Organisation Learning
+      </p>
+
+      <strong
+        style={{
+          display: "block",
+          fontSize: "18px",
+          color: "#181818",
+          marginBottom: "8px",
+        }}
+      >
+        {baselineCompleted < 5
+          ? "Building the anonymous evidence base"
+          : snapshot.participation.matchedParticipants < 5
+          ? "Baseline established — continuity is developing"
+          : "Repeated workforce evidence is developing"}
+      </strong>
+
+      <p
+        style={{
+          ...styles.panelDescription,
+          marginBottom: "16px",
+        }}
+      >
+        {baselineCompleted < 5
+          ? `Root currently has ${baselineCompleted} of the 5 anonymous baseline participants required before workforce wellbeing findings can be released. Encouraging employees to join and complete their baseline is the most useful next step.`
+          : snapshot.participation.matchedParticipants < 5
+          ? `Root has enough anonymous baseline participation to begin describing the workforce starting position. More employees now need to return for later check-ins before Root can responsibly describe movement over time.`
+          : `Root now has anonymous baseline and repeated follow-up evidence. Continued broad participation will strengthen the organisation picture and improve confidence in patterns observed over time.`}
+      </p>
+
+      <button
+        type="button"
+        style={styles.secondaryButton}
+        onClick={() => setShowInvite(true)}
+      >
+        Encourage Employee Participation →
+      </button>
     </div>
   </section>
 )}
@@ -5152,14 +5273,37 @@ We look forward to welcoming you.
                 />
               </section>
 
-              <section style={styles.cardGrid}>
-                <MetricCard title="Employees invited" value={invited || "—"} />
-                <MetricCard title="Activated" value={activated || "—"} />
+                            <section style={styles.cardGrid}>
+                <MetricCard
+                  title="Workforce size"
+                  value={
+                    workforceParticipation?.workforceSize ||
+                    "—"
+                  }
+                />
+
+                <MetricCard
+                  title="Employees joined"
+                  value={
+                    workforceParticipation?.joined || "—"
+                  }
+                />
+
                 <MetricCard
                   title="Baselines completed"
-                  value={baselineCompleted || "—"}
+                  value={
+                    workforceParticipation?.baselineCompleted ||
+                    "—"
+                  }
                 />
-                <MetricCard title="Engagement score" value={engagementScore ?? "—"} />
+
+                <MetricCard
+                  title="Returning participants"
+                  value={
+                    workforceParticipation?.returningParticipants ||
+                    "—"
+                  }
+                />
               </section>
 
           <section style={styles.chartPanel}>
