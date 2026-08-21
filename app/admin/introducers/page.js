@@ -964,7 +964,7 @@ export default function IntroducerAdminPage() {
 
     return (
       `${window.location.origin}` +
-      `/workplace?ref=` +
+      `/referral?ref=` +
       encodeURIComponent(
         introducer.referral_code
       )
