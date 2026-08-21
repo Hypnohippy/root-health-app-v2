@@ -395,6 +395,318 @@ export async function POST(request) {
         }
       );
     }
+    // ============================================================
+// ROOT INTRODUCERS
+// GREEN 2B — ATOMIC COMMERCIAL TERMS CHANGE
+// ============================================================
+
+export async function PATCH(request) {
+  try {
+    const admin =
+      await requireRootAdmin(
+        request
+      );
+
+    if (!admin.authorised) {
+      return NextResponse.json(
+        {
+          error:
+            admin.error,
+        },
+        {
+          status:
+            admin.status,
+        }
+      );
+    }
+
+    const body =
+      await request.json();
+
+    const action =
+      String(
+        body?.action || ""
+      )
+        .trim()
+        .toLowerCase();
+
+    if (
+      action !==
+      "change_commercial_terms"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Unknown introducer administration action.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const introducerId =
+      cleanText(
+        body?.introducerId
+      );
+
+    const commissionPercent =
+      Number(
+        body?.commissionPercent
+      );
+
+    const commissionStructure =
+      String(
+        body?.commissionStructure ||
+          ""
+      )
+        .trim()
+        .toLowerCase();
+
+    const effectiveDate =
+      cleanText(
+        body?.effectiveDate
+      );
+
+    const changeReason =
+      cleanText(
+        body?.changeReason
+      );
+
+    const notes =
+      cleanText(
+        body?.notes
+      );
+
+    if (!introducerId) {
+      return NextResponse.json(
+        {
+          error:
+            "Introducer is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        commissionPercent
+      ) ||
+      commissionPercent < 0 ||
+      commissionPercent > 100
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Commission percentage must be between 0 and 100.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      ![
+        "one_off",
+        "recurring",
+      ].includes(
+        commissionStructure
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Commission structure must be one-off or recurring.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (!effectiveDate) {
+      return NextResponse.json(
+        {
+          error:
+            "Effective date is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(
+        effectiveDate
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Effective date is invalid.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (!changeReason) {
+      return NextResponse.json(
+        {
+          error:
+            "Please record a reason for the commercial change.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * Deliberately use midnight UTC.
+     *
+     * The admin UI deals in commercial agreement dates,
+     * not the administrator's browser timezone.
+     */
+    const effectiveFrom =
+      `${effectiveDate}T00:00:00.000Z`;
+
+    const supabase =
+      buildAdminClient();
+
+    /*
+     * Confirm the introducer exists before invoking the
+     * commercial transaction. This also gives us its name
+     * for the audit log / response.
+     */
+    const {
+      data:
+        existingIntroducer,
+      error:
+        introducerError,
+    } =
+      await supabase
+        .from(
+          "organisation_introducers"
+        )
+        .select(
+          `
+            id,
+            name,
+            referral_code,
+            commission_percent,
+            commission_structure
+          `
+        )
+        .eq(
+          "id",
+          introducerId
+        )
+        .maybeSingle();
+
+    if (introducerError) {
+      throw introducerError;
+    }
+
+    if (!existingIntroducer) {
+      return NextResponse.json(
+        {
+          error:
+            "Introducer not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    const {
+      data:
+        newPolicy,
+      error:
+        changeError,
+    } =
+      await supabase.rpc(
+        "change_introducer_commercial_terms",
+        {
+          p_introducer_id:
+            introducerId,
+
+          p_commission_percent:
+            commissionPercent,
+
+          p_commission_structure:
+            commissionStructure,
+
+          p_effective_from:
+            effectiveFrom,
+
+          p_change_reason:
+            changeReason,
+
+          p_notes:
+            notes,
+        }
+      );
+
+    if (changeError) {
+      throw changeError;
+    }
+
+    console.log(
+      "ROOT INTRODUCER COMMERCIAL TERMS CHANGED:",
+      introducerId,
+      existingIntroducer.name,
+      `${existingIntroducer.commission_percent}%`,
+      existingIntroducer.commission_structure,
+      "→",
+      `${commissionPercent}%`,
+      commissionStructure,
+      effectiveFrom
+    );
+
+    return NextResponse.json({
+      success: true,
+
+      introducerId,
+
+      introducerName:
+        existingIntroducer.name,
+
+      policy:
+        newPolicy,
+
+      commercialTerms: {
+        commissionPercent,
+        commissionStructure,
+        effectiveFrom,
+        changeReason,
+        notes,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "ROOT INTRODUCER COMMERCIAL CHANGE ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          error?.message ||
+          "Root could not change the introducer commercial terms.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
 
     const body =
       await request.json();
