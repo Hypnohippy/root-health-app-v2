@@ -1220,3 +1220,521 @@ export async function PATCH(request) {
     );
   }
 }
+// ============================================================
+// ROOT INTRODUCERS
+// GREEN 3B — CAMPAIGN MANAGEMENT
+// ============================================================
+
+function normaliseCampaignCode(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export async function PUT(request) {
+  try {
+    const admin =
+      await requireRootAdmin(request);
+
+    if (!admin.authorised) {
+      return NextResponse.json(
+        {
+          error: admin.error,
+        },
+        {
+          status: admin.status,
+        }
+      );
+    }
+
+    const body =
+      await request.json();
+
+    const action =
+      String(body?.action || "")
+        .trim()
+        .toLowerCase();
+
+    const supabase =
+      buildAdminClient();
+
+    // ========================================================
+    // LOAD CAMPAIGNS
+    // ========================================================
+
+    if (action === "get_campaigns") {
+      const introducerId =
+        cleanText(body?.introducerId);
+
+      if (!introducerId) {
+        return NextResponse.json(
+          {
+            error:
+              "Introducer is required.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const {
+        data: introducer,
+        error: introducerError,
+      } =
+        await supabase
+          .from(
+            "organisation_introducers"
+          )
+          .select(
+            "id, name, referral_code"
+          )
+          .eq(
+            "id",
+            introducerId
+          )
+          .maybeSingle();
+
+      if (introducerError) {
+        throw introducerError;
+      }
+
+      if (!introducer) {
+        return NextResponse.json(
+          {
+            error:
+              "Introducer not found.",
+          },
+          {
+            status: 404,
+          }
+        );
+      }
+
+      const {
+        data: campaigns,
+        error: campaignError,
+      } =
+        await supabase
+          .from(
+            "organisation_introducer_campaigns"
+          )
+          .select(
+            `
+              id,
+              introducer_id,
+              campaign_code,
+              campaign_name,
+              status,
+              starts_at,
+              ends_at,
+              notes,
+              created_at,
+              updated_at
+            `
+          )
+          .eq(
+            "introducer_id",
+            introducerId
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false,
+            }
+          );
+
+      if (campaignError) {
+        throw campaignError;
+      }
+
+      return NextResponse.json({
+        success: true,
+        introducer,
+        campaigns:
+          campaigns || [],
+      });
+    }
+
+    // ========================================================
+    // CREATE CAMPAIGN
+    // ========================================================
+
+    if (action === "create_campaign") {
+      const introducerId =
+        cleanText(body?.introducerId);
+
+      const campaignName =
+        cleanText(body?.campaignName);
+
+      const campaignCode =
+        normaliseCampaignCode(
+          body?.campaignCode ||
+            campaignName
+        );
+
+      const status =
+        String(
+          body?.status || "active"
+        )
+          .trim()
+          .toLowerCase();
+
+      const startsAt =
+        cleanText(body?.startsAt);
+
+      const endsAt =
+        cleanText(body?.endsAt);
+
+      const notes =
+        cleanText(body?.notes);
+
+      if (!introducerId) {
+        return NextResponse.json(
+          {
+            error:
+              "Introducer is required.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      if (!campaignName) {
+        return NextResponse.json(
+          {
+            error:
+              "Campaign name is required.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      if (!campaignCode) {
+        return NextResponse.json(
+          {
+            error:
+              "Campaign code could not be generated.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      if (
+        ![
+          "active",
+          "inactive",
+        ].includes(status)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Campaign status must be active or inactive.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      if (
+        startsAt &&
+        endsAt &&
+        endsAt < startsAt
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Campaign end date cannot be before its start date.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const {
+        data: introducer,
+        error: introducerError,
+      } =
+        await supabase
+          .from(
+            "organisation_introducers"
+          )
+          .select(
+            "id, name, referral_code"
+          )
+          .eq(
+            "id",
+            introducerId
+          )
+          .maybeSingle();
+
+      if (introducerError) {
+        throw introducerError;
+      }
+
+      if (!introducer) {
+        return NextResponse.json(
+          {
+            error:
+              "Introducer not found.",
+          },
+          {
+            status: 404,
+          }
+        );
+      }
+
+      const {
+        data: existingCampaign,
+        error: existingCampaignError,
+      } =
+        await supabase
+          .from(
+            "organisation_introducer_campaigns"
+          )
+          .select(
+            "id, campaign_code"
+          )
+          .eq(
+            "introducer_id",
+            introducerId
+          )
+          .ilike(
+            "campaign_code",
+            campaignCode
+          )
+          .maybeSingle();
+
+      if (existingCampaignError) {
+        throw existingCampaignError;
+      }
+
+      if (existingCampaign) {
+        return NextResponse.json(
+          {
+            error:
+              "That campaign code is already in use for this introducer.",
+          },
+          {
+            status: 409,
+          }
+        );
+      }
+
+      const now =
+        new Date().toISOString();
+
+      const {
+        data: campaign,
+        error: campaignError,
+      } =
+        await supabase
+          .from(
+            "organisation_introducer_campaigns"
+          )
+          .insert({
+            introducer_id:
+              introducerId,
+
+            campaign_code:
+              campaignCode,
+
+            campaign_name:
+              campaignName,
+
+            status,
+
+            starts_at:
+              startsAt
+                ? `${startsAt}T00:00:00.000Z`
+                : null,
+
+            ends_at:
+              endsAt
+                ? `${endsAt}T23:59:59.999Z`
+                : null,
+
+            notes,
+
+            updated_at:
+              now,
+          })
+          .select(
+            `
+              id,
+              introducer_id,
+              campaign_code,
+              campaign_name,
+              status,
+              starts_at,
+              ends_at,
+              notes,
+              created_at,
+              updated_at
+            `
+          )
+          .single();
+
+      if (
+        campaignError ||
+        !campaign
+      ) {
+        throw (
+          campaignError ||
+          new Error(
+            "Root could not create the campaign."
+          )
+        );
+      }
+
+      console.log(
+        "ROOT INTRODUCER CAMPAIGN CREATED:",
+        campaign.id,
+        introducer.name,
+        introducer.referral_code,
+        campaign.campaign_code
+      );
+
+      return NextResponse.json({
+        success: true,
+        introducer,
+        campaign,
+      });
+    }
+
+    // ========================================================
+    // CHANGE CAMPAIGN STATUS
+    // ========================================================
+
+    if (
+      action ===
+      "change_campaign_status"
+    ) {
+      const campaignId =
+        cleanText(body?.campaignId);
+
+      const status =
+        String(body?.status || "")
+          .trim()
+          .toLowerCase();
+
+      if (!campaignId) {
+        return NextResponse.json(
+          {
+            error:
+              "Campaign is required.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      if (
+        ![
+          "active",
+          "inactive",
+        ].includes(status)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Campaign status must be active or inactive.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const {
+        data: campaign,
+        error: campaignError,
+      } =
+        await supabase
+          .from(
+            "organisation_introducer_campaigns"
+          )
+          .update({
+            status,
+            updated_at:
+              new Date().toISOString(),
+          })
+          .eq(
+            "id",
+            campaignId
+          )
+          .select(
+            `
+              id,
+              introducer_id,
+              campaign_code,
+              campaign_name,
+              status,
+              starts_at,
+              ends_at,
+              notes,
+              created_at,
+              updated_at
+            `
+          )
+          .maybeSingle();
+
+      if (campaignError) {
+        throw campaignError;
+      }
+
+      if (!campaign) {
+        return NextResponse.json(
+          {
+            error:
+              "Campaign not found.",
+          },
+          {
+            status: 404,
+          }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        campaign,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        error:
+          "Unknown campaign administration action.",
+      },
+      {
+        status: 400,
+      }
+    );
+  } catch (error) {
+    console.error(
+      "ROOT INTRODUCER CAMPAIGN ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          error?.message ||
+          "Root could not manage the introducer campaign.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
