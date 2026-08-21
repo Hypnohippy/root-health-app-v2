@@ -20,6 +20,14 @@ const EMPTY_FORM = {
   status: "active",
   notes: "",
 };
+const EMPTY_CAMPAIGN_FORM = {
+  campaignName: "",
+  campaignCode: "",
+  status: "active",
+  startsAt: "",
+  endsAt: "",
+  notes: "",
+};
 
 const EMPTY_COMMERCIAL_FORM = {
   commissionPercent: "",
@@ -103,6 +111,32 @@ export default function IntroducerAdminPage() {
     commercialSaving,
     setCommercialSaving,
   ] = useState(false);
+    const [
+    campaignManagerId,
+    setCampaignManagerId,
+  ] = useState(null);
+
+  const [
+    campaigns,
+    setCampaigns,
+  ] = useState([]);
+
+  const [
+    campaignLoading,
+    setCampaignLoading,
+  ] = useState(false);
+
+  const [
+    campaignSaving,
+    setCampaignSaving,
+  ] = useState(false);
+
+  const [
+    campaignForm,
+    setCampaignForm,
+  ] = useState(
+    EMPTY_CAMPAIGN_FORM
+  );
 
   async function getAccessToken() {
     const {
@@ -537,6 +571,419 @@ export default function IntroducerAdminPage() {
 
       setCommercialSaving(false);
     }
+  }
+    function campaignCodeFromName(
+    value
+  ) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9]+/g,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        ""
+      );
+  }
+
+  function updateCampaignForm(
+    field,
+    value
+  ) {
+    setCampaignForm(
+      (current) => ({
+        ...current,
+        [field]: value,
+      })
+    );
+  }
+
+  function updateCampaignName(
+    value
+  ) {
+    setCampaignForm(
+      (current) => {
+        const oldGeneratedCode =
+          campaignCodeFromName(
+            current.campaignName
+          );
+
+        const shouldGenerateCode =
+          !current.campaignCode ||
+          current.campaignCode ===
+            oldGeneratedCode;
+
+        return {
+          ...current,
+
+          campaignName:
+            value,
+
+          campaignCode:
+            shouldGenerateCode
+              ? campaignCodeFromName(
+                  value
+                )
+              : current.campaignCode,
+        };
+      }
+    );
+  }
+
+  async function loadCampaigns(
+    introducer
+  ) {
+    setCampaignLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const token =
+        await getAccessToken();
+
+      if (!token) {
+        setError(
+          "Please sign in again before managing campaigns."
+        );
+
+        setCampaignLoading(false);
+        return;
+      }
+
+      const response =
+        await fetch(
+          "/api/admin/introducers",
+          {
+            method: "PUT",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body:
+              JSON.stringify({
+                action:
+                  "get_campaigns",
+
+                introducerId:
+                  introducer.id,
+              }),
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result?.success
+      ) {
+        setError(
+          result?.error ||
+            "Root could not load campaigns."
+        );
+
+        setCampaignLoading(false);
+        return;
+      }
+
+      setCampaigns(
+        result.campaigns || []
+      );
+
+      setCampaignLoading(false);
+    } catch (loadError) {
+      console.error(
+        "ROOT CAMPAIGN LOAD ERROR:",
+        loadError
+      );
+
+      setError(
+        "Root could not load campaigns."
+      );
+
+      setCampaignLoading(false);
+    }
+  }
+
+  async function openCampaignManager(
+    introducer
+  ) {
+    if (
+      campaignManagerId ===
+      introducer.id
+    ) {
+      setCampaignManagerId(null);
+      setCampaigns([]);
+      setCampaignForm(
+        EMPTY_CAMPAIGN_FORM
+      );
+
+      return;
+    }
+
+    setCampaignManagerId(
+      introducer.id
+    );
+
+    setCampaignForm(
+      EMPTY_CAMPAIGN_FORM
+    );
+
+    await loadCampaigns(
+      introducer
+    );
+  }
+
+  async function createCampaign(
+    event,
+    introducer
+  ) {
+    event.preventDefault();
+
+    setCampaignSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const token =
+        await getAccessToken();
+
+      if (!token) {
+        setError(
+          "Please sign in again before creating a campaign."
+        );
+
+        setCampaignSaving(false);
+        return;
+      }
+
+      const response =
+        await fetch(
+          "/api/admin/introducers",
+          {
+            method: "PUT",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body:
+              JSON.stringify({
+                action:
+                  "create_campaign",
+
+                introducerId:
+                  introducer.id,
+
+                ...campaignForm,
+              }),
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result?.success
+      ) {
+        setError(
+          result?.error ||
+            "Root could not create the campaign."
+        );
+
+        setCampaignSaving(false);
+        return;
+      }
+
+      setCampaignForm(
+        EMPTY_CAMPAIGN_FORM
+      );
+
+      setMessage(
+        `${result.campaign.campaign_name} campaign created.`
+      );
+
+      setCampaignSaving(false);
+
+      await loadCampaigns(
+        introducer
+      );
+    } catch (saveError) {
+      console.error(
+        "ROOT CAMPAIGN CREATE ERROR:",
+        saveError
+      );
+
+      setError(
+        "Root could not create the campaign."
+      );
+
+      setCampaignSaving(false);
+    }
+  }
+
+  async function changeCampaignStatus(
+    campaign,
+    introducer
+  ) {
+    setCampaignSaving(true);
+    setError("");
+    setMessage("");
+
+    const newStatus =
+      campaign.status === "active"
+        ? "inactive"
+        : "active";
+
+    try {
+      const token =
+        await getAccessToken();
+
+      if (!token) {
+        setError(
+          "Please sign in again before changing campaign status."
+        );
+
+        setCampaignSaving(false);
+        return;
+      }
+
+      const response =
+        await fetch(
+          "/api/admin/introducers",
+          {
+            method: "PUT",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body:
+              JSON.stringify({
+                action:
+                  "change_campaign_status",
+
+                campaignId:
+                  campaign.id,
+
+                status:
+                  newStatus,
+              }),
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result?.success
+      ) {
+        setError(
+          result?.error ||
+            "Root could not change campaign status."
+        );
+
+        setCampaignSaving(false);
+        return;
+      }
+
+      setMessage(
+        `${campaign.campaign_name} is now ${newStatus}.`
+      );
+
+      setCampaignSaving(false);
+
+      await loadCampaigns(
+        introducer
+      );
+    } catch (saveError) {
+      console.error(
+        "ROOT CAMPAIGN STATUS ERROR:",
+        saveError
+      );
+
+      setError(
+        "Root could not change campaign status."
+      );
+
+      setCampaignSaving(false);
+    }
+  }
+
+  async function copyText(
+    value,
+    successMessage
+  ) {
+    try {
+      await navigator.clipboard.writeText(
+        value
+      );
+
+      setMessage(
+        successMessage
+      );
+
+      setError("");
+    } catch (copyError) {
+      console.error(
+        "ROOT COPY LINK ERROR:",
+        copyError
+      );
+
+      setError(
+        "Root could not copy the link."
+      );
+    }
+  }
+
+  function referralLink(
+    introducer
+  ) {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return "";
+    }
+
+    return (
+      `${window.location.origin}` +
+      `/workplace?ref=` +
+      encodeURIComponent(
+        introducer.referral_code
+      )
+    );
+  }
+
+  function campaignLink(
+    introducer,
+    campaign
+  ) {
+    return (
+      referralLink(
+        introducer
+      ) +
+      `&campaign=` +
+      encodeURIComponent(
+        campaign.campaign_code
+      )
+    );
   }
   const totals =
     useMemo(
@@ -1254,21 +1701,22 @@ export default function IntroducerAdminPage() {
                       styles.partnerActions
                     }
                   >
-                    <button
+                                        <button
                       type="button"
                       style={
                         styles.secondaryButton
                       }
-                      onClick={() => {
-                        setMessage(
-                          "Campaign management is the next Green."
-                        );
-                        setError("");
-                      }}
+                      onClick={() =>
+                        openCampaignManager(
+                          introducer
+                        )
+                      }
                     >
-                      Manage Campaigns
+                      {campaignManagerId ===
+                      introducer.id
+                        ? "Close Campaigns"
+                        : "Manage Campaigns"}
                     </button>
-
                     <button
                       type="button"
                       style={
@@ -1289,6 +1737,400 @@ export default function IntroducerAdminPage() {
                         : "Change Commercial Terms"}
                     </button>
                   </div>
+                                      {campaignManagerId ===
+                  introducer.id ? (
+                    <div
+                      style={
+                        styles.commercialEditor
+                      }
+                    >
+                      <div>
+                        <span
+                          style={
+                            styles.metricLabel
+                          }
+                        >
+                          PERMANENT REFERRAL LINK
+                        </span>
+
+                        <p
+                          style={
+                            styles.referralCode
+                          }
+                        >
+                          {referralLink(
+                            introducer
+                          )}
+                        </p>
+
+                        <button
+                          type="button"
+                          style={
+                            styles.secondaryButton
+                          }
+                          onClick={() =>
+                            copyText(
+                              referralLink(
+                                introducer
+                              ),
+                              `${introducer.name} referral link copied.`
+                            )
+                          }
+                        >
+                          Copy Referral Link
+                        </button>
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: 22,
+                        }}
+                      >
+                        <span
+                          style={
+                            styles.metricLabel
+                          }
+                        >
+                          CAMPAIGNS
+                        </span>
+
+                        {campaignLoading ? (
+                          <p>
+                            Loading campaigns...
+                          </p>
+                        ) : null}
+
+                        {!campaignLoading &&
+                        campaigns.length ===
+                          0 ? (
+                          <p>
+                            No campaigns created
+                            yet.
+                          </p>
+                        ) : null}
+
+                        {!campaignLoading &&
+                        campaigns.length >
+                          0 ? (
+                          <div
+                            style={{
+                              display:
+                                "grid",
+                              gap: 12,
+                              marginTop: 12,
+                            }}
+                          >
+                            {campaigns.map(
+                              (
+                                campaign
+                              ) => (
+                                <div
+                                  key={
+                                    campaign.id
+                                  }
+                                  style={
+                                    styles.lockedField
+                                  }
+                                >
+                                  <strong>
+                                    {campaign.campaign_name}
+                                  </strong>
+
+                                  <div
+                                    style={{
+                                      marginTop:
+                                        6,
+                                    }}
+                                  >
+                                    {
+                                      campaign.status
+                                    }
+                                    {" · "}
+                                    {
+                                      campaign.campaign_code
+                                    }
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      marginTop:
+                                        8,
+                                      wordBreak:
+                                        "break-all",
+                                    }}
+                                  >
+                                    {campaignLink(
+                                      introducer,
+                                      campaign
+                                    )}
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      display:
+                                        "flex",
+                                      gap: 8,
+                                      flexWrap:
+                                        "wrap",
+                                      marginTop:
+                                        10,
+                                    }}
+                                  >
+                                    <button
+                                      type="button"
+                                      style={
+                                        styles.secondaryButton
+                                      }
+                                      onClick={() =>
+                                        copyText(
+                                          campaignLink(
+                                            introducer,
+                                            campaign
+                                          ),
+                                          `${campaign.campaign_name} campaign link copied.`
+                                        )
+                                      }
+                                    >
+                                      Copy Link
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        campaignSaving
+                                      }
+                                      style={
+                                        styles.secondaryButton
+                                      }
+                                      onClick={() =>
+                                        changeCampaignStatus(
+                                          campaign,
+                                          introducer
+                                        )
+                                      }
+                                    >
+                                      {campaign.status ===
+                                      "active"
+                                        ? "Deactivate"
+                                        : "Activate"}
+                                    </button>
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <form
+                        onSubmit={(event) =>
+                          createCampaign(
+                            event,
+                            introducer
+                          )
+                        }
+                        style={{
+                          marginTop: 24,
+                        }}
+                      >
+                        <span
+                          style={
+                            styles.metricLabel
+                          }
+                        >
+                          NEW CAMPAIGN
+                        </span>
+
+                        <div
+                          style={
+                            styles.commercialEditorGrid
+                          }
+                        >
+                          <Field
+                            label="Campaign name"
+                            required
+                          >
+                            <input
+                              style={
+                                styles.input
+                              }
+                              value={
+                                campaignForm.campaignName
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updateCampaignName(
+                                  event
+                                    .target
+                                    .value
+                                )
+                              }
+                              placeholder="Care Homes 2026"
+                              required
+                            />
+                          </Field>
+
+                          <Field
+                            label="Campaign code"
+                            required
+                            hint="Generated automatically. This becomes part of the permanent campaign identity."
+                          >
+                            <input
+                              style={
+                                styles.input
+                              }
+                              value={
+                                campaignForm.campaignCode
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updateCampaignForm(
+                                  "campaignCode",
+                                  campaignCodeFromName(
+                                    event
+                                      .target
+                                      .value
+                                  )
+                                )
+                              }
+                              placeholder="care-homes-2026"
+                              required
+                            />
+                          </Field>
+
+                          <Field
+                            label="Start date"
+                          >
+                            <input
+                              type="date"
+                              style={
+                                styles.input
+                              }
+                              value={
+                                campaignForm.startsAt
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updateCampaignForm(
+                                  "startsAt",
+                                  event
+                                    .target
+                                    .value
+                                )
+                              }
+                            />
+                          </Field>
+
+                          <Field
+                            label="End date"
+                          >
+                            <input
+                              type="date"
+                              style={
+                                styles.input
+                              }
+                              value={
+                                campaignForm.endsAt
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updateCampaignForm(
+                                  "endsAt",
+                                  event
+                                    .target
+                                    .value
+                                )
+                              }
+                            />
+                          </Field>
+
+                          <Field
+                            label="Status"
+                          >
+                            <select
+                              style={
+                                styles.input
+                              }
+                              value={
+                                campaignForm.status
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updateCampaignForm(
+                                  "status",
+                                  event
+                                    .target
+                                    .value
+                                )
+                              }
+                            >
+                              <option value="active">
+                                Active
+                              </option>
+
+                              <option value="inactive">
+                                Inactive
+                              </option>
+                            </select>
+                          </Field>
+                        </div>
+
+                        <Field
+                          label="Internal notes"
+                        >
+                          <textarea
+                            style={
+                              styles.textarea
+                            }
+                            rows={3}
+                            value={
+                              campaignForm.notes
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateCampaignForm(
+                                "notes",
+                                event
+                                  .target
+                                  .value
+                              )
+                            }
+                            placeholder="Purpose, audience or campaign context..."
+                          />
+                        </Field>
+
+                        <div
+                          style={
+                            styles.commercialFooter
+                          }
+                        >
+                          <button
+                            type="submit"
+                            disabled={
+                              campaignSaving
+                            }
+                            style={{
+                              ...styles.primaryButton,
+
+                              ...(campaignSaving
+                                ? styles.disabledButton
+                                : {}),
+                            }}
+                          >
+                            {campaignSaving
+                              ? "Creating..."
+                              : "Create Campaign"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : null}
 
                   {commercialEditorId ===
                   introducer.id ? (
