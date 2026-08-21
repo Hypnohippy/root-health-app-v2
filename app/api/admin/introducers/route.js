@@ -395,56 +395,7 @@ export async function POST(request) {
         }
       );
     }
-    // ============================================================
-// ROOT INTRODUCERS
-// GREEN 2B — ATOMIC COMMERCIAL TERMS CHANGE
-// ============================================================
-
-export async function PATCH(request) {
-  try {
-    const admin =
-      await requireRootAdmin(
-        request
-      );
-
-    if (!admin.authorised) {
-      return NextResponse.json(
-        {
-          error:
-            admin.error,
-        },
-        {
-          status:
-            admin.status,
-        }
-      );
-    }
-
-    const body =
-      await request.json();
-
-    const action =
-      String(
-        body?.action || ""
-      )
-        .trim()
-        .toLowerCase();
-
-    if (
-      action !==
-      "change_commercial_terms"
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Unknown introducer administration action.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
+       
     const introducerId =
       cleanText(
         body?.introducerId
