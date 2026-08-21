@@ -1188,7 +1188,7 @@ async function findAuthUserByEmail(
 
   let page = 1;
 
-  const perPage = 1000;
+  const perPage = 1000; 
 
   while (true) {
     const {
