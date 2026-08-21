@@ -829,6 +829,14 @@ export async function PATCH(request) {
         .trim()
         .toLowerCase();
 
+        const effectiveMode =
+      String(
+        body?.effectiveMode ||
+          "date"
+      )
+        .trim()
+        .toLowerCase();
+
     const effectiveDate =
       cleanText(
         body?.effectiveDate
@@ -893,10 +901,33 @@ export async function PATCH(request) {
       );
     }
 
+        if (
+      ![
+        "immediate",
+        "date",
+      ].includes(
+        effectiveMode
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Effective mode must be immediate or date.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
     if (
-      !effectiveDate ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(
-        effectiveDate
+      effectiveMode ===
+        "date" &&
+      (
+        !effectiveDate ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(
+          effectiveDate
+        )
       )
     ) {
       return NextResponse.json(
@@ -922,13 +953,18 @@ export async function PATCH(request) {
       );
     }
 
-    /*
-     * Commercial agreements use a calendar date.
-     * Store that deterministically at midnight UTC rather
-     * than allowing the browser timezone to move the date.
+       /*
+     * Immediate changes use the exact current timestamp,
+     * allowing legitimate same-day renegotiations.
+     *
+     * Future/date-based changes remain deterministic at
+     * midnight UTC on the selected commercial date.
      */
     const effectiveFrom =
-      `${effectiveDate}T00:00:00.000Z`;
+      effectiveMode ===
+      "immediate"
+        ? new Date().toISOString()
+        : `${effectiveDate}T00:00:00.000Z`;
 
     const supabase =
       buildAdminClient();
