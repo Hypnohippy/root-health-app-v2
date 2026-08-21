@@ -24,6 +24,7 @@ const EMPTY_FORM = {
 const EMPTY_COMMERCIAL_FORM = {
   commissionPercent: "",
   commissionStructure: "one_off",
+  effectiveTiming: "immediate",
   effectiveDate: "",
   changeReason: "",
   notes: "",
@@ -367,16 +368,18 @@ export default function IntroducerAdminPage() {
             ""
         ),
 
-      commissionStructure:
+            commissionStructure:
         introducer.commission_structure ||
         "one_off",
 
+      effectiveTiming:
+        "immediate",
+
       effectiveDate:
-        todayDateValue(),
+        "",
 
       changeReason:
         "",
-
       notes:
         "",
     });
@@ -1387,30 +1390,71 @@ export default function IntroducerAdminPage() {
                         </Field>
 
                         <Field
-                          label="Effective from"
-                          required
-                          hint="The new policy starts at 00:00 UTC on this date."
-                        >
-                          <input
-                            type="date"
-                            style={
-                              styles.input
-                            }
-                            value={
-                              commercialForm.effectiveDate
-                            }
-                            onChange={
-                              (event) =>
-                                updateCommercialForm(
-                                  "effectiveDate",
-                                  event.target
-                                    .value
-                                )
-                            }
-                            required
-                          />
-                        </Field>
+  label="Effective from"
+  required
+  hint={
+    commercialForm.effectiveTiming === "immediate"
+      ? "Apply the new terms at the exact time they are saved."
+      : "Choose the calendar date on which the new terms should begin."
+  }
+>
+  <select
+    style={styles.input}
+    value={
+      commercialForm.effectiveTiming
+    }
+    onChange={(event) => {
+      const value =
+        event.target.value;
 
+      updateCommercialForm(
+        "effectiveTiming",
+        value
+      );
+
+      if (value === "immediate") {
+        updateCommercialForm(
+          "effectiveDate",
+          ""
+        );
+      } else if (
+        !commercialForm.effectiveDate
+      ) {
+        updateCommercialForm(
+          "effectiveDate",
+          todayDateValue()
+        );
+      }
+    }}
+    required
+  >
+    <option value="immediate">
+      Immediately
+    </option>
+
+    <option value="specific_date">
+      Specific date
+    </option>
+  </select>
+
+  {commercialForm.effectiveTiming ===
+  "specific_date" ? (
+    <input
+      type="date"
+      style={styles.input}
+      value={
+        commercialForm.effectiveDate
+      }
+      onChange={(event) =>
+        updateCommercialForm(
+          "effectiveDate",
+          event.target.value
+        )
+      }
+      required
+    />
+  ) : null}
+</Field>
                         <Field
                           label="Reason for change"
                           required
