@@ -21,6 +21,14 @@ const EMPTY_FORM = {
   notes: "",
 };
 
+const EMPTY_COMMERCIAL_FORM = {
+  commissionPercent: "",
+  commissionStructure: "one_off",
+  effectiveDate: "",
+  changeReason: "",
+  notes: "",
+};
+
 function money(value) {
   return Number(
     value || 0
@@ -78,6 +86,22 @@ export default function IntroducerAdminPage() {
     message,
     setMessage,
   ] = useState("");
+    const [
+    commercialEditorId,
+    setCommercialEditorId,
+  ] = useState(null);
+
+  const [
+    commercialForm,
+    setCommercialForm,
+  ] = useState(
+    EMPTY_COMMERCIAL_FORM
+  );
+
+  const [
+    commercialSaving,
+    setCommercialSaving,
+  ] = useState(false);
 
   async function getAccessToken() {
     const {
@@ -303,7 +327,208 @@ export default function IntroducerAdminPage() {
       setSaving(false);
     }
   }
+    function todayDateValue() {
+    const now =
+      new Date();
 
+    const year =
+      now.getFullYear();
+
+    const month =
+      String(
+        now.getMonth() + 1
+      ).padStart(
+        2,
+        "0"
+      );
+
+    const day =
+      String(
+        now.getDate()
+      ).padStart(
+        2,
+        "0"
+      );
+
+    return `${year}-${month}-${day}`;
+  }
+
+  function openCommercialEditor(
+    introducer
+  ) {
+    setCommercialEditorId(
+      introducer.id
+    );
+
+    setCommercialForm({
+      commissionPercent:
+        String(
+          introducer.commission_percent ??
+            ""
+        ),
+
+      commissionStructure:
+        introducer.commission_structure ||
+        "one_off",
+
+      effectiveDate:
+        todayDateValue(),
+
+      changeReason:
+        "",
+
+      notes:
+        "",
+    });
+
+    setError("");
+    setMessage("");
+  }
+
+  function closeCommercialEditor() {
+    if (commercialSaving) {
+      return;
+    }
+
+    setCommercialEditorId(
+      null
+    );
+
+    setCommercialForm(
+      EMPTY_COMMERCIAL_FORM
+    );
+  }
+
+  function updateCommercialForm(
+    field,
+    value
+  ) {
+    setCommercialForm(
+      (current) => ({
+        ...current,
+        [field]:
+          value,
+      })
+    );
+  }
+
+  async function saveCommercialTerms(
+    event,
+    introducer
+  ) {
+    event.preventDefault();
+
+    setCommercialSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const token =
+        await getAccessToken();
+
+      if (!token) {
+        setError(
+          "Please sign in again before changing commercial terms."
+        );
+
+        setCommercialSaving(false);
+        return;
+      }
+
+      const response =
+        await fetch(
+          "/api/admin/introducers",
+          {
+            method:
+              "PATCH",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body:
+              JSON.stringify({
+                action:
+                  "change_commercial_terms",
+
+                introducerId:
+                  introducer.id,
+
+                commissionPercent:
+                  commercialForm.commissionPercent,
+
+                commissionStructure:
+                  commercialForm.commissionStructure,
+
+                effectiveDate:
+                  commercialForm.effectiveDate,
+
+                changeReason:
+                  commercialForm.changeReason,
+
+                notes:
+                  commercialForm.notes,
+              }),
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result?.success
+      ) {
+        setError(
+          result?.error ||
+          "Root could not change the commercial terms."
+        );
+
+        setCommercialSaving(false);
+        return;
+      }
+
+      setMessage(
+        `${introducer.name} commercial terms changed to ${Number(
+          commercialForm.commissionPercent
+        ).toLocaleString(
+          "en-GB",
+          {
+            maximumFractionDigits: 2,
+          }
+        )}% ${formatStructure(
+          commercialForm.commissionStructure
+        ).toLowerCase()}.`
+      );
+
+      setCommercialEditorId(
+        null
+      );
+
+      setCommercialForm(
+        EMPTY_COMMERCIAL_FORM
+      );
+
+      setCommercialSaving(false);
+
+      await loadIntroducers();
+    } catch (saveError) {
+      console.error(
+        "ROOT INTRODUCER COMMERCIAL SAVE ERROR:",
+        saveError
+      );
+
+      setError(
+        "Root could not change the commercial terms."
+      );
+
+      setCommercialSaving(false);
+    }
+  }
   const totals =
     useMemo(
       () => {
@@ -1015,12 +1240,278 @@ export default function IntroducerAdminPage() {
                     ) : null}
                   </div>
 
-                  <div style={styles.nextStage}>
-                    Campaigns and commercial
-                    term changes will be added
-                    in the next Green.
+                                    <div
+                    style={
+                      styles.partnerActions
+                    }
+                  >
+                    <button
+                      type="button"
+                      style={
+                        styles.secondaryButton
+                      }
+                      onClick={() => {
+                        setMessage(
+                          "Campaign management is the next Green."
+                        );
+                        setError("");
+                      }}
+                    >
+                      Manage Campaigns
+                    </button>
+
+                    <button
+                      type="button"
+                      style={
+                        styles.primaryButton
+                      }
+                      onClick={() =>
+                        commercialEditorId ===
+                        introducer.id
+                          ? closeCommercialEditor()
+                          : openCommercialEditor(
+                              introducer
+                            )
+                      }
+                    >
+                      {commercialEditorId ===
+                      introducer.id
+                        ? "Close Terms"
+                        : "Change Commercial Terms"}
+                    </button>
                   </div>
-                </article>
+
+                  {commercialEditorId ===
+                  introducer.id ? (
+                    <form
+                      style={
+                        styles.commercialEditor
+                      }
+                      onSubmit={(event) =>
+                        saveCommercialTerms(
+                          event,
+                          introducer
+                        )
+                      }
+                    >
+                      <div>
+                        <span
+                          style={
+                            styles.metricLabel
+                          }
+                        >
+                          CURRENT TERMS
+                        </span>
+
+                        <strong
+                          style={
+                            styles.currentTerms
+                          }
+                        >
+                          {Number(
+                            introducer.commission_percent ||
+                              0
+                          ).toLocaleString(
+                            "en-GB",
+                            {
+                              maximumFractionDigits: 2,
+                            }
+                          )}
+                          % ·{" "}
+                          {formatStructure(
+                            introducer.commission_structure
+                          )}
+                        </strong>
+                      </div>
+
+                      <div
+                        style={
+                          styles.commercialEditorGrid
+                        }
+                      >
+                        <Field
+                          label="New commission %"
+                          required
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            style={
+                              styles.input
+                            }
+                            value={
+                              commercialForm.commissionPercent
+                            }
+                            onChange={
+                              (event) =>
+                                updateCommercialForm(
+                                  "commissionPercent",
+                                  event.target
+                                    .value
+                                )
+                            }
+                            required
+                          />
+                        </Field>
+
+                        <Field
+                          label="New structure"
+                          required
+                        >
+                          <select
+                            style={
+                              styles.input
+                            }
+                            value={
+                              commercialForm.commissionStructure
+                            }
+                            onChange={
+                              (event) =>
+                                updateCommercialForm(
+                                  "commissionStructure",
+                                  event.target
+                                    .value
+                                )
+                            }
+                          >
+                            <option value="one_off">
+                              One-off
+                            </option>
+
+                            <option value="recurring">
+                              Recurring
+                            </option>
+                          </select>
+                        </Field>
+
+                        <Field
+                          label="Effective from"
+                          required
+                          hint="The new policy starts at 00:00 UTC on this date."
+                        >
+                          <input
+                            type="date"
+                            style={
+                              styles.input
+                            }
+                            value={
+                              commercialForm.effectiveDate
+                            }
+                            onChange={
+                              (event) =>
+                                updateCommercialForm(
+                                  "effectiveDate",
+                                  event.target
+                                    .value
+                                )
+                            }
+                            required
+                          />
+                        </Field>
+
+                        <Field
+                          label="Reason for change"
+                          required
+                        >
+                          <input
+                            style={
+                              styles.input
+                            }
+                            value={
+                              commercialForm.changeReason
+                            }
+                            onChange={
+                              (event) =>
+                                updateCommercialForm(
+                                  "changeReason",
+                                  event.target
+                                    .value
+                                )
+                            }
+                            placeholder="Why are these terms changing?"
+                            required
+                          />
+                        </Field>
+                      </div>
+
+                      <Field
+                        label="Internal notes"
+                      >
+                        <textarea
+                          style={
+                            styles.textarea
+                          }
+                          rows={3}
+                          value={
+                            commercialForm.notes
+                          }
+                          onChange={
+                            (event) =>
+                              updateCommercialForm(
+                                "notes",
+                                event.target
+                                  .value
+                              )
+                          }
+                          placeholder="Commercial context, negotiation notes or internal record..."
+                        />
+                      </Field>
+
+                      <div
+                        style={
+                          styles.commercialWarning
+                        }
+                      >
+                        Existing conversions and
+                        earned commissions will not
+                        be changed. Root will close
+                        the current policy and
+                        preserve it in commercial
+                        history.
+                      </div>
+
+                      <div
+                        style={
+                          styles.commercialFooter
+                        }
+                      >
+                        <button
+                          type="button"
+                          style={
+                            styles.secondaryButton
+                          }
+                          disabled={
+                            commercialSaving
+                          }
+                          onClick={
+                            closeCommercialEditor
+                          }
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={
+                            commercialSaving
+                          }
+                          style={{
+                            ...styles.primaryButton,
+
+                            ...(commercialSaving
+                              ? styles.disabledButton
+                              : {}),
+                          }}
+                        >
+                          {commercialSaving
+                            ? "Applying..."
+                            : "Apply New Terms"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}                </article>
               )
             )}
           </div>
@@ -1549,13 +2040,60 @@ const styles = {
     lineHeight: 1.6,
   },
 
-  nextStage: {
+    partnerActions: {
     marginTop: "20px",
-    paddingTop: "16px",
+    paddingTop: "18px",
     borderTop:
       "1px solid rgba(39,54,41,0.08)",
-    color: "#788078",
-    fontSize: "11px",
-    lineHeight: 1.5,
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+  },
+
+  commercialEditor: {
+    marginTop: "18px",
+    padding: "20px",
+    borderRadius: "22px",
+    background:
+      "rgba(244,246,240,0.9)",
+    border:
+      "1px solid rgba(39,54,41,0.09)",
+  },
+
+  currentTerms: {
+    display: "block",
+    marginTop: "5px",
+    marginBottom: "20px",
+    fontFamily:
+      "Georgia, serif",
+    fontSize: "23px",
+    fontWeight: "500",
+    color: "#263B2B",
+  },
+
+  commercialEditorGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(190px, 1fr))",
+    gap: "14px",
+  },
+
+  commercialWarning: {
+    marginTop: "4px",
+    padding: "14px 16px",
+    borderRadius: "15px",
+    background: "#EEE6D6",
+    color: "#6F5D35",
+    fontSize: "12px",
+    fontWeight: "700",
+    lineHeight: 1.55,
+  },
+
+  commercialFooter: {
+    marginTop: "18px",
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "10px",
+    flexWrap: "wrap",
   },
 };
