@@ -222,6 +222,85 @@ export async function GET(request) {
       throw introducerError;
     }
 
+        /*
+     * GREEN 2D — COMMERCIAL POLICY SOURCE OF TRUTH
+     *
+     * organisation_introducer_policies is authoritative.
+     *
+     * The convenience commercial fields on
+     * organisation_introducers are retained for compatibility,
+     * but the admin interface must display the policy that is
+     * actually effective at the current instant.
+     *
+     * This means scheduled commercial changes become current
+     * automatically when their effective timestamp arrives.
+     * No cron job is required to keep the admin display current.
+     */
+    const now =
+      new Date().toISOString();
+
+    const {
+      data:
+        commercialPolicies,
+      error:
+        commercialPolicyError,
+    } =
+      await supabase
+        .from(
+          "organisation_introducer_policies"
+        )
+        .select(
+          `
+            id,
+            introducer_id,
+            commission_percent,
+            commission_basis,
+            commission_structure,
+            effective_from,
+            effective_until,
+            change_reason,
+            notes
+          `
+        )
+        .lte(
+          "effective_from",
+          now
+        )
+        .order(
+          "effective_from",
+          {
+            ascending: false,
+          }
+        );
+
+    if (commercialPolicyError) {
+      throw commercialPolicyError;
+    }
+
+    const effectivePolicyByIntroducer =
+      new Map();
+
+    for (
+      const policy of
+        commercialPolicies || []
+    ) {
+      const isStillEffective =
+        !policy.effective_until ||
+        policy.effective_until > now;
+
+      if (
+        isStillEffective &&
+        !effectivePolicyByIntroducer.has(
+          policy.introducer_id
+        )
+      ) {
+        effectivePolicyByIntroducer.set(
+          policy.introducer_id,
+          policy
+        );
+      }
+    }
+
     const {
       data:
         applications,
@@ -276,6 +355,11 @@ export async function GET(request) {
     const rows =
       (introducers || []).map(
         (introducer) => {
+                    const effectivePolicy =
+            effectivePolicyByIntroducer.get(
+              introducer.id
+            ) || null;
+          
           const matchedApplications =
             (applications || []).filter(
               (application) =>
@@ -331,8 +415,41 @@ export async function GET(request) {
                 0
               );
 
-          return {
+                    return {
             ...introducer,
+
+            commission_percent:
+              effectivePolicy
+                ? Number(
+                    effectivePolicy.commission_percent
+                  )
+                : Number(
+                    introducer.commission_percent
+                  ),
+
+            commission_basis:
+              effectivePolicy
+                ?.commission_basis ||
+              introducer.commission_basis,
+
+            commission_structure:
+              effectivePolicy
+                ?.commission_structure ||
+              introducer.commission_structure,
+
+            current_policy_id:
+              effectivePolicy?.id ||
+              null,
+
+            current_policy_effective_from:
+              effectivePolicy
+                ?.effective_from ||
+              null,
+
+            current_policy_effective_until:
+              effectivePolicy
+                ?.effective_until ||
+              null,
 
             application_count:
               matchedApplications.length,
