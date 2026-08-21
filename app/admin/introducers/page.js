@@ -464,8 +464,14 @@ export default function IntroducerAdminPage() {
                 commissionPercent:
                   commercialForm.commissionPercent,
 
-                commissionStructure:
+                                commissionStructure:
                   commercialForm.commissionStructure,
+
+                effectiveMode:
+                  commercialForm.effectiveTiming ===
+                  "immediate"
+                    ? "immediate"
+                    : "date",
 
                 effectiveDate:
                   commercialForm.effectiveDate,
