@@ -271,7 +271,7 @@ export default function ReferralPage() {
                 style={styles.navLink}
                 onClick={() =>
                   scrollToSection(
-                    "privacy"
+                    "intelligence"
                   )
                 }
               >
@@ -806,7 +806,274 @@ export default function ReferralPage() {
             </div>
           </div>
         </section>
+                <section
+          id="intelligence"
+          style={styles.intelligenceSection}
+        >
+          <div style={styles.intelligenceIntro}>
+            <p style={styles.intelligenceEyebrow}>
+              THE EVIDENCE BECOMES USEFUL
+            </p>
 
+            <h2 style={styles.intelligenceTitle}>
+              Root doesn&apos;t just show you
+              the data.
+            </h2>
+
+            <p style={styles.intelligenceAccent}>
+              It helps you work with it.
+            </p>
+
+            <p style={styles.intelligenceLead}>
+              Root brings organisational evidence
+              and workforce experience together,
+              then helps leaders understand what
+              the evidence supports, what remains
+              uncertain and what may deserve
+              attention next.
+            </p>
+          </div>
+
+          <div style={styles.intelligenceSteps}>
+            <div style={styles.intelligenceStep}>
+              <span style={styles.intelligenceStepNumber}>
+                01
+              </span>
+
+              <strong style={styles.intelligenceStepTitle}>
+                SEE
+              </strong>
+
+              <p style={styles.intelligenceStepText}>
+                Bring workforce experience and
+                organisational evidence into one
+                picture.
+              </p>
+            </div>
+
+            <div style={styles.intelligenceStep}>
+              <span style={styles.intelligenceStepNumber}>
+                02
+              </span>
+
+              <strong style={styles.intelligenceStepTitle}>
+                UNDERSTAND
+              </strong>
+
+              <p style={styles.intelligenceStepText}>
+                See what the evidence supports —
+                and where it is not yet strong
+                enough for a conclusion.
+              </p>
+            </div>
+
+            <div style={styles.intelligenceStep}>
+              <span style={styles.intelligenceStepNumber}>
+                03
+              </span>
+
+              <strong style={styles.intelligenceStepTitle}>
+                QUESTION
+              </strong>
+
+              <p style={styles.intelligenceStepText}>
+                Explore the findings, challenge
+                assumptions and ask questions
+                no dashboard could anticipate.
+              </p>
+            </div>
+
+            <div style={styles.intelligenceStep}>
+              <span style={styles.intelligenceStepNumber}>
+                04
+              </span>
+
+              <strong style={styles.intelligenceStepTitle}>
+                RESPOND
+              </strong>
+
+              <p style={styles.intelligenceStepText}>
+                Consider proportionate actions
+                based on what the organisation
+                actually knows.
+              </p>
+            </div>
+
+            <div style={styles.intelligenceStep}>
+              <span style={styles.intelligenceStepNumber}>
+                05
+              </span>
+
+              <strong style={styles.intelligenceStepTitle}>
+                LEARN
+              </strong>
+
+              <p style={styles.intelligenceStepText}>
+                Measure what happens next and
+                strengthen the evidence behind
+                future decisions.
+              </p>
+            </div>
+          </div>
+
+          <div style={styles.coachReveal}>
+            <div style={styles.coachRevealHeader}>
+              <div>
+                <p style={styles.coachEyebrow}>
+                  ASK YOUR ORGANISATION
+                </p>
+
+                <h3 style={styles.coachTitle}>
+                  The dashboard gives you
+                  the picture.
+                </h3>
+
+                <p style={styles.coachAccent}>
+                  HR Coach lets you have a
+                  conversation with it.
+                </p>
+              </div>
+
+              <div style={styles.coachEnso}>
+                <span style={styles.coachEnsoText}>
+                  ROOT
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.coachQuickActions}>
+              <span style={styles.coachQuickAction}>
+                💬 Question Root&apos;s findings
+              </span>
+
+              <span style={styles.coachQuickAction}>
+                📄 Prepare for a board meeting
+              </span>
+
+              <span style={styles.coachQuickAction}>
+                🧭 Help me decide what to do next
+              </span>
+            </div>
+
+            <div style={styles.coachConversation}>
+              <div style={styles.coachUserSide}>
+                <span style={styles.coachSpeaker}>
+                  YOU
+                </span>
+
+                <p style={styles.coachUserQuestion}>
+                  Help me prepare for a
+                  board meeting.
+                </p>
+              </div>
+
+              <div style={styles.coachRootSide}>
+                <span style={styles.coachSpeaker}>
+                  ROOT
+                </span>
+
+                <p style={styles.coachResponseIntro}>
+                  For your board meeting,
+                  here&apos;s a structured summary
+                  based on the current evidence:
+                </p>
+
+                <div style={styles.coachFindingGrid}>
+                  <div style={styles.coachFinding}>
+                    <span style={styles.coachFindingLabel}>
+                      EXECUTIVE HEADLINE
+                    </span>
+
+                    <p style={styles.coachFindingText}>
+                      There is not yet enough
+                      wellbeing evidence to form
+                      an organisational conclusion.
+                    </p>
+                  </div>
+
+                  <div style={styles.coachFinding}>
+                    <span style={styles.coachFindingLabel}>
+                      EVIDENCE POSITION
+                    </span>
+
+                    <p style={styles.coachFindingText}>
+                      Organisation confidence:
+                      None.
+                      <br />
+                      Participation confidence:
+                      Very low.
+                    </p>
+                  </div>
+
+                  <div style={styles.coachFinding}>
+                    <span style={styles.coachFindingLabel}>
+                      MATERIAL FINDING
+                    </span>
+
+                    <p style={styles.coachFindingText}>
+                      No wellbeing assessments
+                      are currently available.
+                    </p>
+                  </div>
+
+                  <div style={styles.coachFinding}>
+                    <span style={styles.coachFindingLabel}>
+                      RECOMMENDED POSITION
+                    </span>
+
+                    <p style={styles.coachFindingText}>
+                      Strengthen the evidence base
+                      before making broad
+                      organisational interventions.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.coachPayoff}>
+              <p style={styles.coachPayoffSmall}>
+                Notice what Root didn&apos;t do.
+              </p>
+
+              <h3 style={styles.coachPayoffTitle}>
+                It didn&apos;t invent a
+                board story.
+              </h3>
+
+              <p style={styles.coachPayoffAccent}>
+                It told HR what the evidence
+                could support.
+              </p>
+
+              <p style={styles.coachPayoffBody}>
+                When the evidence is incomplete,
+                Root says so. As the organisation
+                builds stronger evidence over time,
+                the conversation becomes richer —
+                without giving the AI permission
+                to make the missing pieces up.
+              </p>
+            </div>
+          </div>
+
+          <div style={styles.intelligenceBridge}>
+            <p style={styles.intelligenceBridgeSmall}>
+              UNDERSTAND ISN&apos;T THE END
+            </p>
+
+            <h3 style={styles.intelligenceBridgeTitle}>
+              What happens when the evidence
+              suggests it&apos;s time to act?
+            </h3>
+
+            <p style={styles.intelligenceBridgeText}>
+              That&apos;s where Root moves from
+              organisational intelligence into
+              targeted support.
+            </p>
+          </div>
+        </section>
         <section
           id="privacy"
           style={styles.hiddenAnchor}
@@ -1904,5 +2171,339 @@ const styles = {
     fontSize: 14,
     fontWeight: 800,
     cursor: "pointer",
+  },
+
+    intelligenceSection: {
+    padding: "100px 5vw 110px",
+    background:
+      "radial-gradient(circle at 72% 42%, rgba(58,112,82,0.18) 0%, rgba(6,29,22,0) 34%), linear-gradient(180deg, #061d16 0%, #08261c 55%, #051a14 100%)",
+    color: "#ffffff",
+    overflow: "hidden",
+  },
+
+  intelligenceIntro: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto 52px",
+  },
+
+  intelligenceEyebrow: {
+    margin: "0 0 18px",
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#e7c78f",
+  },
+
+  intelligenceTitle: {
+    maxWidth: 940,
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(46px, 5.8vw, 76px)",
+    lineHeight: 0.98,
+    letterSpacing: "-0.035em",
+    color: "#f8f4ea",
+  },
+
+  intelligenceAccent: {
+    margin: "12px 0 0",
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(31px, 4vw, 50px)",
+    lineHeight: 1.04,
+    color: "#e7c78f",
+  },
+
+  intelligenceLead: {
+    maxWidth: 760,
+    margin: "26px 0 0",
+    fontSize: 16,
+    lineHeight: 1.7,
+    color:
+      "rgba(255,255,255,0.67)",
+  },
+
+  intelligenceSteps: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(5, minmax(0, 1fr))",
+    gap: 12,
+  },
+
+  intelligenceStep: {
+    minHeight: 205,
+    padding: "24px 22px",
+    borderRadius: 24,
+    boxSizing: "border-box",
+    background:
+      "rgba(255,255,255,0.05)",
+    border:
+      "1px solid rgba(231,199,143,0.15)",
+  },
+
+  intelligenceStepNumber: {
+    display: "block",
+    marginBottom: 31,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    color: "#b79b69",
+  },
+
+  intelligenceStepTitle: {
+    display: "block",
+    marginBottom: 10,
+    fontFamily: "Georgia, serif",
+    fontSize: 23,
+    fontWeight: 400,
+    color: "#f8f4ea",
+  },
+
+  intelligenceStepText: {
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.6,
+    color:
+      "rgba(255,255,255,0.58)",
+  },
+
+  coachReveal: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "92px auto 0",
+    padding: "54px",
+    boxSizing: "border-box",
+    borderRadius: 36,
+    background:
+      "linear-gradient(135deg, #f8f5ed 0%, #eeeadf 100%)",
+    color: "#173326",
+    boxShadow:
+      "0 32px 90px rgba(0,0,0,0.20)",
+  },
+
+  coachRevealHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 40,
+  },
+
+  coachEyebrow: {
+    margin: "0 0 13px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#7b735e",
+  },
+
+  coachTitle: {
+    maxWidth: 700,
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(38px, 4.6vw, 60px)",
+    lineHeight: 1,
+    color: "#173326",
+  },
+
+  coachAccent: {
+    margin: "9px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(25px, 3vw, 38px)",
+    color: "#47725e",
+  },
+
+  coachEnso: {
+    width: 96,
+    height: 96,
+    borderRadius: "50%",
+    border:
+      "9px solid #204937",
+    borderRightColor:
+      "rgba(32,73,55,0.26)",
+    display: "grid",
+    placeItems: "center",
+    flexShrink: 0,
+  },
+
+  coachEnsoText: {
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#204937",
+  },
+
+  coachQuickActions: {
+    marginTop: 40,
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+
+  coachQuickAction: {
+    padding: "11px 15px",
+    borderRadius: 999,
+    background: "#ffffff",
+    border:
+      "1px solid rgba(23,51,38,0.10)",
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#284b3c",
+  },
+
+  coachConversation: {
+    marginTop: 28,
+    padding: "30px",
+    borderRadius: 28,
+    background:
+      "rgba(255,255,255,0.68)",
+    border:
+      "1px solid rgba(23,51,38,0.08)",
+  },
+
+  coachUserSide: {
+    maxWidth: 580,
+    marginBottom: 30,
+  },
+
+  coachRootSide: {
+    width: "100%",
+  },
+
+  coachSpeaker: {
+    display: "block",
+    marginBottom: 8,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.16em",
+    color: "#8b7b5d",
+  },
+
+  coachUserQuestion: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontSize: 25,
+    lineHeight: 1.3,
+    color: "#173326",
+  },
+
+  coachResponseIntro: {
+    maxWidth: 720,
+    margin: "0 0 22px",
+    fontSize: 14,
+    lineHeight: 1.65,
+    color: "#627268",
+  },
+
+  coachFindingGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(2, minmax(0, 1fr))",
+    gap: 12,
+  },
+
+  coachFinding: {
+    minHeight: 125,
+    padding: "20px",
+    boxSizing: "border-box",
+    borderRadius: 18,
+    background: "#ffffff",
+    border:
+      "1px solid rgba(23,51,38,0.08)",
+  },
+
+  coachFindingLabel: {
+    display: "block",
+    marginBottom: 11,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.13em",
+    color: "#8b7b5d",
+  },
+
+  coachFindingText: {
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.55,
+    color: "#52675b",
+  },
+
+  coachPayoff: {
+    maxWidth: 850,
+    margin: "50px auto 0",
+    textAlign: "center",
+  },
+
+  coachPayoffSmall: {
+    margin: "0 0 10px",
+    fontSize: 14,
+    color: "#68786f",
+  },
+
+  coachPayoffTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(36px, 4.5vw, 56px)",
+    lineHeight: 1.02,
+    color: "#173326",
+  },
+
+  coachPayoffAccent: {
+    margin: "8px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(27px, 3.4vw, 42px)",
+    color: "#47725e",
+  },
+
+  coachPayoffBody: {
+    maxWidth: 760,
+    margin: "22px auto 0",
+    fontSize: 14,
+    lineHeight: 1.7,
+    color: "#67776e",
+  },
+
+  intelligenceBridge: {
+    maxWidth: 980,
+    margin: "92px auto 0",
+    textAlign: "center",
+  },
+
+  intelligenceBridgeSmall: {
+    margin: "0 0 14px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#d7b979",
+  },
+
+  intelligenceBridgeTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(40px, 5vw, 66px)",
+    lineHeight: 1,
+    color: "#f8f4ea",
+  },
+
+  intelligenceBridgeText: {
+    maxWidth: 680,
+    margin: "19px auto 0",
+    fontSize: 16,
+    lineHeight: 1.65,
+    color:
+      "rgba(255,255,255,0.61)",
   },
 };
