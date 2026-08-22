@@ -402,13 +402,7 @@ export default function ReferralPage() {
                 src="/root-workplace-hero-globe-master.png"
                 alt="Root Workplace visual showing organisational signals connecting around the Root Enso"
                 style={styles.heroGlobeImage}
-              />
-            </div>                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={styles.globeReflection} />
+            />
             </div>
           </div>
         </section>
