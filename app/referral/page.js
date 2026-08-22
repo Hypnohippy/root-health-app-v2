@@ -412,25 +412,112 @@ export default function ReferralPage() {
             These deliberately create the navigation anchors.
         ================================================== */}
 
-        <section
+                <section
           id="how-root-works"
-          style={styles.nextSection}
+          style={styles.connectionSection}
         >
-          <p style={styles.sectionEyebrow}>
-            NEXT — GREEN 4B
-          </p>
+          <div style={styles.connectionIntro}>
+            <p style={styles.sectionEyebrow}>
+              THE CONNECTION PROBLEM
+            </p>
 
-          <h2 style={styles.nextTitle}>
-            Most organisations don&apos;t
-            have a data problem.
-          </h2>
+            <h2 style={styles.connectionTitle}>
+              Most organisations don&apos;t
+              have a data problem.
+            </h2>
 
-          <p style={styles.nextAccent}>
-            They have a connection
-            problem.
-          </p>
+            <p style={styles.connectionAccent}>
+              They have a connection
+              problem.
+            </p>
+          </div>
+
+          <div style={styles.signalCards}>
+            <SignalCard
+              label="ABSENCE"
+              value="6.2%"
+              movement="↑"
+              note="What happened"
+            />
+
+            <SignalCard
+              label="ENGAGEMENT"
+              value="72%"
+              movement="↓"
+              note="What people said"
+            />
+
+            <SignalCard
+              label="WELLBEING"
+              value="Pressure"
+              movement="↑"
+              note="What people feel"
+            />
+
+            <SignalCard
+              label="RETENTION"
+              value="94%"
+              movement=""
+              note="Who stayed"
+            />
+
+            <SignalCard
+              label="PERFORMANCE"
+              value="Stable"
+              movement="→"
+              note="What changed"
+            />
+          </div>
+
+          <div style={styles.connectionVisual}>
+            <div style={styles.connectionLines}>
+              <span style={styles.connectionLine1} />
+              <span style={styles.connectionLine2} />
+              <span style={styles.connectionLine3} />
+              <span style={styles.connectionLine4} />
+              <span style={styles.connectionLine5} />
+
+              <div style={styles.connectionEnso}>
+                <span style={styles.connectionEnsoInner}>
+                  ROOT
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.connectionAnswer}>
+            <p style={styles.connectionSmall}>
+              Each measure tells you
+              something.
+            </p>
+
+            <h3 style={styles.connectionQuestion}>
+              What connects them?
+            </h3>
+
+            <p style={styles.connectionBody}>
+              Root helps leaders explore
+              relationships between
+              workforce experience and
+              organisational evidence —
+              and follow what happens as
+              the organisation changes.
+            </p>
+
+            <button
+              type="button"
+              style={styles.connectionLink}
+              onClick={() =>
+                scrollToSection(
+                  "evidence"
+                )
+              }
+            >
+              Explore how Root connects
+              the picture →
+            </button>
+          </div>
         </section>
-
         <section
           id="evidence"
           style={styles.hiddenAnchor}
@@ -470,7 +557,44 @@ export default function ReferralPage() {
     </>
   );
 }
+function SignalCard({
+  label,
+  value,
+  movement,
+  note,
+}) {
+  return (
+    <div style={styles.signalCard}>
+      <span style={styles.signalCardLabel}>
+        {label}
+      </span>
 
+      <div style={styles.signalCardValueRow}>
+        <strong style={styles.signalCardValue}>
+          {value}
+        </strong>
+
+        {movement ? (
+          <span style={styles.signalCardMovement}>
+            {movement}
+          </span>
+        ) : null}
+      </div>
+
+      <span style={styles.signalCardNote}>
+        {note}
+      </span>
+
+      <div style={styles.signalMiniChart}>
+        <span style={styles.signalDot1} />
+        <span style={styles.signalDot2} />
+        <span style={styles.signalDot3} />
+        <span style={styles.signalDot4} />
+        <span style={styles.signalDot5} />
+      </div>
+    </div>
+  );
+}
 const styles = {
   page: {
     minHeight: "100vh",
@@ -833,6 +957,303 @@ const styles = {
     color: "#173326",
     fontSize: 15,
     fontWeight: 800,
+    cursor: "pointer",
+  },
+    connectionSection: {
+    padding: "92px 5vw 100px",
+    background:
+      "linear-gradient(180deg, #f7f3e9 0%, #f0ecdf 100%)",
+    color: "#173326",
+    overflow: "hidden",
+  },
+
+  connectionIntro: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto 46px",
+  },
+
+  connectionTitle: {
+    maxWidth: 780,
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(42px, 5vw, 68px)",
+    lineHeight: 1.02,
+    letterSpacing: "-0.035em",
+    color: "#173326",
+  },
+
+  connectionAccent: {
+    margin: "10px 0 0",
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(30px, 3.7vw, 48px)",
+    lineHeight: 1.08,
+    color: "#35604d",
+  },
+
+  signalCards: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(5, minmax(0, 1fr))",
+    gap: 14,
+    position: "relative",
+    zIndex: 3,
+  },
+
+  signalCard: {
+    minHeight: 180,
+    padding: "22px 20px",
+    borderRadius: 22,
+    background:
+      "rgba(255,255,255,0.82)",
+    border:
+      "1px solid rgba(23,51,38,0.09)",
+    boxShadow:
+      "0 16px 40px rgba(23,51,38,0.055)",
+    position: "relative",
+  },
+
+  signalCardLabel: {
+    display: "block",
+    marginBottom: 16,
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.13em",
+    color: "#6e7e74",
+  },
+
+  signalCardValueRow: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: 9,
+  },
+
+  signalCardValue: {
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: 34,
+    color: "#173326",
+  },
+
+  signalCardMovement: {
+    fontSize: 23,
+    color: "#6d8b71",
+  },
+
+  signalCardNote: {
+    display: "block",
+    marginTop: 7,
+    fontSize: 12,
+    color: "#7d8a82",
+  },
+
+  signalMiniChart: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    bottom: 18,
+    height: 24,
+    borderBottom:
+      "1px solid rgba(23,51,38,0.10)",
+  },
+
+  signalDot1: {
+    position: "absolute",
+    left: "4%",
+    bottom: 5,
+    width: 4,
+    height: 4,
+    borderRadius: "50%",
+    background: "#718879",
+  },
+
+  signalDot2: {
+    position: "absolute",
+    left: "25%",
+    bottom: 11,
+    width: 4,
+    height: 4,
+    borderRadius: "50%",
+    background: "#718879",
+  },
+
+  signalDot3: {
+    position: "absolute",
+    left: "48%",
+    bottom: 8,
+    width: 4,
+    height: 4,
+    borderRadius: "50%",
+    background: "#718879",
+  },
+
+  signalDot4: {
+    position: "absolute",
+    left: "70%",
+    bottom: 16,
+    width: 4,
+    height: 4,
+    borderRadius: "50%",
+    background: "#718879",
+  },
+
+  signalDot5: {
+    position: "absolute",
+    right: "3%",
+    bottom: 12,
+    width: 4,
+    height: 4,
+    borderRadius: "50%",
+    background: "#718879",
+  },
+
+  connectionVisual: {
+    width: "100%",
+    maxWidth: 1320,
+    height: 170,
+    margin: "0 auto",
+    position: "relative",
+  },
+
+  connectionLines: {
+    position: "absolute",
+    inset: 0,
+  },
+
+  connectionLine1: {
+    position: "absolute",
+    top: 0,
+    left: "10%",
+    width: "40%",
+    height: 1,
+    background:
+      "linear-gradient(90deg, rgba(157,140,99,0.10), rgba(157,140,99,0.52))",
+    transform: "rotate(17deg)",
+    transformOrigin: "left center",
+  },
+
+  connectionLine2: {
+    position: "absolute",
+    top: 0,
+    left: "30%",
+    width: "21%",
+    height: 1,
+    background:
+      "rgba(157,140,99,0.42)",
+    transform: "rotate(31deg)",
+    transformOrigin: "left center",
+  },
+
+  connectionLine3: {
+    position: "absolute",
+    top: 0,
+    left: "50%",
+    width: 1,
+    height: 105,
+    background:
+      "linear-gradient(180deg, rgba(157,140,99,0.12), rgba(157,140,99,0.50))",
+  },
+
+  connectionLine4: {
+    position: "absolute",
+    top: 0,
+    right: "30%",
+    width: "21%",
+    height: 1,
+    background:
+      "rgba(157,140,99,0.42)",
+    transform: "rotate(-31deg)",
+    transformOrigin: "right center",
+  },
+
+  connectionLine5: {
+    position: "absolute",
+    top: 0,
+    right: "10%",
+    width: "40%",
+    height: 1,
+    background:
+      "linear-gradient(270deg, rgba(157,140,99,0.10), rgba(157,140,99,0.52))",
+    transform: "rotate(-17deg)",
+    transformOrigin: "right center",
+  },
+
+  connectionEnso: {
+    position: "absolute",
+    left: "50%",
+    bottom: 4,
+    width: 82,
+    height: 82,
+    transform: "translateX(-50%)",
+    borderRadius: "50%",
+    border:
+      "8px solid #214535",
+    borderRightColor:
+      "rgba(33,69,53,0.32)",
+    boxShadow:
+      "0 13px 32px rgba(23,51,38,0.12)",
+    display: "grid",
+    placeItems: "center",
+    background:
+      "rgba(255,255,255,0.52)",
+  },
+
+  connectionEnsoInner: {
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#214535",
+  },
+
+  connectionAnswer: {
+    width: "100%",
+    maxWidth: 760,
+    margin: "8px auto 0",
+    textAlign: "center",
+  },
+
+  connectionSmall: {
+    margin: 0,
+    fontSize: 15,
+    color: "#697970",
+  },
+
+  connectionQuestion: {
+    margin: "7px 0 13px",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(38px, 4.5vw, 58px)",
+    lineHeight: 1,
+    fontWeight: 400,
+    color: "#173326",
+  },
+
+  connectionBody: {
+    maxWidth: 720,
+    margin: "0 auto",
+    fontSize: 16,
+    lineHeight: 1.65,
+    color: "#63736a",
+  },
+
+  connectionLink: {
+    appearance: "none",
+    border: 0,
+    borderBottom:
+      "1px solid rgba(23,51,38,0.30)",
+    padding: "0 0 3px",
+    marginTop: 20,
+    background: "transparent",
+    color: "#214c39",
+    fontSize: 14,
+    fontWeight: 700,
     cursor: "pointer",
   },
 };
