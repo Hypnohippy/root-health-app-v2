@@ -1074,6 +1074,343 @@ export default function ReferralPage() {
             </p>
           </div>
         </section>
+                        {/* ==================================================
+            GREEN 4D — FROM EVIDENCE TO ACTION
+        ================================================== */}
+
+        <section style={styles.actionSection}>
+          <div style={styles.actionIntro}>
+            <p style={styles.actionEyebrow}>
+              WHEN THE EVIDENCE SUPPORTS ACTION
+            </p>
+
+            <h2 style={styles.actionTitle}>
+              Root doesn&apos;t stop at telling you
+              what may need attention.
+            </h2>
+
+            <p style={styles.actionAccent}>
+              It helps you decide what to do about it.
+            </p>
+
+            <p style={styles.actionLead}>
+              Once the evidence is strong enough to
+              justify a response, Root helps leaders
+              move from understanding the problem to
+              choosing an action that fits the
+              organisation, the people and the
+              evidence available.
+            </p>
+          </div>
+
+          <div style={styles.actionPath}>
+            <div style={styles.actionPathStep}>
+              <span style={styles.actionPathNumber}>
+                01
+              </span>
+
+              <strong style={styles.actionPathTitle}>
+                RESPOND
+              </strong>
+
+              <p style={styles.actionPathText}>
+                Decide whether the evidence supports
+                action — and what scale of response
+                is proportionate.
+              </p>
+            </div>
+
+            <span style={styles.actionPathArrow}>
+              →
+            </span>
+
+            <div style={styles.actionPathStep}>
+              <span style={styles.actionPathNumber}>
+                02
+              </span>
+
+              <strong style={styles.actionPathTitle}>
+                TARGET
+              </strong>
+
+              <p style={styles.actionPathText}>
+                Shape support around the pressures,
+                people and conditions your
+                organisation is actually seeing.
+              </p>
+            </div>
+
+            <span style={styles.actionPathArrow}>
+              →
+            </span>
+
+            <div style={styles.actionPathStep}>
+              <span style={styles.actionPathNumber}>
+                03
+              </span>
+
+              <strong style={styles.actionPathTitle}>
+                MEASURE
+              </strong>
+
+              <p style={styles.actionPathText}>
+                Follow what happens afterwards and
+                learn whether the response changed
+                anything that matters.
+              </p>
+            </div>
+          </div>
+
+          <div style={styles.interventionQuestion}>
+            <p style={styles.interventionQuestionSmall}>
+              A DIFFERENT WAY TO CHOOSE SUPPORT
+            </p>
+
+            <h3 style={styles.interventionQuestionTitle}>
+              What if your next wellbeing programme
+              wasn&apos;t chosen from a catalogue?
+            </h3>
+
+            <p style={styles.interventionQuestionAccent}>
+              What if your organisation helped
+              design it?
+            </p>
+          </div>
+
+          <div style={styles.interventionReveal}>
+            <div style={styles.interventionRevealTop}>
+              <div style={styles.interventionRevealCopy}>
+                <p style={styles.interventionEyebrow}>
+                  ROOT RECOMMENDATION
+                </p>
+
+                <h3 style={styles.interventionTitle}>
+                  Build the response around
+                  the evidence.
+                </h3>
+
+                <p style={styles.interventionLead}>
+                  Root can use the organisation&apos;s
+                  current evidence to help leaders
+                  explore the type, focus and scale of
+                  intervention that may be appropriate.
+                </p>
+              </div>
+
+              <div style={styles.interventionEnso}>
+                <span style={styles.interventionEnsoText}>
+                  ROOT
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.interventionEvidenceGrid}>
+              <div style={styles.interventionEvidenceCard}>
+                <span style={styles.interventionCardLabel}>
+                  EVIDENCE SUGGESTS
+                </span>
+
+                <strong style={styles.interventionCardTitle}>
+                  Sustained pressure
+                </strong>
+
+                <p style={styles.interventionCardText}>
+                  Workforce experience and
+                  organisational measures suggest a
+                  pattern worth responding to.
+                </p>
+              </div>
+
+              <div style={styles.interventionEvidenceCard}>
+                <span style={styles.interventionCardLabel}>
+                  RESPONSE FOCUS
+                </span>
+
+                <strong style={styles.interventionCardTitle}>
+                  Manager capability
+                </strong>
+
+                <p style={styles.interventionCardText}>
+                  Focus support where leaders may have
+                  the greatest opportunity to influence
+                  the conditions being observed.
+                </p>
+              </div>
+
+              <div style={styles.interventionEvidenceCard}>
+                <span style={styles.interventionCardLabel}>
+                  PROPORTIONATE ACTION
+                </span>
+
+                <strong style={styles.interventionCardTitle}>
+                  Targeted programme
+                </strong>
+
+                <p style={styles.interventionCardText}>
+                  Begin with a defined group, clear
+                  objectives and measures that can be
+                  followed over time.
+                </p>
+              </div>
+            </div>
+
+            <div style={styles.interventionProposal}>
+              <div>
+                <span style={styles.interventionProposalLabel}>
+                  POSSIBLE INTERVENTION
+                </span>
+
+                <h4 style={styles.interventionProposalTitle}>
+                  Pressure-aware manager programme
+                </h4>
+
+                <p style={styles.interventionProposalText}>
+                  A focused intervention designed
+                  around the pattern the organisation
+                  is seeing — rather than a generic
+                  programme selected in advance.
+                </p>
+              </div>
+
+              <div style={styles.interventionProposalMeta}>
+                <div style={styles.interventionMetaItem}>
+                  <span style={styles.interventionMetaLabel}>
+                    AUDIENCE
+                  </span>
+
+                  <strong style={styles.interventionMetaValue}>
+                    People managers
+                  </strong>
+                </div>
+
+                <div style={styles.interventionMetaItem}>
+                  <span style={styles.interventionMetaLabel}>
+                    APPROACH
+                  </span>
+
+                  <strong style={styles.interventionMetaValue}>
+                    Targeted
+                  </strong>
+                </div>
+
+                <div style={styles.interventionMetaItem}>
+                  <span style={styles.interventionMetaLabel}>
+                    EVIDENCE
+                  </span>
+
+                  <strong style={styles.interventionMetaValue}>
+                    Measured
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.afterAction}>
+            <p style={styles.afterActionEyebrow}>
+              THEN ROOT WATCHES WHAT HAPPENS
+            </p>
+
+            <h3 style={styles.afterActionTitle}>
+              The intervention isn&apos;t the finish line.
+            </h3>
+
+            <p style={styles.afterActionAccent}>
+              It becomes part of the evidence.
+            </p>
+
+            <div style={styles.afterActionGrid}>
+              <div style={styles.afterActionCard}>
+                <span style={styles.afterActionNumber}>
+                  BEFORE
+                </span>
+
+                <strong style={styles.afterActionCardTitle}>
+                  Establish the picture.
+                </strong>
+
+                <p style={styles.afterActionCardText}>
+                  Capture the relevant workforce and
+                  organisational baseline before
+                  action begins.
+                </p>
+              </div>
+
+              <div style={styles.afterActionConnector}>
+                →
+              </div>
+
+              <div style={styles.afterActionCard}>
+                <span style={styles.afterActionNumber}>
+                  DURING
+                </span>
+
+                <strong style={styles.afterActionCardTitle}>
+                  Follow the response.
+                </strong>
+
+                <p style={styles.afterActionCardText}>
+                  Track participation, context and
+                  what changes while the intervention
+                  is taking place.
+                </p>
+              </div>
+
+              <div style={styles.afterActionConnector}>
+                →
+              </div>
+
+              <div style={styles.afterActionCard}>
+                <span style={styles.afterActionNumber}>
+                  AFTER
+                </span>
+
+                <strong style={styles.afterActionCardTitle}>
+                  Compare what changed.
+                </strong>
+
+                <p style={styles.afterActionCardText}>
+                  Return to the measures and see what
+                  the evidence now supports.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.actionLoopClose}>
+            <div style={styles.actionLoopEnso}>
+              <span style={styles.actionLoopGap} />
+
+              <span style={styles.actionLoopEnsoText}>
+                ROOT
+              </span>
+            </div>
+
+            <p style={styles.actionLoopSmall}>
+              BASELINE · MEASURE · UNDERSTAND · ACT · LEARN · RESET
+            </p>
+
+            <h3 style={styles.actionLoopTitle}>
+              You don&apos;t return to the beginning.
+            </h3>
+
+            <p style={styles.actionLoopAccent}>
+              You return with more evidence.
+            </p>
+
+            <p style={styles.actionLoopBody}>
+              Every response adds to what the
+              organisation knows. Every measurement
+              strengthens the next decision. Every
+              new baseline begins with a clearer
+              understanding of what came before.
+            </p>
+
+            <strong style={styles.actionLoopFinal}>
+              That&apos;s the Root loop.
+            </strong>
+          </div>
+        </section>
         <section
           id="privacy"
           style={styles.hiddenAnchor}
@@ -2505,5 +2842,498 @@ const styles = {
     lineHeight: 1.65,
     color:
       "rgba(255,255,255,0.61)",
+  },
+
+    actionSection: {
+    padding: "110px 5vw 120px",
+    background:
+      "linear-gradient(180deg, #f5f1e8 0%, #eee9dc 100%)",
+    color: "#173326",
+    overflow: "hidden",
+  },
+
+  actionIntro: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto 58px",
+  },
+
+  actionEyebrow: {
+    margin: "0 0 18px",
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#8f7950",
+  },
+
+  actionTitle: {
+    maxWidth: 1000,
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(45px, 5.7vw, 76px)",
+    lineHeight: 0.99,
+    letterSpacing: "-0.035em",
+    color: "#173326",
+  },
+
+  actionAccent: {
+    margin: "13px 0 0",
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(30px, 4vw, 50px)",
+    lineHeight: 1.05,
+    color: "#47725e",
+  },
+
+  actionLead: {
+    maxWidth: 760,
+    margin: "27px 0 0",
+    fontSize: 16,
+    lineHeight: 1.7,
+    color: "#63736a",
+  },
+
+  actionPath: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto",
+    display: "grid",
+    gridTemplateColumns:
+      "1fr 60px 1fr 60px 1fr",
+    gap: 14,
+    alignItems: "center",
+  },
+
+  actionPathStep: {
+    minHeight: 220,
+    padding: "28px 27px",
+    boxSizing: "border-box",
+    borderRadius: 26,
+    background: "#ffffff",
+    border:
+      "1px solid rgba(23,51,38,0.09)",
+    boxShadow:
+      "0 18px 48px rgba(23,51,38,0.06)",
+  },
+
+  actionPathNumber: {
+    display: "block",
+    marginBottom: 34,
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    color: "#9b8358",
+  },
+
+  actionPathTitle: {
+    display: "block",
+    marginBottom: 11,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: 27,
+    color: "#173326",
+  },
+
+  actionPathText: {
+    maxWidth: 300,
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.65,
+    color: "#65766c",
+  },
+
+  actionPathArrow: {
+    textAlign: "center",
+    fontFamily: "Georgia, serif",
+    fontSize: 30,
+    color: "#ac9b79",
+  },
+
+  interventionQuestion: {
+    maxWidth: 1050,
+    margin: "125px auto 0",
+    textAlign: "center",
+  },
+
+  interventionQuestionSmall: {
+    margin: "0 0 17px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.18em",
+    color: "#927d56",
+  },
+
+  interventionQuestionTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(43px, 5.7vw, 74px)",
+    lineHeight: 1,
+    letterSpacing: "-0.035em",
+    color: "#173326",
+  },
+
+  interventionQuestionAccent: {
+    margin: "14px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(29px, 3.8vw, 47px)",
+    lineHeight: 1.05,
+    color: "#47725e",
+  },
+
+  interventionReveal: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "70px auto 0",
+    padding: "54px",
+    boxSizing: "border-box",
+    borderRadius: 38,
+    background:
+      "radial-gradient(circle at 86% 16%, rgba(66,122,91,0.20) 0%, rgba(6,29,22,0) 27%), linear-gradient(135deg, #061d16 0%, #08261c 100%)",
+    color: "#ffffff",
+    boxShadow:
+      "0 32px 90px rgba(23,51,38,0.18)",
+  },
+
+  interventionRevealTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 40,
+  },
+
+  interventionRevealCopy: {
+    maxWidth: 850,
+  },
+
+  interventionEyebrow: {
+    margin: "0 0 15px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#e7c78f",
+  },
+
+  interventionTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(39px, 4.7vw, 62px)",
+    lineHeight: 1,
+    color: "#f8f4ea",
+  },
+
+  interventionLead: {
+    maxWidth: 720,
+    margin: "22px 0 0",
+    fontSize: 15,
+    lineHeight: 1.7,
+    color:
+      "rgba(255,255,255,0.64)",
+  },
+
+  interventionEnso: {
+    width: 108,
+    height: 108,
+    borderRadius: "50%",
+    border:
+      "10px solid #e7c78f",
+    borderRightColor:
+      "rgba(231,199,143,0.25)",
+    display: "grid",
+    placeItems: "center",
+    flexShrink: 0,
+  },
+
+  interventionEnsoText: {
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#e7c78f",
+  },
+
+  interventionEvidenceGrid: {
+    marginTop: 48,
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(3, minmax(0, 1fr))",
+    gap: 14,
+  },
+
+  interventionEvidenceCard: {
+    minHeight: 190,
+    padding: "25px",
+    boxSizing: "border-box",
+    borderRadius: 23,
+    background:
+      "rgba(255,255,255,0.055)",
+    border:
+      "1px solid rgba(231,199,143,0.16)",
+  },
+
+  interventionCardLabel: {
+    display: "block",
+    marginBottom: 26,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.14em",
+    color: "#d7b979",
+  },
+
+  interventionCardTitle: {
+    display: "block",
+    marginBottom: 10,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: 23,
+    color: "#f8f4ea",
+  },
+
+  interventionCardText: {
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.65,
+    color:
+      "rgba(255,255,255,0.58)",
+  },
+
+  interventionProposal: {
+    marginTop: 18,
+    padding: "31px",
+    borderRadius: 25,
+    background:
+      "rgba(255,255,255,0.96)",
+    color: "#173326",
+    display: "grid",
+    gridTemplateColumns:
+      "minmax(0, 1.5fr) minmax(360px, 1fr)",
+    gap: 40,
+    alignItems: "center",
+  },
+
+  interventionProposalLabel: {
+    display: "block",
+    marginBottom: 9,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.15em",
+    color: "#927d56",
+  },
+
+  interventionProposalTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: 30,
+    color: "#173326",
+  },
+
+  interventionProposalText: {
+    maxWidth: 620,
+    margin: "11px 0 0",
+    fontSize: 13,
+    lineHeight: 1.65,
+    color: "#62736a",
+  },
+
+  interventionProposalMeta: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(3, minmax(0, 1fr))",
+    gap: 10,
+  },
+
+  interventionMetaItem: {
+    paddingLeft: 14,
+    borderLeft:
+      "1px solid rgba(23,51,38,0.12)",
+  },
+
+  interventionMetaLabel: {
+    display: "block",
+    marginBottom: 7,
+    fontSize: 8,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    color: "#927d56",
+  },
+
+  interventionMetaValue: {
+    fontSize: 12,
+    color: "#284b3c",
+  },
+
+  afterAction: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "125px auto 0",
+  },
+
+  afterActionEyebrow: {
+    margin: "0 0 15px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#927d56",
+  },
+
+  afterActionTitle: {
+    maxWidth: 900,
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(42px, 5vw, 66px)",
+    lineHeight: 1,
+    color: "#173326",
+  },
+
+  afterActionAccent: {
+    margin: "11px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(28px, 3.6vw, 44px)",
+    color: "#47725e",
+  },
+
+  afterActionGrid: {
+    marginTop: 46,
+    display: "grid",
+    gridTemplateColumns:
+      "1fr 50px 1fr 50px 1fr",
+    gap: 12,
+    alignItems: "center",
+  },
+
+  afterActionCard: {
+    minHeight: 205,
+    padding: "27px",
+    boxSizing: "border-box",
+    borderRadius: 25,
+    background:
+      "rgba(255,255,255,0.78)",
+    border:
+      "1px solid rgba(23,51,38,0.09)",
+  },
+
+  afterActionNumber: {
+    display: "block",
+    marginBottom: 29,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.15em",
+    color: "#927d56",
+  },
+
+  afterActionCardTitle: {
+    display: "block",
+    marginBottom: 10,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: 24,
+    color: "#173326",
+  },
+
+  afterActionCardText: {
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.65,
+    color: "#66766d",
+  },
+
+  afterActionConnector: {
+    textAlign: "center",
+    fontFamily: "Georgia, serif",
+    fontSize: 29,
+    color: "#ac9b79",
+  },
+
+  actionLoopClose: {
+    maxWidth: 1000,
+    margin: "145px auto 10px",
+    textAlign: "center",
+  },
+
+  actionLoopEnso: {
+    width: 128,
+    height: 128,
+    margin: "0 auto 32px",
+    borderRadius: "50%",
+    border:
+      "11px solid #214c39",
+    borderRightColor:
+      "rgba(33,76,57,0.20)",
+    position: "relative",
+    display: "grid",
+    placeItems: "center",
+    boxSizing: "border-box",
+  },
+
+  actionLoopGap: {
+    position: "absolute",
+    right: -12,
+    top: 35,
+    width: 18,
+    height: 35,
+    background: "#eee9dc",
+  },
+
+  actionLoopEnsoText: {
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.18em",
+    color: "#214c39",
+  },
+
+  actionLoopSmall: {
+    margin: "0 0 18px",
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.15em",
+    color: "#927d56",
+  },
+
+  actionLoopTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(44px, 5.7vw, 74px)",
+    lineHeight: 1,
+    letterSpacing: "-0.035em",
+    color: "#173326",
+  },
+
+  actionLoopAccent: {
+    margin: "12px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(31px, 4vw, 50px)",
+    lineHeight: 1.05,
+    color: "#47725e",
+  },
+
+  actionLoopBody: {
+    maxWidth: 750,
+    margin: "25px auto 0",
+    fontSize: 15,
+    lineHeight: 1.75,
+    color: "#63736a",
+  },
+
+  actionLoopFinal: {
+    display: "block",
+    marginTop: 31,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(25px, 3vw, 36px)",
+    color: "#173326",
   },
 };
