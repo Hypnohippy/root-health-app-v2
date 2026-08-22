@@ -1888,7 +1888,6 @@ const styles = {
     margin: "12px 0 0",
     fontFamily: "Georgia, serif",
     fontSize:
-    fontSize:
     "clamp(25px, 3vw, 37px)",
     color: "#47725e",
   },
