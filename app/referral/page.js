@@ -638,15 +638,13 @@ export default function ReferralPage() {
             </div>
           </div>
 
-          <div style={styles.rootResolution}>
+                    <div style={styles.rootResolution}>
             <p style={styles.rootResolutionEyebrow}>
-              ROOT STARTS WITH YOUR
-              ORGANISATION
+              ROOT STARTS WITH YOUR ORGANISATION
             </p>
 
             <h3 style={styles.rootResolutionTitle}>
-              So don&apos;t assume.
-              Measure.
+              So don&apos;t assume. Measure.
             </h3>
 
             <div style={styles.measurementPath}>
@@ -660,8 +658,8 @@ export default function ReferralPage() {
                 </strong>
 
                 <span style={styles.measurementText}>
-                  Understand where you
-                  are starting.
+                  Establish where your
+                  organisation is starting.
                 </span>
               </div>
 
@@ -675,12 +673,12 @@ export default function ReferralPage() {
                 </span>
 
                 <strong style={styles.measurementTitle}>
-                  ACT
+                  MEASURE
                 </strong>
 
                 <span style={styles.measurementText}>
-                  Record what the
-                  organisation does.
+                  Bring workforce and
+                  organisational evidence together.
                 </span>
               </div>
 
@@ -694,12 +692,12 @@ export default function ReferralPage() {
                 </span>
 
                 <strong style={styles.measurementTitle}>
-                  MEASURE
+                  UNDERSTAND
                 </strong>
 
                 <span style={styles.measurementText}>
-                  Follow what changes
-                  afterwards.
+                  Explore what the evidence
+                  may be telling you.
                 </span>
               </div>
 
@@ -713,43 +711,77 @@ export default function ReferralPage() {
                 </span>
 
                 <strong style={styles.measurementTitle}>
+                  ACT
+                </strong>
+
+                <span style={styles.measurementText}>
+                  Choose a proportionate response
+                  based on what you know.
+                </span>
+              </div>
+
+              <span style={styles.measurementArrow}>
+                →
+              </span>
+
+              <div style={styles.measurementStep}>
+                <span style={styles.measurementNumber}>
+                  05
+                </span>
+
+                <strong style={styles.measurementTitle}>
                   LEARN
                 </strong>
 
                 <span style={styles.measurementText}>
-                  Build confidence from
-                  your own evidence.
+                  Measure what happened
+                  after the action.
+                </span>
+              </div>
+
+              <span style={styles.measurementArrow}>
+                →
+              </span>
+
+              <div style={styles.measurementStep}>
+                <span style={styles.measurementNumber}>
+                  06
+                </span>
+
+                <strong style={styles.measurementTitle}>
+                  RESET
+                </strong>
+
+                <span style={styles.measurementText}>
+                  Establish the new baseline
+                  — and begin again.
                 </span>
               </div>
             </div>
 
             <div style={styles.evidenceClosing}>
               <p style={styles.evidenceClosingSmall}>
-                Research can tell you
-                what may work.
+                Research can tell you what may work.
               </p>
 
               <h3 style={styles.evidenceClosingTitle}>
-                Don&apos;t borrow
-                someone else&apos;s
-                success story.
+                Your organisation can tell you
+                what works here.
               </h3>
 
               <p style={styles.evidenceClosingAccent}>
-                Build your own evidence.
+                Root turns each cycle into
+                evidence for the next.
               </p>
 
               <button
                 type="button"
                 style={styles.evidenceButton}
                 onClick={() =>
-                  scrollToSection(
-                    "privacy"
-                  )
+                  scrollToSection("privacy")
                 }
               >
-                See how Root measures
-                change →
+                See how Root understands the evidence →
               </button>
             </div>
           </div>
