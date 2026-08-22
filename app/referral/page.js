@@ -731,8 +731,8 @@ const styles = {
 
   heroGlobeImage: {
     display: "block",
-    width: "min(720px, 43vw)",
-    maxWidth: "720px",
+    width: "min(800px, 47vw)",
+    maxWidth: "800px",
     height: "auto",
     objectFit: "contain",
     objectPosition: "center",
