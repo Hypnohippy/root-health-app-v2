@@ -719,27 +719,28 @@ const styles = {
       "rgba(255,255,255,0.57)",
   },
 
-      globeStage: {
+        globeStage: {
     minHeight: 620,
     position: "relative",
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
-    overflow: "hidden",
+    justifyContent: "center",
     width: "100%",
+    overflow: "visible",
   },
 
   heroGlobeImage: {
     display: "block",
-    width: "min(760px, 46vw)",
-    maxWidth: "760px",
+    width: "min(720px, 43vw)",
+    maxWidth: "720px",
     height: "auto",
     objectFit: "contain",
-    transform: "translateX(3%)",
-    clipPath: "inset(0 0 0 9%)",
+    objectPosition: "center",
+    transform: "none",
     filter:
       "drop-shadow(0 28px 50px rgba(0,0,0,0.30))",
   },
+  
   nextSection: {
     minHeight: 470,
     padding: "90px 7vw",
