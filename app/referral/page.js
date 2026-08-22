@@ -647,118 +647,137 @@ export default function ReferralPage() {
               So don&apos;t assume. Measure.
             </h3>
 
-            <div style={styles.measurementPath}>
-              <div style={styles.measurementStep}>
-                <span style={styles.measurementNumber}>
-                  01
+                        <div style={styles.measurementLoop}>
+              <div style={styles.measurementRow}>
+                <div style={styles.measurementStep}>
+                  <span style={styles.measurementNumber}>
+                    01
+                  </span>
+
+                  <strong style={styles.measurementTitle}>
+                    BASELINE
+                  </strong>
+
+                  <span style={styles.measurementText}>
+                    Establish where your
+                    organisation is starting.
+                  </span>
+                </div>
+
+                <span style={styles.measurementArrow}>
+                  →
                 </span>
 
-                <strong style={styles.measurementTitle}>
-                  BASELINE
-                </strong>
+                <div style={styles.measurementStep}>
+                  <span style={styles.measurementNumber}>
+                    02
+                  </span>
 
-                <span style={styles.measurementText}>
-                  Establish where your
-                  organisation is starting.
+                  <strong style={styles.measurementTitle}>
+                    MEASURE
+                  </strong>
+
+                  <span style={styles.measurementText}>
+                    Bring workforce and
+                    organisational evidence
+                    together.
+                  </span>
+                </div>
+
+                <span style={styles.measurementArrow}>
+                  →
+                </span>
+
+                <div style={styles.measurementStep}>
+                  <span style={styles.measurementNumber}>
+                    03
+                  </span>
+
+                  <strong style={styles.measurementTitle}>
+                    UNDERSTAND
+                  </strong>
+
+                  <span style={styles.measurementText}>
+                    Explore what the evidence
+                    may be telling you.
+                  </span>
+                </div>
+              </div>
+
+              <div style={styles.measurementTurn}>
+                <span style={styles.measurementTurnLine} />
+                <span style={styles.measurementTurnArrow}>
+                  ↓
                 </span>
               </div>
 
-              <span style={styles.measurementArrow}>
-                →
-              </span>
+              <div style={styles.measurementRow}>
+                <div style={styles.measurementStep}>
+                  <span style={styles.measurementNumber}>
+                    06
+                  </span>
 
-              <div style={styles.measurementStep}>
-                <span style={styles.measurementNumber}>
-                  02
+                  <strong style={styles.measurementTitle}>
+                    RESET
+                  </strong>
+
+                  <span style={styles.measurementText}>
+                    Establish the new baseline.
+                    Move forward with greater
+                    understanding.
+                  </span>
+                </div>
+
+                <span style={styles.measurementArrow}>
+                  ←
                 </span>
 
-                <strong style={styles.measurementTitle}>
-                  MEASURE
-                </strong>
+                <div style={styles.measurementStep}>
+                  <span style={styles.measurementNumber}>
+                    05
+                  </span>
 
-                <span style={styles.measurementText}>
-                  Bring workforce and
-                  organisational evidence together.
+                  <strong style={styles.measurementTitle}>
+                    LEARN
+                  </strong>
+
+                  <span style={styles.measurementText}>
+                    Measure what happened
+                    after the action.
+                  </span>
+                </div>
+
+                <span style={styles.measurementArrow}>
+                  ←
                 </span>
+
+                <div style={styles.measurementStep}>
+                  <span style={styles.measurementNumber}>
+                    04
+                  </span>
+
+                  <strong style={styles.measurementTitle}>
+                    ACT
+                  </strong>
+
+                  <span style={styles.measurementText}>
+                    Choose a proportionate
+                    response based on what
+                    you know.
+                  </span>
+                </div>
               </div>
 
-              <span style={styles.measurementArrow}>
-                →
-              </span>
-
-              <div style={styles.measurementStep}>
-                <span style={styles.measurementNumber}>
-                  03
+              <div style={styles.measurementReturn}>
+                <span style={styles.measurementReturnArrow}>
+                  ↺
                 </span>
 
-                <strong style={styles.measurementTitle}>
-                  UNDERSTAND
-                </strong>
-
-                <span style={styles.measurementText}>
-                  Explore what the evidence
-                  may be telling you.
-                </span>
-              </div>
-
-              <span style={styles.measurementArrow}>
-                →
-              </span>
-
-              <div style={styles.measurementStep}>
-                <span style={styles.measurementNumber}>
-                  04
-                </span>
-
-                <strong style={styles.measurementTitle}>
-                  ACT
-                </strong>
-
-                <span style={styles.measurementText}>
-                  Choose a proportionate response
-                  based on what you know.
-                </span>
-              </div>
-
-              <span style={styles.measurementArrow}>
-                →
-              </span>
-
-              <div style={styles.measurementStep}>
-                <span style={styles.measurementNumber}>
-                  05
-                </span>
-
-                <strong style={styles.measurementTitle}>
-                  LEARN
-                </strong>
-
-                <span style={styles.measurementText}>
-                  Measure what happened
-                  after the action.
-                </span>
-              </div>
-
-              <span style={styles.measurementArrow}>
-                →
-              </span>
-
-              <div style={styles.measurementStep}>
-                <span style={styles.measurementNumber}>
-                  06
-                </span>
-
-                <strong style={styles.measurementTitle}>
-                  RESET
-                </strong>
-
-                <span style={styles.measurementText}>
-                  Establish the new baseline
-                  — and begin again.
+                <span style={styles.measurementReturnText}>
+                  NEW BASELINE
                 </span>
               </div>
             </div>
-
             <div style={styles.evidenceClosing}>
               <p style={styles.evidenceClosingSmall}>
                 Research can tell you what may work.
@@ -770,10 +789,11 @@ export default function ReferralPage() {
               </h3>
 
               <p style={styles.evidenceClosingAccent}>
-                Root turns each cycle into
-                evidence for the next.
+                Each cycle becomes evidence
+                for the next.
+                <br />
+                Every new baseline starts stronger.
               </p>
-
               <button
                 type="button"
                 style={styles.evidenceButton}
@@ -1699,7 +1719,7 @@ const styles = {
     width: "100%",
     maxWidth: 1320,
     margin: "120px auto 0",
-    padding: "64px 54px",
+    padding: "54px 54px 58px",
     borderRadius: 36,
     background:
       "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(244,240,229,0.98) 100%)",
@@ -1727,57 +1747,124 @@ const styles = {
     color: "#173326",
   },
 
-  measurementPath: {
-    marginTop: 50,
+    measurementLoop: {
+    width: "100%",
+    maxWidth: 1120,
+    margin: "42px auto 0",
+    position: "relative",
+  },
+
+  measurementRow: {
     display: "grid",
     gridTemplateColumns:
-      "1fr auto 1fr auto 1fr auto 1fr",
-    gap: 15,
+      "1fr 54px 1fr 54px 1fr",
+    gap: 12,
     alignItems: "center",
   },
 
   measurementStep: {
-    minHeight: 170,
-    padding: "24px 22px",
+    height: 190,
+    padding: "25px 26px",
     borderRadius: 24,
+    boxSizing: "border-box",
     background:
-      "rgba(255,255,255,0.76)",
+      "rgba(255,255,255,0.82)",
     border:
       "1px solid rgba(23,51,38,0.09)",
+    boxShadow:
+      "0 14px 38px rgba(23,51,38,0.055)",
     display: "flex",
     flexDirection: "column",
+    justifyContent: "flex-start",
   },
 
   measurementNumber: {
-    marginBottom: 28,
+    marginBottom: 24,
     fontSize: 10,
     fontWeight: 800,
+    letterSpacing: "0.08em",
     color: "#9a8d6f",
   },
 
   measurementTitle: {
-    marginBottom: 7,
+    marginBottom: 10,
     fontFamily: "Georgia, serif",
-    fontSize: 25,
+    fontSize: 24,
+    lineHeight: 1,
     fontWeight: 400,
     color: "#173326",
   },
 
   measurementText: {
+    maxWidth: 230,
     fontSize: 13,
     lineHeight: 1.55,
     color: "#68786f",
   },
 
   measurementArrow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     fontFamily: "Georgia, serif",
-    fontSize: 26,
+    fontSize: 28,
+    lineHeight: 1,
     color: "#ac9b79",
+  },
+
+  measurementTurn: {
+    width: "100%",
+    height: 52,
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingRight: 128,
+    boxSizing: "border-box",
+    position: "relative",
+  },
+
+  measurementTurnLine: {
+    position: "absolute",
+    top: 0,
+    right: 128,
+    width: 1,
+    height: 26,
+    background:
+      "rgba(172,155,121,0.38)",
+  },
+
+  measurementTurnArrow: {
+    marginTop: 22,
+    fontFamily: "Georgia, serif",
+    fontSize: 25,
+    color: "#ac9b79",
+  },
+
+  measurementReturn: {
+    marginTop: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    gap: 9,
+    paddingLeft: 18,
+  },
+
+  measurementReturnArrow: {
+    fontFamily: "Georgia, serif",
+    fontSize: 28,
+    color: "#47725e",
+  },
+
+  measurementReturnText: {
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.16em",
+    color: "#6a7b70",
   },
 
   evidenceClosing: {
     maxWidth: 900,
-    margin: "76px auto 0",
+    margin: "48px auto 0",
     textAlign: "center",
   },
 
@@ -1798,10 +1885,11 @@ const styles = {
   },
 
   evidenceClosingAccent: {
-    margin: "9px 0 0",
+    margin: "12px 0 0",
     fontFamily: "Georgia, serif",
     fontSize:
-      "clamp(29px, 3.8vw, 45px)",
+    fontSize:
+    "clamp(25px, 3vw, 37px)",
     color: "#47725e",
   },
 
