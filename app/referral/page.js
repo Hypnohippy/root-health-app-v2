@@ -518,10 +518,242 @@ export default function ReferralPage() {
             </button>
           </div>
         </section>
-        <section
+                <section
           id="evidence"
-          style={styles.hiddenAnchor}
-        />
+          style={styles.evidenceSection}
+        >
+          <div style={styles.evidenceIntro}>
+            <p style={styles.evidenceEyebrow}>
+              THE EVIDENCE ISN&apos;T
+              THE END OF THE QUESTION
+            </p>
+
+            <h2 style={styles.evidenceTitle}>
+              Workplace interventions
+              can make a difference.
+            </h2>
+
+            <p style={styles.evidenceLead}>
+              Decades of workplace
+              research have already asked
+              whether interventions can
+              improve important employee
+              and organisational outcomes.
+            </p>
+          </div>
+
+          <div style={styles.evidenceStats}>
+            <div style={styles.evidenceStat}>
+              <strong style={styles.evidenceNumber}>
+                88
+              </strong>
+
+              <span style={styles.evidenceStatLabel}>
+                SYSTEMATIC REVIEWS
+              </span>
+
+              <p style={styles.evidenceStatText}>
+                A 2025 review brought
+                together workplace health
+                evidence published across
+                multiple intervention
+                categories.
+              </p>
+            </div>
+
+            <div style={styles.evidenceStat}>
+              <strong style={styles.evidenceNumber}>
+                339
+              </strong>
+
+              <span style={styles.evidenceStatLabel}>
+                META-ANALYSED EFFECT
+                ESTIMATES
+              </span>
+
+              <p style={styles.evidenceStatText}>
+                The evidence base is large
+                — but outcomes, quality and
+                confidence still vary.
+              </p>
+            </div>
+
+            <div style={styles.evidenceStat}>
+              <strong style={styles.evidenceNumber}>
+                25,500
+              </strong>
+
+              <span style={styles.evidenceStatLabel}>
+                PARTICIPANTS
+              </span>
+
+              <p style={styles.evidenceStatText}>
+                A separate 2025 review
+                examined 81 randomised
+                trials covering 98 digital
+                workplace interventions.
+              </p>
+            </div>
+          </div>
+
+          <div style={styles.evidenceSourceNote}>
+            <span style={styles.evidenceSourceDot} />
+
+            <p style={styles.evidenceSourceText}>
+              Peer-reviewed systematic
+              reviews and meta-analyses of
+              workplace health and digital
+              mental-health interventions.
+            </p>
+          </div>
+
+          <div style={styles.evidencePivot}>
+            <p style={styles.evidencePivotSmall}>
+              THE MORE USEFUL QUESTION
+            </p>
+
+            <h3 style={styles.evidenceQuestion}>
+              But will they work
+              <em style={styles.evidenceHere}>
+                {" "}here?
+              </em>
+            </h3>
+
+            <div style={styles.differenceGrid}>
+              <span style={styles.differenceItem}>
+                Different people.
+              </span>
+
+              <span style={styles.differenceItem}>
+                Different pressures.
+              </span>
+
+              <span style={styles.differenceItem}>
+                Different culture.
+              </span>
+
+              <span style={styles.differenceItem}>
+                Different starting point.
+              </span>
+            </div>
+          </div>
+
+          <div style={styles.rootResolution}>
+            <p style={styles.rootResolutionEyebrow}>
+              ROOT STARTS WITH YOUR
+              ORGANISATION
+            </p>
+
+            <h3 style={styles.rootResolutionTitle}>
+              So don&apos;t assume.
+              Measure.
+            </h3>
+
+            <div style={styles.measurementPath}>
+              <div style={styles.measurementStep}>
+                <span style={styles.measurementNumber}>
+                  01
+                </span>
+
+                <strong style={styles.measurementTitle}>
+                  BASELINE
+                </strong>
+
+                <span style={styles.measurementText}>
+                  Understand where you
+                  are starting.
+                </span>
+              </div>
+
+              <span style={styles.measurementArrow}>
+                →
+              </span>
+
+              <div style={styles.measurementStep}>
+                <span style={styles.measurementNumber}>
+                  02
+                </span>
+
+                <strong style={styles.measurementTitle}>
+                  ACT
+                </strong>
+
+                <span style={styles.measurementText}>
+                  Record what the
+                  organisation does.
+                </span>
+              </div>
+
+              <span style={styles.measurementArrow}>
+                →
+              </span>
+
+              <div style={styles.measurementStep}>
+                <span style={styles.measurementNumber}>
+                  03
+                </span>
+
+                <strong style={styles.measurementTitle}>
+                  MEASURE
+                </strong>
+
+                <span style={styles.measurementText}>
+                  Follow what changes
+                  afterwards.
+                </span>
+              </div>
+
+              <span style={styles.measurementArrow}>
+                →
+              </span>
+
+              <div style={styles.measurementStep}>
+                <span style={styles.measurementNumber}>
+                  04
+                </span>
+
+                <strong style={styles.measurementTitle}>
+                  LEARN
+                </strong>
+
+                <span style={styles.measurementText}>
+                  Build confidence from
+                  your own evidence.
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.evidenceClosing}>
+              <p style={styles.evidenceClosingSmall}>
+                Research can tell you
+                what may work.
+              </p>
+
+              <h3 style={styles.evidenceClosingTitle}>
+                Don&apos;t borrow
+                someone else&apos;s
+                success story.
+              </h3>
+
+              <p style={styles.evidenceClosingAccent}>
+                Build your own evidence.
+              </p>
+
+              <button
+                type="button"
+                style={styles.evidenceButton}
+                onClick={() =>
+                  scrollToSection(
+                    "privacy"
+                  )
+                }
+              >
+                See how Root measures
+                change →
+              </button>
+            </div>
+          </div>
+        </section>
 
         <section
           id="privacy"
@@ -1254,6 +1486,304 @@ const styles = {
     color: "#214c39",
     fontSize: 14,
     fontWeight: 700,
+    cursor: "pointer",
+  },
+
+    evidenceSection: {
+    padding: "100px 5vw 110px",
+    background:
+      "linear-gradient(180deg, #08261c 0%, #061d16 100%)",
+    color: "#ffffff",
+    overflow: "hidden",
+  },
+
+  evidenceIntro: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto 58px",
+  },
+
+  evidenceEyebrow: {
+    margin: "0 0 18px",
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#e2c58d",
+  },
+
+  evidenceTitle: {
+    maxWidth: 900,
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(44px, 5.6vw, 74px)",
+    lineHeight: 1,
+    letterSpacing: "-0.035em",
+    color: "#f8f4ea",
+  },
+
+  evidenceLead: {
+    maxWidth: 700,
+    margin: "25px 0 0",
+    fontSize: 17,
+    lineHeight: 1.7,
+    color:
+      "rgba(255,255,255,0.68)",
+  },
+
+  evidenceStats: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(3, minmax(0, 1fr))",
+    gap: 16,
+  },
+
+  evidenceStat: {
+    minHeight: 270,
+    padding: "30px 28px",
+    borderRadius: 28,
+    background:
+      "rgba(255,255,255,0.055)",
+    border:
+      "1px solid rgba(231,199,143,0.16)",
+    boxShadow:
+      "0 26px 70px rgba(0,0,0,0.14)",
+  },
+
+  evidenceNumber: {
+    display: "block",
+    marginBottom: 9,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(58px, 6vw, 88px)",
+    lineHeight: 0.95,
+    color: "#e7c78f",
+  },
+
+  evidenceStatLabel: {
+    display: "block",
+    minHeight: 34,
+    fontSize: 10,
+    fontWeight: 800,
+    lineHeight: 1.4,
+    letterSpacing: "0.14em",
+    color:
+      "rgba(255,255,255,0.82)",
+  },
+
+  evidenceStatText: {
+    maxWidth: 340,
+    margin: "24px 0 0",
+    fontSize: 14,
+    lineHeight: 1.65,
+    color:
+      "rgba(255,255,255,0.58)",
+  },
+
+  evidenceSourceNote: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "20px auto 0",
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  evidenceSourceDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    background: "#e7c78f",
+    boxShadow:
+      "0 0 12px rgba(231,199,143,0.50)",
+    flexShrink: 0,
+  },
+
+  evidenceSourceText: {
+    margin: 0,
+    fontSize: 11,
+    lineHeight: 1.5,
+    color:
+      "rgba(255,255,255,0.42)",
+  },
+
+  evidencePivot: {
+    width: "100%",
+    maxWidth: 1040,
+    margin: "120px auto 0",
+    textAlign: "center",
+  },
+
+  evidencePivotSmall: {
+    margin: "0 0 18px",
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.18em",
+    color:
+      "rgba(231,199,143,0.74)",
+  },
+
+  evidenceQuestion: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(52px, 7vw, 96px)",
+    lineHeight: 0.98,
+    letterSpacing: "-0.045em",
+    color: "#ffffff",
+  },
+
+  evidenceHere: {
+    fontWeight: 400,
+    color: "#e7c78f",
+  },
+
+  differenceGrid: {
+    maxWidth: 830,
+    margin: "42px auto 0",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(4, minmax(0, 1fr))",
+    gap: 12,
+  },
+
+  differenceItem: {
+    padding: "17px 12px",
+    borderTop:
+      "1px solid rgba(231,199,143,0.24)",
+    fontFamily: "Georgia, serif",
+    fontSize: 17,
+    color:
+      "rgba(255,255,255,0.72)",
+  },
+
+  rootResolution: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "120px auto 0",
+    padding: "64px 54px",
+    borderRadius: 36,
+    background:
+      "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(244,240,229,0.98) 100%)",
+    color: "#173326",
+    boxSizing: "border-box",
+    boxShadow:
+      "0 32px 90px rgba(0,0,0,0.18)",
+  },
+
+  rootResolutionEyebrow: {
+    margin: "0 0 14px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#6a7b70",
+  },
+
+  rootResolutionTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(44px, 5vw, 68px)",
+    lineHeight: 1,
+    color: "#173326",
+  },
+
+  measurementPath: {
+    marginTop: 50,
+    display: "grid",
+    gridTemplateColumns:
+      "1fr auto 1fr auto 1fr auto 1fr",
+    gap: 15,
+    alignItems: "center",
+  },
+
+  measurementStep: {
+    minHeight: 170,
+    padding: "24px 22px",
+    borderRadius: 24,
+    background:
+      "rgba(255,255,255,0.76)",
+    border:
+      "1px solid rgba(23,51,38,0.09)",
+    display: "flex",
+    flexDirection: "column",
+  },
+
+  measurementNumber: {
+    marginBottom: 28,
+    fontSize: 10,
+    fontWeight: 800,
+    color: "#9a8d6f",
+  },
+
+  measurementTitle: {
+    marginBottom: 7,
+    fontFamily: "Georgia, serif",
+    fontSize: 25,
+    fontWeight: 400,
+    color: "#173326",
+  },
+
+  measurementText: {
+    fontSize: 13,
+    lineHeight: 1.55,
+    color: "#68786f",
+  },
+
+  measurementArrow: {
+    fontFamily: "Georgia, serif",
+    fontSize: 26,
+    color: "#ac9b79",
+  },
+
+  evidenceClosing: {
+    maxWidth: 900,
+    margin: "76px auto 0",
+    textAlign: "center",
+  },
+
+  evidenceClosingSmall: {
+    margin: "0 0 12px",
+    fontSize: 15,
+    color: "#68786f",
+  },
+
+  evidenceClosingTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(37px, 4.7vw, 60px)",
+    lineHeight: 1.04,
+    color: "#173326",
+  },
+
+  evidenceClosingAccent: {
+    margin: "9px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(29px, 3.8vw, 45px)",
+    color: "#47725e",
+  },
+
+  evidenceButton: {
+    appearance: "none",
+    border: 0,
+    borderBottom:
+      "1px solid rgba(23,51,38,0.30)",
+    padding: "0 0 4px",
+    marginTop: 28,
+    background: "transparent",
+    color: "#173326",
+    fontSize: 14,
+    fontWeight: 800,
     cursor: "pointer",
   },
 };
