@@ -798,7 +798,7 @@ export default function ReferralPage() {
                 type="button"
                 style={styles.evidenceButton}
                 onClick={() =>
-                  scrollToSection("privacy")
+                  scrollToSection("intelligence")
                 }
               >
                 See how Root understands the evidence →
@@ -1411,11 +1411,137 @@ export default function ReferralPage() {
             </strong>
           </div>
         </section>
+                {/* ==================================================
+            GREEN 4E — TRUST / PRIVACY
+        ================================================== */}
+
         <section
           id="privacy"
-          style={styles.hiddenAnchor}
-        />
+          style={styles.trustSection}
+        >
+          <div style={styles.trustIntro}>
+            <p style={styles.trustEyebrow}>
+              TRUST HAS TO COME FIRST
+            </p>
 
+            <h2 style={styles.trustTitle}>
+              Root can only be useful
+              if people can trust it.
+            </h2>
+
+            <p style={styles.trustAccent}>
+              Understand the organisation.
+              Protect the individual.
+            </p>
+
+            <p style={styles.trustLead}>
+              Root was designed to help leaders
+              understand workforce evidence without
+              turning employee experience into
+              individual surveillance.
+            </p>
+          </div>
+
+          <div style={styles.trustGrid}>
+            <div style={styles.trustCard}>
+              <span style={styles.trustCardNumber}>
+                01
+              </span>
+
+              <strong style={styles.trustCardTitle}>
+                PRIVATE BY DESIGN
+              </strong>
+
+              <p style={styles.trustCardText}>
+                Organisational insight is built from
+                appropriate workforce evidence while
+                protecting the privacy of individual
+                employees.
+              </p>
+            </div>
+
+            <div style={styles.trustCard}>
+              <span style={styles.trustCardNumber}>
+                02
+              </span>
+
+              <strong style={styles.trustCardTitle}>
+                EVIDENCE BEFORE ASSUMPTION
+              </strong>
+
+              <p style={styles.trustCardText}>
+                Root distinguishes between what the
+                organisation knows, what the evidence
+                may suggest and what cannot yet be
+                concluded.
+              </p>
+            </div>
+
+            <div style={styles.trustCard}>
+              <span style={styles.trustCardNumber}>
+                03
+              </span>
+
+              <strong style={styles.trustCardTitle}>
+                AI WITH BOUNDARIES
+              </strong>
+
+              <p style={styles.trustCardText}>
+                AI helps leaders explore the evidence.
+                It does not get permission to invent
+                organisational facts that are not
+                supported by the data.
+              </p>
+            </div>
+          </div>
+
+          <div style={styles.trustGuardrail}>
+            <div style={styles.trustEnso}>
+              <span style={styles.trustEnsoText}>
+                ROOT
+              </span>
+            </div>
+
+            <p style={styles.trustGuardrailSmall}>
+              THE PRINCIPLE
+            </p>
+
+            <h3 style={styles.trustGuardrailTitle}>
+              Root was built to help organisations
+              understand people.
+            </h3>
+
+            <p style={styles.trustGuardrailAccent}>
+              Not expose them.
+            </p>
+
+            <p style={styles.trustGuardrailBody}>
+              Individual information should never
+              become a shortcut to organisational
+              conclusions. Root works at the level
+              appropriate to the evidence and keeps
+              confidence, participation and
+              limitations visible.
+            </p>
+          </div>
+
+          <div style={styles.trustNext}>
+            <p style={styles.trustNextSmall}>
+              SO HOW DIFFICULT IS IT TO BEGIN?
+            </p>
+
+            <h3 style={styles.trustNextTitle}>
+              Start with what you already know.
+            </h3>
+
+            <p style={styles.trustNextText}>
+              Root doesn&apos;t require a perfect
+              organisation or a perfect dataset
+              before you can establish the first
+              baseline.
+            </p>
+          </div>
+        </section>
         <section
           id="pricing"
           style={styles.hiddenAnchor}
@@ -3335,5 +3461,209 @@ const styles = {
     fontSize:
       "clamp(25px, 3vw, 36px)",
     color: "#173326",
+  },
+
+    trustSection: {
+    padding: "110px 5vw 120px",
+    background:
+      "radial-gradient(circle at 78% 26%, rgba(54,108,79,0.18) 0%, rgba(6,29,22,0) 31%), linear-gradient(180deg, #061d16 0%, #08261c 58%, #051a14 100%)",
+    color: "#ffffff",
+    overflow: "hidden",
+  },
+
+  trustIntro: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto 58px",
+  },
+
+  trustEyebrow: {
+    margin: "0 0 18px",
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#e7c78f",
+  },
+
+  trustTitle: {
+    maxWidth: 980,
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(46px, 5.8vw, 76px)",
+    lineHeight: 0.99,
+    letterSpacing: "-0.035em",
+    color: "#f8f4ea",
+  },
+
+  trustAccent: {
+    margin: "13px 0 0",
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(30px, 4vw, 50px)",
+    lineHeight: 1.05,
+    color: "#e7c78f",
+  },
+
+  trustLead: {
+    maxWidth: 760,
+    margin: "27px 0 0",
+    fontSize: 16,
+    lineHeight: 1.7,
+    color:
+      "rgba(255,255,255,0.64)",
+  },
+
+  trustGrid: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(3, minmax(0, 1fr))",
+    gap: 14,
+  },
+
+  trustCard: {
+    minHeight: 235,
+    padding: "28px",
+    boxSizing: "border-box",
+    borderRadius: 26,
+    background:
+      "rgba(255,255,255,0.055)",
+    border:
+      "1px solid rgba(231,199,143,0.16)",
+  },
+
+  trustCardNumber: {
+    display: "block",
+    marginBottom: 34,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.13em",
+    color: "#d7b979",
+  },
+
+  trustCardTitle: {
+    display: "block",
+    marginBottom: 13,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: 24,
+    color: "#f8f4ea",
+  },
+
+  trustCardText: {
+    maxWidth: 340,
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.7,
+    color:
+      "rgba(255,255,255,0.58)",
+  },
+
+  trustGuardrail: {
+    width: "100%",
+    maxWidth: 1120,
+    margin: "88px auto 0",
+    padding: "58px 54px",
+    boxSizing: "border-box",
+    borderRadius: 36,
+    textAlign: "center",
+    background:
+      "linear-gradient(135deg, #f8f5ed 0%, #eee9df 100%)",
+    color: "#173326",
+    boxShadow:
+      "0 30px 90px rgba(0,0,0,0.18)",
+  },
+
+  trustEnso: {
+    width: 92,
+    height: 92,
+    margin: "0 auto 27px",
+    borderRadius: "50%",
+    border:
+      "8px solid #214c39",
+    borderRightColor:
+      "rgba(33,76,57,0.22)",
+    display: "grid",
+    placeItems: "center",
+  },
+
+  trustEnsoText: {
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#214c39",
+  },
+
+  trustGuardrailSmall: {
+    margin: "0 0 13px",
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#927d56",
+  },
+
+  trustGuardrailTitle: {
+    maxWidth: 850,
+    margin: "0 auto",
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(38px, 4.8vw, 61px)",
+    lineHeight: 1,
+    color: "#173326",
+  },
+
+  trustGuardrailAccent: {
+    margin: "9px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(29px, 3.7vw, 45px)",
+    color: "#47725e",
+  },
+
+  trustGuardrailBody: {
+    maxWidth: 760,
+    margin: "23px auto 0",
+    fontSize: 14,
+    lineHeight: 1.75,
+    color: "#64756b",
+  },
+
+  trustNext: {
+    maxWidth: 930,
+    margin: "100px auto 0",
+    textAlign: "center",
+  },
+
+  trustNextSmall: {
+    margin: "0 0 15px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#d7b979",
+  },
+
+  trustNextTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(41px, 5.2vw, 67px)",
+    lineHeight: 1,
+    color: "#f8f4ea",
+  },
+
+  trustNextText: {
+    maxWidth: 680,
+    margin: "20px auto 0",
+    fontSize: 16,
+    lineHeight: 1.7,
+    color:
+      "rgba(255,255,255,0.61)",
   },
 };
