@@ -3691,7 +3691,7 @@ const styles = {
     fontSize: 10,
     fontWeight: 800,
     letterSpacing: "0.17em",
-    color: "#e7c78f",
+    color: "#8a6a3d",
   },
 
   supportProofTitle: {
@@ -3700,7 +3700,7 @@ const styles = {
     fontWeight: 400,
     fontSize: "clamp(34px, 4.4vw, 54px)",
     lineHeight: 1.03,
-    color: "#f8f4ea",
+    color: "#173f32",
   },
 
   supportProofText: {
@@ -3708,7 +3708,7 @@ const styles = {
     margin: "20px 0 0",
     fontSize: 15,
     lineHeight: 1.7,
-    color: "rgba(255,255,255,0.64)",
+    color: "#587166",
   },
 
   supportProofFrame: {
@@ -3735,7 +3735,7 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "0.11em",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.40)",
+    color: "#8a6a3d",
   },
 
 
