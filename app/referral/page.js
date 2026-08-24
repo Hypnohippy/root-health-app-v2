@@ -1637,6 +1637,19 @@ export default function ReferralPage() {
               baseline.
             </p>
           </div>
+                          <div style={styles.registrationProof}>
+            <div style={styles.registrationProofFrame}>
+              <img
+                src="/root-workplace-registration.png"
+                alt="Root Workplace registration screen showing the organisation setup process"
+                style={styles.registrationProofImage}
+              />
+            </div>
+
+            <p style={styles.registrationProofCaption}>
+              Start with the organisation you already have
+            </p>
+          </div>
         </section>
 
         {/* ==================================================
@@ -4177,6 +4190,41 @@ const styles = {
     color:
       "rgba(255,255,255,0.61)",
   },
+
+    registrationProof: {
+    width: "100%",
+    maxWidth: 1180,
+    margin: "58px auto 0",
+  },
+
+  registrationProofFrame: {
+    width: "100%",
+    padding: 10,
+    boxSizing: "border-box",
+    borderRadius: 30,
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(231,199,143,0.18)",
+    boxShadow: "0 30px 80px rgba(0,0,0,0.24)",
+    overflow: "hidden",
+  },
+
+  registrationProofImage: {
+    display: "block",
+    width: "100%",
+    height: "auto",
+    borderRadius: 22,
+  },
+
+  registrationProofCaption: {
+    margin: "13px 6px 0",
+    textAlign: "center",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.11em",
+    textTransform: "uppercase",
+    color: "#d7b979",
+  },
+
 
     pricingSection: {
     padding: "105px 5vw 115px",
