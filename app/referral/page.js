@@ -1408,6 +1408,38 @@ export default function ReferralPage() {
             </div>
           </div>
 
+                              <div style={styles.observationProof}>
+            <div style={styles.observationProofCopy}>
+              <p style={styles.observationProofEyebrow}>
+                ROOT KEEPS WATCHING
+              </p>
+
+              <h3 style={styles.observationProofTitle}>
+                Decide what matters.
+                <br />
+                Then follow what happens.
+              </h3>
+
+              <p style={styles.observationProofText}>
+                Leaders can tell Root which outcomes deserve
+                attention — from stress and recovery to absence,
+                retention and wider organisational measures.
+              </p>
+            </div>
+
+            <div style={styles.observationProofFrame}>
+              <img
+                src="/root-workplace-observation-priorities.png"
+                alt="Root Workplace observation priorities showing the organisation choosing which workforce and organisational measures Root should follow"
+                style={styles.observationProofImage}
+              />
+            </div>
+
+            <p style={styles.observationProofCaption}>
+              Actual Root Workplace organisation learning
+            </p>
+          </div>
+
           <div style={styles.actionLoopClose}>
             <div style={styles.actionLoopEnso}>
               <span style={styles.actionLoopGap} />
@@ -3694,6 +3726,70 @@ const styles = {
     fontSize: 29,
     color: "#ac9b79",
   },
+
+    observationProof: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "105px auto 0",
+  },
+
+  observationProofCopy: {
+    maxWidth: 860,
+    margin: "0 0 30px",
+  },
+
+  observationProofEyebrow: {
+    margin: "0 0 13px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#927d56",
+  },
+
+  observationProofTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: "clamp(34px, 4.4vw, 54px)",
+    lineHeight: 1.02,
+    color: "#173326",
+  },
+
+  observationProofText: {
+    maxWidth: 760,
+    margin: "20px 0 0",
+    fontSize: 15,
+    lineHeight: 1.7,
+    color: "#5f7067",
+  },
+
+  observationProofFrame: {
+    width: "100%",
+    padding: 10,
+    boxSizing: "border-box",
+    borderRadius: 30,
+    background: "rgba(23,51,38,0.055)",
+    border: "1px solid rgba(23,51,38,0.11)",
+    boxShadow: "0 30px 80px rgba(34,46,39,0.14)",
+    overflow: "hidden",
+  },
+
+  observationProofImage: {
+    display: "block",
+    width: "100%",
+    height: "auto",
+    borderRadius: 22,
+  },
+
+  observationProofCaption: {
+    margin: "13px 6px 0",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.11em",
+    textTransform: "uppercase",
+    color: "#927d56",
+  },
+
 
   actionLoopClose: {
     maxWidth: 1000,
