@@ -253,19 +253,42 @@ export default function WorkplaceApplicationsPage() {
     loadApplications();
   }, []);
 
-  const pending =
-    applications.filter(
-      (application) =>
-        application.status ===
-        "pending"
-    );
+  const paidApplications =
+  applications.filter(
+    (application) =>
+      String(
+        application.access_path ||
+          "trial"
+      )
+        .trim()
+        .toLowerCase() === "paid"
+  );
 
-  const reviewed =
-    applications.filter(
-      (application) =>
-        application.status !==
+const pending =
+  applications.filter(
+    (application) =>
+      String(
+        application.access_path ||
+          "trial"
+      )
+        .trim()
+        .toLowerCase() !== "paid" &&
+      application.status ===
         "pending"
-    );
+  );
+
+const reviewed =
+  applications.filter(
+    (application) =>
+      String(
+        application.access_path ||
+          "trial"
+      )
+        .trim()
+        .toLowerCase() !== "paid" &&
+      application.status !==
+        "pending"
+  );
 
   return (
     <main style={styles.page}>
