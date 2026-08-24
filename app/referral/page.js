@@ -267,15 +267,15 @@ export default function ReferralPage() {
               </button>
 
               <button
-                type="button"
-                style={styles.navLink}
-                onClick={() =>
-                  scrollToSection(
-                    "intelligence"
-                  )
-                }
-              >
-                Privacy
+                 type="button"
+                 style={styles.navLink}
+                 onClick={() =>
+                   scrollToSection(
+                     "privacy"
+                    )
+                  }
+                >
+                 Privacy
               </button>
 
               <button
@@ -1541,17 +1541,235 @@ export default function ReferralPage() {
               baseline.
             </p>
           </div>
-        </section>
+                {/* ==================================================
+            GREEN 4F — PRICING / COMMERCIAL CLOSE
+        ================================================== */}
+
         <section
           id="pricing"
-          style={styles.hiddenAnchor}
-        />
+          style={styles.pricingSection}
+        >
+          <div style={styles.pricingIntro}>
+            <p style={styles.pricingEyebrow}>
+              START WHERE YOU ARE
+            </p>
+
+            <h2 style={styles.pricingTitle}>
+              Root grows with the organisation.
+            </h2>
+
+            <p style={styles.pricingAccent}>
+              The capability stays complete.
+            </p>
+
+            <p style={styles.pricingLead}>
+              Every organisation gets the complete
+              Root Workplace platform. Membership
+              simply scales with workforce size.
+            </p>
+          </div>
+
+          <div style={styles.pricingPrinciples}>
+            <div style={styles.pricingPrinciple}>
+              <span style={styles.pricingPrincipleNumber}>
+                01
+              </span>
+
+              <strong style={styles.pricingPrincipleTitle}>
+                ONE PLATFORM
+              </strong>
+
+              <p style={styles.pricingPrincipleText}>
+                The same organisational intelligence,
+                measurement and learning capability.
+              </p>
+            </div>
+
+            <div style={styles.pricingPrinciple}>
+              <span style={styles.pricingPrincipleNumber}>
+                02
+              </span>
+
+              <strong style={styles.pricingPrincipleTitle}>
+                PRICED TO SCALE
+              </strong>
+
+              <p style={styles.pricingPrincipleText}>
+                Membership reflects the size of the
+                workforce — not a reduced feature set.
+              </p>
+            </div>
+
+            <div style={styles.pricingPrinciple}>
+              <span style={styles.pricingPrincipleNumber}>
+                03
+              </span>
+
+              <strong style={styles.pricingPrincipleTitle}>
+                NO FEATURE LADDER
+              </strong>
+
+              <p style={styles.pricingPrincipleText}>
+                Smaller organisations do not receive
+                a smaller version of Root.
+              </p>
+            </div>
+          </div>
+
+          <div style={styles.pricingReveal}>
+            <p style={styles.pricingRevealSmall}>
+              COMPLETE ROOT WORKPLACE MEMBERSHIP
+            </p>
+
+            <div style={styles.pricingGrid}>
+              <div style={styles.priceCard}>
+                <span style={styles.priceBand}>
+                  UP TO 50 EMPLOYEES
+                </span>
+
+                <strong style={styles.priceValue}>
+                  £695
+                </strong>
+
+                <span style={styles.pricePeriod}>
+                  per month
+                </span>
+              </div>
+
+              <div style={styles.priceCard}>
+                <span style={styles.priceBand}>
+                  51–150 EMPLOYEES
+                </span>
+
+                <strong style={styles.priceValue}>
+                  £1,295
+                </strong>
+
+                <span style={styles.pricePeriod}>
+                  per month
+                </span>
+              </div>
+
+              <div style={styles.priceCardFeatured}>
+                <span style={styles.priceFeaturedLabel}>
+                  GROWING ORGANISATIONS
+                </span>
+
+                <span style={styles.priceBandFeatured}>
+                  151–500 EMPLOYEES
+                </span>
+
+                <strong style={styles.priceValueFeatured}>
+                  £2,495
+                </strong>
+
+                <span style={styles.pricePeriodFeatured}>
+                  per month
+                </span>
+              </div>
+
+              <div style={styles.priceCard}>
+                <span style={styles.priceBand}>
+                  501–1,000 EMPLOYEES
+                </span>
+
+                <strong style={styles.priceValue}>
+                  £4,495
+                </strong>
+
+                <span style={styles.pricePeriod}>
+                  per month
+                </span>
+              </div>
+
+              <div style={styles.priceCard}>
+                <span style={styles.priceBand}>
+                  MORE THAN 1,000
+                </span>
+
+                <strong style={styles.priceValue}>
+                  Bespoke
+                </strong>
+
+                <span style={styles.pricePeriod}>
+                  from £6,000 per month
+                </span>
+              </div>
+            </div>
+
+            <p style={styles.pricingPayoff}>
+              The organisation changes.
+              <br />
+              <strong>The capability doesn&apos;t.</strong>
+            </p>
+
+            <button
+              type="button"
+              style={styles.pricingStartButton}
+              onClick={continueToRoot}
+            >
+              Start Root →
+            </button>
+          </div>
+        </section>
 
         <section
           id="talk"
-          style={styles.hiddenAnchor}
-        />
-      </main>
+          style={styles.talkSection}
+        >
+          <div style={styles.talkEnso}>
+            <span style={styles.talkEnsoText}>
+              ROOT
+            </span>
+          </div>
+
+          <p style={styles.talkEyebrow}>
+            NOT READY TO START YET?
+          </p>
+
+          <h2 style={styles.talkTitle}>
+            Bring us your organisation.
+          </h2>
+
+          <p style={styles.talkAccent}>
+            Bring us the questions too.
+          </p>
+
+          <p style={styles.talkBody}>
+            See how Root approaches evidence,
+            uncertainty and organisational change
+            before deciding whether it belongs
+            in your organisation.
+          </p>
+
+          <div style={styles.talkActions}>
+            <button
+              type="button"
+              style={styles.talkPrimaryButton}
+              onClick={continueToRoot}
+            >
+              Start Root
+            </button>
+
+            <button
+              type="button"
+              style={styles.talkSecondaryButton}
+              onClick={() =>
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                })
+              }
+            >
+              Explore the story again ↑
+            </button>
+          </div>
+
+          <p style={styles.talkFinalLine}>
+            Start with evidence.
+            Learn what your organisation tells you.
+          </p>
+        </section>      </main>
 
       <style jsx global>{`
         html {
@@ -3665,5 +3883,346 @@ const styles = {
     lineHeight: 1.7,
     color:
       "rgba(255,255,255,0.61)",
+  },
+
+    pricingSection: {
+    padding: "105px 5vw 115px",
+    background:
+      "linear-gradient(180deg, #f5f1e8 0%, #eee9dc 100%)",
+    color: "#173326",
+    overflow: "hidden",
+  },
+
+  pricingIntro: {
+    maxWidth: 1100,
+    margin: "0 auto 52px",
+    textAlign: "center",
+  },
+
+  pricingEyebrow: {
+    margin: "0 0 16px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#927d56",
+  },
+
+  pricingTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(44px, 5.5vw, 72px)",
+    lineHeight: 1,
+    letterSpacing: "-0.035em",
+    color: "#173326",
+  },
+
+  pricingAccent: {
+    margin: "11px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(29px, 3.8vw, 46px)",
+    color: "#47725e",
+  },
+
+  pricingLead: {
+    maxWidth: 690,
+    margin: "22px auto 0",
+    fontSize: 15,
+    lineHeight: 1.7,
+    color: "#64756b",
+  },
+
+  pricingPrinciples: {
+    maxWidth: 1160,
+    margin: "0 auto 58px",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(3, minmax(0, 1fr))",
+    gap: 14,
+  },
+
+  pricingPrinciple: {
+    minHeight: 175,
+    padding: "24px",
+    borderRadius: 24,
+    background:
+      "rgba(255,255,255,0.72)",
+    border:
+      "1px solid rgba(23,51,38,0.08)",
+  },
+
+  pricingPrincipleNumber: {
+    display: "block",
+    marginBottom: 23,
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.13em",
+    color: "#927d56",
+  },
+
+  pricingPrincipleTitle: {
+    display: "block",
+    marginBottom: 10,
+    fontFamily: "Georgia, serif",
+    fontSize: 22,
+    fontWeight: 400,
+    color: "#173326",
+  },
+
+  pricingPrincipleText: {
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.65,
+    color: "#65766c",
+  },
+
+  pricingReveal: {
+    maxWidth: 1370,
+    margin: "0 auto",
+    textAlign: "center",
+  },
+
+  pricingRevealSmall: {
+    margin: "0 0 21px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#927d56",
+  },
+
+  pricingGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(5, minmax(0, 1fr))",
+    gap: 12,
+    alignItems: "stretch",
+  },
+
+  priceCard: {
+    minHeight: 245,
+    padding: "28px 22px",
+    borderRadius: 26,
+    boxSizing: "border-box",
+    background:
+      "rgba(255,255,255,0.82)",
+    border:
+      "1px solid rgba(23,51,38,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    textAlign: "left",
+  },
+
+  priceCardFeatured: {
+    minHeight: 270,
+    padding: "29px 24px",
+    borderRadius: 28,
+    boxSizing: "border-box",
+    background:
+      "linear-gradient(180deg, #214733 0%, #173728 100%)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    textAlign: "left",
+    transform: "translateY(-12px)",
+    boxShadow:
+      "0 24px 60px rgba(23,51,38,0.16)",
+  },
+
+  priceFeaturedLabel: {
+    display: "inline-block",
+    marginBottom: 18,
+    padding: "7px 10px",
+    borderRadius: 999,
+    background: "#c9d9c1",
+    fontSize: 8,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    color: "#294936",
+  },
+
+  priceBand: {
+    minHeight: 36,
+    fontSize: 9,
+    fontWeight: 800,
+    lineHeight: 1.4,
+    letterSpacing: "0.10em",
+    color: "#68776f",
+  },
+
+  priceBandFeatured: {
+    minHeight: 36,
+    fontSize: 9,
+    fontWeight: 800,
+    lineHeight: 1.4,
+    letterSpacing: "0.10em",
+    color:
+      "rgba(255,255,255,0.67)",
+  },
+
+  priceValue: {
+    marginTop: 18,
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(31px, 3vw, 46px)",
+    fontWeight: 400,
+    color: "#173326",
+  },
+
+  priceValueFeatured: {
+    marginTop: 18,
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(31px, 3vw, 46px)",
+    fontWeight: 400,
+    color: "#ffffff",
+  },
+
+  pricePeriod: {
+    marginTop: 7,
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#738078",
+  },
+
+  pricePeriodFeatured: {
+    marginTop: 7,
+    fontSize: 11,
+    fontWeight: 700,
+    color:
+      "rgba(255,255,255,0.62)",
+  },
+
+  pricingPayoff: {
+    margin: "42px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(26px, 3.2vw, 40px)",
+    lineHeight: 1.15,
+    color: "#47725e",
+  },
+
+  pricingStartButton: {
+    appearance: "none",
+    marginTop: 28,
+    border: 0,
+    borderRadius: 999,
+    padding: "15px 26px",
+    background: "#173326",
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: 800,
+    cursor: "pointer",
+  },
+
+  talkSection: {
+    padding: "120px 5vw 130px",
+    background:
+      "radial-gradient(circle at 50% 30%, rgba(57,111,82,0.18) 0%, rgba(5,26,20,0) 34%), linear-gradient(180deg, #061d16 0%, #041812 100%)",
+    color: "#ffffff",
+    textAlign: "center",
+  },
+
+  talkEnso: {
+    width: 104,
+    height: 104,
+    margin: "0 auto 28px",
+    borderRadius: "50%",
+    border:
+      "9px solid #e7c78f",
+    borderRightColor:
+      "rgba(231,199,143,0.22)",
+    display: "grid",
+    placeItems: "center",
+  },
+
+  talkEnsoText: {
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.18em",
+    color: "#e7c78f",
+  },
+
+  talkEyebrow: {
+    margin: "0 0 15px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#d7b979",
+  },
+
+  talkTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize:
+      "clamp(46px, 5.8vw, 76px)",
+    lineHeight: 1,
+    color: "#f8f4ea",
+  },
+
+  talkAccent: {
+    margin: "10px 0 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(29px, 3.8vw, 48px)",
+    color: "#e7c78f",
+  },
+
+  talkBody: {
+    maxWidth: 700,
+    margin: "24px auto 0",
+    fontSize: 15,
+    lineHeight: 1.75,
+    color:
+      "rgba(255,255,255,0.63)",
+  },
+
+  talkActions: {
+    marginTop: 31,
+    display: "flex",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+
+  talkPrimaryButton: {
+    appearance: "none",
+    border: 0,
+    borderRadius: 999,
+    padding: "15px 25px",
+    background: "#e7c78f",
+    color: "#10261c",
+    fontSize: 14,
+    fontWeight: 800,
+    cursor: "pointer",
+  },
+
+  talkSecondaryButton: {
+    appearance: "none",
+    border:
+      "1px solid rgba(231,199,143,0.45)",
+    borderRadius: 999,
+    padding: "14px 24px",
+    background:
+      "rgba(255,255,255,0.025)",
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+
+  talkFinalLine: {
+    margin: "47px auto 0",
+    fontFamily: "Georgia, serif",
+    fontSize:
+      "clamp(22px, 2.8vw, 34px)",
+    lineHeight: 1.35,
+    color:
+      "rgba(255,255,255,0.72)",
   },
 };
