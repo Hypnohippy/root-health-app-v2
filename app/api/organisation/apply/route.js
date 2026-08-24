@@ -944,27 +944,41 @@ created_at
       application.admin_email
     );
 
-    const notificationSent =
-      await notifyFormspree(
-        application
-      );
+    /*
+ * ==========================================================
+ * APPLICATION COMMUNICATIONS
+ *
+ * Complimentary trials retain Root's review workflow.
+ *
+ * Direct paid memberships do NOT require manual approval.
+ * Their commercial approval is confirmed by successful
+ * Stripe payment, after which the webhook sends secure
+ * Workplace setup access.
+ * ==========================================================
+ */
 
-    let receiptEmailSent =
-      false;
+let notificationSent = false;
+let receiptEmailSent = false;
 
-    try {
-      await sendApplicationReceivedEmail(
-        application
-      );
+if (application.access_path !== "paid") {
+  notificationSent =
+    await notifyFormspree(
+      application
+    );
 
-      receiptEmailSent =
-        true;
-    } catch (receiptEmailError) {
-      console.error(
-        "ROOT APPLICATION RECEIPT EMAIL ERROR:",
-        receiptEmailError
-      );
-    }
+  try {
+    await sendApplicationReceivedEmail(
+      application
+    );
+
+    receiptEmailSent = true;
+  } catch (receiptEmailError) {
+    console.error(
+      "ROOT APPLICATION RECEIPT EMAIL ERROR:",
+      receiptEmailError
+    );
+  }
+}
 
     return NextResponse.json({
       success: true,
