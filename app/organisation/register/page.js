@@ -106,52 +106,157 @@ export default function OrganisationRegisterPage() {
   accessPath === "paid";  
 
     async function submitApplication() {
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
+
+  if (
+    !name.trim() ||
+    !contactName.trim() ||
+    !contactEmail.trim() ||
+    !adminEmail.trim() ||
+    !organisationType
+  ) {
+    setError(
+      "Please complete organisation name, organisation type, contact name, organisation contact email and Root administrator email."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  if (
+    registrationRequired &&
+    !legalEntityNumber.trim()
+  ) {
+    setError(
+      "Please enter the organisation's registration number."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  if (
+    associatedBusinessDeclared &&
+    !associatedBusinessName.trim()
+  ) {
+    setError(
+      "Please enter the parent, group or associated business name."
+    );
+
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const response =
+      await fetch(
+        "/api/organisation/apply",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            organisationName:
+              name.trim(),
+
+            contactName:
+              contactName.trim(),
+
+            contactEmail:
+              contactEmail
+                .trim()
+                .toLowerCase(),
+
+            adminEmail:
+              adminEmail
+                .trim()
+                .toLowerCase(),
+
+            employeeCount,
+
+            industry,
+
+            organisationType,
+
+            legalEntityNumber:
+              legalEntityNumber
+                .trim()
+                .toUpperCase(),
+
+            associatedBusinessDeclared,
+
+            associatedBusinessName:
+              associatedBusinessDeclared
+                ? associatedBusinessName.trim()
+                : "",
+
+            accessPath,
+
+            referralCode:
+              isPaid
+                ? referralCode
+                : "",
+
+            referralCampaignCode:
+              isPaid
+                ? referralCampaignCode
+                : "",
+          }),
+        }
+      );
+
+    const result =
+      await response.json();
 
     if (
-      !name.trim() ||
-      !contactName.trim() ||
-      !contactEmail.trim() ||
-      !adminEmail.trim() ||
-      !organisationType
+      !response.ok ||
+      !result?.success
     ) {
       setError(
-        "Please complete organisation name, organisation type, contact name, organisation contact email and Root administrator email."
+        result?.error ||
+          "Root could not submit your Workplace Programme application."
       );
 
       setLoading(false);
       return;
     }
 
-    if (
-      registrationRequired &&
-      !legalEntityNumber.trim()
-    ) {
-      setError(
-        "Please enter the organisation's registration number."
-      );
+    localStorage.removeItem(
+      "root_hr_org_v1"
+    );
 
-      setLoading(false);
-      return;
-    }
+    /*
+     * ======================================================
+     * DIRECT PAID ROOT WORKPLACE
+     *
+     * The paid application has now been safely created,
+     * including any introducer and campaign attribution.
+     *
+     * Use that application immediately to start the
+     * existing secure Stripe membership checkout.
+     * ======================================================
+     */
+    if (isPaid) {
+      const applicationId =
+        result?.application?.id;
 
-    if (
-      associatedBusinessDeclared &&
-      !associatedBusinessName.trim()
-    ) {
-      setError(
-        "Please enter the parent, group or associated business name."
-      );
+      if (!applicationId) {
+        setError(
+          "Root received your organisation details but could not prepare secure membership checkout."
+        );
 
-      setLoading(false);
-      return;
-    }
+        setLoading(false);
+        return;
+      }
 
-    try {
-      const response =
+      const checkoutResponse =
         await fetch(
-          "/api/organisation/apply",
+          "/api/stripe/workplace-checkout",
           {
             method: "POST",
 
@@ -161,93 +266,66 @@ export default function OrganisationRegisterPage() {
             },
 
             body: JSON.stringify({
-              organisationName:
-                name.trim(),
-
-              contactName:
-                contactName.trim(),
-
-              contactEmail:
-                contactEmail
-                  .trim()
-                  .toLowerCase(),
-
-              adminEmail:
-                adminEmail
-                  .trim()
-                  .toLowerCase(),
-
-              employeeCount,
-
-              industry,
-
-              organisationType,
-
-              legalEntityNumber:
-                legalEntityNumber
-                  .trim()
-                  .toUpperCase(),
-
-              associatedBusinessDeclared,
-
-              associatedBusinessName:
-              associatedBusinessDeclared
-              ? associatedBusinessName.trim()
-              : "",
-
-              accessPath,
-
-              referralCode:
-                isPaid
-                  ? referralCode
-                  : "",
-
-              referralCampaignCode:
-                isPaid
-                  ? referralCampaignCode
-                  : "",
+              applicationId,
             }),
           }
         );
 
-      const result =
-        await response.json();
+      const checkoutResult =
+        await checkoutResponse.json();
 
       if (
-        !response.ok ||
-        !result?.success
+        !checkoutResponse.ok ||
+        !checkoutResult?.success ||
+        !checkoutResult?.url
       ) {
-        setError(
-          result?.error ||
-          "Root could not submit your Workplace Programme application."
-        );
+        if (
+          checkoutResult?.requiresConversation
+        ) {
+          setError(
+            "Enterprise Root Workplace membership is arranged directly with Root. Your organisation details have been received and we will contact you to complete the membership."
+          );
+        } else {
+          setError(
+            checkoutResult?.error ||
+              "Root received your organisation details but could not start secure billing. Please try again."
+          );
+        }
 
         setLoading(false);
         return;
       }
 
-      localStorage.removeItem(
-        "root_hr_org_v1"
-      );
+      window.location.href =
+        checkoutResult.url;
 
-      setCreatedOrg(
-        result.application
-      );
-
-      setLoading(false);
-    } catch (submitError) {
-      console.error(
-        "ROOT APPLICATION SUBMIT ERROR:",
-        submitError
-      );
-
-      setError(
-        "Root could not submit your application. Please try again."
-      );
-
-      setLoading(false);
+      return;
     }
+
+    /*
+     * Complimentary pilot applications keep the
+     * existing review and eligibility journey.
+     */
+    setCreatedOrg(
+      result.application
+    );
+
+    setLoading(false);
+  } catch (submitError) {
+    console.error(
+      "ROOT APPLICATION SUBMIT ERROR:",
+      submitError
+    );
+
+    setError(
+      isPaid
+        ? "Root could not prepare your membership. Please try again."
+        : "Root could not submit your application. Please try again."
+    );
+
+    setLoading(false);
   }
+}
 
   if (createdOrg) {
     return (
@@ -711,10 +789,12 @@ export default function OrganisationRegisterPage() {
           disabled={loading}
         >
           {loading
-            ? "Submitting..."
-           : isPaid
-           ? "Continue with Root Workplace"
-           : "Apply for Root Workplace"}
+  ? isPaid
+    ? "Preparing secure checkout..."
+    : "Submitting application..."
+  : isPaid
+  ? "Continue to secure billing →"
+  : "Apply for Root Workplace"}
         </button>
 
         <p style={styles.formNote}>
