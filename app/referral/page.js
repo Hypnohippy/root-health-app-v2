@@ -1337,6 +1337,39 @@ export default function ReferralPage() {
             </div>
           </div>
 
+                      <div style={styles.supportProof}>
+            <div style={styles.supportProofCopy}>
+              <p style={styles.supportProofEyebrow}>
+                FROM EVIDENCE TO SUPPORT
+              </p>
+
+              <h3 style={styles.supportProofTitle}>
+                Shape the response around
+                <br />
+                what the organisation is seeing.
+              </h3>
+
+              <p style={styles.supportProofText}>
+                Root helps leaders define the changes
+                they want to support, so the response
+                becomes something the organisation can
+                follow — not simply something it delivers.
+              </p>
+            </div>
+
+            <div style={styles.supportProofFrame}>
+              <img
+                src="/root-workplace-observation-support-changes.png"
+                alt="Root Workplace observation showing the changes an organisation wants to support"
+                style={styles.supportProofImage}
+              />
+            </div>
+
+            <p style={styles.supportProofCaption}>
+              Actual Root Workplace intervention observation
+            </p>
+          </div>
+
           <div style={styles.afterAction}>
             <p style={styles.afterActionEyebrow}>
               THEN ROOT WATCHES WHAT HAPPENS
@@ -3641,6 +3674,70 @@ const styles = {
     fontSize: 12,
     color: "#284b3c",
   },
+
+    supportProof: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "95px auto 0",
+  },
+
+  supportProofCopy: {
+    maxWidth: 850,
+    margin: "0 0 30px",
+  },
+
+  supportProofEyebrow: {
+    margin: "0 0 13px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#e7c78f",
+  },
+
+  supportProofTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: "clamp(34px, 4.4vw, 54px)",
+    lineHeight: 1.03,
+    color: "#f8f4ea",
+  },
+
+  supportProofText: {
+    maxWidth: 750,
+    margin: "20px 0 0",
+    fontSize: 15,
+    lineHeight: 1.7,
+    color: "rgba(255,255,255,0.64)",
+  },
+
+  supportProofFrame: {
+    width: "100%",
+    padding: 10,
+    boxSizing: "border-box",
+    borderRadius: 30,
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(231,199,143,0.20)",
+    boxShadow: "0 32px 90px rgba(0,0,0,0.28)",
+    overflow: "hidden",
+  },
+
+  supportProofImage: {
+    display: "block",
+    width: "100%",
+    height: "auto",
+    borderRadius: 22,
+  },
+
+  supportProofCaption: {
+    margin: "13px 6px 0",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.11em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.40)",
+  },
+
 
   afterAction: {
     width: "100%",
