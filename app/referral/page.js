@@ -1525,7 +1525,7 @@ export default function ReferralPage() {
             </p>
           </div>
 
-          <div style={styles.trustNext}>
+                    <div style={styles.trustNext}>
             <p style={styles.trustNextSmall}>
               SO HOW DIFFICULT IS IT TO BEGIN?
             </p>
@@ -1541,10 +1541,11 @@ export default function ReferralPage() {
               baseline.
             </p>
           </div>
-                {/* ==================================================
+        </section>
+
+        {/* ==================================================
             GREEN 4F — PRICING / COMMERCIAL CLOSE
         ================================================== */}
-
         <section
           id="pricing"
           style={styles.pricingSection}
@@ -1769,7 +1770,8 @@ export default function ReferralPage() {
             Start with evidence.
             Learn what your organisation tells you.
           </p>
-        </section>      </main>
+        </section>     
+                </main>
 
       <style jsx global>{`
         html {
