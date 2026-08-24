@@ -1184,7 +1184,7 @@ async function findAuthUserByEmail(
   email
 ) {
   const targetEmail =
-    normaliseEmail(email);
+    normaliseEmail(email); 
 
   let page = 1;
 
