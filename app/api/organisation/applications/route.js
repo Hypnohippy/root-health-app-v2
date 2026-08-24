@@ -1929,17 +1929,22 @@ if (accessPath === "paid") {
     }
   );
 }
-      return NextResponse.json({
-        success: true,
 
-        application,
+if (
+  application.status ===
+  "approved"
+) {
+  return NextResponse.json({
+    success: true,
 
-        alreadyApproved:
-          true,
-      });
-    }
+    application,
 
-        const actionableStatuses = [
+    alreadyApproved:
+      true,
+  });
+}
+
+const actionableStatuses = [
       "pending",
       "hold",
     ];
