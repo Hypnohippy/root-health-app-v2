@@ -1620,11 +1620,24 @@ const assessedApplications =
          * approved remain visible, but Detective is
          * primarily assessing pending applications.
          */
-        if (
-          application.status !== "pending"
-        ) {
-          return application;
-        }
+       /*
+ * Root Detective exists only to protect the
+ * complimentary pilot.
+ *
+ * Direct paid memberships are commercially
+ * authorised by confirmed Stripe payment and
+ * must never enter trial eligibility checking.
+ */
+if (
+  application.status !== "pending" ||
+  String(
+    application.access_path || "trial"
+  )
+    .trim()
+    .toLowerCase() === "paid"
+) {
+  return application;
+}
 
         const assessment =
           await assessTrialEligibility(
@@ -1865,16 +1878,26 @@ created_at
       );
     }
 
-    /*
+  /*
  * ==========================================================
  * COMMERCIAL ENTRY PATH
  *
- * Trial applications use the Founder
- * complimentary-pilot decision workflow.
+ * This administration endpoint is ONLY for
+ * complimentary-pilot decisions.
  *
- * Direct paid applications must never be
- * accidentally processed as a complimentary
- * pilot application.
+ * Direct paid memberships are commercially
+ * authorised by confirmed Stripe payment.
+ *
+ * A paid application must therefore never:
+ *
+ * - be manually approved here
+ * - be placed on complimentary-pilot hold
+ * - be declined as a complimentary pilot
+ * - receive another Stripe checkout link
+ * - receive another billing email
+ *
+ * The Stripe Workplace webhook is the sole
+ * authority for activating direct paid membership.
  * ==========================================================
  */
 
@@ -1886,256 +1909,26 @@ const accessPath =
     .trim()
     .toLowerCase();
 
-if (
-  accessPath === "paid" &&
-  (
-    decision === "hold" ||
-    decision === "decline"
-  )
-) {
+if (accessPath === "paid") {
   return NextResponse.json(
     {
       error:
-        "Direct Root Workplace membership applications do not use complimentary pilot hold or decline decisions.",
+        application.payment_status ===
+        "paid"
+          ? "This Root Workplace membership has already been confirmed by Stripe. No manual application decision is required."
+          : "Direct Root Workplace membership is completed through secure Stripe billing and does not use the complimentary-pilot approval workflow.",
+
+      paidMembership: true,
+
+      paymentStatus:
+        application.payment_status ||
+        "pending",
     },
     {
-      status: 400,
+      status: 409,
     }
   );
 }
-/*
- * Paid access will be enabled by the
- * confirmed billing route, not by the
- * complimentary-pilot approval button.
- *
- * Keep this locked until that payment
- * hand-off is connected.
- */
-if (
-  accessPath === "paid" &&
-  decision === "approve" &&
-  application.payment_status !==
-    "paid"
-) {
-  const reviewedAt =
-    new Date().toISOString();
-
-  const checkoutUrl =
-    `https://roothealth.app/organisations/checkout` +
-    `?application_id=${encodeURIComponent(
-      application.id
-    )}`;
-
-  const smtpUser =
-    String(
-      process.env.ROOT_SMTP_USER ||
-      ""
-    ).trim();
-
-  const smtpPassword =
-    String(
-      process.env.ROOT_SMTP_PASSWORD ||
-      ""
-    ).trim();
-
-  const smtpFrom =
-    String(
-      process.env.ROOT_SMTP_FROM ||
-      smtpUser
-    ).trim();
-
-  if (
-    !smtpUser ||
-    !smtpPassword ||
-    !smtpFrom
-  ) {
-    return NextResponse.json(
-      {
-        error:
-          "Root Workplace email is not configured.",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-
-  const billingEmail =
-    normaliseEmail(
-      application.admin_email ||
-      application.contact_email
-    );
-
-  if (!billingEmail) {
-    return NextResponse.json(
-      {
-        error:
-          "This application has no email address for membership billing.",
-      },
-      {
-        status: 400,
-      }
-    );
-  }
-
-  const transporter =
-    nodemailer.createTransport({
-      service: "gmail",
-
-      auth: {
-        user: smtpUser,
-        pass: smtpPassword,
-      },
-    });
-
-  const organisationName =
-    String(
-      application.organisation_name ||
-      "your organisation"
-    ).trim();
-
-  const contactName =
-    String(
-      application.contact_name ||
-      ""
-    ).trim();
-
-  const greeting =
-    contactName
-      ? `Dear ${contactName},`
-      : "Hello,";
-
-  const subject =
-    "Continue your Root Workplace membership";
-
-  const text =
-`${greeting}
-
-Your Root Workplace membership application for ${organisationName} has been approved to continue to secure billing.
-
-No organisation access or administrator permissions have been created yet.
-
-Please continue to secure Root Workplace billing here:
-
-${checkoutUrl}
-
-Once Stripe confirms your subscription, the authorised Root administrator will receive a separate secure setup invitation.
-
-Kind regards,
-
-Root Workplace`;
-
-  try {
-    await transporter.sendMail({
-      from: smtpFrom,
-      to: billingEmail,
-      replyTo: smtpUser,
-      subject,
-      text,
-    });
-  } catch (emailError) {
-    console.error(
-      "ROOT PAID BILLING EMAIL ERROR:",
-      emailError
-    );
-
-    return NextResponse.json(
-      {
-        error:
-          "Root could not send the paid membership continuation email.",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-
-  const {
-    data: updatedApplication,
-    error: updateError,
-  } =
-    await supabase
-      .from(
-        "organisation_applications"
-      )
-      .update({
-        /*
-         * Keep status pending until Stripe confirms
-         * successful payment.
-         */
-        status: "pending",
-
-        reviewed_at:
-          reviewedAt,
-      })
-      .eq(
-        "id",
-        application.id
-      )
-      .select(
-        `
-          id,
-          organisation_name,
-          contact_name,
-          contact_email,
-          admin_email,
-          employee_count,
-          access_path,
-          payment_status,
-          status,
-          reviewed_at
-        `
-      )
-      .single();
-
-  if (
-    updateError ||
-    !updatedApplication
-  ) {
-    console.error(
-      "ROOT PAID APPROVAL SAVE ERROR:",
-      updateError
-    );
-
-    return NextResponse.json(
-      {
-        error:
-          "Root sent the billing email but could not record the paid application review.",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-
-  console.log(
-    "ROOT PAID APPLICATION APPROVED FOR BILLING:",
-    application.id,
-    application.organisation_name,
-    billingEmail
-  );
-
-  return NextResponse.json({
-    success: true,
-
-    application:
-      updatedApplication,
-
-    decision:
-      "approve",
-
-    billingRequired:
-      true,
-
-    billingEmailSent:
-      true,
-  });
-}
-
-    if (
-      application.status ===
-      "approved"
-    ) {
       return NextResponse.json({
         success: true,
 
