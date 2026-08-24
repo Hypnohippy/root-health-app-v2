@@ -916,6 +916,37 @@ export default function ReferralPage() {
             </div>
           </div>
 
+                            <div style={styles.productProof}>
+            <div style={styles.productProofCopy}>
+              <p style={styles.productProofEyebrow}>
+                SEE THE ORGANISATION
+              </p>
+
+              <h3 style={styles.productProofTitle}>
+                Business evidence becomes part of the picture.
+              </h3>
+
+              <p style={styles.productProofText}>
+                Root brings the measures your organisation
+                already knows alongside anonymous workforce
+                evidence — without assuming that one caused
+                the other.
+              </p>
+            </div>
+
+            <div style={styles.productProofFrame}>
+              <img
+                src="/root-workplace-business-measures-final.png"
+                alt="Root Workplace organisation intelligence showing sickness days, employee turnover, agency spend, overtime hours and current vacancies"
+                style={styles.productProofImage}
+              />
+            </div>
+
+            <p style={styles.productProofCaption}>
+              Actual Root Workplace organisation intelligence
+            </p>
+          </div>
+
           <div style={styles.coachReveal}>
             <div style={styles.coachRevealHeader}>
               <div>
@@ -2955,6 +2986,70 @@ const styles = {
     color:
       "rgba(255,255,255,0.58)",
   },
+
+    productProof: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "72px auto 0",
+  },
+
+  productProofCopy: {
+    maxWidth: 820,
+    margin: "0 0 30px",
+  },
+
+  productProofEyebrow: {
+    margin: "0 0 13px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: "0.17em",
+    color: "#e7c78f",
+  },
+
+  productProofTitle: {
+    margin: 0,
+    fontFamily: "Georgia, serif",
+    fontWeight: 400,
+    fontSize: "clamp(31px, 4vw, 48px)",
+    lineHeight: 1.04,
+    color: "#f8f4ea",
+  },
+
+  productProofText: {
+    maxWidth: 720,
+    margin: "20px 0 0",
+    fontSize: 15,
+    lineHeight: 1.7,
+    color: "rgba(255,255,255,0.64)",
+  },
+
+  productProofFrame: {
+    width: "100%",
+    padding: 10,
+    boxSizing: "border-box",
+    borderRadius: 30,
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(231,199,143,0.20)",
+    boxShadow: "0 32px 90px rgba(0,0,0,0.28)",
+    overflow: "hidden",
+  },
+
+  productProofImage: {
+    display: "block",
+    width: "100%",
+    height: "auto",
+    borderRadius: 22,
+  },
+
+  productProofCaption: {
+    margin: "13px 6px 0",
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: "0.11em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.40)",
+  },
+
 
   coachReveal: {
     width: "100%",
