@@ -3824,10 +3824,13 @@ const styles = {
     color: "#ac9b79",
   },
 
-    observationProof: {
+     observationProof: {
     width: "100%",
     maxWidth: 1320,
     margin: "105px auto 0",
+    padding: "58px 0 0",
+    position: "relative",
+    zIndex: 2,
   },
 
   observationProofCopy: {
