@@ -340,13 +340,27 @@ export async function GET(request) {
           "organisation_commissions"
         )
         .select(
-          `
-            id,
-            introducer_id,
-            commission_amount,
-            status
-          `
-        );
+  `
+    id,
+    introducer_id,
+    introducer_campaign_id,
+    application_id,
+    organisation_name,
+    referral_code,
+    referral_campaign_code,
+    commission_percent,
+    commission_structure,
+    commission_event,
+    commission_amount,
+    status,
+    earned_at,
+    clearance_until,
+    payable_at,
+    approved_at,
+    paid_at,
+    payout_reference
+  `
+);
 
     if (commissionError) {
       throw commissionError;
@@ -373,6 +387,90 @@ export async function GET(request) {
                 commission.introducer_id ===
                 introducer.id
             );
+
+            const nowDate =
+  new Date();
+
+const sevenDaysFromNow =
+  new Date(
+    nowDate.getTime() +
+      7 *
+        24 *
+        60 *
+        60 *
+        1000
+  );
+
+const activeCommissions =
+  matchedCommissions.filter(
+    (commission) =>
+      ![
+        "paid",
+        "reversed",
+        "cancelled",
+      ].includes(
+        String(
+          commission.status || ""
+        ).toLowerCase()
+      )
+  );
+
+const dueCommissions =
+  activeCommissions.filter(
+    (commission) => {
+      if (!commission.payable_at) {
+        return false;
+      }
+
+      return (
+        new Date(
+          commission.payable_at
+        ) <= nowDate
+      );
+    }
+  );
+
+const upcomingCommissions =
+  activeCommissions.filter(
+    (commission) => {
+      if (!commission.payable_at) {
+        return false;
+      }
+
+      const payableAt =
+        new Date(
+          commission.payable_at
+        );
+
+      return (
+        payableAt > nowDate &&
+        payableAt <=
+          sevenDaysFromNow
+      );
+    }
+  );
+
+const commissionDue =
+  dueCommissions.reduce(
+    (total, commission) =>
+      total +
+      Number(
+        commission.commission_amount ||
+          0
+      ),
+    0
+  );
+
+const commissionUpcoming =
+  upcomingCommissions.reduce(
+    (total, commission) =>
+      total +
+      Number(
+        commission.commission_amount ||
+          0
+      ),
+    0
+  );
 
           const paidConversions =
             matchedApplications.filter(
@@ -464,8 +562,26 @@ export async function GET(request) {
               commissionPaid,
 
             commission_outstanding:
-              commissionEarned -
-              commissionPaid,
+  commissionEarned -
+  commissionPaid,
+
+commission_due:
+  commissionDue,
+
+commission_due_count:
+  dueCommissions.length,
+
+commission_upcoming:
+  commissionUpcoming,
+
+commission_upcoming_count:
+  upcomingCommissions.length,
+
+due_commissions:
+  dueCommissions,
+
+upcoming_commissions:
+  upcomingCommissions,
           };
         }
       );
