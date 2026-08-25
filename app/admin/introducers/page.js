@@ -985,52 +985,73 @@ export default function IntroducerAdminPage() {
       )
     );
   }
-  const totals =
-    useMemo(
-      () => {
-        return introducers.reduce(
-          (
-            summary,
-            introducer
-          ) => ({
-            introducers:
-              summary.introducers +
-              1,
+    const totals = useMemo(() => {
+    return introducers.reduce(
+      (summary, introducer) => ({
+        introducers:
+          summary.introducers + 1,
 
-            conversions:
-              summary.conversions +
-              Number(
-                introducer.paid_conversion_count ||
-                  0
-              ),
+        conversions:
+          summary.conversions +
+          Number(
+            introducer.paid_conversion_count ||
+              0
+          ),
 
-            earned:
-              summary.earned +
-              Number(
-                introducer.commission_earned ||
-                  0
-              ),
+        earned:
+          summary.earned +
+          Number(
+            introducer.commission_earned ||
+              0
+          ),
 
-            outstanding:
-              summary.outstanding +
-              Number(
-                introducer.commission_outstanding ||
-                  0
-              ),
-          }),
-          {
-            introducers: 0,
-            conversions: 0,
-            earned: 0,
-            outstanding: 0,
-          }
-        );
-      },
-      [
-        introducers,
-      ]
+        outstanding:
+          summary.outstanding +
+          Number(
+            introducer.commission_outstanding ||
+              0
+          ),
+
+        due:
+          summary.due +
+          Number(
+            introducer.commission_due ||
+              0
+          ),
+
+        dueCount:
+          summary.dueCount +
+          Number(
+            introducer.commission_due_count ||
+              0
+          ),
+
+        upcoming:
+          summary.upcoming +
+          Number(
+            introducer.commission_upcoming ||
+              0
+          ),
+
+        upcomingCount:
+          summary.upcomingCount +
+          Number(
+            introducer.commission_upcoming_count ||
+              0
+          ),
+      }),
+      {
+        introducers: 0,
+        conversions: 0,
+        earned: 0,
+        outstanding: 0,
+        due: 0,
+        dueCount: 0,
+        upcoming: 0,
+        upcomingCount: 0,
+      }
     );
-
+  }, [introducers]);
   return (
     <main style={styles.page}>
       <section style={styles.shell}>
@@ -1115,6 +1136,52 @@ export default function IntroducerAdminPage() {
             {message}
           </div>
         ) : null}
+
+        {totals.dueCount > 0 ? (
+  <div style={styles.commissionDueAlert}>
+    <div style={styles.commissionAlertIcon}>
+      🔔
+    </div>
+
+    <div style={styles.commissionAlertContent}>
+      <span style={styles.commissionAlertKicker}>
+        COMMISSION PAYMENT DUE
+      </span>
+
+      <strong style={styles.commissionAlertAmount}>
+        {money(totals.due)}
+      </strong>
+
+      <p style={styles.commissionAlertText}>
+        {totals.dueCount === 1
+          ? "1 commission payment is ready to be paid."
+          : `${totals.dueCount} commission payments are ready to be paid.`}
+      </p>
+    </div>
+  </div>
+) : totals.upcomingCount > 0 ? (
+  <div style={styles.commissionUpcomingAlert}>
+    <div style={styles.commissionAlertIcon}>
+      ⏳
+    </div>
+
+    <div style={styles.commissionAlertContent}>
+      <span style={styles.commissionUpcomingKicker}>
+        UPCOMING COMMISSION
+      </span>
+
+      <strong style={styles.commissionAlertAmount}>
+        {money(totals.upcoming)}
+      </strong>
+
+      <p style={styles.commissionAlertText}>
+        {totals.upcomingCount === 1
+          ? "1 commission payment becomes payable within the next 7 days."
+          : `${totals.upcomingCount} commission payments become payable within the next 7 days.`}
+      </p>
+    </div>
+  </div>
+) : null}
 
         <div style={styles.summaryGrid}>
           <SummaryCard
@@ -1643,6 +1710,52 @@ export default function IntroducerAdminPage() {
                       }
                     />
                   </div>
+
+                  {Number(
+  introducer.commission_due_count || 0
+) > 0 ? (
+  <div style={styles.partnerDueAlert}>
+    <div>
+      <span style={styles.partnerDueKicker}>
+        🔔 PAYMENT DUE
+      </span>
+
+      <strong style={styles.partnerDueAmount}>
+        {money(
+          introducer.commission_due
+        )}
+      </strong>
+    </div>
+
+    <span style={styles.partnerDueCount}>
+      {introducer.commission_due_count === 1
+        ? "1 payment"
+        : `${introducer.commission_due_count} payments`}
+    </span>
+  </div>
+) : Number(
+    introducer.commission_upcoming_count || 0
+  ) > 0 ? (
+  <div style={styles.partnerUpcomingAlert}>
+    <div>
+      <span style={styles.partnerUpcomingKicker}>
+        ⏳ DUE WITHIN 7 DAYS
+      </span>
+
+      <strong style={styles.partnerDueAmount}>
+        {money(
+          introducer.commission_upcoming
+        )}
+      </strong>
+    </div>
+
+    <span style={styles.partnerDueCount}>
+      {introducer.commission_upcoming_count === 1
+        ? "1 payment"
+        : `${introducer.commission_upcoming_count} payments`}
+    </span>
+  </div>
+) : null}
 
                   <div style={styles.details}>
                     <p>
@@ -2403,7 +2516,8 @@ export default function IntroducerAdminPage() {
                         </button>
                       </div>
                     </form>
-                  ) : null}                </article>
+                 ) : null}
+                </article>
               )
             )}
           </div>
@@ -2988,4 +3102,137 @@ const styles = {
     gap: "10px",
     flexWrap: "wrap",
   },
+
+  commissionDueAlert: {
+  marginTop: "28px",
+  padding: "24px 26px",
+  borderRadius: "26px",
+  background:
+    "linear-gradient(135deg, #FFF0D8 0%, #F8DFC0 100%)",
+  border:
+    "1px solid rgba(150,91,29,0.16)",
+  boxShadow:
+    "0 18px 46px rgba(91,57,22,0.10)",
+  display: "flex",
+  alignItems: "center",
+  gap: "18px",
+},
+
+commissionUpcomingAlert: {
+  marginTop: "28px",
+  padding: "24px 26px",
+  borderRadius: "26px",
+  background:
+    "rgba(255,255,255,0.66)",
+  border:
+    "1px solid rgba(38,59,43,0.12)",
+  display: "flex",
+  alignItems: "center",
+  gap: "18px",
+},
+
+commissionAlertIcon: {
+  width: "52px",
+  height: "52px",
+  borderRadius: "18px",
+  background:
+    "rgba(255,255,255,0.72)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "25px",
+  flexShrink: 0,
+},
+
+commissionAlertContent: {
+  display: "grid",
+  gap: "4px",
+},
+
+commissionAlertKicker: {
+  color: "#8B5422",
+  fontSize: "11px",
+  fontWeight: "900",
+  letterSpacing: "0.12em",
+},
+
+commissionUpcomingKicker: {
+  color: "#657264",
+  fontSize: "11px",
+  fontWeight: "900",
+  letterSpacing: "0.12em",
+},
+
+commissionAlertAmount: {
+  fontFamily: "Georgia, serif",
+  fontSize: "30px",
+  fontWeight: "500",
+  color: "#263B2B",
+},
+
+commissionAlertText: {
+  margin: 0,
+  color: "#626A62",
+  lineHeight: 1.5,
+},
+
+partnerDueAlert: {
+  marginTop: "18px",
+  padding: "16px 18px",
+  borderRadius: "18px",
+  background: "#FFF0D8",
+  border:
+    "1px solid rgba(150,91,29,0.14)",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "16px",
+},
+
+partnerUpcomingAlert: {
+  marginTop: "18px",
+  padding: "16px 18px",
+  borderRadius: "18px",
+  background:
+    "rgba(238,242,232,0.88)",
+  border:
+    "1px solid rgba(38,59,43,0.10)",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "16px",
+},
+
+partnerDueKicker: {
+  display: "block",
+  color: "#8B5422",
+  fontSize: "10px",
+  fontWeight: "900",
+  letterSpacing: "0.1em",
+  marginBottom: "5px",
+},
+
+partnerUpcomingKicker: {
+  display: "block",
+  color: "#657264",
+  fontSize: "10px",
+  fontWeight: "900",
+  letterSpacing: "0.1em",
+  marginBottom: "5px",
+},
+
+partnerDueAmount: {
+  display: "block",
+  fontFamily: "Georgia, serif",
+  fontSize: "22px",
+  fontWeight: "500",
+  color: "#263B2B",
+},
+
+partnerDueCount: {
+  color: "#687068",
+  fontSize: "12px",
+  fontWeight: "800",
+  whiteSpace: "nowrap",
+},
 };
