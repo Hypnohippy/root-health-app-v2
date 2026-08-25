@@ -322,6 +322,408 @@ Root Workplace`;
   return setupInvite;
 }
 
+async function recordInitialRevenueAndCommission({
+  supabase,
+  application,
+  session,
+  receivedAt,
+}) {
+  const collectedAmount =
+    Number(session?.amount_total || 0) /
+    100;
+
+  const currency =
+    String(
+      session?.currency || "gbp"
+    ).toLowerCase();
+
+  if (
+    !Number.isFinite(
+      collectedAmount
+    ) ||
+    collectedAmount <= 0
+  ) {
+    throw new Error(
+      "Stripe checkout completed without a valid collected amount."
+    );
+  }
+
+  /*
+   * ======================================================
+   * REVENUE EVENT
+   *
+   * Every successfully collected direct Root Workplace
+   * payment belongs in Root's revenue ledger whether the
+   * customer came from an introducer or from Root directly.
+   *
+   * The unique Stripe checkout-session index makes this
+   * safe against webhook retries.
+   * ======================================================
+   */
+
+  let revenueEvent = null;
+
+  const {
+    data: existingRevenueEvent,
+    error: existingRevenueError,
+  } = await supabase
+    .from(
+      "organisation_revenue_events"
+    )
+    .select(
+      `
+        id,
+        application_id,
+        net_collected_amount,
+        stripe_checkout_session_id
+      `
+    )
+    .eq(
+      "stripe_checkout_session_id",
+      session.id
+    )
+    .maybeSingle();
+
+  if (existingRevenueError) {
+    throw existingRevenueError;
+  }
+
+  if (existingRevenueEvent) {
+    revenueEvent =
+      existingRevenueEvent;
+  } else {
+    const {
+      data: createdRevenueEvent,
+      error: revenueInsertError,
+    } = await supabase
+      .from(
+        "organisation_revenue_events"
+      )
+      .insert({
+        organisation_id:
+          null,
+
+        application_id:
+          application.id,
+
+        event_type:
+          "payment_received",
+
+        payment_source:
+          "stripe_checkout",
+
+        currency,
+
+        gross_amount:
+          collectedAmount,
+
+        refunded_amount:
+          0,
+
+        net_collected_amount:
+          collectedAmount,
+
+        received_at:
+          receivedAt,
+
+        stripe_checkout_session_id:
+          session.id,
+
+        stripe_customer_id:
+          typeof session.customer ===
+          "string"
+            ? session.customer
+            : session.customer?.id ||
+              null,
+
+        stripe_subscription_id:
+          typeof session.subscription ===
+          "string"
+            ? session.subscription
+            : session.subscription
+                ?.id ||
+              null,
+
+        stripe_payment_intent_id:
+          typeof session.payment_intent ===
+          "string"
+            ? session.payment_intent
+            : session.payment_intent
+                ?.id ||
+              null,
+
+        verified_at:
+          receivedAt,
+
+        verified_by:
+          null,
+
+        notes:
+          "Stripe-confirmed initial Root Workplace membership payment.",
+      })
+      .select(
+        `
+          id,
+          application_id,
+          net_collected_amount,
+          stripe_checkout_session_id
+        `
+      )
+      .single();
+
+    if (
+      revenueInsertError ||
+      !createdRevenueEvent
+    ) {
+      throw (
+        revenueInsertError ||
+        new Error(
+          "Root could not record the Stripe revenue event."
+        )
+      );
+    }
+
+    revenueEvent =
+      createdRevenueEvent;
+  }
+
+  /*
+   * ======================================================
+   * ROOT-DIRECT CUSTOMER
+   *
+   * Revenue is still recorded, but no introducer means
+   * there is no commission liability.
+   * ======================================================
+   */
+
+  if (!application.introducer_id) {
+    return {
+      revenueEvent,
+      commission:
+        null,
+    };
+  }
+
+  const commissionPercent =
+    Number(
+      application
+        .commission_percent_at_conversion ||
+        0
+    );
+
+  const commissionStructure =
+    String(
+      application
+        .commission_structure_at_conversion ||
+        "one_off"
+    )
+      .trim()
+      .toLowerCase();
+
+  const commissionBasis =
+    String(
+      application
+        .commission_basis_at_conversion ||
+        "collected_subscription_revenue"
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    !Number.isFinite(
+      commissionPercent
+    ) ||
+    commissionPercent < 0 ||
+    commissionPercent > 100
+  ) {
+    throw new Error(
+      "Root found invalid frozen introducer commission terms."
+    );
+  }
+
+  if (
+    ![
+      "one_off",
+      "recurring",
+    ].includes(
+      commissionStructure
+    )
+  ) {
+    throw new Error(
+      "Root found an invalid frozen introducer commission structure."
+    );
+  }
+
+  /*
+   * Commission is always based on money actually
+   * collected, matching the commercial agreement.
+   */
+  const qualifyingAmount =
+    collectedAmount;
+
+  const commissionAmount =
+    Math.round(
+      qualifyingAmount *
+        (commissionPercent / 100) *
+        100
+    ) / 100;
+
+  const clearanceUntil =
+    new Date(
+      new Date(
+        receivedAt
+      ).getTime() +
+        14 *
+          24 *
+          60 *
+          60 *
+          1000
+    ).toISOString();
+
+  /*
+   * The unique revenue_event_id index prevents
+   * one collected payment creating two commissions.
+   */
+  const {
+    data: existingCommission,
+    error:
+      existingCommissionError,
+  } = await supabase
+    .from(
+      "organisation_commissions"
+    )
+    .select(
+      `
+        id,
+        revenue_event_id,
+        commission_amount,
+        status
+      `
+    )
+    .eq(
+      "revenue_event_id",
+      revenueEvent.id
+    )
+    .maybeSingle();
+
+  if (existingCommissionError) {
+    throw existingCommissionError;
+  }
+
+  if (existingCommission) {
+    return {
+      revenueEvent,
+      commission:
+        existingCommission,
+    };
+  }
+
+  const {
+    data: commission,
+    error: commissionError,
+  } = await supabase
+    .from(
+      "organisation_commissions"
+    )
+    .insert({
+      revenue_event_id:
+        revenueEvent.id,
+
+      introducer_id:
+        application.introducer_id,
+
+      introducer_campaign_id:
+        application
+          .introducer_campaign_id ||
+        null,
+
+      application_id:
+        application.id,
+
+      organisation_id:
+        null,
+
+      organisation_name:
+        application
+          .organisation_name,
+
+      referral_code:
+        application.referral_code ||
+        null,
+
+      referral_campaign_code:
+        application
+          .referral_campaign_code ||
+        null,
+
+      commission_percent:
+        commissionPercent,
+
+      commission_basis:
+        commissionBasis,
+
+      commission_structure:
+        commissionStructure,
+
+      commission_event:
+        "initial_payment",
+
+      currency,
+
+      collected_amount:
+        collectedAmount,
+
+      qualifying_amount:
+        qualifyingAmount,
+
+      commission_amount:
+        commissionAmount,
+
+      status:
+        "clearance",
+
+      earned_at:
+        receivedAt,
+
+      clearance_until:
+        clearanceUntil,
+
+      payable_at:
+        clearanceUntil,
+
+      notes:
+        "Automatically earned from Stripe-confirmed initial Root Workplace payment.",
+    })
+    .select(
+      `
+        id,
+        revenue_event_id,
+        commission_amount,
+        status,
+        clearance_until,
+        payable_at
+      `
+    )
+    .single();
+
+  if (
+    commissionError ||
+    !commission
+  ) {
+    throw (
+      commissionError ||
+      new Error(
+        "Root could not record the introducer commission."
+      )
+    );
+  }
+
+  return {
+    revenueEvent,
+    commission,
+  };
+}
+
 async function activateDirectPaidFromCheckout(
   session
 ) {
@@ -347,19 +749,26 @@ async function activateDirectPaidFromCheckout(
         "organisation_applications"
       )
       .select(
-        `
-          id,
-          organisation_name,
-          contact_name,
-          contact_email,
-          admin_email,
-          employee_count,
-          industry,
-          status,
-          access_path,
-          payment_status
-        `
-      )
+  `
+    id,
+    organisation_name,
+    contact_name,
+    contact_email,
+    admin_email,
+    employee_count,
+    industry,
+    status,
+    access_path,
+    payment_status,
+    introducer_id,
+    introducer_campaign_id,
+    referral_code,
+    referral_campaign_code,
+    commission_percent_at_conversion,
+    commission_basis_at_conversion,
+    commission_structure_at_conversion
+  `
+)
       .eq(
         "id",
         applicationId
@@ -434,6 +843,13 @@ async function activateDirectPaidFromCheckout(
 
   const now =
     new Date().toISOString();
+
+    await recordInitialRevenueAndCommission({
+  supabase,
+  application,
+  session,
+  receivedAt: now,
+});
 
   const {
     error: applicationUpdateError,
