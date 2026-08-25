@@ -138,6 +138,16 @@ export default function IntroducerAdminPage() {
     EMPTY_CAMPAIGN_FORM
   );
 
+  const [
+  settlementBusyId,
+  setSettlementBusyId,
+] = useState(null);
+
+const [
+  paymentReferences,
+  setPaymentReferences,
+] = useState({});
+
   async function getAccessToken() {
     const {
       data,
@@ -151,6 +161,147 @@ export default function IntroducerAdminPage() {
       null
     );
   }
+
+  function updatePaymentReference(
+  commissionId,
+  value
+) {
+  setPaymentReferences(
+    (current) => ({
+      ...current,
+      [commissionId]: value,
+    })
+  );
+}
+
+async function markCommissionPaid(
+  commission
+) {
+  const payoutReference =
+    String(
+      paymentReferences[
+        commission.id
+      ] || ""
+    ).trim();
+
+  if (!payoutReference) {
+    setError(
+      "Enter the payment reference before marking this commission as paid."
+    );
+    return;
+  }
+
+  setSettlementBusyId(
+    commission.id
+  );
+  setError("");
+  setMessage("");
+
+  try {
+    const token =
+      await getAccessToken();
+
+    if (!token) {
+      setError(
+        "Please sign in again before recording this commission payment."
+      );
+      setSettlementBusyId(
+        null
+      );
+      return;
+    }
+
+    const response =
+      await fetch(
+        "/api/admin/introducers/settlement",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${token}`,
+          },
+
+          body:
+            JSON.stringify({
+              action:
+                "mark_commission_paid",
+
+              commissionId:
+                commission.id,
+
+              payoutReference,
+
+              payoutProvider:
+                "manual",
+            }),
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !result?.success
+    ) {
+      setError(
+        result?.error ||
+          "Root could not record this commission payment."
+      );
+
+      setSettlementBusyId(
+        null
+      );
+      return;
+    }
+
+    setMessage(
+      `${money(
+        commission.commission_amount
+      )} commission for ${
+        commission.organisation_name ||
+        "this organisation"
+      } has been recorded as paid.`
+    );
+
+    setPaymentReferences(
+      (current) => {
+        const next = {
+          ...current,
+        };
+
+        delete next[
+          commission.id
+        ];
+
+        return next;
+      }
+    );
+
+    setSettlementBusyId(
+      null
+    );
+
+    await loadIntroducers();
+  } catch (paymentError) {
+    console.error(
+      "ROOT COMMISSION PAYMENT ERROR:",
+      paymentError
+    );
+
+    setError(
+      "Root could not record this commission payment."
+    );
+
+    setSettlementBusyId(
+      null
+    );
+  }
+}
 
   async function loadIntroducers() {
     setLoading(true);
@@ -1711,46 +1862,228 @@ export default function IntroducerAdminPage() {
                     />
                   </div>
 
-                  {Number(
+                 {Number(
   introducer.commission_due_count || 0
 ) > 0 ? (
-  <div style={styles.partnerDueAlert}>
-    <div>
-      <span style={styles.partnerDueKicker}>
-        🔔 PAYMENT DUE
-      </span>
+  <div>
+    <div
+      style={
+        styles.partnerDueAlert
+      }
+    >
+      <div>
+        <span
+          style={
+            styles.partnerDueKicker
+          }
+        >
+          🔔 PAYMENT DUE
+        </span>
 
-      <strong style={styles.partnerDueAmount}>
-        {money(
-          introducer.commission_due
-        )}
-      </strong>
+        <strong
+          style={
+            styles.partnerDueAmount
+          }
+        >
+          {money(
+            introducer.commission_due
+          )}
+        </strong>
+      </div>
+
+      <span
+        style={
+          styles.partnerDueCount
+        }
+      >
+        {introducer.commission_due_count ===
+        1
+          ? "1 payment"
+          : `${introducer.commission_due_count} payments`}
+      </span>
     </div>
 
-    <span style={styles.partnerDueCount}>
-      {introducer.commission_due_count === 1
-        ? "1 payment"
-        : `${introducer.commission_due_count} payments`}
-    </span>
+    <div
+      style={
+        styles.settlementList
+      }
+    >
+      {(
+        introducer.due_commissions ||
+        []
+      ).map(
+        (commission) => (
+          <div
+            key={
+              commission.id
+            }
+            style={
+              styles.settlementCard
+            }
+          >
+            <div
+              style={
+                styles.settlementTop
+              }
+            >
+              <div>
+                <span
+                  style={
+                    styles.metricLabel
+                  }
+                >
+                  COMMISSION
+                </span>
+
+                <strong
+                  style={
+                    styles.settlementOrganisation
+                  }
+                >
+                  {commission.organisation_name ||
+                    "Organisation"}
+                </strong>
+              </div>
+
+              <strong
+                style={
+                  styles.settlementAmount
+                }
+              >
+                {money(
+                  commission.commission_amount
+                )}
+              </strong>
+            </div>
+
+            <div
+              style={
+                styles.settlementMeta
+              }
+            >
+              <span>
+                {Number(
+                  commission.commission_percent ||
+                    0
+                ).toLocaleString(
+                  "en-GB",
+                  {
+                    maximumFractionDigits: 2,
+                  }
+                )}
+                % commission
+              </span>
+
+              <span>
+                {formatStructure(
+                  commission.commission_structure
+                )}
+              </span>
+            </div>
+
+            <label
+              style={
+                styles.settlementField
+              }
+            >
+              <span
+                style={
+                  styles.fieldLabel
+                }
+              >
+                Payment reference
+              </span>
+
+              <input
+                style={
+                  styles.input
+                }
+                value={
+                  paymentReferences[
+                    commission.id
+                  ] || ""
+                }
+                onChange={(
+                  event
+                ) =>
+                  updatePaymentReference(
+                    commission.id,
+                    event.target
+                      .value
+                  )
+                }
+                placeholder="Bank transfer or payment reference"
+              />
+            </label>
+
+            <button
+              type="button"
+              style={{
+                ...styles.primaryButton,
+
+                ...(settlementBusyId ===
+                commission.id
+                  ? styles.disabledButton
+                  : {}),
+              }}
+              disabled={
+                settlementBusyId ===
+                commission.id
+              }
+              onClick={() =>
+                markCommissionPaid(
+                  commission
+                )
+              }
+            >
+              {settlementBusyId ===
+              commission.id
+                ? "Recording..."
+                : `Mark ${money(
+                    commission.commission_amount
+                  )} Paid`}
+            </button>
+          </div>
+        )
+      )}
+    </div>
   </div>
 ) : Number(
-    introducer.commission_upcoming_count || 0
+    introducer.commission_upcoming_count ||
+      0
   ) > 0 ? (
-  <div style={styles.partnerUpcomingAlert}>
+  <div
+    style={
+      styles.partnerUpcomingAlert
+    }
+  >
     <div>
-      <span style={styles.partnerUpcomingKicker}>
+      <span
+        style={
+          styles.partnerUpcomingKicker
+        }
+      >
         ⏳ DUE WITHIN 7 DAYS
       </span>
 
-      <strong style={styles.partnerDueAmount}>
+      <strong
+        style={
+          styles.partnerDueAmount
+        }
+      >
         {money(
           introducer.commission_upcoming
         )}
       </strong>
     </div>
 
-    <span style={styles.partnerDueCount}>
-      {introducer.commission_upcoming_count === 1
+    <span
+      style={
+        styles.partnerDueCount
+      }
+    >
+      {introducer.commission_upcoming_count ===
+      1
         ? "1 payment"
         : `${introducer.commission_upcoming_count} payments`}
     </span>
@@ -3234,5 +3567,63 @@ partnerDueCount: {
   fontSize: "12px",
   fontWeight: "800",
   whiteSpace: "nowrap",
+},
+
+settlementList: {
+  marginTop: "10px",
+  display: "grid",
+  gap: "10px",
+},
+
+settlementCard: {
+  padding: "17px",
+  borderRadius: "18px",
+  background:
+    "rgba(255,255,255,0.72)",
+  border:
+    "1px solid rgba(150,91,29,0.12)",
+},
+
+settlementTop: {
+  display: "flex",
+  justifyContent:
+    "space-between",
+  alignItems: "flex-start",
+  gap: "16px",
+},
+
+settlementOrganisation: {
+  display: "block",
+  color: "#263B2B",
+  fontFamily:
+    "Georgia, serif",
+  fontSize: "19px",
+  fontWeight: "500",
+},
+
+settlementAmount: {
+  color: "#263B2B",
+  fontFamily:
+    "Georgia, serif",
+  fontSize: "21px",
+  fontWeight: "500",
+  whiteSpace: "nowrap",
+},
+
+settlementMeta: {
+  marginTop: "8px",
+  marginBottom: "15px",
+  display: "flex",
+  gap: "10px",
+  flexWrap: "wrap",
+  color: "#687068",
+  fontSize: "12px",
+  fontWeight: "700",
+},
+
+settlementField: {
+  display: "grid",
+  gap: "7px",
+  marginBottom: "12px",
 },
 };
