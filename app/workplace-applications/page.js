@@ -304,10 +304,10 @@ const reviewed =
             </h1>
 
             <p style={styles.intro}>
-              Review organisations
-              applying for a supported
-              Root Workplace pilot.
-            </p>
+            Track direct Root Workplace memberships
+            and review complimentary pilot applications
+            from one place.
+         </p>
           </div>
 
           <button
@@ -371,6 +371,267 @@ const reviewed =
                 styles.sectionHeading
               }
             >
+                          <div
+              style={
+                styles.sectionHeading
+              }
+            >
+              <div>
+                <p
+                  style={
+                    styles.sectionKicker
+                  }
+                >
+                  DIRECT ROOT WORKPLACE MEMBERSHIP
+                </p>
+
+                <h2
+                  style={
+                    styles.sectionTitle
+                  }
+                >
+                  Paid memberships
+                </h2>
+              </div>
+
+              <span
+                style={
+                  styles.countBadge
+                }
+              >
+                {paidApplications.length}
+              </span>
+            </div>
+
+            {paidApplications.length ===
+            0 ? (
+              <div
+                style={
+                  styles.emptyCard
+                }
+              >
+                No direct Root Workplace
+                memberships have been
+                registered yet.
+              </div>
+            ) : (
+              <div
+                style={
+                  styles.grid
+                }
+              >
+                {paidApplications.map(
+                  (application) => {
+                    const paymentConfirmed =
+                      String(
+                        application.payment_status ||
+                          ""
+                      )
+                        .trim()
+                        .toLowerCase() ===
+                      "paid";
+
+                    return (
+                      <article
+                        key={
+                          application.id
+                        }
+                        style={
+                          styles.card
+                        }
+                      >
+                        <div
+                          style={
+                            styles.cardTop
+                          }
+                        >
+                          <span
+                            style={{
+                              ...styles.pendingBadge,
+
+                              background:
+                                paymentConfirmed
+                                  ? "#DDEBDC"
+                                  : "#F0E6C8",
+
+                              color:
+                                paymentConfirmed
+                                  ? "#31503A"
+                                  : "#725E25",
+                            }}
+                          >
+                            {paymentConfirmed
+                              ? "Payment confirmed"
+                              : "Awaiting payment"}
+                          </span>
+
+                          <span
+                            style={
+                              styles.date
+                            }
+                          >
+                            {new Date(
+                              application.created_at
+                            ).toLocaleDateString(
+                              "en-GB"
+                            )}
+                          </span>
+                        </div>
+
+                        <h3
+                          style={
+                            styles.organisationName
+                          }
+                        >
+                          {
+                            application.organisation_name
+                          }
+                        </h3>
+
+                        <div
+                          style={
+                            styles.details
+                          }
+                        >
+                          <p>
+                            <strong>
+                              Membership route
+                            </strong>
+                            <br />
+                            Direct Root Workplace
+                          </p>
+
+                          <p>
+                            <strong>
+                              Contact
+                            </strong>
+                            <br />
+                            {application.contact_name ||
+                              "Not supplied"}
+                          </p>
+
+                          <p>
+                            <strong>
+                              Organisation contact
+                            </strong>
+                            <br />
+                            {application.contact_email ||
+                              "Not supplied"}
+                          </p>
+
+                          <p>
+                            <strong>
+                              Root administrator
+                            </strong>
+                            <br />
+                            {application.admin_email ||
+                              application.contact_email ||
+                              "Not supplied"}
+                          </p>
+
+                          <p>
+                            <strong>
+                              Employees
+                            </strong>
+                            <br />
+                            {application.employee_count ||
+                              "Not supplied"}
+                          </p>
+
+                          <p>
+                            <strong>
+                              Industry
+                            </strong>
+                            <br />
+                            {application.industry ||
+                              "Not supplied"}
+                          </p>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: "22px",
+                            padding: "18px",
+                            borderRadius: "18px",
+                            border:
+                              paymentConfirmed
+                                ? "1px solid rgba(49,80,58,0.12)"
+                                : "1px solid rgba(114,94,37,0.12)",
+                            background:
+                              paymentConfirmed
+                                ? "rgba(221,235,220,0.58)"
+                                : "rgba(240,230,200,0.48)",
+                          }}
+                        >
+                          <p
+                            style={{
+                              margin: "0 0 8px",
+                              fontSize: "12px",
+                              fontWeight: "800",
+                              textTransform:
+                                "uppercase",
+                              letterSpacing:
+                                "0.12em",
+                              color:
+                                paymentConfirmed
+                                  ? "#31503A"
+                                  : "#725E25",
+                            }}
+                          >
+                            Root membership status
+                          </p>
+
+                          <p
+                            style={{
+                              margin: "0 0 10px",
+                              fontSize: "18px",
+                              fontWeight: "800",
+                              color: "#181818",
+                            }}
+                          >
+                            {paymentConfirmed
+                              ? "🟢 Membership confirmed"
+                              : "🟡 Secure billing not yet confirmed"}
+                          </p>
+
+                          <p
+                            style={{
+                              margin: 0,
+                              lineHeight: 1.65,
+                              color: "#5A554D",
+                            }}
+                          >
+                            {paymentConfirmed
+                              ? "Stripe has confirmed this Root Workplace membership. No manual approval or further billing action is required."
+                              : "This organisation has entered the direct membership journey. Root will activate the membership automatically when Stripe confirms payment."}
+                          </p>
+                        </div>
+                      </article>
+                    );
+                  }
+                )}
+              </div>
+            )}
+
+            <div
+              style={{
+                marginTop: "70px",
+                paddingTop: "10px",
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "11px",
+                  fontWeight: "900",
+                  letterSpacing: "0.15em",
+                  color: "#657264",
+                }}
+              >
+                COMPLIMENTARY PILOT APPLICATIONS
+              </p>
+            </div>
+            
               <div>
                 <p
                   style={
