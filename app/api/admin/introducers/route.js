@@ -368,8 +368,79 @@ export async function GET(request) {
   `
 );
 
-    if (commissionError) {
+       if (commissionError) {
       throw commissionError;
+    }
+
+    /*
+     * GREEN 4 — REMITTANCE DOCUMENT HISTORY
+     *
+     * Paid commissions retain their commercial
+     * document ID. Load the corresponding remittance
+     * records so Root Admin can permanently retrieve
+     * the PDF after settlement.
+     */
+    const {
+      data: remittanceDocuments,
+      error: remittanceDocumentError,
+    } =
+      await supabase
+        .from(
+          "organisation_commercial_documents"
+        )
+        .select(
+          `
+            id,
+            document_number,
+            document_type,
+            commission_id,
+            introducer_id,
+            organisation_name,
+            recipient_name,
+            recipient_email,
+            currency,
+            amount,
+            commission_percent,
+            payment_reference,
+            document_status,
+            generated_at,
+            sent_at,
+            created_at
+          `
+        )
+        .eq(
+          "document_type",
+          "commission_remittance"
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          }
+        );
+
+    if (remittanceDocumentError) {
+      throw remittanceDocumentError;
+    }
+
+    const remittanceByCommission =
+      new Map();
+
+    for (
+      const document of
+        remittanceDocuments || []
+    ) {
+      if (
+        document.commission_id &&
+        !remittanceByCommission.has(
+          document.commission_id
+        )
+      ) {
+        remittanceByCommission.set(
+          document.commission_id,
+          document
+        );
+      }
     }
 
     const rows =
@@ -387,12 +458,49 @@ export async function GET(request) {
                 introducer.id
             );
 
-          const matchedCommissions =
-            (commissions || []).filter(
-              (commission) =>
-                commission.introducer_id ===
-                introducer.id
-            );
+                    const matchedCommissions =
+            (commissions || [])
+              .filter(
+                (commission) =>
+                  commission.introducer_id ===
+                  introducer.id
+              )
+              .map(
+                (commission) => {
+                  const remittance =
+                    remittanceByCommission.get(
+                      commission.id
+                    ) || null;
+
+                  return {
+                    ...commission,
+
+                    remittance:
+                      remittance,
+
+                    remittance_document_id:
+                      commission
+                        .remittance_document_id ||
+                      remittance?.id ||
+                      null,
+
+                    remittance_document_number:
+                      remittance
+                        ?.document_number ||
+                      null,
+
+                    remittance_document_status:
+                      remittance
+                        ?.document_status ||
+                      null,
+
+                    remittance_generated_at:
+                      remittance
+                        ?.generated_at ||
+                      null,
+                  };
+                }
+              );
 
             const nowDate =
   new Date();
