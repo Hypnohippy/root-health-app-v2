@@ -2497,6 +2497,218 @@ async function markCommissionPaid(
     </span>
   </div>
 ) : null}
+{(
+  introducer.paid_commissions ||
+  []
+).length > 0 ? (
+  <div
+    style={
+      styles.paymentHistory
+    }
+  >
+    <div
+      style={
+        styles.paymentHistoryHeader
+      }
+    >
+      <div>
+        <span
+          style={
+            styles.paymentHistoryKicker
+          }
+        >
+          PAYMENT HISTORY
+        </span>
+
+        <strong
+          style={
+            styles.paymentHistoryTitle
+          }
+        >
+          Paid commissions
+        </strong>
+      </div>
+
+      <span
+        style={
+          styles.paymentHistoryCount
+        }
+      >
+        {
+          (
+            introducer.paid_commissions ||
+            []
+          ).length
+        }
+      </span>
+    </div>
+
+    <div
+      style={
+        styles.paymentHistoryList
+      }
+    >
+      {(
+        introducer.paid_commissions ||
+        []
+      ).map(
+        (commission) => (
+          <div
+            key={
+              commission.id
+            }
+            style={
+              styles.paymentHistoryCard
+            }
+          >
+            <div
+              style={
+                styles.paymentHistoryTop
+              }
+            >
+              <div>
+                <span
+                  style={
+                    styles.paidBadge
+                  }
+                >
+                  ✓ PAID
+                </span>
+
+                <strong
+                  style={
+                    styles.paymentHistoryOrganisation
+                  }
+                >
+                  {commission.organisation_name ||
+                    "Organisation"}
+                </strong>
+              </div>
+
+              <strong
+                style={
+                  styles.paymentHistoryAmount
+                }
+              >
+                {money(
+                  commission.commission_amount
+                )}
+              </strong>
+            </div>
+
+            <div
+              style={
+                styles.paymentHistoryMeta
+              }
+            >
+              {commission.paid_at ? (
+                <span>
+                  Paid{" "}
+                  {new Date(
+                    commission.paid_at
+                  ).toLocaleDateString(
+                    "en-GB"
+                  )}
+                </span>
+              ) : null}
+
+              {commission.payout_reference ? (
+                <span>
+                  Payment:{" "}
+                  {
+                    commission.payout_reference
+                  }
+                </span>
+              ) : null}
+
+              {commission.invoice_reference ? (
+                <span>
+                  Invoice:{" "}
+                  {
+                    commission.invoice_reference
+                  }
+                </span>
+              ) : null}
+            </div>
+
+            {commission.remittance_document_number ? (
+              <div
+                style={
+                  styles.remittanceRow
+                }
+              >
+                <div>
+                  <span
+                    style={
+                      styles.metricLabel
+                    }
+                  >
+                    REMITTANCE
+                  </span>
+
+                  <strong
+                    style={
+                      styles.remittanceNumber
+                    }
+                  >
+                    {
+                      commission.remittance_document_number
+                    }
+                  </strong>
+                </div>
+
+                {commission.remittance_document_id ? (
+                  <button
+                    type="button"
+                    style={
+                      styles.secondaryButton
+                    }
+                    onClick={async () => {
+                      try {
+                        const {
+                          data: {
+                            session,
+                          },
+                        } =
+                          await supabase.auth.getSession();
+
+                        const token =
+                          session?.access_token;
+
+                        if (!token) {
+                          throw new Error(
+                            "Root administrator sign-in required."
+                          );
+                        }
+
+                        await openRemittancePdf(
+                          commission.remittance_document_id,
+                          token,
+                          commission.remittance_document_number
+                        );
+                      } catch (
+                        error
+                      ) {
+                        setError(
+                          error?.message ||
+                            "Root could not download the remittance PDF."
+                        );
+                      }
+                    }}
+                  >
+                    Download Remittance PDF
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        )
+      )}
+    </div>
+  </div>
+) : null}
+
+                  <div style={styles.details}></div>
 
                   <div style={styles.details}>
                     <p>
@@ -4027,6 +4239,130 @@ settlementMeta: {
   color: "#687068",
   fontSize: "12px",
   fontWeight: "700",
+},
+
+paymentHistory: {
+  marginTop: "18px",
+  padding: "18px",
+  borderRadius: "20px",
+  background:
+    "rgba(238,242,232,0.72)",
+  border:
+    "1px solid rgba(38,59,43,0.10)",
+},
+
+paymentHistoryHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "14px",
+  marginBottom: "12px",
+},
+
+paymentHistoryKicker: {
+  display: "block",
+  marginBottom: "4px",
+  color: "#657264",
+  fontSize: "10px",
+  fontWeight: "900",
+  letterSpacing: "0.1em",
+},
+
+paymentHistoryTitle: {
+  display: "block",
+  color: "#263B2B",
+  fontFamily: "Georgia, serif",
+  fontSize: "20px",
+  fontWeight: "500",
+},
+
+paymentHistoryCount: {
+  minWidth: "32px",
+  height: "32px",
+  padding: "0 10px",
+  borderRadius: "999px",
+  display: "grid",
+  placeItems: "center",
+  background: "#263B2B",
+  color: "#FFFFFF",
+  fontSize: "12px",
+  fontWeight: "900",
+},
+
+paymentHistoryList: {
+  display: "grid",
+  gap: "10px",
+},
+
+paymentHistoryCard: {
+  padding: "16px",
+  borderRadius: "17px",
+  background:
+    "rgba(255,255,255,0.72)",
+  border:
+    "1px solid rgba(38,59,43,0.08)",
+},
+
+paymentHistoryTop: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: "14px",
+},
+
+paidBadge: {
+  display: "block",
+  marginBottom: "5px",
+  color: "#497052",
+  fontSize: "9px",
+  fontWeight: "900",
+  letterSpacing: "0.1em",
+},
+
+paymentHistoryOrganisation: {
+  display: "block",
+  color: "#263B2B",
+  fontFamily: "Georgia, serif",
+  fontSize: "18px",
+  fontWeight: "500",
+},
+
+paymentHistoryAmount: {
+  color: "#263B2B",
+  fontFamily: "Georgia, serif",
+  fontSize: "20px",
+  fontWeight: "500",
+  whiteSpace: "nowrap",
+},
+
+paymentHistoryMeta: {
+  marginTop: "8px",
+  display: "flex",
+  gap: "10px",
+  flexWrap: "wrap",
+  color: "#687068",
+  fontSize: "11px",
+  fontWeight: "700",
+},
+
+remittanceRow: {
+  marginTop: "14px",
+  paddingTop: "14px",
+  borderTop:
+    "1px solid rgba(38,59,43,0.08)",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "14px",
+  flexWrap: "wrap",
+},
+
+remittanceNumber: {
+  display: "block",
+  color: "#263B2B",
+  fontFamily: "monospace",
+  fontSize: "13px",
+  fontWeight: "900",
 },
 
 settlementField: {
