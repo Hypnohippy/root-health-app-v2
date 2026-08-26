@@ -1853,40 +1853,42 @@ async function markCommissionPaid(
                       )
                   }
                 >
-                  <option value="one_off">
+                                    <option value="one_off">
                     One-off
                   </option>
 
-                               <Field
+                  <option value="recurring">
+                    Recurring
+                  </option>
+                </select>
+              </Field>
+
+              <Field
+              
+                                                        
                 label="VAT registered?"
                 required
                 hint="VAT is added to commission only where the introducer is VAT registered."
               >
                 <select
                   style={styles.input}
-                  value={
-                    form.vatRegistered
-                  }
-                  onChange={
-                    (event) => {
-                      const value =
-                        event.target.value;
+                  value={form.vatRegistered}
+                  onChange={(event) => {
+                    const value =
+                      event.target.value;
 
+                    updateForm(
+                      "vatRegistered",
+                      value
+                    );
+
+                    if (value === "no") {
                       updateForm(
-                        "vatRegistered",
-                        value
+                        "vatNumber",
+                        ""
                       );
-
-                      if (
-                        value === "no"
-                      ) {
-                        updateForm(
-                          "vatNumber",
-                          ""
-                        );
-                      }
                     }
-                  }
+                  }}
                   required
                 >
                   <option value="no">
@@ -1899,8 +1901,7 @@ async function markCommissionPaid(
                 </select>
               </Field>
 
-              {form.vatRegistered ===
-              "yes" ? (
+              {form.vatRegistered === "yes" ? (
                 <Field
                   label="VAT registration number"
                   required
@@ -1909,16 +1910,12 @@ async function markCommissionPaid(
                   <input
                     type="text"
                     style={styles.input}
-                    value={
-                      form.vatNumber
-                    }
-                    onChange={
-                      (event) =>
-                        updateForm(
-                          "vatNumber",
-                          event.target
-                            .value
-                        )
+                    value={form.vatNumber}
+                    onChange={(event) =>
+                      updateForm(
+                        "vatNumber",
+                        event.target.value
+                      )
                     }
                     placeholder="e.g. GB123456789"
                     required
@@ -1939,8 +1936,7 @@ async function markCommissionPaid(
                     (event) =>
                       updateForm(
                         "agreementStartDate",
-                        event.target
-                          .value
+                        event.target.value
                       )
                   }
                 />
@@ -1959,12 +1955,11 @@ async function markCommissionPaid(
                     (event) =>
                       updateForm(
                         "agreementEndDate",
-                        event.target
-                          .value
+                        event.target.value
                       )
                   }
                 />
-              </Field>
+                           </Field>
 
               <Field
                 label="Status"
