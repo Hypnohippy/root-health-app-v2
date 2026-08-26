@@ -194,23 +194,24 @@ export async function GET(request) {
           "organisation_introducers"
         )
         .select(
-          `
-            id,
-            name,
-            referral_code,
-            commission_percent,
-            commission_basis,
-            commission_structure,
-            status,
-            agreement_start_date,
-            agreement_end_date,
-            contact_name,
-            contact_email,
-            notes,
-            created_at,
-            updated_at
-          `
-        )
+  `
+    id,
+    name,
+    referral_code,
+    commission_percent,
+    commission_basis,
+    commission_structure,
+    payment_document_method,
+    status,
+    agreement_start_date,
+    agreement_end_date,
+    contact_name,
+    contact_email,
+    notes,
+    created_at,
+    updated_at
+  `
+)
         .order(
           "created_at",
           {
@@ -358,7 +359,12 @@ export async function GET(request) {
     payable_at,
     approved_at,
     paid_at,
-    payout_reference
+    payout_provider,
+    payout_reference,
+    invoice_requested_at,
+    invoice_received_at,
+    invoice_reference,
+    remittance_document_id
   `
 );
 
