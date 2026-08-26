@@ -317,7 +317,8 @@ async function recordCommissionInvoice(
 
 async function openRemittancePdf(
   documentId,
-  token
+  token,
+  documentNumber = "Root-Remittance"
 ) {
   const response =
     await fetch(
@@ -345,7 +346,7 @@ async function openRemittancePdf(
 
     throw new Error(
       result?.error ||
-        "Root generated the remittance record but could not open the PDF."
+        "Root generated the remittance record but could not download the PDF."
     );
   }
 
@@ -365,13 +366,16 @@ async function openRemittancePdf(
   link.href =
     blobUrl;
 
-  link.target =
-    "_blank";
+  link.download =
+    `${documentNumber}.pdf`;
 
-  link.rel =
-    "noopener noreferrer";
+  document.body.appendChild(
+    link
+  );
 
   link.click();
+
+  link.remove();
 
   setTimeout(
     () =>
@@ -577,9 +581,12 @@ async function markCommissionPaid(
 
     try {
       await openRemittancePdf(
-        documentId,
-        token
-      );
+  documentId,
+  token,
+  remittanceResult.document
+    ?.document_number ||
+    "Root-Remittance"
+  );
     } catch (pdfError) {
       console.error(
         "ROOT REMITTANCE PDF ERROR:",
