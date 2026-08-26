@@ -148,6 +148,11 @@ const [
   setPaymentReferences,
 ] = useState({});
 
+const [
+  invoiceReferences,
+  setInvoiceReferences,
+] = useState({});
+
   async function getAccessToken() {
     const {
       data,
@@ -171,6 +176,209 @@ const [
       ...current,
       [commissionId]: value,
     })
+  );
+}
+
+function updateInvoiceReference(
+  commissionId,
+  value
+) {
+  setInvoiceReferences(
+    (current) => ({
+      ...current,
+      [commissionId]: value,
+    })
+  );
+}
+
+async function recordCommissionInvoice(
+  commission
+) {
+  const invoiceReference =
+    String(
+      invoiceReferences[
+        commission.id
+      ] || ""
+    ).trim();
+
+  if (!invoiceReference) {
+    setError(
+      "Enter the introducer invoice reference first."
+    );
+    return;
+  }
+
+  setSettlementBusyId(
+    commission.id
+  );
+  setError("");
+  setMessage("");
+
+  try {
+    const token =
+      await getAccessToken();
+
+    if (!token) {
+      setError(
+        "Please sign in again before recording this invoice."
+      );
+      setSettlementBusyId(
+        null
+      );
+      return;
+    }
+
+    const response =
+      await fetch(
+        "/api/admin/introducers/settlement",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${token}`,
+          },
+
+          body:
+            JSON.stringify({
+              action:
+                "invoice_received",
+
+              commissionId:
+                commission.id,
+
+              invoiceReference,
+            }),
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !result?.success
+    ) {
+      setError(
+        result?.error ||
+          "Root could not record this introducer invoice."
+      );
+
+      setSettlementBusyId(
+        null
+      );
+      return;
+    }
+
+    setMessage(
+      `Invoice ${invoiceReference} has been recorded for ${
+        commission.organisation_name ||
+        "this commission"
+      }.`
+    );
+
+    setInvoiceReferences(
+      (current) => {
+        const next = {
+          ...current,
+        };
+
+        delete next[
+          commission.id
+        ];
+
+        return next;
+      }
+    );
+
+    setSettlementBusyId(
+      null
+    );
+
+    await loadIntroducers();
+  } catch (invoiceError) {
+    console.error(
+      "ROOT COMMISSION INVOICE ERROR:",
+      invoiceError
+    );
+
+    setError(
+      "Root could not record this introducer invoice."
+    );
+
+    setSettlementBusyId(
+      null
+    );
+  }
+}
+
+async function openRemittancePdf(
+  documentId,
+  token
+) {
+  const response =
+    await fetch(
+      `/api/admin/documents/${documentId}/pdf`,
+      {
+        headers: {
+          Authorization:
+            `Bearer ${token}`,
+        },
+
+        cache:
+          "no-store",
+      }
+    );
+
+  if (!response.ok) {
+    let result = null;
+
+    try {
+      result =
+        await response.json();
+    } catch {
+      result = null;
+    }
+
+    throw new Error(
+      result?.error ||
+        "Root generated the remittance record but could not open the PDF."
+    );
+  }
+
+  const blob =
+    await response.blob();
+
+  const blobUrl =
+    URL.createObjectURL(
+      blob
+    );
+
+  const link =
+    document.createElement(
+      "a"
+    );
+
+  link.href =
+    blobUrl;
+
+  link.target =
+    "_blank";
+
+  link.rel =
+    "noopener noreferrer";
+
+  link.click();
+
+  setTimeout(
+    () =>
+      URL.revokeObjectURL(
+        blobUrl
+      ),
+    60000
   );
 }
 
@@ -211,7 +419,7 @@ async function markCommissionPaid(
       return;
     }
 
-    const response =
+    const paymentResponse =
       await fetch(
         "/api/admin/introducers/settlement",
         {
@@ -241,15 +449,15 @@ async function markCommissionPaid(
         }
       );
 
-    const result =
-      await response.json();
+    const paymentResult =
+      await paymentResponse.json();
 
     if (
-      !response.ok ||
-      !result?.success
+      !paymentResponse.ok ||
+      !paymentResult?.success
     ) {
       setError(
-        result?.error ||
+        paymentResult?.error ||
           "Root could not record this commission payment."
       );
 
@@ -259,13 +467,98 @@ async function markCommissionPaid(
       return;
     }
 
+    /*
+     * Payment is now permanently recorded.
+     * Next create the immutable Root
+     * remittance document.
+     */
+    const remittanceResponse =
+      await fetch(
+        "/api/admin/introducers/settlement",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${token}`,
+          },
+
+          body:
+            JSON.stringify({
+              action:
+                "generate_remittance",
+
+              commissionId:
+                commission.id,
+            }),
+        }
+      );
+
+    const remittanceResult =
+      await remittanceResponse.json();
+
+    if (
+      !remittanceResponse.ok ||
+      !remittanceResult?.success
+    ) {
+      setMessage(
+        `${money(
+          commission.commission_amount
+        )} commission has been recorded as paid.`
+      );
+
+      setError(
+        remittanceResult?.error ||
+          "Payment was recorded, but Root could not generate the remittance document."
+      );
+
+      setSettlementBusyId(
+        null
+      );
+
+      await loadIntroducers();
+
+      return;
+    }
+
+    const documentId =
+      remittanceResult?.document
+        ?.id;
+
+    if (!documentId) {
+      setMessage(
+        `${money(
+          commission.commission_amount
+        )} commission has been recorded as paid.`
+      );
+
+      setError(
+        "Payment was recorded and the remittance was created, but Root could not find its document ID."
+      );
+
+      setSettlementBusyId(
+        null
+      );
+
+      await loadIntroducers();
+
+      return;
+    }
+
     setMessage(
       `${money(
         commission.commission_amount
       )} commission for ${
         commission.organisation_name ||
         "this organisation"
-      } has been recorded as paid.`
+      } has been paid and remittance ${
+        remittanceResult.document
+          ?.document_number ||
+        ""
+      } created.`
     );
 
     setPaymentReferences(
@@ -282,6 +575,23 @@ async function markCommissionPaid(
       }
     );
 
+    try {
+      await openRemittancePdf(
+        documentId,
+        token
+      );
+    } catch (pdfError) {
+      console.error(
+        "ROOT REMITTANCE PDF ERROR:",
+        pdfError
+      );
+
+      setError(
+        pdfError?.message ||
+          "The payment and remittance were recorded, but the PDF could not be opened."
+      );
+    }
+
     setSettlementBusyId(
       null
     );
@@ -294,7 +604,7 @@ async function markCommissionPaid(
     );
 
     setError(
-      "Root could not record this commission payment."
+      "Root could not complete the commission settlement."
     );
 
     setSettlementBusyId(
@@ -1981,68 +2291,159 @@ async function markCommissionPaid(
               </span>
             </div>
 
-            <label
-              style={
-                styles.settlementField
-              }
-            >
-              <span
-                style={
-                  styles.fieldLabel
-                }
-              >
-                Payment reference
-              </span>
+            {introducer.payment_document_method ===
+  "introducer_invoice" &&
+!commission.invoice_received_at ? (
+  <>
+    <div
+      style={
+        styles.commercialWarning
+      }
+    >
+      This introducer invoices Root.
+      Record their invoice before
+      settling this commission.
+    </div>
 
-              <input
-                style={
-                  styles.input
-                }
-                value={
-                  paymentReferences[
-                    commission.id
-                  ] || ""
-                }
-                onChange={(
-                  event
-                ) =>
-                  updatePaymentReference(
-                    commission.id,
-                    event.target
-                      .value
-                  )
-                }
-                placeholder="Bank transfer or payment reference"
-              />
-            </label>
+    <label
+      style={
+        styles.settlementField
+      }
+    >
+      <span
+        style={
+          styles.fieldLabel
+        }
+      >
+        Introducer invoice reference
+      </span>
 
-            <button
-              type="button"
-              style={{
-                ...styles.primaryButton,
+      <input
+        style={
+          styles.input
+        }
+        value={
+          invoiceReferences[
+            commission.id
+          ] || ""
+        }
+        onChange={(
+          event
+        ) =>
+          updateInvoiceReference(
+            commission.id,
+            event.target.value
+          )
+        }
+        placeholder="e.g. INV-00125"
+      />
+    </label>
 
-                ...(settlementBusyId ===
-                commission.id
-                  ? styles.disabledButton
-                  : {}),
-              }}
-              disabled={
-                settlementBusyId ===
-                commission.id
-              }
-              onClick={() =>
-                markCommissionPaid(
-                  commission
-                )
-              }
-            >
-              {settlementBusyId ===
-              commission.id
-                ? "Recording..."
-                : `Mark ${money(
-                    commission.commission_amount
-                  )} Paid`}
-            </button>
+    <button
+      type="button"
+      style={{
+        ...styles.secondaryButton,
+
+        ...(settlementBusyId ===
+        commission.id
+          ? styles.disabledButton
+          : {}),
+      }}
+      disabled={
+        settlementBusyId ===
+        commission.id
+      }
+      onClick={() =>
+        recordCommissionInvoice(
+          commission
+        )
+      }
+    >
+      {settlementBusyId ===
+      commission.id
+        ? "Recording..."
+        : "Record Invoice Received"}
+    </button>
+  </>
+) : (
+  <>
+    {commission.invoice_received_at ? (
+      <div
+        style={
+          styles.commercialWarning
+        }
+      >
+        Invoice recorded
+        {commission.invoice_reference
+          ? ` — ${commission.invoice_reference}`
+          : ""}
+        .
+      </div>
+    ) : null}
+
+    <label
+      style={
+        styles.settlementField
+      }
+    >
+      <span
+        style={
+          styles.fieldLabel
+        }
+      >
+        Payment reference
+      </span>
+
+      <input
+        style={
+          styles.input
+        }
+        value={
+          paymentReferences[
+            commission.id
+          ] || ""
+        }
+        onChange={(
+          event
+        ) =>
+          updatePaymentReference(
+            commission.id,
+            event.target.value
+          )
+        }
+        placeholder="Bank transfer or payment reference"
+      />
+    </label>
+
+    <button
+      type="button"
+      style={{
+        ...styles.primaryButton,
+
+        ...(settlementBusyId ===
+        commission.id
+          ? styles.disabledButton
+          : {}),
+      }}
+      disabled={
+        settlementBusyId ===
+        commission.id
+      }
+      onClick={() =>
+        markCommissionPaid(
+          commission
+        )
+      }
+    >
+      {settlementBusyId ===
+      commission.id
+        ? "Settling..."
+        : `Mark ${money(
+            commission.commission_amount
+          )} Paid & Create Remittance`}
+    </button>
+  </>
+)}
           </div>
         )
       )}
