@@ -529,6 +529,32 @@ const activeCommissions =
       )
   );
 
+  const paidCommissions =
+  matchedCommissions
+    .filter(
+      (commission) =>
+        String(
+          commission.status || ""
+        ).toLowerCase() ===
+          "paid" ||
+        Boolean(
+          commission.paid_at
+        )
+    )
+    .sort(
+      (a, b) =>
+        new Date(
+          b.paid_at ||
+            b.earned_at ||
+            0
+        ).getTime() -
+        new Date(
+          a.paid_at ||
+            a.earned_at ||
+            0
+        ).getTime()
+    );
+
 const dueCommissions =
   activeCommissions.filter(
     (commission) => {
@@ -696,6 +722,9 @@ due_commissions:
 
 upcoming_commissions:
   upcomingCommissions,
+
+paid_commissions:
+  paidCommissions,
           };
         }
       );
