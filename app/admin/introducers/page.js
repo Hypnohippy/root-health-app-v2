@@ -2430,10 +2430,10 @@ async function markCommissionPaid(
         commission.id
       }
       onClick={() =>
-        markCommissionPaid(
-          commissionpdf
-        )
-      }
+       markCommissionPaid(
+         commission
+       )
+     }
     >
       {settlementBusyId ===
       commission.id
