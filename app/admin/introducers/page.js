@@ -15,6 +15,8 @@ const EMPTY_FORM = {
   referralCode: "",
   commissionPercent: "20",
   commissionStructure: "one_off",
+  vatRegistered: "no",
+  vatNumber: "",
   agreementStartDate: "",
   agreementEndDate: "",
   status: "active",
@@ -1855,11 +1857,74 @@ async function markCommissionPaid(
                     One-off
                   </option>
 
-                  <option value="recurring">
-                    Recurring
+                               <Field
+                label="VAT registered?"
+                required
+                hint="VAT is added to commission only where the introducer is VAT registered."
+              >
+                <select
+                  style={styles.input}
+                  value={
+                    form.vatRegistered
+                  }
+                  onChange={
+                    (event) => {
+                      const value =
+                        event.target.value;
+
+                      updateForm(
+                        "vatRegistered",
+                        value
+                      );
+
+                      if (
+                        value === "no"
+                      ) {
+                        updateForm(
+                          "vatNumber",
+                          ""
+                        );
+                      }
+                    }
+                  }
+                  required
+                >
+                  <option value="no">
+                    No
+                  </option>
+
+                  <option value="yes">
+                    Yes
                   </option>
                 </select>
               </Field>
+
+              {form.vatRegistered ===
+              "yes" ? (
+                <Field
+                  label="VAT registration number"
+                  required
+                  hint="Enter the introducer's VAT registration number."
+                >
+                  <input
+                    type="text"
+                    style={styles.input}
+                    value={
+                      form.vatNumber
+                    }
+                    onChange={
+                      (event) =>
+                        updateForm(
+                          "vatNumber",
+                          event.target
+                            .value
+                        )
+                    }
+                    placeholder="e.g. GB123456789"
+                    required
+                  />
+                </Field>
+              ) : null}
 
               <Field
                 label="Agreement start"
