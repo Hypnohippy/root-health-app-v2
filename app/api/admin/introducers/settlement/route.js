@@ -183,6 +183,10 @@ async function getCommission(
           collected_amount,
           qualifying_amount,
           commission_amount,
+          vat_registered,
+          vat_rate,
+          vat_amount,
+          total_payable,
           status,
           earned_at,
           clearance_until,
@@ -680,11 +684,35 @@ async function generateRemittance({
     qualifying_amount:
       commission.qualifying_amount,
 
-    commission_amount:
+        commission_amount:
       commission.commission_amount,
 
     commission_percent:
       commission.commission_percent,
+
+    vat_registered:
+      Boolean(
+        commission.vat_registered
+      ),
+
+    vat_rate:
+      Number(
+        commission.vat_rate ||
+          0
+      ),
+
+    vat_amount:
+      Number(
+        commission.vat_amount ||
+          0
+      ),
+
+    total_payable:
+      Number(
+        commission.total_payable ||
+          commission.commission_amount ||
+          0
+      ),
 
     earned_at:
       commission.earned_at,
@@ -753,9 +781,11 @@ async function generateRemittance({
 
         amount:
           Number(
-            commission.commission_amount ||
+            commission.total_payable ||
+              commission.commission_amount ||
               0
           ),
+
 
         commission_percent:
           Number(
