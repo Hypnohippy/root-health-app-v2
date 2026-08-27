@@ -808,6 +808,21 @@ export async function POST(request) {
         .trim()
         .toLowerCase();
 
+        const vatRegistered =
+      String(
+        body?.vatRegistered ||
+          "no"
+      )
+        .trim()
+        .toLowerCase() === "yes";
+
+    const vatNumber =
+      vatRegistered
+        ? cleanText(
+            body?.vatNumber
+          )
+        : null;
+
     const status =
       String(
         body?.status ||
@@ -885,6 +900,21 @@ export async function POST(request) {
         {
           error:
             "Commission structure must be one-off or recurring.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+    
+        if (
+      vatRegistered &&
+      !vatNumber
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "VAT registration number is required for a VAT-registered introducer.",
         },
         {
           status: 400,
@@ -994,6 +1024,12 @@ export async function POST(request) {
           commission_structure:
             commissionStructure,
 
+                    vat_registered:
+            vatRegistered,
+
+          vat_number:
+            vatNumber,
+
           status,
 
           agreement_start_date:
@@ -1021,6 +1057,8 @@ export async function POST(request) {
             commission_percent,
             commission_basis,
             commission_structure,
+            vat_registered,
+            vat_number,
             status,
             agreement_start_date,
             agreement_end_date,
