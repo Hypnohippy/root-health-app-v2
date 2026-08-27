@@ -2328,8 +2328,9 @@ async function markCommissionPaid(
                 }
               >
                 {money(
-                  commission.commission_amount
-                )}
+  commission.total_payable ||
+    commission.commission_amount
+)}
               </strong>
             </div>
 
@@ -2506,8 +2507,9 @@ async function markCommissionPaid(
       commission.id
         ? "Settling..."
         : `Mark ${money(
-            commission.commission_amount
-          )} Paid & Create Remittance`}
+    commission.total_payable ||
+      commission.commission_amount
+  )} Paid & Create Remittance`}
     </button>
   </>
 )}
