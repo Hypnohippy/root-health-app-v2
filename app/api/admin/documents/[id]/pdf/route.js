@@ -701,15 +701,90 @@ export async function GET(
       valueSize: 13,
     });
 
-    /*
-     * Amount paid
+        /*
+     * Commission / VAT / total paid
      */
+    const commissionAmount =
+      Number(
+        metadata.commission_amount ||
+          0
+      );
+
+    const vatRegistered =
+      Boolean(
+        metadata.vat_registered
+      );
+
+    const vatRate =
+      vatRegistered
+        ? Number(
+            metadata.vat_rate ||
+              0
+          )
+        : 0;
+
+    const vatAmount =
+      vatRegistered
+        ? Number(
+            metadata.vat_amount ||
+              0
+          )
+        : 0;
+
+    const totalPaid =
+      Number(
+        metadata.total_payable ||
+          document.amount ||
+          commissionAmount
+      );
+
+    drawLabelValue({
+      page,
+      font:
+        regularFont,
+      boldFont,
+      x: 75,
+      y: 335,
+      label:
+        "Commission",
+      value:
+        money(
+          commissionAmount,
+          document.currency
+        ),
+      valueSize: 13,
+    });
+
+    drawLabelValue({
+      page,
+      font:
+        regularFont,
+      boldFont,
+      x: 220,
+      y: 335,
+      label:
+        vatRegistered
+          ? `VAT @ ${vatRate.toLocaleString(
+              "en-GB",
+              {
+                maximumFractionDigits: 2,
+              }
+            )}%`
+          : "VAT",
+      value:
+        money(
+          vatAmount,
+          document.currency
+        ),
+      valueSize: 13,
+    });
+
     page.drawText(
-      "COMMISSION PAID",
+      "TOTAL PAID",
       {
-        x: 75,
+        x: 390,
         y: 335,
-        size: 9,
+        size: 8,
         font:
           boldFont,
         color:
@@ -719,13 +794,13 @@ export async function GET(
 
     page.drawText(
       money(
-        document.amount,
+        totalPaid,
         document.currency
       ),
       {
-        x: 75,
+        x: 390,
         y: 311,
-        size: 22,
+        size: 17,
         font:
           serifBoldFont,
         color:
@@ -781,6 +856,27 @@ export async function GET(
           ? "Recurring"
           : "One-off",
     });
+
+        if (
+      vatRegistered &&
+      metadata.introducer_vat_number
+    ) {
+      page.drawText(
+        `Introducer VAT number: ${safeText(
+          metadata.introducer_vat_number
+        )}`,
+        {
+          x: 63,
+          y: 220,
+          size: 9,
+          font:
+            regularFont,
+          color:
+            mutedGreen,
+        }
+      );
+    }
+
 
     /*
      * Confirmation
