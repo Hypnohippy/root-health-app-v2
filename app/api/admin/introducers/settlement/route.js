@@ -641,6 +641,40 @@ async function generateRemittance({
   const now =
     new Date().toISOString();
 
+    let introducerVatNumber =
+    null;
+
+  if (commission.application_id) {
+    const {
+      data:
+        applicationSnapshot,
+      error:
+        applicationSnapshotError,
+    } =
+      await supabase
+        .from(
+          "organisation_applications"
+        )
+        .select(
+          "introducer_vat_number_at_conversion"
+        )
+        .eq(
+          "id",
+          commission.application_id
+        )
+        .maybeSingle();
+
+    if (applicationSnapshotError) {
+      throw applicationSnapshotError;
+    }
+
+    introducerVatNumber =
+      applicationSnapshot
+        ?.introducer_vat_number_at_conversion ||
+      null;
+  }
+
+
   const metadata = {
     commission_id:
       commission.id,
@@ -694,6 +728,10 @@ async function generateRemittance({
       Boolean(
         commission.vat_registered
       ),
+
+    introducer_vat_number:
+      introducerVatNumber,
+
 
     vat_rate:
       Number(
