@@ -658,6 +658,17 @@ const commissionUpcoming =
                   ),
                 0
               );
+              const commissionOutstanding =
+  activeCommissions.reduce(
+    (total, commission) =>
+      total +
+      Number(
+        commission.total_payable ||
+          commission.commission_amount ||
+          0
+      ),
+    0
+  );
 
                     return {
             ...introducer,
