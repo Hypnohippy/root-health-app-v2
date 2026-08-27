@@ -561,10 +561,39 @@ async function recordInitialRevenueAndCommission({
   const qualifyingAmount =
     collectedAmount;
 
-  const commissionAmount =
+    const commissionAmount =
     Math.round(
       qualifyingAmount *
         (commissionPercent / 100) *
+        100
+    ) / 100;
+
+  const vatRegistered =
+    Boolean(
+      application
+        .introducer_vat_registered_at_conversion
+    );
+
+  const vatRate =
+    vatRegistered
+      ? Number(
+          application
+            .introducer_vat_rate_at_conversion ||
+            0
+        )
+      : 0;
+
+  const vatAmount =
+    Math.round(
+      commissionAmount *
+        (vatRate / 100) *
+        100
+    ) / 100;
+
+  const totalPayable =
+    Math.round(
+      (commissionAmount +
+        vatAmount) *
         100
     ) / 100;
 
@@ -676,8 +705,20 @@ async function recordInitialRevenueAndCommission({
       qualifying_amount:
         qualifyingAmount,
 
-      commission_amount:
+            commission_amount:
         commissionAmount,
+
+      vat_registered:
+        vatRegistered,
+
+      vat_rate:
+        vatRate,
+
+      vat_amount:
+        vatAmount,
+
+      total_payable:
+        totalPayable,
 
       status:
         "clearance",
@@ -766,7 +807,10 @@ async function activateDirectPaidFromCheckout(
     referral_campaign_code,
     commission_percent_at_conversion,
     commission_basis_at_conversion,
-    commission_structure_at_conversion
+    commission_structure_at_conversion,
+    introducer_vat_registered_at_conversion,
+    introducer_vat_number_at_conversion,
+    introducer_vat_rate_at_conversion
   `
 )
       .eq(
@@ -1153,7 +1197,10 @@ async function handleInvoicePaid(
         referral_campaign_code,
         commission_percent_at_conversion,
         commission_basis_at_conversion,
-        commission_structure_at_conversion
+        commission_structure_at_conversion,
+        introducer_vat_registered_at_conversion,
+        introducer_vat_number_at_conversion,
+        introducer_vat_rate_at_conversion
       `
     )
     .eq(
@@ -1509,10 +1556,39 @@ async function handleInvoicePaid(
   const qualifyingAmount =
     collectedAmount;
 
-  const commissionAmount =
+    const commissionAmount =
     Math.round(
       qualifyingAmount *
         (commissionPercent / 100) *
+        100
+    ) / 100;
+
+  const vatRegistered =
+    Boolean(
+      application
+        .introducer_vat_registered_at_conversion
+    );
+
+  const vatRate =
+    vatRegistered
+      ? Number(
+          application
+            .introducer_vat_rate_at_conversion ||
+            0
+        )
+      : 0;
+
+  const vatAmount =
+    Math.round(
+      commissionAmount *
+        (vatRate / 100) *
+        100
+    ) / 100;
+
+  const totalPayable =
+    Math.round(
+      (commissionAmount +
+        vatAmount) *
         100
     ) / 100;
 
@@ -1587,6 +1663,18 @@ async function handleInvoicePaid(
 
       commission_amount:
         commissionAmount,
+
+      vat_registered:
+        vatRegistered,
+
+      vat_rate:
+        vatRate,
+
+      vat_amount:
+        vatAmount,
+
+      total_payable:
+        totalPayable,
 
       status:
         "clearance",
