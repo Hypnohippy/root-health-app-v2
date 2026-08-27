@@ -467,6 +467,9 @@ export async function POST(request) {
       commission_percent_at_conversion: null,
       commission_basis_at_conversion: null,
       commission_structure_at_conversion: null,
+      introducer_vat_registered_at_conversion: null,
+      introducer_vat_number_at_conversion: null,
+      introducer_vat_rate_at_conversion: null,
       referral_attributed_at: null,
     };
 
@@ -485,6 +488,8 @@ export async function POST(request) {
           commission_percent,
           commission_basis,
           commission_structure,
+          vat_registered,
+          vat_number,
           status,
           agreement_start_date,
           agreement_end_date
@@ -610,8 +615,24 @@ export async function POST(request) {
             commission_basis_at_conversion:
               introducer.commission_basis,
 
-            commission_structure_at_conversion:
+                        commission_structure_at_conversion:
               introducer.commission_structure,
+
+            introducer_vat_registered_at_conversion:
+              Boolean(
+                introducer.vat_registered
+              ),
+
+            introducer_vat_number_at_conversion:
+              introducer.vat_registered
+                ? introducer.vat_number ||
+                  null
+                : null,
+
+            introducer_vat_rate_at_conversion:
+              introducer.vat_registered
+                ? 20
+                : 0,
 
             referral_attributed_at:
               new Date().toISOString(),
