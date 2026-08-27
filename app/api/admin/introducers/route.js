@@ -353,6 +353,10 @@ export async function GET(request) {
     commission_structure,
     commission_event,
     commission_amount,
+    vat_registered,
+    vat_rate,
+    vat_amount,
+    total_payable,
     status,
     earned_at,
     clearance_until,
@@ -595,7 +599,8 @@ const commissionDue =
     (total, commission) =>
       total +
       Number(
-        commission.commission_amount ||
+        commission.total_payable ||
+          commission.commission_amount ||
           0
       ),
     0
@@ -606,7 +611,8 @@ const commissionUpcoming =
     (total, commission) =>
       total +
       Number(
-        commission.commission_amount ||
+        commission.total_payable ||
+          commission.commission_amount ||
           0
       ),
     0
@@ -702,16 +708,15 @@ const commissionUpcoming =
               commissionPaid,
 
             commission_outstanding:
-  commissionEarned -
-  commissionPaid,
+  commissionOutstanding,
 
-commission_due:
+            commission_due:
   commissionDue,
 
-commission_due_count:
+            commission_due_count:
   dueCommissions.length,
 
-commission_upcoming:
+            commission_upcoming:
   commissionUpcoming,
 
 commission_upcoming_count:
