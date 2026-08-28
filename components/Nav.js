@@ -16,7 +16,7 @@ export default function Nav() {
     { href: "/playbook", label: "Playbook" },
     { href: "/journal", label: "Journal" },
     { href: "/body", label: "Body" },
-    { href: "/mind", label: "Mind" },
+    { href: "/mind", label: "Mind" }, 
     { href: "/insights", label: "Insights" },
     { href: "/profile", label: "You" },
   ];
