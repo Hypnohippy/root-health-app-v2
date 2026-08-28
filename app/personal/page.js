@@ -322,9 +322,10 @@ export default function PersonalLandingPage() {
         </Experience>
 
         <Experience
-          title="NEVER START FROM ZERO"
-          subtitle="Root carries what matters forward."
-        >
+           className="memoryExperience"
+           title="NEVER START FROM ZERO"
+           subtitle="Root carries what matters forward."
+         >
           <div className="memoryPhone">
             <div className="appHeader">
               <strong>Root Memory</strong>
@@ -1177,10 +1178,11 @@ export default function PersonalLandingPage() {
           text-align: center;
         }
 
-        .experience:nth-of-type(4) {
+        .memoryExperience {
          position: relative;
          left: -42px;
-        }        
+        }  
+        
         .experience h3 {
           margin: 0;
           font-family: Arial, sans-serif;
@@ -2097,10 +2099,10 @@ function Experience({
   title,
   subtitle,
   children,
+  className = "",
 }) {
   return (
-    <article className="experience">
-      <h3>{title}</h3>
+    <article className={`experience ${className}`}>      <h3>{title}</h3>
       <p>{subtitle}</p>
 
       <div className="device">
