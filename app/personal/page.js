@@ -1,1125 +1,790 @@
 "use client";
 
-import { useState } from "react";
-
 const MONTHLY_PRICE = "£19.99";
 const ANNUAL_PRICE = "£199";
 
-const questions = [
-  "Why am I tired when I've slept?",
-  "Why does my stomach play up when I'm stressed?",
-  "Why can I start healthy habits but never keep them going?",
-  "Why am I anxious when nothing is actually wrong?",
-  "Why do I feel better some weeks and worse the next?",
-  "Is what I'm eating actually helping me?",
-  "Why does stress seem to show up in my body?",
-  "Am I really improving — or just having a good week?",
-  "Why did something help last time but not this time?",
-  "What should I actually be doing for my health?",
-];
-
-const whatIfs = [
-  "What if something remembered what helped before?",
-  "What if your sleep, stress, mood, energy and body made more sense together?",
-  "What if you could actually see whether things were changing?",
-  "What if you didn't have to search the internet every time you wanted an answer?",
-  "What if you could talk something through and turn it into a plan?",
-  "What if that plan could change when your life changed?",
-  "What if you had somewhere to turn when you simply didn't know what to do next?",
-  "What if the support became more useful because it got to know your journey?",
-];
-
-const possibilities = [
-  "Sleep better",
-  "Eat differently",
-  "Get moving again",
-  "Recover",
-  "Feel calmer",
-  "Build confidence",
-  "Create a routine",
-  "Understand your stress",
-  "Work through something",
-  "Stay well",
-];
-
-const trustPoints = [
-  {
-    title: "No miracle promises.",
-    text:
-      "Root won't tell you one trick will change everything. Health and wellbeing are rarely that simple.",
-  },
-  {
-    title: "Ideas with a reason behind them.",
-    text:
-      "Where useful knowledge exists, Root starts there — then helps you explore what makes sense in your own life.",
-  },
-  {
-    title: "Human thinking + AI intelligence.",
-    text:
-      "Root combines therapeutic thinking, lived experience and AI capability to help make support practical, personal and easier to use.",
-  },
-  {
-    title: "Root does not diagnose.",
-    text:
-      "It can help you notice, reflect, plan and explore. It doesn't pretend to replace appropriate medical or professional care.",
-  },
-  {
-    title: "What didn't help matters too.",
-    text:
-      "Your journey is not only the things that worked. Root can carry forward what you've already tried so you don't always have to start again.",
-  },
-  {
-    title: "You remain in charge.",
-    text:
-      "Root offers ideas and possibilities. You decide what feels useful, what you keep and what you change.",
-  },
-];
-
 export default function PersonalLandingPage() {
-  const [openFaq, setOpenFaq] = useState(null);
-
   const joinRoot = () => {
     window.location.href = "/personal/join";
   };
 
-  const toggleFaq = (index) => {
-    setOpenFaq((current) =>
-      current === index ? null : index
-    );
-  };
-
   return (
-    <main className="root-sales-page">
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
-
-      {/* HEADER */}
-      <header className="sales-header">
-        <a
-          href="/personal"
-          className="sales-brand"
-        >
-          <strong>Root</strong>
-          <span>PERSONAL</span>
+    <main className="personal-page">
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
+      <header className="topbar">
+        <a href="/personal" className="brand">
+          <span className="brand-name">Root</span>
+          <span className="brand-type">PERSONAL</span>
         </a>
 
-        <a
-          href="/login"
-          className="sign-in-link"
-        >
-          Already a member? Sign in
+        <a href="/login" className="sign-in">
+          Already a member? <strong>Sign in</strong>
         </a>
       </header>
 
-      {/* HERO */}
+      {/* ======================================================
+          1 — HERO
+      ====================================================== */}
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">
-            YOUR HEALTH. YOUR LIFE. YOUR ROOT.
+          <p className="small-label">
+            ROOT PERSONAL
           </p>
 
           <h1>
-            Looking after yourself
+            LOOKING AFTER
             <br />
-            shouldn&apos;t feel
+            YOURSELF
             <br />
-            this complicated.
+            SHOULDN&apos;T BE
+            <br />
+            <em>THIS HARD.</em>
           </h1>
 
-          <p className="hero-lead">
-            Everybody has an answer.
-            Eat this. Avoid that. Try this
-            routine. Buy this supplement.
-            Sleep more. Stress less.
+          <p className="hero-sub">
+            You want to feel better.
+            <br />
+            You just need a way that makes
+            sense for you.
           </p>
 
-          <p className="hero-lead hero-lead-strong">
-            Somehow you&apos;re still left
-            trying to work out what actually
-            makes sense for you.
-          </p>
-
-          <div className="hero-price">
-            <strong>{MONTHLY_PRICE}</strong>
-            <span>/month</span>
-            <span className="dot">•</span>
-            <span>Everything included</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={joinRoot}
-            className="cta cta-dark"
-          >
-            Start my Root
-            <span>→</span>
-          </button>
-
-          <p className="small-note">
-            Or {ANNUAL_PRICE} annually.
-            One membership. No feature tiers.
-          </p>
+          <a href="#questions" className="scroll-cue">
+            ↓
+          </a>
         </div>
 
-        <div className="hero-stage">
-          <img
-            src="/visuals/root-home-hero.png"
-            alt=""
-            className="hero-background"
-          />
-
-          <div className="hero-shade" />
-
-          <div className="hero-question q1">
-            Why am I so tired again?
-          </div>
-
-          <div className="hero-question q2">
-            What actually helped last time?
-          </div>
-
-          <div className="hero-question q3">
-            Am I getting better?
-          </div>
-
-          <div className="hero-root-card">
-            <span>ROOT</span>
-
-            <strong>
-              Start with what&apos;s
-              happening.
-            </strong>
-
-            <p>
-              You don&apos;t need to know
-              which part of Root you need.
-            </p>
-          </div>
+        <div className="hero-image" aria-hidden="true">
+          <div className="hero-image-shade" />
         </div>
       </section>
 
-      {/* QUESTION NET */}
-      <section className="question-section">
-        <div className="narrow-heading">
-          <p className="eyebrow">
-            EVER FIND YOURSELF WONDERING...
-          </p>
-
+      {/* ======================================================
+          2 — THE QUESTIONS
+      ====================================================== */}
+      <section
+        id="questions"
+        className="questions-section"
+      >
+        <div className="questions-heading">
           <h2>
-            Sometimes it isn&apos;t one
-            problem.
+            QUESTIONS
+            <br />
+            YOU ASK
+            <br />
+            YOURSELF.
           </h2>
 
+          <div className="question-mark">
+            ?
+          </div>
+        </div>
+
+        <div className="questions">
           <p>
-            It&apos;s lots of small things
-            that don&apos;t seem connected
-            until you stop and look.
+            Why am I tired
+            <br />
+            when I&apos;ve slept?
+          </p>
+
+          <p>
+            Why can&apos;t I stick to
+            <br />
+            the things I know are
+            <br />
+            good for me?
+          </p>
+
+          <p>
+            Is anything I&apos;m
+            <br />
+            doing actually
+            <br />
+            working?
+          </p>
+
+          <p>
+            Why does stress
+            <br />
+            affect my stomach?
+          </p>
+
+          <p>
+            Why do I feel fine
+            <br />
+            one week and awful
+            <br />
+            the next?
+          </p>
+
+          <p>
+            Why is getting a
+            <br />
+            straight answer
+            <br />
+            so difficult?
           </p>
         </div>
 
-        <div className="question-cloud">
-          {questions.map((question) => (
-            <div
-              key={question}
-              className="question-pill"
-            >
-              {question}
-            </div>
-          ))}
-        </div>
-
-        <div className="quiet-ending">
+        <div className="questions-note">
+          If you&apos;ve asked
+          <br />
+          yourself even a
+          <br />
+          few of these...
+          <br />
           <strong>
-            If two or three of those sound
-            familiar, you&apos;re probably
-            not looking for another list of
-            things you should be doing.
+            you&apos;re not alone.
           </strong>
-
-          <p>
-            You&apos;re probably looking
-            for a way to make sense of
-            what&apos;s happening to you.
-          </p>
-
-          <button
-            type="button"
-            onClick={joinRoot}
-            className="cta cta-ghost"
-          >
-            Start making sense of it
-            <span>→</span>
-          </button>
         </div>
       </section>
 
-      {/* NOISE / PAIN */}
+      {/* ======================================================
+          3 — THE NOISE
+      ====================================================== */}
       <section className="noise-section">
-        <div className="noise-copy">
-          <p className="eyebrow light">
-            TOO MUCH INFORMATION. NOT ENOUGH CLARITY.
-          </p>
+        <div className="noise-phone">
+          <div className="fake-phone">
+            <div className="fake-phone-top">
+              YOUR FEED
+            </div>
 
+            <NoiseMessage
+              title="MIRACLE SOLUTION"
+              text="This will fix everything!"
+            />
+
+            <NoiseMessage
+              title="NEW DIET"
+              text="Do this every day."
+            />
+
+            <NoiseMessage
+              title="LATEST SUPPLEMENT"
+              text="You need this."
+            />
+
+            <NoiseMessage
+              title="ONE EXPERT SAYS YES"
+              text="Another says no."
+            />
+
+            <NoiseMessage
+              title="DOCTORS DON'T WANT YOU TO KNOW"
+              text="The truth is..."
+            />
+          </div>
+        </div>
+
+        <div className="noise-copy">
           <h2>
-            Feeling better shouldn&apos;t
-            require a research degree.
+            EVERYBODY
+            <br />
+            SEEMS TO HAVE
+            <br />
+            AN ANSWER.
           </h2>
 
           <p>
-            Search almost any health or
-            wellbeing question and somebody
-            has the answer.
-          </p>
-
-          <p>
-            The problem is, the next person
-            often has a completely different
-            answer.
-          </p>
-
-          <p className="noise-emphasis">
-            And most of those answers know
-            almost nothing about you.
-          </p>
-        </div>
-
-        <div className="noise-wall">
-          <span>
-            &quot;Never eat this...&quot;
-          </span>
-          <span>
-            &quot;Take this every
-            morning...&quot;
-          </span>
-          <span>
-            &quot;The one routine everyone
-            needs...&quot;
-          </span>
-          <span>
-            &quot;This changes
-            everything...&quot;
-          </span>
-          <span>
-            &quot;Doctors don&apos;t want
-            you to know...&quot;
-          </span>
-          <span>
-            &quot;The miracle
-            supplement...&quot;
-          </span>
-
-          <div className="noise-centre">
+            But none of them
+            <br />
             <strong>
-              I just want a straight
-              answer.
+              really know you.
             </strong>
-
-            <p>
-              What do we actually know?
-              <br />
-              And what makes sense for me?
-            </p>
-          </div>
+          </p>
         </div>
       </section>
 
-      {/* WHAT IF */}
+      {/* ======================================================
+          4 — WHAT IF
+      ====================================================== */}
       <section className="what-if-section">
         <div className="what-if-heading">
-          <p className="eyebrow">
-            SO LET&apos;S ASK A DIFFERENT QUESTION
-          </p>
-
           <h2>
-            What if looking after yourself
-            could feel a little less
-            confusing?
+            WHAT IF
+            <br />
+            SOMETHING DID?
           </h2>
         </div>
 
-        <div className="what-if-grid">
-          {whatIfs.map((item, index) => (
-            <div
-              key={item}
-              className={
-                index % 3 === 1
-                  ? "what-if-card featured"
-                  : "what-if-card"
-              }
-            >
-              <span>WHAT IF</span>
-              <p>{item.replace("What if ", "")}</p>
-            </div>
-          ))}
-        </div>
+        <Possibility
+          icon="↶"
+          text={
+            <>
+              Remembered
+              <br />
+              what helped
+              <br />
+              you before?
+            </>
+          }
+        />
 
-        <div className="what-if-close">
-          <h3>
-            What if you had somewhere to
-            start?
-          </h3>
+        <Possibility
+          icon="↗"
+          text={
+            <>
+              Noticed when
+              <br />
+              things started
+              <br />
+              changing?
+            </>
+          }
+        />
 
-          <button
-            type="button"
-            onClick={joinRoot}
-            className="cta cta-dark"
-          >
-            I&apos;d like that
-            <span>→</span>
-          </button>
-        </div>
+        <Possibility
+          icon="♡"
+          text={
+            <>
+              Saw the bigger
+              <br />
+              picture of your
+              <br />
+              body and mind?
+            </>
+          }
+        />
+
+        <Possibility
+          icon="○"
+          text={
+            <>
+              Let you talk
+              <br />
+              something
+              <br />
+              through?
+            </>
+          }
+        />
+
+        <Possibility
+          icon="□"
+          text={
+            <>
+              Helped you
+              <br />
+              turn it into
+              <br />
+              a plan?
+            </>
+          }
+        />
+
+        <Possibility
+          icon="⟳"
+          text={
+            <>
+              Changed
+              <br />
+              that plan
+              <br />
+              with you?
+            </>
+          }
+        />
+
+        <Possibility
+          icon="◇"
+          text={
+            <>
+              Gave you somewhere
+              <br />
+              to turn when you
+              <br />
+              didn&apos;t know what next?
+            </>
+          }
+        />
       </section>
 
-      {/* ROOT REVEAL */}
-      <section className="reveal-section">
-        <div className="root-orb">
-          <div className="root-orb-two">
-            <div className="root-orb-centre">
-              Root
-            </div>
-          </div>
-        </div>
-
-        <div className="reveal-copy">
-          <p className="eyebrow light">
+      {/* ======================================================
+          5 — MEET ROOT
+      ====================================================== */}
+      <section className="meet-root">
+        <div className="meet-copy">
+          <p className="small-label">
             MEET ROOT
           </p>
 
           <h2>
-            One place for
+            Your personal
             <br />
-            more of you.
+            health and wellbeing
+            <br />
+            companion.
           </h2>
 
           <p>
-            Talk when you want to talk.
-            Write something down when you
-            need to get it out of your
-            head. Check in. Explore
-            something you&apos;re feeling
-            in your body or mind. Ask a
-            question. Build a plan.
-          </p>
-
-          <p>
-            Those moments don&apos;t have
-            to disappear.
+            Talk. Ask. Explore. Plan.
+            <br />
+            Reflect. Try things.
+            <br />
+            Keep what helps.
+            <br />
+            Change what doesn&apos;t.
           </p>
 
           <strong>
-            Root can remember the journey
-            with you.
-          </strong>
-
-          <button
-            type="button"
-            onClick={joinRoot}
-            className="cta cta-light"
-          >
-            Meet my Root
-            <span>→</span>
-          </button>
-        </div>
-      </section>
-
-      {/* GLIMPSES */}
-      <section className="glimpse-section">
-        <div className="narrow-heading">
-          <p className="eyebrow">
-            START WITH WHAT&apos;S HAPPENING
-          </p>
-
-          <h2>
-            You don&apos;t need to know
-            which part of Root you need.
-          </h2>
-
-          <p>
-            Start with the thing on your
-            mind. Root can help you decide
-            where to go next.
-          </p>
-        </div>
-
-        <div className="glimpse-grid">
-          <ProductGlimpse
-            kicker="WHEN YOU NEED TO TALK"
-            title="Can we just talk?"
-            text="Use Root Coach naturally. The conversation can reflect your journey rather than beginning with a blank page every time."
-            dark
-          >
-            <div className="chat-preview">
-              <div className="chat-user">
-                I&apos;ve been feeling
-                completely drained lately.
-              </div>
-
-              <div className="chat-root">
-                You&apos;ve mentioned low
-                energy a few times recently.
-                Shall we talk about what&apos;s
-                been happening, or would
-                something practical help more
-                today?
-              </div>
-            </div>
-          </ProductGlimpse>
-
-          <ProductGlimpse
-            kicker="WHEN YOUR HEAD IS RACING"
-            title="I need something now."
-            text="Root Mind gives you practical things to try — including guided exercises and recordings."
-          >
-            <div className="recording-preview">
-              <span>MIND</span>
-
-              <strong>
-                5-4-3-2-1 Grounding
-              </strong>
-
-              <p>
-                A guided reset for moments
-                when everything feels a bit
-                too much.
-              </p>
-
-              <div className="play-button">
-                ▶
-              </div>
-            </div>
-          </ProductGlimpse>
-
-          <ProductGlimpse
-            kicker="WHEN YOU WANT TO UNDERSTAND"
-            title="Is anything actually changing?"
-            text="Check-ins and Insights help turn memory into something you can see."
-          >
-            <div className="progress-preview">
-              <div>
-                <span>Stress</span>
-                <strong>8 → 5</strong>
-              </div>
-
-              <div>
-                <span>Sleep</span>
-                <strong>7 → 6</strong>
-              </div>
-
-              <div>
-                <span>Energy</span>
-                <strong>8 → 6</strong>
-              </div>
-
-              <p>
-                Stress has eased more than
-                sleep so far.
-              </p>
-            </div>
-          </ProductGlimpse>
-
-          <ProductGlimpse
-            kicker="WHEN SOMETHING FEELS FAMILIAR"
-            title="Didn't this happen before?"
-            text="Root can carry useful context forward — including what you tried and what appeared to help."
-            dark
-          >
-            <div className="memory-preview">
-              <span>
-                ROOT&apos;S MEMORY
-              </span>
-
-              <p>
-                Slower evenings appeared to
-                help when sleep became
-                difficult before.
-              </p>
-
-              <button type="button">
-                Look at that again →
-              </button>
-            </div>
-          </ProductGlimpse>
-        </div>
-      </section>
-
-      {/* PLAYBOOK */}
-      <section className="playbook-section">
-        <div className="playbook-copy">
-          <p className="eyebrow">
-            DON&apos;T STRUGGLE FOR IDEAS
-          </p>
-
-          <h2>
-            You know where you&apos;d like
-            to be.
+            And Root remembers
             <br />
-            You don&apos;t always know how
-            to get there.
-          </h2>
-
-          <p>
-            Tell Root what you&apos;re
-            trying to change, improve or
-            work through.
-          </p>
-
-          <p>
-            Talk it through. Build
-            something practical. Save it.
-            Change it when life changes.
-          </p>
-
-          <div className="possibility-cloud">
-            {possibilities.map((item) => (
-              <span key={item}>
-                {item}
-              </span>
-            ))}
-          </div>
-
-          <h3>
-            A plan shouldn&apos;t just fit
-            the goal.
-            <br />
-            It has to fit the person
-            living it.
-          </h3>
-
-          <button
-            type="button"
-            onClick={joinRoot}
-            className="cta cta-dark"
-          >
-            Build mine with Root
-            <span>→</span>
-          </button>
-        </div>
-
-        <div className="playbook-window">
-          <div className="window-top">
-            <div>
-              <span>ROOT PLAYBOOK</span>
-              <strong>
-                Built with you
-              </strong>
-            </div>
-
-            <span className="saved-pill">
-              SAVED
-            </span>
-          </div>
-
-          <div className="playbook-chat">
-            <div className="chat-user">
-              I want to get fit again but
-              I haven&apos;t exercised for
-              ages and I don&apos;t want
-              something I&apos;ll give up
-              after a week.
-            </div>
-
-            <div className="chat-root">
-              Let&apos;s build something
-              gradual. Your recent
-              check-ins have also shown
-              low energy, so we can keep
-              the first couple of weeks
-              realistic.
-            </div>
-          </div>
-
-          <div className="plan-card">
-            <span>YOUR PLAN</span>
-
-            <strong>
-              Return to movement
-            </strong>
-
-            <div className="plan-line">
-              <span>Week 1</span>
-              <p>
-                2 gentle sessions ·
-                walking · mobility
-              </p>
-            </div>
-
-            <div className="plan-line">
-              <span>Week 2</span>
-              <p>
-                2 sessions · slightly
-                longer · check recovery
-              </p>
-            </div>
-
-            <div className="plan-line">
-              <span>Week 3</span>
-              <p>
-                Review energy · adapt
-                together
-              </p>
-            </div>
-          </div>
-
-          <div className="change-request">
-            <span>YOU</span>
-            Tuesdays are impossible.
-            Can we change them?
-          </div>
-
-          <div className="change-answer">
-            <span>ROOT</span>
-            Done. Your Playbook has been
-            updated.
-          </div>
-        </div>
-      </section>
-
-      {/* INNER VOICE / HOPE */}
-      <section className="inner-voice-section">
-        <p className="eyebrow light">
-          MAYBE YOU&apos;RE ALREADY THINKING...
-        </p>
-
-        <div className="inner-questions">
-          <p>
-            Could this help me get my
-            sleep back on track?
-          </p>
-
-          <p>
-            Could I build something for
-            my anxiety?
-          </p>
-
-          <p>
-            Could it help me understand
-            why I keep feeling exhausted?
-          </p>
-
-          <p>
-            Could I make a routine
-            I&apos;ll actually stick to?
-          </p>
-
-          <p>
-            Could I just talk when I&apos;m
-            having a horrible day?
-          </p>
-
-          <p>
-            Could it help me see whether
-            I&apos;m really making
-            progress?
-          </p>
-        </div>
-
-        <div className="inner-close">
-          <h2>
-            Start with the question that
-            belongs to you.
-          </h2>
-
-          <p>
-            You don&apos;t need to know
-            today what you&apos;ll need
-            Root for tomorrow.
-          </p>
-
-          <button
-            type="button"
-            onClick={joinRoot}
-            className="cta cta-light"
-          >
-            Start with mine
-            <span>→</span>
-          </button>
-        </div>
-      </section>
-
-      {/* TRUST */}
-      <section className="trust-section">
-        <div className="trust-heading">
-          <p className="eyebrow">
-            HEALTH MATTERS TOO MUCH FOR HYPE
-          </p>
-
-          <h2>
-            Root won&apos;t promise
-            to fix you.
-          </h2>
-
-          <p>
-            Because nobody responsibly
-            can.
-          </p>
-
-          <div className="trust-mantra">
-            <strong>
-              Studies support.
-            </strong>
-            <strong>
-              Evidence suggests.
-            </strong>
-            <strong>
-              Experience informs.
-            </strong>
-            <strong>
-              You decide.
-            </strong>
-          </div>
-        </div>
-
-        <div className="trust-grid">
-          {trustPoints.map((point) => (
-            <div
-              key={point.title}
-              className="trust-card"
-            >
-              <strong>{point.title}</strong>
-              <p>{point.text}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="trust-summary">
-          <h3>
-            Helping you discover what
-            works better for you,
-            over time.
-          </h3>
-
-          <p>
-            Personal enough to know your
-            journey. Careful enough not
-            to pretend it knows
-            everything.
-          </p>
-        </div>
-      </section>
-
-      {/* LIFETIME */}
-      <section className="life-section">
-        <div className="life-copy">
-          <p className="eyebrow light">
-            YOUR HEALTH ISN&apos;T A 30-DAY CHALLENGE
-          </p>
-
-          <h2>
-            Life will change.
-            <br />
-            So will what you need.
-          </h2>
-
-          <p>
-            There may be times when you
-            want to feel stronger.
-          </p>
-
-          <p>
-            Times when sleep becomes
-            difficult.
-          </p>
-
-          <p>
-            Times when you want to eat
-            differently, recover, deal
-            with anxiety, understand
-            something that keeps
-            happening or simply stay
-            well.
-          </p>
-
-          <strong>
-            Root can travel with you
-            through more than one chapter.
+            the journey with you.
           </strong>
         </div>
 
-        <div className="life-path">
-          <div>
-            <span>NOW</span>
-            <strong>
-              Start with what matters
-              today.
-            </strong>
-          </div>
-
-          <div>
-            <span>NEXT</span>
-            <strong>
-              Notice what changes.
-            </strong>
-          </div>
-
-          <div>
-            <span>LATER</span>
-            <strong>
-              Remember what helped.
-            </strong>
-          </div>
-
-          <div>
-            <span>OVER TIME</span>
-            <strong>
-              Keep building from what
-              you learn.
-            </strong>
+        <div className="root-orb-wrap">
+          <div className="root-ring ring-one">
+            <div className="root-ring ring-two">
+              <div className="root-ring ring-three">
+                <div className="root-core">
+                  Root
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <div className="meet-image" />
       </section>
 
-      {/* FUTURE */}
-      <section className="future-section">
-        <p className="eyebrow">
-          SMALL CHANGES DON&apos;T ALWAYS STAY SMALL
-        </p>
-
-        <h2>
-          What could a year of
-          understanding yourself
-          better look like?
-        </h2>
-
-        <div className="future-lines">
-          <span>
-            Sleep a little better.
-          </span>
-          <span>
-            Move a little more.
-          </span>
-          <span>
-            Notice what knocks you
-            backwards.
-          </span>
-          <span>
-            Keep more of what moves you
-            forwards.
-          </span>
-          <span>
-            Build routines you can
-            actually live with.
-          </span>
-          <span>
-            Make better decisions more
-            often.
-          </span>
-        </div>
-
-        <h3>
-          Your future health is being
-          shaped by what you do today.
-        </h3>
-
-        <button
-          type="button"
-          onClick={joinRoot}
-          className="cta cta-dark"
+      {/* ======================================================
+          6 — ROOT IN ACTION
+      ====================================================== */}
+      <section className="root-action">
+        <MiniExperience
+          title="TALK FREELY"
+          subtitle="A conversation that remembers you."
         >
-          Put Root in my corner
-          <span>→</span>
-        </button>
+          <div className="mini-chat">
+            <div className="mini-user">
+              I&apos;ve been feeling really
+              overwhelmed lately.
+            </div>
+
+            <div className="mini-root">
+              You&apos;ve mentioned feeling
+              overwhelmed a few times.
+              Shall we talk about what&apos;s
+              been happening?
+            </div>
+          </div>
+        </MiniExperience>
+
+        <MiniExperience
+          title="SEE CLEARLY"
+          subtitle="Insights that turn memory into clarity."
+        >
+          <div className="insight-demo">
+            <Metric label="Stress" value="8 → 5" />
+            <Metric label="Sleep" value="7 → 6" />
+            <Metric label="Energy" value="8 → 6" />
+
+            <p>
+              You&apos;re showing progress.
+              Keep going.
+            </p>
+          </div>
+        </MiniExperience>
+
+        <MiniExperience
+          title="BUILD YOUR PLAN"
+          subtitle="Turn ideas into a plan that fits your life."
+        >
+          <div className="plan-demo">
+            <span>Goal</span>
+            <strong>Improve sleep</strong>
+
+            <label>
+              ○ Evening wind-down
+            </label>
+            <label>
+              ○ Dim lights
+            </label>
+            <label>
+              ○ Breathing exercise
+            </label>
+            <label>
+              ○ No screens
+            </label>
+            <label>
+              ○ Bed by 11:00pm
+            </label>
+          </div>
+        </MiniExperience>
+
+        <MiniExperience
+          title="NEVER START FROM ZERO"
+          subtitle="Root carries what matters forward."
+        >
+          <div className="memory-demo">
+            <span>ROOT MEMORY</span>
+
+            <p>
+              Last time you had trouble
+              sleeping, a slower evening
+              routine helped.
+            </p>
+
+            <button type="button">
+              Look at that again →
+            </button>
+
+            <small>
+              What helped then:
+              <br />
+              Evening routine, less caffeine,
+              breathing.
+            </small>
+          </div>
+        </MiniExperience>
       </section>
 
-      {/* PRICE */}
-      <section className="price-section">
-        <div className="price-card">
-          <p className="eyebrow">
-            ROOT PERSONAL
+      {/* ======================================================
+          7 — WHAT WOULD YOU BUILD?
+      ====================================================== */}
+      <section className="build-around">
+        <div className="build-title">
+          <h2>
+            WHAT WOULD
+            <br />
+            YOU BUILD
+            <br />
+            YOUR ROOT
+            <br />
+            AROUND?
+          </h2>
+        </div>
+
+        <LifeGoal icon="☾" text="Better sleep" />
+        <LifeGoal icon="♡" text="Less anxiety" />
+        <LifeGoal icon="↗" text="Getting fitter" />
+        <LifeGoal icon="♧" text="Eating better" />
+        <LifeGoal icon="◡" text="Recovery" />
+        <LifeGoal icon="◇" text="Understanding your body" />
+        <LifeGoal icon="☁" text="Getting through a difficult period" />
+        <LifeGoal icon="♙" text="Staying well as you get older" />
+
+        <div className="build-last">
+          Maybe something
+          <br />
+          you haven&apos;t
+          <br />
+          needed yet.
+        </div>
+      </section>
+
+      {/* ======================================================
+          PLAYBOOK POSSIBILITY
+      ====================================================== */}
+      <section className="playbook-story">
+        <div className="playbook-text">
+          <p className="small-label">
+            YOUR PLAYBOOK
           </p>
 
           <h2>
-            One Root.
+            A plan shouldn&apos;t
             <br />
-            Everything included.
+            just fit the goal.
+            <br />
+            <em>
+              It should fit you.
+            </em>
           </h2>
 
-          <p className="price-intro">
-            There isn&apos;t a Basic Root
-            and a better Root waiting
-            behind another subscription.
+          <p>
+            Ask Root to help you build
+            something around what you&apos;re
+            trying to achieve.
           </p>
 
-          <div className="big-price">
+          <div className="playbook-words">
+            <span>Nutrition</span>
+            <span>Gut health</span>
+            <span>Stress & anxiety</span>
+            <span>Sleep</span>
+            <span>Movement</span>
+            <span>Recovery</span>
+            <span>Mind & mood</span>
+            <span>Routines</span>
+            <span>Anything else</span>
+          </div>
+        </div>
+
+        <div className="playbook-demo-large">
+          <p className="demo-you">
+            I want to start exercising again,
+            but I&apos;ve been exhausted lately
+            and I know I&apos;ll give up if I
+            do too much.
+          </p>
+
+          <p className="demo-root">
+            Let&apos;s start gently.
+            Your recent check-ins have also
+            shown low energy, so we can make
+            this something you can actually
+            live with.
+          </p>
+
+          <div className="saved-plan">
+            <span>PLAYBOOK</span>
+
+            <strong>
+              My return-to-fitness plan
+            </strong>
+
+            <div>
+              Week 1
+              <b>
+                2 gentle sessions
+              </b>
+            </div>
+
+            <div>
+              Week 2
+              <b>
+                Build gradually
+              </b>
+            </div>
+
+            <div>
+              Week 3
+              <b>
+                Review how I feel
+              </b>
+            </div>
+          </div>
+
+          <p className="demo-you small">
+            Tuesdays don&apos;t work for me.
+          </p>
+
+          <p className="demo-root small">
+            Done. Let&apos;s move it.
+          </p>
+        </div>
+      </section>
+
+      {/* ======================================================
+          8 — TRUST
+      ====================================================== */}
+      <section className="trust">
+        <div className="trust-title">
+          <h2>
+            HEALTH MATTERS
+            <br />
+            TOO MUCH FOR
+            <br />
+            EMPTY PROMISES.
+          </h2>
+        </div>
+
+        <TrustPoint
+          icon="□"
+          title="Studies support."
+        />
+
+        <TrustPoint
+          icon="○"
+          title="Evidence suggests."
+        />
+
+        <TrustPoint
+          icon="♡"
+          title="Experience informs."
+        />
+
+        <TrustPoint
+          icon="♙"
+          title="You decide."
+        />
+
+        <div className="trust-bottom">
+          <div>
+            Built with human and AI intelligence.
+            <br />
+            Structured with therapeutic thinking
+            and lived experience.
+          </div>
+
+          <div>
+            Root doesn&apos;t diagnose.
+            It doesn&apos;t promise miracle cures.
+            <br />
+            It helps you make better sense of
+            your own journey and discover what
+            may work better for you over time.
+          </div>
+        </div>
+      </section>
+
+      {/* ======================================================
+          9 — LIFE CHANGES
+      ====================================================== */}
+      <section className="life-section">
+        <div className="life-note">
+          Life changes.
+          <br />
+          Root changes
+          <br />
+          with you.
+        </div>
+
+        <LifeStage
+          title="Your 20s"
+          text="Finding direction"
+        />
+
+        <LifeArrow />
+
+        <LifeStage
+          title="Your 30s"
+          text="Building and balancing"
+        />
+
+        <LifeArrow />
+
+        <LifeStage
+          title="Your 40s"
+          text="Responsibility and pressure"
+        />
+
+        <LifeArrow />
+
+        <LifeStage
+          title="Your 50s"
+          text="Reassessing and refocusing"
+        />
+
+        <LifeArrow />
+
+        <LifeStage
+          title="Your 60s+"
+          text="Living well and staying strong"
+        />
+      </section>
+
+      {/* ======================================================
+          10 — SMALL CHANGES
+      ====================================================== */}
+      <section className="small-changes">
+        <div className="change-heading">
+          <h2>
+            MAKE POWERFUL
+            <br />
+            CHANGES.
+            <br />
+            ONE STEP
+            <br />
+            AT A TIME.
+          </h2>
+        </div>
+
+        <ChangeStep
+          icon="○"
+          text="Notice what matters"
+        />
+
+        <ChangeArrow />
+
+        <ChangeStep
+          icon="□"
+          text="Make a small change"
+        />
+
+        <ChangeArrow />
+
+        <ChangeStep
+          icon="♡"
+          text="See what helps"
+        />
+
+        <ChangeArrow />
+
+        <ChangeStep
+          icon="◴"
+          text="Keep building consistency"
+        />
+
+        <ChangeArrow />
+
+        <ChangeStep
+          icon="◇"
+          text="Create the life you want"
+        />
+
+        <div className="change-image" />
+      </section>
+
+      {/* ======================================================
+          11 — PRICE / CTA
+      ====================================================== */}
+      <section className="final-offer">
+        <div className="offer-title">
+          <h2>
+            MAKE
+            <br />
+            ROOT
+            <br />
+            YOURS.
+          </h2>
+        </div>
+
+        <div className="offer-price">
+          <div>
             <strong>{MONTHLY_PRICE}</strong>
-            <span>/month</span>
+            <span>/ month</span>
           </div>
 
-          <p className="annual">
-            or {ANNUAL_PRICE} annually
+          <p>
+            or {ANNUAL_PRICE} / year
           </p>
 
-          <div className="included">
-            <span>
-              ✓ Personalised Voice Coach
-            </span>
-            <span>
-              ✓ Root memory
-            </span>
-            <span>
-              ✓ Body & Mind
-            </span>
-            <span>
-              ✓ Journal
-            </span>
-            <span>
-              ✓ Check-Ins & progress
-            </span>
-            <span>
-              ✓ Insights
-            </span>
-            <span>
-              ✓ Playbook
-            </span>
-            <span>
-              ✓ Practical plans & guided
-              exercises
-            </span>
-          </div>
+          <small>
+            Everything included. Always.
+          </small>
+        </div>
 
+        <div className="offer-action">
           <button
             type="button"
             onClick={joinRoot}
-            className="cta cta-dark price-cta"
           >
             Start my Root
             <span>→</span>
           </button>
 
-          <p className="price-note">
-            One membership. No feature
-            tiers.
+          <p>
+            One decision.
+            <br />
+            A companion for the journey.
           </p>
         </div>
+
+        <div className="offer-image" />
       </section>
 
-      {/* FAQ */}
-      <section className="faq-section">
-        <div className="narrow-heading">
-          <p className="eyebrow">
-            BEFORE YOU JOIN
-          </p>
-
-          <h2>
-            A few things worth knowing.
-          </h2>
-        </div>
-
-        <div className="faq-list">
-          <Faq
-            index={0}
-            openFaq={openFaq}
-            toggleFaq={toggleFaq}
-            question="Does Root diagnose me?"
-          >
-            No. Root can help you notice,
-            reflect, explore and plan. It
-            does not provide a medical
-            diagnosis or replace
-            appropriate professional care.
-          </Faq>
-
-          <Faq
-            index={1}
-            openFaq={openFaq}
-            toggleFaq={toggleFaq}
-            question="What does Root remember?"
-          >
-            Root can use information from
-            across your journey to create
-            continuity — including
-            patterns, previous experiences
-            and things you have already
-            tried.
-          </Faq>
-
-          <Faq
-            index={2}
-            openFaq={openFaq}
-            toggleFaq={toggleFaq}
-            question="Do I really get everything?"
-          >
-            Yes. Root Personal has one
-            membership. Coach, Check-In,
-            Playbook, Journal, Body, Mind,
-            Insights and the wider Root
-            experience are included.
-          </Faq>
-
-          <Faq
-            index={3}
-            openFaq={openFaq}
-            toggleFaq={toggleFaq}
-            question="What if my organisation already provides Root?"
-          >
-            If your organisation already
-            provides your Personal Root
-            access, you do not need to buy
-            a second Personal membership.
-          </Faq>
-
-          <Faq
-            index={4}
-            openFaq={openFaq}
-            toggleFaq={toggleFaq}
-            question="Can I pay monthly or annually?"
-          >
-            Yes. Root Personal is
-            £19.99/month or £199/year.
-            Both give you the same complete
-            Root experience.
-          </Faq>
-        </div>
-      </section>
-
-      {/* FINAL */}
-      <section className="final-section">
-        <div className="final-orb">
-          Root
-        </div>
-
-        <p className="eyebrow">
-          WHATEVER BROUGHT YOU HERE
-        </p>
-
-        <h2>
-          Start there.
-        </h2>
-
-        <p>
-          You bring the life.
-          <br />
-          Root helps with what comes next.
-        </p>
-
-        <button
-          type="button"
-          onClick={joinRoot}
-          className="cta cta-dark"
-        >
-          Start my Root
-          <span>→</span>
-        </button>
-
-        <p className="final-price">
-          {MONTHLY_PRICE}/month ·{" "}
-          {ANNUAL_PRICE}/year ·
-          Everything included
-        </p>
-      </section>
-
-      <footer className="sales-footer">
+      {/* ======================================================
+          FOOTER
+      ====================================================== */}
+      <footer className="footer">
         <div>
           <strong>Root</strong>
           <span> Personal</span>
         </div>
 
-        <div>
+        <div className="footer-links">
           <a href="/privacy">
             Privacy
           </a>
+
           <a href="/terms">
             Terms
           </a>
+
           <a href="/login">
             Sign in
           </a>
@@ -1137,7 +802,7 @@ export default function PersonalLandingPage() {
 
         body {
           margin: 0;
-          background: #f5f0e6;
+          background: #f4f0e6;
         }
 
         button,
@@ -1145,18 +810,16 @@ export default function PersonalLandingPage() {
           -webkit-tap-highlight-color: transparent;
         }
 
-        .root-sales-page {
-          position: relative;
-          overflow: hidden;
+        .personal-page {
           min-height: 100vh;
+          overflow: hidden;
+          color: #1c241c;
           background:
             linear-gradient(
               180deg,
-              #f8f4ec 0%,
-              #efe9de 42%,
-              #f8f4ec 100%
+              #f8f5ee 0%,
+              #f0ebe1 100%
             );
-          color: #1f251e;
           font-family:
             -apple-system,
             BlinkMacSystemFont,
@@ -1164,384 +827,277 @@ export default function PersonalLandingPage() {
             sans-serif;
         }
 
-        .ambient {
-          position: absolute;
-          border-radius: 999px;
-          pointer-events: none;
-          filter: blur(8px);
-        }
-
-        .ambient-one {
-          width: 780px;
-          height: 780px;
-          top: -350px;
-          right: -260px;
-          background:
-            radial-gradient(
-              circle,
-              rgba(198, 219, 188, 0.58),
-              rgba(198, 219, 188, 0)
-                70%
-            );
-        }
-
-        .ambient-two {
-          width: 700px;
-          height: 700px;
-          top: 880px;
-          left: -430px;
-          background:
-            radial-gradient(
-              circle,
-              rgba(220, 196, 166, 0.42),
-              rgba(220, 196, 166, 0)
-                70%
-            );
-        }
-
-        .sales-header {
-          position: relative;
-          z-index: 20;
-          width:
-            min(
-              1200px,
-              calc(100% - 36px)
-            );
-          margin: 0 auto;
-          padding: 26px 0;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .sales-brand {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: #20261f;
-          text-decoration: none;
-        }
-
-        .sales-brand strong {
-          font-size: 21px;
-          letter-spacing: -0.04em;
-        }
-
-        .sales-brand span {
-          font-size: 10px;
-          letter-spacing: 0.16em;
-          font-weight: 800;
-          opacity: 0.5;
-        }
-
-        .sign-in-link {
-          padding: 10px 15px;
-          border-radius: 999px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.48
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.8
-              );
-          color: #344034;
-          font-size: 13px;
-          font-weight: 750;
-          text-decoration: none;
-          backdrop-filter: blur(18px);
-        }
-
-        .hero {
-          position: relative;
-          z-index: 2;
-          width:
-            min(
-              1200px,
-              calc(100% - 36px)
-            );
-          min-height: 780px;
-          margin: 0 auto;
-          padding: 62px 0 115px;
-          display: grid;
-          grid-template-columns:
-            minmax(0, 0.92fr)
-            minmax(430px, 1.08fr);
-          gap: 72px;
-          align-items: center;
-        }
-
-        .hero-copy {
-          max-width: 600px;
-        }
-
-        .eyebrow {
-          display: inline-block;
-          margin: 0 0 20px;
-          color: #71806d;
-          font-size: 10px;
-          line-height: 1.3;
-          font-weight: 900;
-          letter-spacing: 0.17em;
-        }
-
-        .eyebrow.light {
-          color: #b7c7af;
-        }
-
-        .hero h1,
-        .question-section h2,
-        .noise-section h2,
-        .what-if-heading h2,
-        .reveal-section h2,
-        .playbook-section h2,
-        .trust-section h2,
-        .life-section h2,
-        .future-section h2,
-        .price-section h2,
-        .faq-section h2,
-        .final-section h2 {
-          margin: 0;
+        .personal-page h1,
+        .personal-page h2 {
           font-family:
             Georgia,
             "Times New Roman",
             serif;
-          font-weight: 500;
-          letter-spacing: -0.055em;
+          font-weight: 400;
+        }
+
+        /* HEADER */
+
+        .topbar {
+          width:
+            min(
+              1400px,
+              calc(100% - 60px)
+            );
+          margin: 0 auto;
+          padding: 28px 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          text-decoration: none;
+          color: #1e251e;
+        }
+
+        .brand-name {
+          font-family: Georgia, serif;
+          font-size: 25px;
+        }
+
+        .brand-type {
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 0.35em;
+        }
+
+        .sign-in {
+          color: #41483f;
+          text-decoration: none;
+          font-size: 12px;
+        }
+
+        /* HERO */
+
+        .hero {
+          min-height: 650px;
+          display: grid;
+          grid-template-columns:
+            0.78fr 1.22fr;
+        }
+
+        .hero-copy {
+          padding:
+            85px
+            50px
+            70px
+            max(
+              50px,
+              calc(
+                (100vw - 1400px) / 2
+              )
+            );
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          background: #faf7f0;
+        }
+
+        .small-label {
+          margin: 0 0 18px;
+          color: #637b65;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.17em;
         }
 
         .hero h1 {
+          margin: 0;
           font-size:
             clamp(
-              54px,
-              6.3vw,
-              88px
+              44px,
+              5.2vw,
+              74px
             );
-          line-height: 0.95;
+          line-height: 0.97;
+          letter-spacing: -0.045em;
         }
 
-        .hero-lead {
-          max-width: 555px;
+        .hero h1 em {
+          color: #496f52;
+          font-style: normal;
+        }
+
+        .hero-sub {
           margin: 28px 0 0;
-          color: #676a63;
+          color: #404940;
+          font-family: Georgia, serif;
           font-size: 18px;
-          line-height: 1.72;
+          line-height: 1.55;
         }
 
-        .hero-lead-strong {
-          color: #343c32;
-          font-weight: 700;
+        .scroll-cue {
+          width: 40px;
+          margin-top: 35px;
+          color: #446047;
+          text-decoration: none;
+          font-size: 28px;
         }
 
-        .hero-price {
-          margin: 26px 0 22px;
-          display: flex;
-          align-items: baseline;
-          flex-wrap: wrap;
-          gap: 7px;
-          color: #596158;
-          font-size: 14px;
-        }
-
-        .hero-price strong {
-          color: #293129;
-          font-size: 17px;
-        }
-
-        .dot {
-          opacity: 0.3;
-          padding: 0 3px;
-        }
-
-        .cta {
-          border: none;
-          border-radius: 999px;
-          padding: 15px 21px 15px 24px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 28px;
-          font-size: 14px;
-          font-weight: 850;
-          cursor: pointer;
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .cta:hover {
-          transform: translateY(-2px);
-        }
-
-        .cta-dark {
-          background: #263027;
-          color: white;
-          box-shadow:
-            0 16px 38px
-              rgba(
-                38,
-                48,
-                39,
-                0.18
-              );
-        }
-
-        .cta-light {
-          background: white;
-          color: #273128;
-          box-shadow:
-            0 18px 44px
-              rgba(
-                0,
-                0,
-                0,
-                0.14
-              );
-        }
-
-        .cta-ghost {
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.48
-            );
-          color: #263027;
-          border:
-            1px solid
-              rgba(
-                88,
-                107,
-                82,
-                0.12
-              );
-        }
-
-        .small-note {
-          margin: 14px 0 0;
-          color: #85877f;
-          font-size: 11px;
-        }
-
-        .hero-stage {
+        .hero-image {
           position: relative;
           min-height: 650px;
-          border-radius: 52px;
-          overflow: hidden;
-          box-shadow:
-            0 42px 110px
+          background:
+            linear-gradient(
+              90deg,
               rgba(
-                51,
-                58,
-                48,
-                0.15
-              );
+                248,
+                245,
+                238,
+                0.55
+              ),
+              rgba(
+                248,
+                245,
+                238,
+                0.05
+              )
+            ),
+            url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=85")
+              center / cover no-repeat;
         }
 
-        .hero-background {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .hero-shade {
+        .hero-image-shade {
           position: absolute;
           inset: 0;
           background:
             linear-gradient(
-              145deg,
+              180deg,
               rgba(
-                247,
-                241,
-                230,
-                0.10
+                30,
+                48,
+                32,
+                0.02
               ),
               rgba(
-                31,
-                41,
                 30,
-                0.25
+                48,
+                32,
+                0.13
               )
             );
         }
 
-        .hero-question {
-          position: absolute;
-          max-width: 250px;
-          padding: 15px 18px;
-          border-radius: 22px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.76
+        /* QUESTIONS */
+
+        .questions-section {
+          width:
+            min(
+              1400px,
+              calc(100% - 50px)
             );
-          border:
+          margin: 0 auto;
+          padding: 80px 0;
+          display: grid;
+          grid-template-columns:
+            220px 1fr 250px;
+          gap: 48px;
+          align-items: center;
+        }
+
+        .questions-heading {
+          display: grid;
+          grid-template-columns:
+            1fr 90px;
+          align-items: center;
+        }
+
+        .questions-heading h2 {
+          margin: 0;
+          font-size: 25px;
+          line-height: 1.1;
+        }
+
+        .question-mark {
+          width: 78px;
+          height: 78px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background: #e3e2d7;
+          color: #426349;
+          font-family: Georgia, serif;
+          font-size: 48px;
+        }
+
+        .questions {
+          display: grid;
+          grid-template-columns:
+            repeat(3, 1fr);
+          gap: 38px 40px;
+        }
+
+        .questions p {
+          margin: 0;
+          color: #262e26;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .questions-note {
+          padding-left: 30px;
+          border-left:
             1px solid
               rgba(
-                255,
-                255,
-                255,
-                0.9
+                47,
+                64,
+                48,
+                0.15
               );
-          color: #334032;
-          font-size: 13px;
-          font-weight: 750;
-          backdrop-filter: blur(18px);
-          box-shadow:
-            0 20px 50px
-              rgba(
-                27,
-                34,
-                26,
-                0.12
-              );
+          color: #477153;
+          font-family: Georgia, serif;
+          font-size: 20px;
+          font-style: italic;
+          line-height: 1.5;
         }
 
-        .q1 {
-          top: 75px;
-          left: 42px;
-        }
+        /* NOISE */
 
-        .q2 {
-          top: 195px;
-          right: 28px;
-        }
-
-        .q3 {
-          bottom: 170px;
-          left: 36px;
-        }
-
-        .hero-root-card {
-          position: absolute;
-          right: 38px;
-          bottom: 38px;
-          width: 290px;
-          padding: 25px;
-          border-radius: 30px;
+        .noise-section {
+          min-height: 470px;
+          display: grid;
+          grid-template-columns:
+            1.05fr 0.95fr;
+          align-items: center;
           background:
-            rgba(
-              31,
-              40,
-              31,
-              0.86
+            linear-gradient(
+              90deg,
+              #dbd6cc,
+              #eee9df
             );
-          color: white;
-          backdrop-filter: blur(22px);
+        }
+
+        .noise-phone {
+          height: 470px;
+          position: relative;
+          overflow: hidden;
+          display: grid;
+          place-items: end center;
+        }
+
+        .fake-phone {
+          width: 280px;
+          min-height: 430px;
+          padding: 22px;
+          transform:
+            rotate(-6deg)
+            translateY(35px);
+          border:
+            9px solid
+              #1c211d;
+          border-radius: 42px;
+          background: #fafafa;
           box-shadow:
-            0 26px 70px
+            0 30px 60px
               rgba(
                 0,
                 0,
@@ -1550,1849 +1106,1187 @@ export default function PersonalLandingPage() {
               );
         }
 
-        .hero-root-card span {
-          display: block;
-          margin-bottom: 12px;
-          color: #b8c9af;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-        }
-
-        .hero-root-card strong {
-          display: block;
-          font-family: Georgia, serif;
-          font-size: 28px;
-          font-weight: 500;
-          line-height: 1.08;
-        }
-
-        .hero-root-card p {
-          margin: 12px 0 0;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.72
-            );
-          font-size: 13px;
-          line-height: 1.6;
-        }
-
-        .question-section,
-        .what-if-section,
-        .glimpse-section,
-        .trust-section,
-        .future-section,
-        .faq-section {
-          width:
-            min(
-              1120px,
-              calc(100% - 36px)
-            );
-          margin: 0 auto;
-          padding: 140px 0;
-        }
-
-        .narrow-heading {
-          max-width: 760px;
-          margin: 0 auto 58px;
+        .fake-phone-top {
+          margin-bottom: 16px;
           text-align: center;
+          color: #777;
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
         }
 
-        .narrow-heading h2,
-        .what-if-heading h2 {
+        .noise-message {
+          margin-bottom: 7px;
+          padding: 10px 11px;
+          border-radius: 12px;
+          background: #f1f1f1;
+        }
+
+        .noise-message strong {
+          display: block;
+          color: #303630;
+          font-size: 10px;
+        }
+
+        .noise-message span {
+          color: #898989;
+          font-size: 9px;
+        }
+
+        .noise-copy {
+          padding: 50px 70px;
+        }
+
+        .noise-copy h2 {
+          margin: 0;
           font-size:
             clamp(
-              43px,
-              5vw,
-              68px
+              42px,
+              4.5vw,
+              66px
             );
           line-height: 1;
         }
 
-        .narrow-heading > p:last-child,
-        .what-if-heading > p:last-child {
-          max-width: 650px;
-          margin: 22px auto 0;
-          color: #6e716b;
-          font-size: 16px;
-          line-height: 1.7;
+        .noise-copy p {
+          margin: 25px 0 0;
+          color: #354237;
+          font-family: Georgia, serif;
+          font-size: 27px;
+          line-height: 1.25;
         }
 
-        .question-cloud {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 12px;
+        .noise-copy strong {
+          color: #477451;
+          font-weight: 400;
         }
 
-        .question-pill {
-          padding: 16px 20px;
-          border-radius: 999px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.56
+        /* WHAT IF */
+
+        .what-if-section {
+          width:
+            min(
+              1400px,
+              calc(100% - 40px)
             );
-          border:
+          margin: 0 auto;
+          padding: 70px 0;
+          display: grid;
+          grid-template-columns:
+            210px repeat(
+              7,
+              1fr
+            );
+          align-items: stretch;
+        }
+
+        .what-if-heading {
+          padding-right: 30px;
+          display: flex;
+          align-items: center;
+        }
+
+        .what-if-heading h2 {
+          margin: 0;
+          font-size: 33px;
+          line-height: 1.04;
+        }
+
+        .possibility {
+          padding: 10px 18px;
+          min-height: 145px;
+          border-left:
             1px solid
               rgba(
-                255,
-                255,
-                255,
-                0.82
+                54,
+                72,
+                54,
+                0.12
               );
-          color: #384138;
-          font-family: Georgia, serif;
-          font-size: 17px;
-          box-shadow:
-            0 12px 35px
-              rgba(
-                50,
-                57,
-                47,
-                0.06
-              );
-        }
-
-        .quiet-ending {
-          max-width: 700px;
-          margin: 64px auto 0;
           text-align: center;
         }
 
-        .quiet-ending strong {
-          display: block;
-          color: #30382f;
+        .possibility-icon {
+          margin-bottom: 16px;
+          color: #517659;
+          font-size: 32px;
           font-family: Georgia, serif;
-          font-size: 27px;
-          font-weight: 500;
-          line-height: 1.3;
         }
 
-        .quiet-ending p {
-          margin: 17px 0 24px;
-          color: #777a73;
+        .possibility p {
+          margin: 0;
+          color: #333b33;
+          font-size: 11px;
+          line-height: 1.45;
+        }
+
+        /* MEET ROOT */
+
+        .meet-root {
+          min-height: 500px;
+          display: grid;
+          grid-template-columns:
+            0.85fr 1fr 0.8fr;
+          align-items: center;
+          overflow: hidden;
+          background:
+            linear-gradient(
+              90deg,
+              #f8f5ee,
+              #eeede4
+            );
+        }
+
+        .meet-copy {
+          padding: 60px 70px;
+        }
+
+        .meet-copy h2 {
+          margin: 0;
+          font-size:
+            clamp(
+              37px,
+              3.7vw,
+              53px
+            );
+          line-height: 1.05;
+        }
+
+        .meet-copy > p:not(.small-label) {
+          margin: 20px 0;
+          color: #484f47;
+          font-size: 14px;
+          line-height: 1.7;
+        }
+
+        .meet-copy > strong {
+          color: #36523c;
+          font-family: Georgia, serif;
+          font-size: 17px;
+          font-weight: 400;
+          line-height: 1.5;
+        }
+
+        .root-orb-wrap {
+          display: grid;
+          place-items: center;
+        }
+
+        .root-ring {
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+        }
+
+        .ring-one {
+          width: 340px;
+          height: 340px;
+          border:
+            1px solid
+              rgba(
+                61,
+                89,
+                64,
+                0.08
+              );
+          box-shadow:
+            0 0 60px
+              rgba(
+                81,
+                111,
+                82,
+                0.08
+              );
+        }
+
+        .ring-two {
+          width: 275px;
+          height: 275px;
+          border:
+            1px solid
+              rgba(
+                61,
+                89,
+                64,
+                0.11
+              );
+        }
+
+        .ring-three {
+          width: 215px;
+          height: 215px;
+          border:
+            1px solid
+              rgba(
+                61,
+                89,
+                64,
+                0.14
+              );
+        }
+
+        .root-core {
+          width: 165px;
+          height: 165px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background:
+            linear-gradient(
+              145deg,
+              #31543a,
+              #183522
+            );
+          color: white;
+          font-family: Georgia, serif;
+          font-size: 38px;
+          box-shadow:
+            0 20px 50px
+              rgba(
+                36,
+                68,
+                42,
+                0.23
+              );
+        }
+
+        .meet-image {
+          height: 500px;
+          background:
+            linear-gradient(
+              90deg,
+              rgba(
+                239,
+                238,
+                228,
+                0.65
+              ),
+              rgba(
+                239,
+                238,
+                228,
+                0
+              )
+            ),
+            url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80")
+              center / cover no-repeat;
+        }
+
+        /* ROOT ACTION */
+
+        .root-action {
+          width:
+            min(
+              1400px,
+              calc(100% - 40px)
+            );
+          margin: 0 auto;
+          padding: 65px 0 80px;
+          display: grid;
+          grid-template-columns:
+            repeat(4, 1fr);
+          gap: 40px;
+        }
+
+        .mini-experience {
+          text-align: center;
+        }
+
+        .mini-experience h3 {
+          margin: 0;
+          font-size: 11px;
+          letter-spacing: 0.05em;
+        }
+
+        .mini-subtitle {
+          min-height: 36px;
+          margin: 8px auto 24px;
+          color: #777c75;
+          font-size: 10px;
+          line-height: 1.45;
+        }
+
+        .phone-shell {
+          width: 220px;
+          min-height: 355px;
+          margin: 0 auto;
+          padding: 17px;
+          border:
+            5px solid
+              #e7e4dd;
+          border-radius: 35px;
+          background: #f9f8f4;
+          box-shadow:
+            0 15px 35px
+              rgba(
+                38,
+                46,
+                37,
+                0.08
+              );
+        }
+
+        .mini-phone-top {
+          margin-bottom: 18px;
+          color: #777;
+          text-align: left;
+          font-size: 8px;
+          font-weight: 800;
+        }
+
+        .mini-chat {
+          display: grid;
+          gap: 10px;
+        }
+
+        .mini-user,
+        .mini-root {
+          padding: 12px;
+          border-radius: 15px;
+          text-align: left;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .mini-user {
+          background: #eeeae3;
+        }
+
+        .mini-root {
+          background: #e2e9de;
+          color: #3d493c;
+        }
+
+        .insight-demo {
+          text-align: left;
+        }
+
+        .metric {
+          margin-bottom: 8px;
+          padding: 9px 10px;
+          border-radius: 12px;
+          display: flex;
+          justify-content: space-between;
+          background: #eeece7;
+          font-size: 10px;
+        }
+
+        .insight-demo p {
+          margin-top: 20px;
+          color: #60705f;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .plan-demo {
+          display: grid;
+          gap: 8px;
+          text-align: left;
+        }
+
+        .plan-demo > span {
+          color: #879184;
+          font-size: 8px;
+          font-weight: 800;
+        }
+
+        .plan-demo > strong {
+          margin-bottom: 8px;
+          font-family: Georgia, serif;
+          font-size: 16px;
+          font-weight: 400;
+        }
+
+        .plan-demo label {
+          padding: 8px;
+          border-bottom:
+            1px solid #ebe8e1;
+          color: #536052;
+          font-size: 10px;
+        }
+
+        .memory-demo {
+          text-align: left;
+        }
+
+        .memory-demo > span {
+          color: #81907c;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+        }
+
+        .memory-demo > p {
+          color: #3c463b;
+          font-family: Georgia, serif;
+          font-size: 14px;
+          line-height: 1.45;
+        }
+
+        .memory-demo button {
+          width: 100%;
+          margin: 10px 0;
+          padding: 9px;
+          border:
+            1px solid #e0dfd9;
+          border-radius: 10px;
+          background: white;
+          color: #47624a;
+          font-size: 9px;
+        }
+
+        .memory-demo small {
+          color: #777c75;
+          font-size: 8px;
+          line-height: 1.5;
+        }
+
+        /* BUILD AROUND */
+
+        .build-around {
+          width:
+            min(
+              1400px,
+              calc(100% - 40px)
+            );
+          margin: 0 auto;
+          padding: 58px 0;
+          display: grid;
+          grid-template-columns:
+            220px repeat(
+              8,
+              1fr
+            ) 170px;
+          align-items: center;
+        }
+
+        .build-title h2 {
+          margin: 0;
+          font-size: 28px;
+          line-height: 1;
+        }
+
+        .life-goal {
+          text-align: center;
+        }
+
+        .life-goal-icon {
+          color: #55775b;
+          font-family: Georgia, serif;
+          font-size: 30px;
+        }
+
+        .life-goal p {
+          color: #3e463d;
+          font-size: 9px;
+          line-height: 1.4;
+        }
+
+        .build-last {
+          color: #4d7557;
+          font-family: Georgia, serif;
+          font-size: 15px;
+          font-style: italic;
+          line-height: 1.45;
+        }
+
+        /* PLAYBOOK STORY */
+
+        .playbook-story {
+          width:
+            min(
+              1260px,
+              calc(100% - 40px)
+            );
+          margin: 45px auto 100px;
+          padding: 70px;
+          border-radius: 44px;
+          display: grid;
+          grid-template-columns:
+            0.9fr 1.1fr;
+          gap: 80px;
+          background:
+            linear-gradient(
+              145deg,
+              #f8f5ee,
+              #e6eadf
+            );
+        }
+
+        .playbook-text h2 {
+          margin: 0;
+          font-size:
+            clamp(
+              40px,
+              4.8vw,
+              65px
+            );
+          line-height: 1;
+        }
+
+        .playbook-text h2 em {
+          color: #4d7557;
+          font-style: normal;
+        }
+
+        .playbook-text > p:not(.small-label) {
+          max-width: 520px;
+          color: #626a61;
           font-size: 15px;
           line-height: 1.7;
         }
 
-        .noise-section {
-          width:
-            min(
-              1240px,
-              calc(100% - 28px)
-            );
-          min-height: 700px;
-          margin: 20px auto;
-          padding: 86px;
-          border-radius: 52px;
-          display: grid;
-          grid-template-columns:
-            0.9fr 1.1fr;
-          gap: 80px;
-          align-items: center;
-          background:
-            linear-gradient(
-              145deg,
-              #202820,
-              #344034
-            );
-          color: white;
-          overflow: hidden;
-        }
-
-        .noise-copy {
-          max-width: 500px;
-        }
-
-        .noise-section h2 {
-          font-size:
-            clamp(
-              48px,
-              5vw,
-              72px
-            );
-          line-height: 0.98;
-        }
-
-        .noise-copy p {
-          margin: 22px 0 0;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.64
-            );
-          font-size: 16px;
-          line-height: 1.75;
-        }
-
-        .noise-copy .noise-emphasis {
-          color: white;
-          font-size: 18px;
-          font-weight: 700;
-        }
-
-        .noise-wall {
-          position: relative;
-          min-height: 500px;
-          border-radius: 38px;
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.09
-              );
-          background:
-            radial-gradient(
-              circle at center,
-              rgba(
-                179,
-                203,
-                169,
-                0.18
-              ),
-              rgba(
-                255,
-                255,
-                255,
-                0.02
-              )
-            );
-        }
-
-        .noise-wall > span {
-          position: absolute;
-          padding: 11px 14px;
-          border-radius: 999px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.07
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.10
-              );
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.56
-            );
-          font-size: 11px;
-        }
-
-        .noise-wall > span:nth-child(1) {
-          top: 42px;
-          left: 30px;
-        }
-
-        .noise-wall > span:nth-child(2) {
-          top: 100px;
-          right: 25px;
-        }
-
-        .noise-wall > span:nth-child(3) {
-          top: 190px;
-          left: 20px;
-        }
-
-        .noise-wall > span:nth-child(4) {
-          bottom: 110px;
-          right: 32px;
-        }
-
-        .noise-wall > span:nth-child(5) {
-          bottom: 42px;
-          left: 45px;
-        }
-
-        .noise-wall > span:nth-child(6) {
-          top: 55px;
-          right: 180px;
-        }
-
-        .noise-centre {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 260px;
-          height: 260px;
-          transform:
-            translate(
-              -50%,
-              -50%
-            );
-          border-radius: 50%;
-          display: grid;
-          place-content: center;
-          text-align: center;
-          padding: 35px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.08
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.15
-              );
-          box-shadow:
-            0 0 90px
-              rgba(
-                178,
-                206,
-                169,
-                0.10
-              );
-        }
-
-        .noise-centre strong {
-          font-family: Georgia, serif;
-          font-size: 25px;
-          font-weight: 500;
-          line-height: 1.2;
-        }
-
-        .noise-centre p {
-          margin: 12px 0 0;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.68
-            );
-          font-size: 12px;
-          line-height: 1.6;
-        }
-
-        .what-if-heading {
-          max-width: 820px;
-          margin-bottom: 55px;
-        }
-
-        .what-if-grid {
-          display: grid;
-          grid-template-columns:
-            repeat(
-              4,
-              minmax(0, 1fr)
-            );
-          gap: 14px;
-        }
-
-        .what-if-card {
-          min-height: 190px;
-          padding: 23px;
-          border-radius: 28px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.52
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.78
-              );
-        }
-
-        .what-if-card.featured {
-          background:
-            linear-gradient(
-              145deg,
-              rgba(
-                204,
-                220,
-                195,
-                0.88
-              ),
-              rgba(
-                242,
-                238,
-                222,
-                0.82
-              )
-            );
-          box-shadow:
-            0 20px 55px
-              rgba(
-                71,
-                85,
-                67,
-                0.09
-              );
-        }
-
-        .what-if-card span {
-          color: #83907e;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-        }
-
-        .what-if-card p {
-          margin: 0;
-          color: #354034;
-          font-family: Georgia, serif;
-          font-size: 20px;
-          line-height: 1.28;
-        }
-
-        .what-if-close {
-          margin-top: 56px;
-          text-align: center;
-        }
-
-        .what-if-close h3 {
-          margin: 0 0 24px;
-          font-family: Georgia, serif;
-          font-size: 32px;
-          font-weight: 500;
-        }
-
-        .reveal-section {
-          width:
-            min(
-              1240px,
-              calc(100% - 28px)
-            );
-          margin: 20px auto;
-          padding: 100px;
-          border-radius: 52px;
-          display: grid;
-          grid-template-columns:
-            0.8fr 1.2fr;
-          gap: 90px;
-          align-items: center;
-          background:
-            linear-gradient(
-              145deg,
-              #243024,
-              #3a4938
-            );
-          color: white;
-        }
-
-        .root-orb {
-          width: 390px;
-          height: 390px;
-          max-width: 100%;
-          margin: 0 auto;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          background:
-            radial-gradient(
-              circle,
-              rgba(
-                196,
-                219,
-                185,
-                0.22
-              ),
-              rgba(
-                255,
-                255,
-                255,
-                0.03
-              )
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.12
-              );
-        }
-
-        .root-orb-two {
-          width: 270px;
-          height: 270px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.16
-              );
-        }
-
-        .root-orb-centre {
-          width: 150px;
-          height: 150px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.10
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.20
-              );
-          font-family: Georgia, serif;
-          font-size: 34px;
-        }
-
-        .reveal-copy {
-          max-width: 620px;
-        }
-
-        .reveal-section h2 {
-          font-size:
-            clamp(
-              52px,
-              6vw,
-              80px
-            );
-          line-height: 0.96;
-        }
-
-        .reveal-copy p {
-          margin: 24px 0 0;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.68
-            );
-          font-size: 17px;
-          line-height: 1.75;
-        }
-
-        .reveal-copy strong {
-          display: block;
-          margin: 26px 0;
-          color: white;
-          font-family: Georgia, serif;
-          font-size: 27px;
-          font-weight: 500;
-        }
-
-        .glimpse-grid {
-          display: grid;
-          grid-template-columns:
-            1fr 1fr;
-          gap: 18px;
-        }
-
-        .product-glimpse {
-          min-height: 590px;
-          padding: 34px;
-          border-radius: 38px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.58
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.82
-              );
-          box-shadow:
-            0 25px 70px
-              rgba(
-                60,
-                66,
-                56,
-                0.09
-              );
-        }
-
-        .product-glimpse.dark {
-          background:
-            linear-gradient(
-              145deg,
-              #253025,
-              #3c493a
-            );
-          color: white;
-        }
-
-        .product-glimpse .kicker {
-          color: #84917f;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-        }
-
-        .product-glimpse.dark .kicker {
-          color: #b7c6b0;
-        }
-
-        .product-glimpse h3 {
-          margin: 10px 0 0;
-          font-family: Georgia, serif;
-          font-size: 38px;
-          font-weight: 500;
-          letter-spacing: -0.04em;
-        }
-
-        .product-glimpse > div > p {
-          max-width: 500px;
-          margin: 16px 0 0;
-          color: #6d716a;
-          line-height: 1.7;
-        }
-
-        .product-glimpse.dark > div > p {
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.64
-            );
-        }
-
-        .glimpse-demo {
-          margin-top: 30px;
-        }
-
-        .chat-preview,
-        .recording-preview,
-        .progress-preview,
-        .memory-preview {
-          padding: 22px;
-          border-radius: 28px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.50
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.72
-              );
-        }
-
-        .product-glimpse.dark
-          .chat-preview,
-        .product-glimpse.dark
-          .memory-preview {
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.08
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.12
-              );
-        }
-
-        .chat-preview {
-          display: grid;
-          gap: 12px;
-        }
-
-        .chat-user {
-          justify-self: end;
-          max-width: 82%;
-          padding: 13px 15px;
-          border-radius:
-            20px 20px 5px 20px;
-          background: #263027;
-          color: white;
-          font-size: 12px;
-          line-height: 1.55;
-        }
-
-        .chat-root {
-          max-width: 88%;
-          padding: 13px 15px;
-          border-radius:
-            20px 20px 20px 5px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.88
-            );
-          color: #4e584d;
-          font-size: 12px;
-          line-height: 1.55;
-        }
-
-        .product-glimpse.dark
-          .chat-root {
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.10
-            );
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.82
-            );
-        }
-
-        .recording-preview span,
-        .memory-preview span {
-          color: #81907c;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-        }
-
-        .recording-preview strong {
-          display: block;
-          margin-top: 10px;
-          font-family: Georgia, serif;
-          font-size: 26px;
-          font-weight: 500;
-        }
-
-        .recording-preview p {
-          color: #6e746b;
-          line-height: 1.6;
-        }
-
-        .play-button {
-          width: 56px;
-          height: 56px;
-          margin-top: 18px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          background: #263027;
-          color: white;
-        }
-
-        .progress-preview {
-          display: grid;
-          gap: 10px;
-        }
-
-        .progress-preview > div {
-          padding: 13px 15px;
-          border-radius: 18px;
-          display: flex;
-          justify-content: space-between;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.56
-            );
-        }
-
-        .progress-preview span {
-          color: #717b6e;
-          font-size: 12px;
-        }
-
-        .progress-preview p {
-          margin: 9px 0 0;
-          color: #465045;
-          font-size: 13px;
-          line-height: 1.6;
-        }
-
-        .memory-preview p {
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.82
-            );
-          font-family: Georgia, serif;
-          font-size: 22px;
-          line-height: 1.35;
-        }
-
-        .memory-preview button {
-          padding: 0;
-          border: none;
-          background: transparent;
-          color: white;
-          font-weight: 800;
-        }
-
-        .playbook-section {
-          width:
-            min(
-              1180px,
-              calc(100% - 36px)
-            );
-          margin: 0 auto;
-          padding: 90px 0 155px;
-          display: grid;
-          grid-template-columns:
-            0.88fr 1.12fr;
-          gap: 80px;
-          align-items: center;
-        }
-
-        .playbook-copy {
-          max-width: 520px;
-        }
-
-        .playbook-section h2 {
-          font-size:
-            clamp(
-              44px,
-              5vw,
-              68px
-            );
-          line-height: 1;
-        }
-
-        .playbook-copy > p {
-          margin: 22px 0 0;
-          color: #6b6f68;
-          line-height: 1.75;
-        }
-
-        .possibility-cloud {
-          margin: 28px 0;
+        .playbook-words {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
+          margin-top: 25px;
         }
 
-        .possibility-cloud span {
-          padding: 9px 12px;
+        .playbook-words span {
+          padding: 8px 11px;
           border-radius: 999px;
           background:
             rgba(
               255,
               255,
               255,
-              0.56
+              0.7
             );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.76
-              );
-          color: #51604e;
-          font-size: 11px;
-          font-weight: 750;
-        }
-
-        .playbook-copy h3 {
-          margin: 30px 0 25px;
-          font-family: Georgia, serif;
-          font-size: 29px;
-          font-weight: 500;
-          line-height: 1.3;
-        }
-
-        .playbook-window {
-          padding: 28px;
-          border-radius: 38px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.62
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.86
-              );
-          box-shadow:
-            0 30px 90px
-              rgba(
-                58,
-                66,
-                55,
-                0.12
-              );
-        }
-
-        .window-top {
-          display: flex;
-          justify-content: space-between;
-          gap: 20px;
-        }
-
-        .window-top span {
-          color: #80907b;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-        }
-
-        .window-top strong {
-          display: block;
-          margin-top: 7px;
-          font-family: Georgia, serif;
-          font-size: 28px;
-          font-weight: 500;
-        }
-
-        .saved-pill {
-          align-self: flex-start;
-          padding: 7px 10px;
-          border-radius: 999px;
-          background: #e2ebdc;
-        }
-
-        .playbook-chat {
-          margin-top: 24px;
-          padding: 18px;
-          border-radius: 26px;
-          display: grid;
-          gap: 10px;
-          background: #f0ede4;
-        }
-
-        .plan-card {
-          margin-top: 17px;
-          padding: 21px;
-          border-radius: 25px;
-          background:
-            rgba(
-              210,
-              224,
-              202,
-              0.48
-            );
-        }
-
-        .plan-card > span,
-        .change-request span,
-        .change-answer span {
-          display: block;
-          margin-bottom: 7px;
-          color: #7e8b79;
-          font-size: 8px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-        }
-
-        .plan-card > strong {
-          font-family: Georgia, serif;
-          font-size: 24px;
-          font-weight: 500;
-        }
-
-        .plan-line {
-          margin-top: 12px;
-          padding-top: 12px;
-          border-top:
-            1px solid
-              rgba(
-                68,
-                80,
-                65,
-                0.10
-              );
-          display: grid;
-          grid-template-columns:
-            70px 1fr;
-          gap: 10px;
-          align-items: start;
-        }
-
-        .plan-line span {
-          color: #7a8776;
+          color: #526451;
           font-size: 10px;
-          font-weight: 800;
         }
 
-        .plan-line p {
-          margin: 0;
-          color: #4b5649;
-          font-size: 12px;
+        .playbook-demo-large {
+          padding: 25px;
+          border-radius: 32px;
+          background:
+            rgba(
+              255,
+              255,
+              255,
+              0.68
+            );
+          box-shadow:
+            0 25px 60px
+              rgba(
+                45,
+                58,
+                43,
+                0.09
+              );
         }
 
-        .change-request,
-        .change-answer {
-          margin-top: 12px;
-          padding: 14px 16px;
-          border-radius: 20px;
-          font-size: 12px;
+        .demo-you,
+        .demo-root {
+          max-width: 80%;
+          padding: 13px 15px;
+          border-radius: 17px;
+          font-size: 11px;
           line-height: 1.55;
         }
 
-        .change-request {
-          margin-left: 70px;
-          background: #293229;
+        .demo-you {
+          margin-left: auto;
+          background: #283329;
           color: white;
         }
 
-        .change-answer {
-          margin-right: 70px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.75
-            );
-          color: #4a5548;
+        .demo-root {
+          background: #edf0e8;
+          color: #465145;
         }
 
-        .inner-voice-section {
-          width:
-            min(
-              1240px,
-              calc(100% - 28px)
-            );
-          margin: 10px auto;
-          padding: 100px;
-          border-radius: 52px;
-          background:
-            linear-gradient(
-              145deg,
-              #202820,
-              #344034
-            );
-          color: white;
+        .demo-you.small,
+        .demo-root.small {
+          margin-top: 9px;
         }
 
-        .inner-questions {
-          display: grid;
-          grid-template-columns:
-            1fr 1fr;
-          gap: 14px;
+        .saved-plan {
+          margin: 20px 0;
+          padding: 20px;
+          border-radius: 22px;
+          background: #f0efe8;
         }
 
-        .inner-questions p {
-          margin: 0;
-          padding: 23px;
-          border-radius: 25px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.07
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.10
-              );
-          font-family: Georgia, serif;
-          font-size: 22px;
-          line-height: 1.35;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.84
-            );
+        .saved-plan > span {
+          color: #788875;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 0.1em;
         }
 
-        .inner-close {
-          max-width: 720px;
-          margin: 70px auto 0;
-          text-align: center;
-        }
-
-        .inner-close h2 {
-          margin: 0;
-          font-family: Georgia, serif;
-          font-size:
-            clamp(
-              42px,
-              5vw,
-              68px
-            );
-          font-weight: 500;
-          letter-spacing: -0.05em;
-          line-height: 1;
-        }
-
-        .inner-close p {
-          margin: 22px 0 25px;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.62
-            );
-          line-height: 1.7;
-        }
-
-        .trust-section h2 {
-          max-width: 770px;
-          font-size:
-            clamp(
-              48px,
-              5.5vw,
-              76px
-            );
-          line-height: 0.98;
-        }
-
-        .trust-heading > p:not(.eyebrow) {
-          margin: 18px 0 0;
-          color: #666d64;
-          font-family: Georgia, serif;
-          font-size: 25px;
-        }
-
-        .trust-mantra {
-          margin-top: 40px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 9px;
-        }
-
-        .trust-mantra strong {
-          padding: 11px 14px;
-          border-radius: 999px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.58
-            );
-          color: #455143;
-          font-size: 12px;
-        }
-
-        .trust-grid {
-          margin-top: 60px;
-          display: grid;
-          grid-template-columns:
-            repeat(
-              3,
-              1fr
-            );
-          gap: 14px;
-        }
-
-        .trust-card {
-          min-height: 215px;
-          padding: 24px;
-          border-radius: 28px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.52
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.80
-              );
-        }
-
-        .trust-card strong {
+        .saved-plan > strong {
+          display: block;
+          margin: 8px 0 13px;
           font-family: Georgia, serif;
           font-size: 21px;
-          font-weight: 500;
+          font-weight: 400;
         }
 
-        .trust-card p {
-          margin: 14px 0 0;
-          color: #6d716a;
-          font-size: 13px;
-          line-height: 1.7;
+        .saved-plan > div {
+          padding: 9px 0;
+          border-top:
+            1px solid #deddd5;
+          display: flex;
+          justify-content: space-between;
+          color: #72786f;
+          font-size: 9px;
         }
 
-        .trust-summary {
-          max-width: 760px;
-          margin: 65px auto 0;
+        .saved-plan b {
+          color: #394538;
+          font-weight: 600;
+        }
+
+        /* TRUST */
+
+        .trust {
+          padding: 62px
+            max(
+              40px,
+              calc(
+                (100vw - 1400px) / 2
+              )
+            );
+          display: grid;
+          grid-template-columns:
+            1.2fr repeat(
+              4,
+              0.7fr
+            );
+          gap: 30px;
+          background:
+            linear-gradient(
+              90deg,
+              #17351f,
+              #28452d
+            );
+          color: white;
+        }
+
+        .trust-title {
+          padding-right: 35px;
+          border-right:
+            1px solid
+              rgba(
+                255,
+                255,
+                255,
+                0.18
+              );
+        }
+
+        .trust-title h2 {
+          margin: 0;
+          font-size: 34px;
+          line-height: 1.05;
+        }
+
+        .trust-point {
           text-align: center;
         }
 
-        .trust-summary h3 {
-          margin: 0;
+        .trust-icon {
+          color: #dfe7da;
           font-family: Georgia, serif;
-          font-size: 35px;
-          font-weight: 500;
+          font-size: 31px;
         }
 
-        .trust-summary p {
-          color: #6f756c;
-          line-height: 1.7;
+        .trust-point h3 {
+          margin: 10px 0 0;
+          font-family: Georgia, serif;
+          font-size: 21px;
+          font-weight: 400;
+          line-height: 1.15;
         }
+
+        .trust-bottom {
+          grid-column: 2 / -1;
+          margin-top: 15px;
+          padding-top: 20px;
+          border-top:
+            1px solid
+              rgba(
+                255,
+                255,
+                255,
+                0.11
+              );
+          display: grid;
+          grid-template-columns:
+            1fr 1.2fr;
+          gap: 40px;
+          color:
+            rgba(
+              255,
+              255,
+              255,
+              0.64
+            );
+          font-size: 10px;
+          line-height: 1.6;
+        }
+
+        /* LIFE */
 
         .life-section {
           width:
             min(
-              1240px,
-              calc(100% - 28px)
+              1400px,
+              calc(100% - 40px)
             );
-          margin: 20px auto;
-          padding: 100px;
-          border-radius: 52px;
+          margin: 0 auto;
+          padding: 52px 0;
           display: grid;
           grid-template-columns:
-            0.9fr 1.1fr;
-          gap: 90px;
-          background:
-            linear-gradient(
-              145deg,
-              #263126,
-              #3a4838
-            );
-          color: white;
-        }
-
-        .life-copy {
-          max-width: 530px;
-        }
-
-        .life-section h2 {
-          font-size:
-            clamp(
-              50px,
-              5.8vw,
-              76px
-            );
-          line-height: 0.98;
-        }
-
-        .life-copy p {
-          margin: 19px 0 0;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.62
-            );
-          line-height: 1.7;
-        }
-
-        .life-copy strong {
-          display: block;
-          margin-top: 26px;
-          font-family: Georgia, serif;
-          font-size: 25px;
-          font-weight: 500;
-        }
-
-        .life-path {
-          display: grid;
-          gap: 12px;
-        }
-
-        .life-path > div {
-          min-height: 105px;
-          padding: 20px 23px;
-          border-radius: 25px;
-          display: flex;
-          justify-content: space-between;
+            190px 1fr 40px 1fr 40px 1fr
+            40px 1fr 40px 1fr;
           align-items: center;
-          gap: 24px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.07
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.10
-              );
-        }
-
-        .life-path span {
-          color: #b8c8b0;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-        }
-
-        .life-path strong {
-          max-width: 340px;
-          font-family: Georgia, serif;
-          font-size: 21px;
-          font-weight: 500;
-          text-align: right;
-        }
-
-        .future-section {
-          text-align: center;
-        }
-
-        .future-section h2 {
-          max-width: 850px;
-          margin: 0 auto;
-          font-size:
-            clamp(
-              48px,
-              6vw,
-              78px
-            );
-          line-height: 0.98;
-        }
-
-        .future-lines {
-          max-width: 850px;
-          margin: 50px auto;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
           gap: 10px;
         }
 
-        .future-lines span {
-          padding: 13px 16px;
-          border-radius: 999px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.60
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.82
-              );
-          color: #536052;
-          font-size: 13px;
-        }
-
-        .future-section h3 {
-          max-width: 700px;
-          margin: 0 auto 28px;
+        .life-note {
+          color: #4d7456;
           font-family: Georgia, serif;
-          font-size: 30px;
-          font-weight: 500;
-          line-height: 1.3;
-        }
-
-        .price-section {
-          width:
-            min(
-              900px,
-              calc(100% - 36px)
-            );
-          margin: 0 auto;
-          padding: 30px 0 150px;
-        }
-
-        .price-card {
-          padding: 75px;
-          border-radius: 48px;
-          text-align: center;
-          background:
-            linear-gradient(
-              145deg,
-              rgba(
-                255,
-                255,
-                255,
-                0.78
-              ),
-              rgba(
-                216,
-                230,
-                207,
-                0.68
-              )
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.88
-              );
-          box-shadow:
-            0 38px 100px
-              rgba(
-                60,
-                72,
-                57,
-                0.13
-              );
-        }
-
-        .price-section h2 {
-          font-size:
-            clamp(
-              50px,
-              6vw,
-              78px
-            );
-          line-height: 0.97;
-        }
-
-        .price-intro {
-          max-width: 580px;
-          margin: 22px auto 0;
-          color: #626a60;
-          line-height: 1.7;
-        }
-
-        .big-price {
-          margin-top: 38px;
-          display: flex;
-          align-items: baseline;
-          justify-content: center;
-          gap: 8px;
-        }
-
-        .big-price strong {
-          font-family: Georgia, serif;
-          font-size:
-            clamp(
-              62px,
-              7vw,
-              92px
-            );
-          font-weight: 500;
-          letter-spacing: -0.05em;
-        }
-
-        .big-price span {
-          color: #70786e;
-        }
-
-        .annual {
-          margin: 2px 0 0;
-          color: #767e74;
-          font-size: 13px;
-        }
-
-        .included {
-          max-width: 640px;
-          margin: 40px auto;
-          display: grid;
-          grid-template-columns:
-            1fr 1fr;
-          gap: 13px 24px;
-          text-align: left;
-        }
-
-        .included span {
-          color: #536051;
-          font-size: 13px;
-        }
-
-        .price-cta {
-          width:
-            min(
-              390px,
-              100%
-            );
-        }
-
-        .price-note {
-          color: #7b8279;
-          font-size: 11px;
-        }
-
-        .faq-list {
-          max-width: 820px;
-          margin: 0 auto;
-          display: grid;
-          gap: 10px;
-        }
-
-        .faq-item {
-          border-radius: 24px;
-          overflow: hidden;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.52
-            );
-          border:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.78
-              );
-        }
-
-        .faq-button {
-          width: 100%;
-          padding: 21px 23px;
-          border: none;
-          background: transparent;
-          display: flex;
-          justify-content: space-between;
-          gap: 20px;
-          color: #303a2f;
-          text-align: left;
-          font-size: 14px;
-          font-weight: 800;
-          cursor: pointer;
-        }
-
-        .faq-plus {
-          color: #778575;
-          font-size: 20px;
-        }
-
-        .faq-answer {
-          padding: 0 23px 23px;
-          color: #6d716a;
-          font-size: 13px;
-          line-height: 1.75;
-        }
-
-        .final-section {
-          width:
-            min(
-              1000px,
-              calc(100% - 36px)
-            );
-          margin: 0 auto 100px;
-          padding: 110px 30px;
-          text-align: center;
-        }
-
-        .final-orb {
-          width: 150px;
-          height: 150px;
-          margin: 0 auto 40px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          background:
-            radial-gradient(
-              circle,
-              rgba(
-                204,
-                220,
-                194,
-                0.70
-              ),
-              rgba(
-                255,
-                255,
-                255,
-                0.14
-              )
-            );
-          border:
-            1px solid
-              rgba(
-                117,
-                136,
-                110,
-                0.18
-              );
-          font-family: Georgia, serif;
-          font-size: 27px;
-        }
-
-        .final-section h2 {
-          font-size:
-            clamp(
-              58px,
-              7vw,
-              92px
-            );
-          line-height: 0.95;
-        }
-
-        .final-section > p:not(.eyebrow):not(.final-price) {
-          margin: 22px 0 26px;
-          color: #666d64;
-          font-family: Georgia, serif;
-          font-size: 23px;
+          font-size: 18px;
+          font-style: italic;
           line-height: 1.5;
         }
 
-        .final-price {
-          margin-top: 16px;
-          color: #7c8279;
+        .life-stage {
+          text-align: center;
+        }
+
+        .life-stage-icon {
+          width: 42px;
+          height: 42px;
+          margin: 0 auto 8px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          border:
+            1px solid #879886;
+          color: #55735a;
+        }
+
+        .life-stage strong {
+          display: block;
+          color: #333b33;
+          font-size: 10px;
+        }
+
+        .life-stage p {
+          margin: 5px 0 0;
+          color: #777d76;
+          font-size: 8px;
+          line-height: 1.4;
+        }
+
+        .life-arrow {
+          color: #a4aaa2;
+          text-align: center;
+        }
+
+        /* CHANGES */
+
+        .small-changes {
+          min-height: 180px;
+          display: grid;
+          grid-template-columns:
+            220px 1fr 25px 1fr 25px
+            1fr 25px 1fr 25px 1fr
+            230px;
+          align-items: center;
+          background: #f7f4ed;
+        }
+
+        .change-heading {
+          padding-left: 55px;
+        }
+
+        .change-heading h2 {
+          margin: 0;
+          font-size: 21px;
+          line-height: 1.05;
+        }
+
+        .change-step {
+          text-align: center;
+        }
+
+        .change-step-icon {
+          color: #55725a;
+          font-family: Georgia, serif;
+          font-size: 25px;
+        }
+
+        .change-step p {
+          margin: 8px auto 0;
+          max-width: 100px;
+          color: #464e45;
+          font-size: 9px;
+          line-height: 1.4;
+        }
+
+        .change-arrow {
+          color: #afb3ac;
+        }
+
+        .change-image {
+          align-self: stretch;
+          background:
+            url("https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=700&q=80")
+              center / cover no-repeat;
+        }
+
+        /* OFFER */
+
+        .final-offer {
+          min-height: 250px;
+          display: grid;
+          grid-template-columns:
+            0.7fr 0.9fr 1fr 0.9fr;
+          align-items: center;
+          background:
+            linear-gradient(
+              90deg,
+              #f7f3eb,
+              #eee9df
+            );
+        }
+
+        .offer-title {
+          padding-left: 65px;
+        }
+
+        .offer-title h2 {
+          margin: 0;
+          font-size: 40px;
+          line-height: 0.95;
+        }
+
+        .offer-price strong {
+          font-family: Georgia, serif;
+          font-size: 37px;
+          font-weight: 400;
+        }
+
+        .offer-price span {
+          margin-left: 5px;
           font-size: 11px;
         }
 
-        .sales-footer {
-          width:
-            min(
-              1120px,
-              calc(100% - 36px)
-            );
-          margin: 0 auto;
-          padding: 28px 0 42px;
-          border-top:
-            1px solid
-              rgba(
-                63,
-                72,
-                60,
-                0.10
-              );
+        .offer-price p {
+          margin: 3px 0 9px;
+          font-family: Georgia, serif;
+          font-size: 17px;
+        }
+
+        .offer-price small {
+          color: #747a72;
+          font-size: 9px;
+        }
+
+        .offer-action button {
+          width: 240px;
+          padding: 14px 19px;
+          border: none;
+          border-radius: 999px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          color: #676e65;
-          font-size: 11px;
+          background: #26432e;
+          color: white;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow:
+            0 14px 30px
+              rgba(
+                32,
+                67,
+                40,
+                0.18
+              );
         }
 
-        .sales-footer > div:last-child {
+        .offer-action p {
+          margin: 12px 0 0;
+          color: #6b7169;
+          font-size: 9px;
+          line-height: 1.5;
+        }
+
+        .offer-image {
+          align-self: stretch;
+          background:
+            linear-gradient(
+              90deg,
+              rgba(
+                238,
+                233,
+                223,
+                0.4
+              ),
+              rgba(
+                238,
+                233,
+                223,
+                0
+              )
+            ),
+            url("https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=700&q=80")
+              center / cover no-repeat;
+        }
+
+        /* FOOTER */
+
+        .footer {
+          width:
+            min(
+              1400px,
+              calc(100% - 50px)
+            );
+          margin: 0 auto;
+          padding: 25px 0 35px;
+          display: flex;
+          justify-content: space-between;
+          color: #757b73;
+          font-size: 10px;
+        }
+
+        .footer-links {
           display: flex;
           gap: 18px;
         }
 
-        .sales-footer a {
+        .footer a {
           color: inherit;
           text-decoration: none;
         }
 
+        /* MOBILE */
+
         @media (max-width: 1000px) {
-          .hero,
-          .noise-section,
-          .reveal-section,
-          .playbook-section,
-          .life-section {
+          .hero {
             grid-template-columns: 1fr;
           }
 
-          .hero-stage {
-            min-height: 600px;
+          .hero-copy {
+            padding: 70px 35px;
           }
 
-          .what-if-grid {
+          .hero-image {
+            min-height: 470px;
+          }
+
+          .questions-section {
+            grid-template-columns: 1fr;
+          }
+
+          .questions-heading {
+            max-width: 260px;
+          }
+
+          .questions-note {
+            border-left: none;
+            padding-left: 0;
+          }
+
+          .noise-section {
+            grid-template-columns: 1fr;
+          }
+
+          .noise-copy {
+            order: -1;
+          }
+
+          .what-if-section {
+            grid-template-columns:
+              repeat(
+                2,
+                1fr
+              );
+          }
+
+          .what-if-heading {
+            grid-column: 1 / -1;
+            padding-bottom: 35px;
+          }
+
+          .possibility {
+            border-left: none;
+            border-top:
+              1px solid
+                rgba(
+                  54,
+                  72,
+                  54,
+                  0.12
+                );
+          }
+
+          .meet-root {
+            grid-template-columns: 1fr;
+          }
+
+          .meet-image {
+            min-height: 350px;
+          }
+
+          .root-action {
             grid-template-columns:
               1fr 1fr;
           }
 
-          .trust-grid {
+          .build-around {
+            grid-template-columns:
+              repeat(
+                3,
+                1fr
+              );
+            gap: 28px;
+          }
+
+          .build-title,
+          .build-last {
+            grid-column: 1 / -1;
+          }
+
+          .playbook-story {
+            grid-template-columns: 1fr;
+          }
+
+          .trust {
             grid-template-columns:
               1fr 1fr;
           }
 
-          .noise-section,
-          .reveal-section,
-          .inner-voice-section,
+          .trust-title {
+            grid-column: 1 / -1;
+            border-right: none;
+          }
+
+          .trust-bottom {
+            grid-column: 1 / -1;
+          }
+
           .life-section {
-            padding: 65px 45px;
+            grid-template-columns: 1fr;
+            gap: 25px;
           }
 
-          .root-orb {
-            width: 320px;
-            height: 320px;
+          .life-arrow {
+            transform: rotate(90deg);
+          }
+
+          .small-changes {
+            padding: 55px 30px;
+            grid-template-columns: 1fr;
+            gap: 25px;
+          }
+
+          .change-heading {
+            padding-left: 0;
+          }
+
+          .change-arrow {
+            transform: rotate(90deg);
+            text-align: center;
+          }
+
+          .change-image {
+            min-height: 250px;
+          }
+
+          .final-offer {
+            padding: 55px 35px;
+            grid-template-columns: 1fr;
+            gap: 30px;
+          }
+
+          .offer-title {
+            padding-left: 0;
+          }
+
+          .offer-image {
+            min-height: 240px;
           }
         }
 
-        @media (max-width: 720px) {
-          .sales-header {
-            padding: 18px 0;
+        @media (max-width: 640px) {
+          .topbar {
+            width:
+              calc(
+                100% - 30px
+              );
           }
 
-          .sign-in-link {
-            font-size: 11px;
-          }
-
-          .hero {
-            padding-top: 40px;
-            gap: 45px;
+          .sign-in {
+            font-size: 10px;
           }
 
           .hero h1 {
             font-size:
               clamp(
-                48px,
-                14vw,
-                66px
+                44px,
+                13vw,
+                60px
               );
           }
 
-          .hero-stage {
-            min-height: 520px;
-            border-radius: 36px;
+          .questions {
+            grid-template-columns: 1fr;
+            gap: 25px;
           }
 
-          .hero-question {
-            max-width: 190px;
-            font-size: 11px;
+          .questions p {
+            font-family: Georgia, serif;
+            font-size: 19px;
           }
 
-          .q1 {
-            top: 35px;
-            left: 16px;
+          .noise-copy {
+            padding: 55px 28px;
           }
 
-          .q2 {
-            top: 150px;
-            right: 14px;
-          }
-
-          .q3 {
-            bottom: 165px;
-            left: 14px;
-          }
-
-          .hero-root-card {
-            right: 16px;
-            bottom: 16px;
-            width:
-              calc(
-                100% - 32px
-              );
-          }
-
-          .question-section,
-          .what-if-section,
-          .glimpse-section,
-          .trust-section,
-          .future-section,
-          .faq-section {
-            padding: 95px 0;
-          }
-
-          .noise-section,
-          .reveal-section,
-          .inner-voice-section,
-          .life-section {
-            padding: 55px 24px;
-            border-radius: 36px;
-          }
-
-          .what-if-grid,
-          .glimpse-grid,
-          .trust-grid,
-          .inner-questions,
-          .included {
+          .what-if-section {
             grid-template-columns: 1fr;
           }
 
-          .product-glimpse {
-            min-height: auto;
+          .root-action {
+            grid-template-columns: 1fr;
           }
 
-          .playbook-section {
-            padding: 80px 0 110px;
+          .playbook-story {
+            width:
+              calc(
+                100% - 24px
+              );
+            padding: 45px 24px;
           }
 
-          .playbook-window {
-            padding: 20px;
+          .trust {
+            padding: 55px 24px;
+            grid-template-columns: 1fr;
           }
 
-          .change-request {
-            margin-left: 25px;
+          .trust-bottom {
+            grid-template-columns: 1fr;
           }
 
-          .change-answer {
-            margin-right: 25px;
+          .build-around {
+            grid-template-columns:
+              1fr 1fr;
           }
 
-          .life-path > div {
-            align-items: flex-start;
+          .life-goal {
+            padding: 10px;
+          }
+
+          .footer {
             flex-direction: column;
-          }
-
-          .life-path strong {
-            text-align: left;
-          }
-
-          .price-card {
-            padding: 52px 24px;
-            border-radius: 36px;
-          }
-
-          .sales-footer {
-            gap: 20px;
-            align-items: flex-start;
-            flex-direction: column;
+            gap: 15px;
           }
         }
       `}</style>
@@ -3400,69 +2294,142 @@ export default function PersonalLandingPage() {
   );
 }
 
-function ProductGlimpse({
-  kicker,
+function NoiseMessage({
   title,
   text,
-  children,
-  dark = false,
 }) {
   return (
-    <article
-      className={
-        dark
-          ? "product-glimpse dark"
-          : "product-glimpse"
-      }
-    >
-      <div>
-        <span className="kicker">
-          {kicker}
-        </span>
-
-        <h3>{title}</h3>
-
-        <p>{text}</p>
-      </div>
-
-      <div className="glimpse-demo">
-        {children}
-      </div>
-    </article>
+    <div className="noise-message">
+      <strong>{title}</strong>
+      <span>{text}</span>
+    </div>
   );
 }
 
-function Faq({
-  index,
-  openFaq,
-  toggleFaq,
-  question,
+function Possibility({
+  icon,
+  text,
+}) {
+  return (
+    <div className="possibility">
+      <div className="possibility-icon">
+        {icon}
+      </div>
+
+      <p>{text}</p>
+    </div>
+  );
+}
+
+function MiniExperience({
+  title,
+  subtitle,
   children,
 }) {
-  const open = openFaq === index;
-
   return (
-    <div className="faq-item">
-      <button
-        type="button"
-        className="faq-button"
-        onClick={() =>
-          toggleFaq(index)
-        }
-        aria-expanded={open}
-      >
-        <span>{question}</span>
+    <div className="mini-experience">
+      <h3>{title}</h3>
 
-        <span className="faq-plus">
-          {open ? "−" : "+"}
-        </span>
-      </button>
+      <p className="mini-subtitle">
+        {subtitle}
+      </p>
 
-      {open ? (
-        <div className="faq-answer">
-          {children}
+      <div className="phone-shell">
+        <div className="mini-phone-top">
+          Root
         </div>
-      ) : null}
+
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+}) {
+  return (
+    <div className="metric">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function LifeGoal({
+  icon,
+  text,
+}) {
+  return (
+    <div className="life-goal">
+      <div className="life-goal-icon">
+        {icon}
+      </div>
+
+      <p>{text}</p>
+    </div>
+  );
+}
+
+function TrustPoint({
+  icon,
+  title,
+}) {
+  return (
+    <div className="trust-point">
+      <div className="trust-icon">
+        {icon}
+      </div>
+
+      <h3>{title}</h3>
+    </div>
+  );
+}
+
+function LifeStage({
+  title,
+  text,
+}) {
+  return (
+    <div className="life-stage">
+      <div className="life-stage-icon">
+        ♙
+      </div>
+
+      <strong>{title}</strong>
+      <p>{text}</p>
+    </div>
+  );
+}
+
+function LifeArrow() {
+  return (
+    <div className="life-arrow">
+      →
+    </div>
+  );
+}
+
+function ChangeStep({
+  icon,
+  text,
+}) {
+  return (
+    <div className="change-step">
+      <div className="change-step-icon">
+        {icon}
+      </div>
+
+      <p>{text}</p>
+    </div>
+  );
+}
+
+function ChangeArrow() {
+  return (
+    <div className="change-arrow">
+      →
     </div>
   );
 }
