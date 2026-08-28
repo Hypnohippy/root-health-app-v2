@@ -845,7 +845,7 @@ export default function PersonalLandingPage() {
         /* ================= NOISE ================= */
 
         .noise {
-          min-height: 320px;
+          min-height: 255px;
           display: grid;
           grid-template-columns: 52% 48%;
           background:
@@ -857,7 +857,7 @@ export default function PersonalLandingPage() {
         }
 
         .phoneScene {
-          min-height: 320px;
+          min-height: 255px;
           position: relative;
           overflow: hidden;
           display: grid;
@@ -883,7 +883,7 @@ export default function PersonalLandingPage() {
         .noisePhone {
           position: relative;
           z-index: 2;
-          width: 220px;
+          width: 185px;
           padding: 13px;
           transform:
             rotate(-6deg)
@@ -929,16 +929,16 @@ export default function PersonalLandingPage() {
         }
 
         .noiseCopy {
-          padding: 57px 7vw 45px 45px;
+          padding: 38px 7vw 30px 45px;
         }
 
         .noiseCopy h2 {
           margin: 0;
           font-size:
             clamp(
-              37px,
-              3.4vw,
-              54px
+              30px,
+              2.8vw,
+              44px
             );
           line-height: 0.98;
         }
@@ -958,7 +958,7 @@ export default function PersonalLandingPage() {
         /* ================= WHAT IF ================= */
 
         .whatIf {
-          min-height: 180px;
+          min-height: 135px;
           position: relative;
           display: grid;
           grid-template-columns: 240px 1fr;
@@ -1013,21 +1013,21 @@ export default function PersonalLandingPage() {
 
         .whatIfItem {
           min-width: 0;
-          padding: 27px 11px 18px;
+          padding: 18px 10px 12px;
           border-left: 1px solid var(--line);
           text-align: center;
         }
 
         .whatIfItem > span {
           display: block;
-          height: 34px;
+          height: 25px;
           color: #51735a;
           font-family: Georgia, serif;
-          font-size: 25px;
+          font-size: 20px;
         }
 
         .whatIfItem p {
-          margin: 10px auto 0;
+          margin: 6px auto 0;
           max-width: 110px;
           font-size: 8px;
           line-height: 1.5;
