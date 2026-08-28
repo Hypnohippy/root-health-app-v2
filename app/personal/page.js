@@ -242,101 +242,250 @@ export default function PersonalLandingPage() {
         <div className="meetLeaves" />
       </section>
 
-      {/* =====================================================
+            {/* =====================================================
           6. ROOT IN ACTION
       ===================================================== */}
-      <section className="experienceStrip">
-        <Experience
-          title="TALK FREELY"
-          subtitle="A conversation that remembers you."
-        >
-          <div className="chatPhone">
-            <div className="appHeader">
-              <span>‹</span>
-              <strong>Root Coach</strong>
+      <section className="rootInAction">
+        <div className="rootActionIntro">
+          <span>SEE ROOT IN ACTION</span>
+
+          <h2>
+            ONE PLACE.
+            <br />
+            <em>YOUR WHOLE JOURNEY.</em>
+          </h2>
+
+          <p>
+            Root brings your conversations, body signals,
+            reflections, plans and progress together — so each
+            part of the experience can inform what comes next.
+          </p>
+        </div>
+
+        <div className="rootActionGrid">
+          {/* TALK FREELY */}
+          <article className="rootProductCard coachPreview">
+            <div className="previewTopbar">
+              <strong>Root</strong>
+
+              <div className="previewNav">
+                <span>Home</span>
+                <span className="active">Coach</span>
+                <span>Check-In</span>
+              </div>
             </div>
 
-            <div className="userBubble">
-              I&apos;ve been feeling really overwhelmed lately.
+            <div className="coachPreviewBody">
+              <div className="previewCopy">
+                <small>ROOT COACH</small>
+
+                <h3>
+                  Slow down.
+                  <br />
+                  Speak freely.
+                </h3>
+
+                <p>
+                  A conversation that can remember what
+                  mattered before.
+                </p>
+              </div>
+
+              <div className="previewOrb">
+                <div className="previewOrbRing">
+                  <div className="previewOrbCore">
+                    Root
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="rootBubble">
-              You&apos;ve mentioned feeling overwhelmed a few
-              times. Shall we talk about what&apos;s been happening?
-            </div>
-          </div>
-        </Experience>
+            <div className="previewConversation">
+              <div className="previewUserMessage">
+                I&apos;ve been feeling overwhelmed again.
+              </div>
 
-        <Experience
-          title="SEE CLEARLY"
-          subtitle="Insights that turn memory into clarity."
-        >
-          <div className="insightsPhone">
-            <div className="appHeader">
-              <span>‹</span>
-              <strong>Insights</strong>
+              <div className="previewRootMessage">
+                Last time this came up, slowing the evening
+                down seemed to help. Shall we start there?
+              </div>
             </div>
 
-            <small>THIS WEEK</small>
+            <div className="previewCaption">
+              <strong>TALK FREELY</strong>
+              <span>A conversation that remembers you.</span>
+            </div>
+          </article>
 
-            <Metric name="Stress" value="8 → 5" />
-            <Metric name="Sleep" value="7 → 6" />
-            <Metric name="Energy" value="8 → 6" />
+          {/* SEE CLEARLY */}
+          <article className="rootProductCard insightsPreview">
+            <div className="previewTopbar">
+              <strong>Root</strong>
 
-            <p>
-              You&apos;re showing progress.
-              <br />
-              Keep going.
-            </p>
-          </div>
-        </Experience>
-
-        <Experience
-          title="BUILD YOUR PLAN"
-          subtitle="Turn ideas into a plan that fits your life."
-        >
-          <div className="planPhone">
-            <div className="appHeader">
-              <span>‹</span>
-              <strong>Playbook</strong>
+              <div className="previewNav">
+                <span>Home</span>
+                <span>Journal</span>
+                <span className="active">Insights</span>
+              </div>
             </div>
 
-            <small>Goal</small>
-            <strong className="planGoal">Improve sleep</strong>
+            <div className="insightsPreviewBody">
+              <small>ROOT INSIGHTS</small>
 
-            <PlanLine text="Evening wind-down" />
-            <PlanLine text="Dim lights" side="10:00pm" />
-            <PlanLine text="Breathing exercise" />
-            <PlanLine text="No screens" />
-            <PlanLine text="Bed by 11:00pm" />
-          </div>
-        </Experience>
+              <h3>Your patterns, made clearer.</h3>
 
-        <Experience
-          title="NEVER START FROM ZERO"
-          subtitle="Root carries what matters forward."
-        >
-          <div className="memoryPhone">
-            <div className="appHeader">
-              <strong>Root Memory</strong>
+              <div className="insightMiniGrid">
+                <div className="insightMiniCard warm">
+                  <span>BODY SIGNALS</span>
+                  <strong>Tight chest</strong>
+                  <p>Appeared recently</p>
+                </div>
+
+                <div className="insightMiniCard">
+                  <span>WHEN THEY SHOW UP</span>
+                  <strong>Under pressure</strong>
+                  <p>A recurring context</p>
+                </div>
+
+                <div className="insightMiniCard">
+                  <span>EMOTIONAL THEMES</span>
+                  <strong>Overwhelm</strong>
+                  <p>Showing up together</p>
+                </div>
+
+                <div className="insightMiniCard">
+                  <span>PROGRESS</span>
+                  <strong>8 → 5</strong>
+                  <p>Stress is softening</p>
+                </div>
+              </div>
+
+              <div className="recentInsight">
+                <span>RECENT ACTIVITY</span>
+                <p>
+                  Your recent check-ins suggest things may be
+                  beginning to settle.
+                </p>
+              </div>
             </div>
 
-            <p className="memoryStatement">
-              Last time you had trouble sleeping, a slower
-              evening routine helped.
-            </p>
+            <div className="previewCaption">
+              <strong>SEE CLEARLY</strong>
+              <span>Insights that turn memory into clarity.</span>
+            </div>
+          </article>
 
-            <button type="button">
-              Look at that again →
-            </button>
+          {/* BUILD YOUR PLAN */}
+          <article className="rootProductCard playbookPreview">
+            <div className="previewTopbar">
+              <strong>Root</strong>
 
-            <small>
-              What helped then:
-              <br />
-              Evening routine, less caffeine, breathing.
-            </small>
-          </div>
-        </Experience>
+              <div className="previewNav">
+                <span>Coach</span>
+                <span className="active">Playbook</span>
+                <span>Journal</span>
+              </div>
+            </div>
+
+            <div className="playbookPreviewBody">
+              <small>MY RECOVERY PLAYBOOK</small>
+
+              <h3>
+                Keep the things
+                <br />
+                that may help.
+              </h3>
+
+              <p className="playbookIntro">
+                Plans, strategies, routines and recovery ideas
+                worth coming back to.
+              </p>
+
+              <div className="playbookGlass">
+                <span>ROOT REMEMBERS WHAT MAY HELP</span>
+
+                <strong>Sleep recovery plan</strong>
+
+                <div className="playbookPreviewRow">
+                  <span>Evening wind-down</span>
+                  <b>Saved</b>
+                </div>
+
+                <div className="playbookPreviewRow">
+                  <span>Dim lights from 10pm</span>
+                  <b>Saved</b>
+                </div>
+
+                <div className="playbookPreviewRow">
+                  <span>Breathing before bed</span>
+                  <b>Saved</b>
+                </div>
+
+                <div className="playbookPreviewRow">
+                  <span>Review after one week</span>
+                  <b>Next</b>
+                </div>
+              </div>
+            </div>
+
+            <div className="previewCaption">
+              <strong>BUILD YOUR PLAN</strong>
+              <span>Turn useful ideas into something you can live with.</span>
+            </div>
+          </article>
+
+          {/* NEVER START FROM ZERO */}
+          <article className="rootProductCard memoryPreview">
+            <div className="previewTopbar dark">
+              <strong>Root</strong>
+
+              <div className="previewNav">
+                <span>Insights</span>
+                <span className="active">You</span>
+              </div>
+            </div>
+
+            <div className="memoryPreviewBody">
+              <div className="memoryGlow" />
+
+              <small>ROOT REMEMBERS</small>
+
+              <h3>
+                You never have
+                <br />
+                to start from zero.
+              </h3>
+
+              <div className="memoryGlass">
+                <span>LAST TIME</span>
+
+                <p>
+                  When sleep became difficult, a slower evening
+                  routine and less caffeine seemed to help.
+                </p>
+              </div>
+
+              <div className="memoryGlass secondary">
+                <span>ROOT NOTICED</span>
+
+                <p>
+                  Stress and sleep often seem to shift together
+                  for you.
+                </p>
+              </div>
+
+              <button type="button">
+                Carry this forward
+                <span>→</span>
+              </button>
+            </div>
+
+            <div className="previewCaption darkCaption">
+              <strong>NEVER START FROM ZERO</strong>
+              <span>Root carries what matters forward.</span>
+            </div>
+          </article>
+        </div>
       </section>
 
       {/* =====================================================
@@ -1130,145 +1279,627 @@ export default function PersonalLandingPage() {
             );
         }
 
-        /* ================= PRODUCT GLIMPSES ================= */
+                /* ================= ROOT IN ACTION ================= */
 
-        .experienceStrip {
-          padding: 24px 6vw 28px;
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 24px;
+        .rootInAction {
+          padding: 45px 5.5vw 52px;
           background:
+            radial-gradient(
+              circle at 52% 20%,
+              rgba(174, 198, 161, 0.18),
+              transparent 34%
+            ),
             linear-gradient(
               180deg,
               #f8f5ee 0%,
-              #eef3e8 100%
+              #edf2e7 100%
             );
         }
 
-        .experience {
-          min-width: 0;
+        .rootActionIntro {
+          max-width: 720px;
+          margin: 0 auto 34px;
           text-align: center;
         }
 
-        .experience h3 {
-          margin: 0;
-          font-family: Arial, sans-serif;
-          font-size: 9px;
-          letter-spacing: 0.02em;
+        .rootActionIntro > span {
+          color: #59765d;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 0.18em;
         }
 
-        .experience > p {
-          min-height: 28px;
-          margin: 7px auto 14px;
-          color: var(--muted);
+        .rootActionIntro h2 {
+          margin: 9px 0 12px;
+          font-size:
+            clamp(
+              29px,
+              2.8vw,
+              43px
+            );
+          line-height: 0.98;
+          letter-spacing: -0.035em;
+        }
+
+        .rootActionIntro h2 em {
+          color: #4d7958;
+          font-style: normal;
+        }
+
+        .rootActionIntro p {
+          max-width: 570px;
+          margin: 0 auto;
+          color: #657066;
+          font-size: 10px;
+          line-height: 1.65;
+        }
+
+        .rootActionGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 22px;
+          align-items: stretch;
+        }
+
+        .rootProductCard {
+          min-width: 0;
+          min-height: 430px;
+          position: relative;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          border:
+            1px solid
+              rgba(35, 63, 40, 0.11);
+          border-radius: 28px;
+          background:
+            rgba(250, 248, 243, 0.92);
+          box-shadow:
+            0 18px 45px
+              rgba(44, 65, 46, 0.11);
+        }
+
+        .previewTopbar {
+          min-height: 42px;
+          padding: 9px 13px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          border-bottom:
+            1px solid
+              rgba(45, 69, 48, 0.08);
+          background:
+            rgba(255, 255, 255, 0.68);
+          font-size: 7px;
+        }
+
+        .previewTopbar > strong {
+          font-family: Georgia, serif;
+          font-size: 10px;
+        }
+
+        .previewNav {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .previewNav span {
+          padding: 4px 6px;
+          border-radius: 999px;
+          color: #697268;
+          background:
+            rgba(245, 242, 235, 0.7);
+          white-space: nowrap;
+        }
+
+        .previewNav span.active {
+          color: #294b31;
+          background: white;
+          font-weight: 800;
+        }
+
+        .previewCaption {
+          margin-top: auto;
+          padding: 14px 16px 16px;
+          border-top:
+            1px solid
+              rgba(37, 64, 40, 0.08);
+          background:
+            rgba(249, 247, 241, 0.94);
+        }
+
+        .previewCaption strong {
+          display: block;
+          margin-bottom: 4px;
+          font-size: 8px;
+          letter-spacing: 0.06em;
+        }
+
+        .previewCaption span {
+          display: block;
+          color: #687168;
           font-size: 7px;
           line-height: 1.4;
         }
 
-        .device {
-          width: min(165px, 100%);
-          min-height: 220px;
-          margin: 0 auto;
-          padding: 14px;
-          border: 4px solid #ebe8e0;
-          border-radius: 26px;
-          background: #fcfbf8;
-          box-shadow:
-            0 12px 30px
-              rgba(37, 48, 38, 0.08);
-          text-align: left;
+        /* COACH */
+
+        .coachPreview {
+          background:
+            linear-gradient(
+              145deg,
+              rgba(249, 245, 237, 0.98),
+              rgba(232, 220, 205, 0.92)
+            );
         }
 
-        .appHeader {
-          margin-bottom: 16px;
+        .coachPreviewBody {
+          min-height: 190px;
+          padding: 23px 19px 14px;
+          display: grid;
+          grid-template-columns: 1.15fr 0.85fr;
+          gap: 10px;
+          align-items: center;
+          background:
+            radial-gradient(
+              circle at 80% 45%,
+              rgba(255, 255, 255, 0.92),
+              transparent 35%
+            ),
+            linear-gradient(
+              135deg,
+              rgba(232, 202, 169, 0.5),
+              rgba(238, 237, 228, 0.8)
+            );
+        }
+
+        .previewCopy small,
+        .insightsPreviewBody > small,
+        .playbookPreviewBody > small,
+        .memoryPreviewBody > small {
+          color: #667666;
+          font-size: 6px;
+          font-weight: 900;
+          letter-spacing: 0.14em;
+        }
+
+        .previewCopy h3 {
+          margin: 8px 0 8px;
+          font-size: 24px;
+          line-height: 0.98;
+        }
+
+        .previewCopy p {
+          margin: 0;
+          color: #60675f;
+          font-family: Georgia, serif;
+          font-size: 9px;
+          line-height: 1.5;
+        }
+
+        .previewOrb {
+          display: grid;
+          place-items: center;
+        }
+
+        .previewOrbRing {
+          width: 108px;
+          height: 108px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          border:
+            1px solid
+              rgba(56, 87, 58, 0.12);
+          box-shadow:
+            0 0 0 14px
+              rgba(255, 255, 255, 0.38),
+            0 0 0 29px
+              rgba(255, 255, 255, 0.17);
+        }
+
+        .previewOrbCore {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background:
+            radial-gradient(
+              circle at 35% 28%,
+              #587959,
+              #24472e 75%
+            );
+          color: white;
+          font-family: Georgia, serif;
+          font-size: 17px;
+          box-shadow:
+            0 10px 25px
+              rgba(40, 70, 45, 0.25);
+        }
+
+        .previewConversation {
+          padding: 14px 17px 17px;
+        }
+
+        .previewUserMessage,
+        .previewRootMessage {
+          max-width: 88%;
+          padding: 9px 11px;
+          border-radius: 12px;
+          font-size: 7px;
+          line-height: 1.45;
+        }
+
+        .previewUserMessage {
+          margin-left: auto;
+          background: #eee9e1;
+        }
+
+        .previewRootMessage {
+          margin-top: 8px;
+          background: #dfe8da;
+        }
+
+        /* INSIGHTS */
+
+        .insightsPreview {
+          background:
+            linear-gradient(
+              145deg,
+              #f6f1e8,
+              #e5e8df
+            );
+        }
+
+        .insightsPreviewBody {
+          padding: 22px 16px 18px;
+        }
+
+        .insightsPreviewBody > h3 {
+          margin: 7px 0 14px;
+          font-size: 21px;
+          line-height: 1;
+        }
+
+        .insightMiniGrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        .insightMiniCard {
+          min-height: 76px;
+          padding: 10px;
+          border:
+            1px solid
+              rgba(51, 74, 54, 0.09);
+          border-radius: 14px;
+          background:
+            rgba(255, 255, 255, 0.54);
+        }
+
+        .insightMiniCard.warm {
+          background:
+            rgba(241, 221, 197, 0.55);
+        }
+
+        .insightMiniCard span {
+          display: block;
+          margin-bottom: 7px;
+          color: #6c776a;
+          font-size: 5px;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+        }
+
+        .insightMiniCard strong {
+          display: block;
+          font-family: Georgia, serif;
+          font-size: 10px;
+        }
+
+        .insightMiniCard p {
+          margin: 4px 0 0;
+          color: #777e75;
+          font-size: 6px;
+          line-height: 1.35;
+        }
+
+        .recentInsight {
+          margin-top: 10px;
+          padding: 10px 12px;
+          border-radius: 14px;
+          background:
+            rgba(255, 255, 255, 0.55);
+        }
+
+        .recentInsight span {
+          color: #6e796c;
+          font-size: 5px;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+        }
+
+        .recentInsight p {
+          margin: 5px 0 0;
+          font-family: Georgia, serif;
+          font-size: 8px;
+          line-height: 1.45;
+        }
+
+        /* PLAYBOOK */
+
+        .playbookPreview {
+          background:
+            linear-gradient(
+              145deg,
+              #e5c7a4,
+              #92908e 75%
+            );
+        }
+
+        .playbookPreview .previewTopbar {
+          background:
+            rgba(248, 237, 224, 0.75);
+        }
+
+        .playbookPreviewBody {
+          padding: 21px 17px 18px;
+        }
+
+        .playbookPreviewBody > small {
+          color:
+            rgba(37, 54, 40, 0.72);
+        }
+
+        .playbookPreviewBody h3 {
+          margin: 7px 0 8px;
+          font-size: 23px;
+          line-height: 0.98;
+        }
+
+        .playbookIntro {
+          margin: 0 0 13px;
+          color:
+            rgba(38, 48, 40, 0.72);
+          font-size: 7px;
+          line-height: 1.5;
+        }
+
+        .playbookGlass {
+          padding: 13px;
+          border:
+            1px solid
+              rgba(255, 255, 255, 0.5);
+          border-radius: 18px;
+          background:
+            rgba(248, 246, 241, 0.68);
+          backdrop-filter: blur(10px);
+        }
+
+        .playbookGlass > span {
+          display: block;
+          color: #657063;
+          font-size: 5px;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+        }
+
+        .playbookGlass > strong {
+          display: block;
+          margin: 6px 0 8px;
+          font-family: Georgia, serif;
+          font-size: 11px;
+        }
+
+        .playbookPreviewRow {
+          padding: 7px 0;
           display: flex;
           align-items: center;
+          justify-content: space-between;
           gap: 8px;
-          font-size: 7px;
-        }
-
-        .userBubble,
-        .rootBubble {
-          margin-bottom: 8px;
-          padding: 9px;
-          border-radius: 11px;
-          font-size: 7px;
-          line-height: 1.45;
-        }
-
-        .userBubble {
-          background: #eeeae3;
-        }
-
-        .rootBubble {
-          background: #e2e9dd;
-        }
-
-        .insightsPhone small,
-        .planPhone small {
-          color: #758273;
+          border-top:
+            1px solid
+              rgba(48, 67, 48, 0.1);
           font-size: 6px;
         }
 
-        .metric {
-          margin-top: 7px;
-          padding: 7px;
-          display: flex;
-          justify-content: space-between;
-          border-radius: 7px;
-          background: #f0eee9;
-          font-size: 7px;
+        .playbookPreviewRow b {
+          color: #4c6b50;
+          font-size: 5px;
         }
 
-        .insightsPhone p {
-          margin-top: 16px;
-          color: #5a6858;
-          font-size: 7px;
-          line-height: 1.5;
+        /* MEMORY */
+
+        .memoryPreview {
+          background:
+            linear-gradient(
+              145deg,
+              #304b36,
+              #183121
+            );
+          color: white;
         }
 
-        .planGoal {
-          display: block;
-          margin: 4px 0 11px;
-          font-family: Georgia, serif;
-          font-size: 13px;
-          font-weight: 400;
-        }
-
-        .planLine {
-          padding: 8px 0;
-          display: flex;
-          justify-content: space-between;
-          gap: 8px;
+        .memoryPreview .previewTopbar {
           border-bottom:
             1px solid
-              rgba(34, 58, 38, 0.09);
-          color: #546151;
-          font-size: 7px;
+              rgba(255, 255, 255, 0.1);
+          background:
+            rgba(17, 40, 24, 0.68);
         }
 
-        .memoryStatement {
+        .memoryPreview .previewTopbar > strong {
+          color: white;
+        }
+
+        .memoryPreview .previewNav span {
+          color:
+            rgba(255, 255, 255, 0.62);
+          background:
+            rgba(255, 255, 255, 0.06);
+        }
+
+        .memoryPreview .previewNav span.active {
+          color: #233d29;
+          background: #edf2e8;
+        }
+
+        .memoryPreviewBody {
+          min-height: 327px;
+          padding: 23px 18px 18px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .memoryGlow {
+          position: absolute;
+          width: 220px;
+          height: 220px;
+          right: -95px;
+          top: -95px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(193, 214, 177, 0.28),
+              transparent 68%
+            );
+        }
+
+        .memoryPreviewBody > * {
+          position: relative;
+          z-index: 2;
+        }
+
+        .memoryPreviewBody > small {
+          color:
+            rgba(226, 235, 220, 0.72);
+        }
+
+        .memoryPreviewBody h3 {
+          margin: 8px 0 15px;
+          color: white;
+          font-size: 24px;
+          line-height: 0.98;
+        }
+
+        .memoryGlass {
+          padding: 12px;
+          border:
+            1px solid
+              rgba(255, 255, 255, 0.13);
+          border-radius: 15px;
+          background:
+            rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(10px);
+        }
+
+        .memoryGlass.secondary {
+          margin-top: 8px;
+        }
+
+        .memoryGlass span {
+          color:
+            rgba(223, 234, 218, 0.64);
+          font-size: 5px;
+          font-weight: 900;
+          letter-spacing: 0.11em;
+        }
+
+        .memoryGlass p {
+          margin: 6px 0 0;
+          color:
+            rgba(255, 255, 255, 0.9);
           font-family: Georgia, serif;
-          font-size: 12px;
+          font-size: 8px;
           line-height: 1.45;
         }
 
-        .memoryPhone button {
+        .memoryPreviewBody button {
           width: 100%;
-          margin: 12px 0;
-          padding: 8px;
+          margin-top: 11px;
+          padding: 9px 11px;
           border:
-            1px solid #e1dfd8;
-          border-radius: 8px;
-          background: white;
-          color: #3e6245;
-          font-size: 7px;
+            1px solid
+              rgba(255, 255, 255, 0.18);
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #edf2e8;
+          color: #233d29;
+          font-size: 6px;
+          font-weight: 800;
         }
 
-        .memoryPhone small {
-          color: #727970;
-          font-size: 6px;
-          line-height: 1.5;
+        .darkCaption {
+          border-top:
+            1px solid
+              rgba(255, 255, 255, 0.08);
+          background:
+            rgba(13, 34, 20, 0.94);
+        }
+
+        .darkCaption strong {
+          color: white;
+        }
+
+        .darkCaption span {
+          color:
+            rgba(255, 255, 255, 0.62);
+        }
+
+        @media (max-width: 1150px) {
+          .rootActionGrid {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .rootProductCard {
+            min-height: 420px;
+          }
+        }
+
+        @media (max-width: 660px) {
+          .rootInAction {
+            padding:
+              38px
+              22px
+              42px;
+          }
+
+          .rootActionIntro {
+            text-align: left;
+          }
+
+          .rootActionIntro h2 {
+            font-size: 34px;
+          }
+
+          .rootActionIntro p {
+            margin-left: 0;
+          }
+
+          .rootActionGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .rootProductCard {
+            min-height: 0;
+          }
+
+          .previewNav {
+            display: none;
+          }
+
+          .coachPreviewBody {
+            grid-template-columns:
+              1fr
+              110px;
+          }
         }
 
         /* ================= BUILD ROOT ================= */
