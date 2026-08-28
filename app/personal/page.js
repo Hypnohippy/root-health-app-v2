@@ -692,7 +692,7 @@ export default function PersonalLandingPage() {
         /* ================= HERO ================= */
 
         .hero {
-          min-height: 570px;
+          min-height: 455px;
           display: grid;
           grid-template-columns: 43% 57%;
           background:
@@ -710,10 +710,10 @@ export default function PersonalLandingPage() {
 
         .heroCopy {
           padding:
-            78px
-            45px
-            60px
-            7vw;
+          52px
+          42px
+          42px
+          7vw;
           position: relative;
           z-index: 2;
         }
@@ -722,9 +722,9 @@ export default function PersonalLandingPage() {
           margin: 0;
           font-size:
             clamp(
-              46px,
-              4.65vw,
-              70px
+              38px,
+              3.65vw,
+              56px
             );
           line-height: 0.96;
           letter-spacing: -0.045em;
@@ -753,7 +753,7 @@ export default function PersonalLandingPage() {
         }
 
         .heroPhoto {
-          min-height: 570px;
+          min-height: 455px;
           background:
             linear-gradient(
               90deg,
@@ -1160,7 +1160,7 @@ export default function PersonalLandingPage() {
         /* ================= PRODUCT GLIMPSES ================= */
 
         .experienceStrip {
-          padding: 38px 6vw 48px;
+          padding: 24px 6vw 28px;
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 24px;
@@ -1193,8 +1193,8 @@ export default function PersonalLandingPage() {
         }
 
         .device {
-          width: min(185px, 100%);
-          min-height: 255px;
+          width: min(165px, 100%);
+          min-height: 220px;
           margin: 0 auto;
           padding: 14px;
           border: 4px solid #ebe8e0;
