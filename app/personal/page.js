@@ -103,7 +103,6 @@ export default function PersonalLandingPage() {
             <br />
             You just need a way that makes sense for you.
           </p>
-        
         </div>
 
         <div className="heroPhoto" />
@@ -113,15 +112,11 @@ export default function PersonalLandingPage() {
           2. QUESTIONS
       ===================================================== */}
       <section id="questions" className="questionsBand">
-        <div className="questionIcon">
-          ?
-        </div>
+        <div className="questionIcon">?</div>
 
         <div className="questionGrid">
           {questions.map((question) => (
-            <p key={question}>
-              {question}
-            </p>
+            <p key={question}>{question}</p>
           ))}
         </div>
 
@@ -189,6 +184,12 @@ export default function PersonalLandingPage() {
             <br />
             <em>really know you.</em>
           </p>
+
+          <h3 className="whatIfQuestion">
+            WHAT IF
+            <br />
+            SOMETHING DID?
+          </h3>
         </div>
       </section>
 
@@ -197,14 +198,6 @@ export default function PersonalLandingPage() {
       ===================================================== */}
       <section className="whatIf">
         <div className="softLeaves" />
-
-        <div className="whatIfTitle">
-          <h2>
-            WHAT IF
-            <br />
-            SOMETHING DID?
-          </h2>
-        </div>
 
         <div className="whatIfItems">
           {whatIfs.map((item) => (
@@ -295,8 +288,6 @@ export default function PersonalLandingPage() {
               <br />
               Keep going.
             </p>
-
-            <div className="tinyChart" />
           </div>
         </Experience>
 
@@ -322,10 +313,9 @@ export default function PersonalLandingPage() {
         </Experience>
 
         <Experience
-           className="memoryExperience"
-           title="NEVER START FROM ZERO"
-           subtitle="Root carries what matters forward."
-         >
+          title="NEVER START FROM ZERO"
+          subtitle="Root carries what matters forward."
+        >
           <div className="memoryPhone">
             <div className="appHeader">
               <strong>Root Memory</strong>
@@ -445,7 +435,6 @@ export default function PersonalLandingPage() {
                 <div className="stageIcon">♙</div>
 
                 <strong>{title}</strong>
-
                 <p>{text}</p>
               </div>
 
@@ -527,9 +516,7 @@ export default function PersonalLandingPage() {
             <span>/ month</span>
           </div>
 
-          <p>
-            or {ANNUAL_PRICE} / year
-          </p>
+          <p>or {ANNUAL_PRICE} / year</p>
 
           <small>
             Everything included. Always.
@@ -551,15 +538,6 @@ export default function PersonalLandingPage() {
             A lifetime of support.
           </p>
         </div>
-
-        <div className="offerStillLife">
-          <div className="bowl" />
-          <div className="plant">
-            <span>╱</span>
-            <span>╲</span>
-            <span>│</span>
-          </div>
-        </div>
       </section>
 
       <footer className="footer">
@@ -577,19 +555,17 @@ export default function PersonalLandingPage() {
 
       <style jsx global>{`
         :root {
-  --ink: #152218;
-  --green: #315b3c;
-  --deep-green: #17351f;
-  --soft-green: #dfe6da;
-
-  --ivory: #f7f4ed;
-  --ivory-green: #f1f4ea;
-  --sage-wash: #e7eee1;
-  --warm: #eee9df;
-
-  --line: rgba(23, 53, 31, 0.13);
-  --muted: #687168;
-}
+          --ink: #152218;
+          --green: #315b3c;
+          --deep-green: #17351f;
+          --soft-green: #dfe6da;
+          --ivory: #f7f4ed;
+          --ivory-green: #f1f4ea;
+          --sage-wash: #e7eee1;
+          --warm: #eee9df;
+          --line: rgba(23, 53, 31, 0.13);
+          --muted: #687168;
+        }
 
         * {
           box-sizing: border-box;
@@ -600,25 +576,25 @@ export default function PersonalLandingPage() {
         }
 
         body {
-  margin: 0;
-  background:
-    radial-gradient(
-      circle at 15% 12%,
-      rgba(171, 194, 160, 0.18),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 88% 38%,
-      rgba(191, 207, 179, 0.14),
-      transparent 34%
-    ),
-    linear-gradient(
-      180deg,
-      #f8f5ee 0%,
-      #f1f4ea 46%,
-      #f7f4ed 100%
-    );
-}
+          margin: 0;
+          background:
+            radial-gradient(
+              circle at 15% 12%,
+              rgba(171, 194, 160, 0.18),
+              transparent 30%
+            ),
+            radial-gradient(
+              circle at 88% 38%,
+              rgba(191, 207, 179, 0.14),
+              transparent 34%
+            ),
+            linear-gradient(
+              180deg,
+              #f8f5ee 0%,
+              #f1f4ea 46%,
+              #f7f4ed 100%
+            );
+        }
 
         button,
         a {
@@ -626,15 +602,15 @@ export default function PersonalLandingPage() {
         }
 
         .rootPersonal {
-         min-height: 100vh;
-         overflow-x: hidden;
-         background:
-         linear-gradient(
-         180deg,
-         rgba(248, 245, 238, 0.94) 0%,
-         rgba(238, 243, 232, 0.96) 48%,
-         rgba(247, 244, 237, 0.96) 100%
-        );
+          min-height: 100vh;
+          overflow-x: hidden;
+          background:
+            linear-gradient(
+              180deg,
+              rgba(248, 245, 238, 0.94) 0%,
+              rgba(238, 243, 232, 0.96) 48%,
+              rgba(247, 244, 237, 0.96) 100%
+            );
           color: var(--ink);
           font-family:
             Arial,
@@ -697,24 +673,24 @@ export default function PersonalLandingPage() {
           display: grid;
           grid-template-columns: 43% 57%;
           background:
-          radial-gradient(
-          circle at 28% 22%,
-          rgba(179, 198, 166, 0.16),
-          transparent 32%
-         ),
-          linear-gradient(
-          135deg,
-          #f7f4ed 0%,
-          #eef2e8 100%
-         );
+            radial-gradient(
+              circle at 28% 22%,
+              rgba(179, 198, 166, 0.16),
+              transparent 32%
+            ),
+            linear-gradient(
+              135deg,
+              #f7f4ed 0%,
+              #eef2e8 100%
+            );
         }
 
         .heroCopy {
           padding:
-          52px
-          42px
-          42px
-          7vw;
+            52px
+            42px
+            42px
+            7vw;
           position: relative;
           z-index: 2;
         }
@@ -741,16 +717,6 @@ export default function PersonalLandingPage() {
           font-family: Georgia, serif;
           font-size: 14px;
           line-height: 1.55;
-        }
-
-        .downArrow {
-          display: inline-block;
-          margin-top: 36px;
-          color: var(--green);
-          text-decoration: none;
-          font-family: Georgia, serif;
-          font-size: 30px;
-          font-weight: 300;
         }
 
         .heroPhoto {
@@ -790,16 +756,16 @@ export default function PersonalLandingPage() {
           align-items: center;
           background:
             radial-gradient(
-            circle at 12% 45%,
-            rgba(173, 196, 160, 0.15),
-            transparent 28%
-           ),
-         linear-gradient(
-           90deg,
-           #f6f2e9 0%,
-           #edf2e7 55%,
-           #f5f1e9 100%
-          );
+              circle at 12% 45%,
+              rgba(173, 196, 160, 0.15),
+              transparent 28%
+            ),
+            linear-gradient(
+              90deg,
+              #f6f2e9 0%,
+              #edf2e7 55%,
+              #f5f1e9 100%
+            );
         }
 
         .questionIcon {
@@ -846,7 +812,7 @@ export default function PersonalLandingPage() {
         /* ================= NOISE ================= */
 
         .noise {
-          min-height: 255px;
+          min-height: 300px;
           display: grid;
           grid-template-columns: 52% 48%;
           background:
@@ -858,7 +824,7 @@ export default function PersonalLandingPage() {
         }
 
         .phoneScene {
-          min-height: 255px;
+          min-height: 300px;
           position: relative;
           overflow: hidden;
           display: grid;
@@ -930,7 +896,10 @@ export default function PersonalLandingPage() {
         }
 
         .noiseCopy {
-          padding: 38px 7vw 30px 45px;
+          padding: 32px 7vw 24px 45px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
 
         .noiseCopy h2 {
@@ -945,7 +914,7 @@ export default function PersonalLandingPage() {
         }
 
         .noiseCopy p {
-          margin: 22px 0 0;
+          margin: 18px 0 0;
           font-family: Georgia, serif;
           font-size: 20px;
           line-height: 1.25;
@@ -956,13 +925,24 @@ export default function PersonalLandingPage() {
           font-style: normal;
         }
 
+        .whatIfQuestion {
+          margin: 20px 0 0;
+          color: var(--ink);
+          font-size:
+            clamp(
+              26px,
+              2.15vw,
+              34px
+            );
+          line-height: 0.98;
+          letter-spacing: -0.02em;
+        }
+
         /* ================= WHAT IF ================= */
 
         .whatIf {
-          min-height: 135px;
+          min-height: 112px;
           position: relative;
-          display: grid;
-          grid-template-columns: 240px 1fr;
           overflow: hidden;
           background:
             linear-gradient(
@@ -991,32 +971,24 @@ export default function PersonalLandingPage() {
           filter: blur(18px);
         }
 
-        .whatIfTitle {
-          padding-left: 6.5vw;
-          position: relative;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-        }
-
-        .whatIfTitle h2 {
-          margin: 0;
-          font-size: 28px;
-          line-height: 1.03;
-        }
-
         .whatIfItems {
+          min-height: 112px;
+          padding: 0 5vw;
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
+          grid-template-columns: repeat(7, minmax(0, 1fr));
           position: relative;
           z-index: 2;
         }
 
         .whatIfItem {
           min-width: 0;
-          padding: 18px 10px 12px;
+          padding: 16px 8px 10px;
           border-left: 1px solid var(--line);
           text-align: center;
+        }
+
+        .whatIfItem:last-child {
+          border-right: 1px solid var(--line);
         }
 
         .whatIfItem > span {
@@ -1029,7 +1001,7 @@ export default function PersonalLandingPage() {
 
         .whatIfItem p {
           margin: 6px auto 0;
-          max-width: 110px;
+          max-width: 120px;
           font-size: 8px;
           line-height: 1.5;
         }
@@ -1166,11 +1138,11 @@ export default function PersonalLandingPage() {
           grid-template-columns: repeat(4, 1fr);
           gap: 24px;
           background:
-          linear-gradient(
-          180deg,
-          #f8f5ee 0%,
-          #eef3e8 100%
-         );
+            linear-gradient(
+              180deg,
+              #f8f5ee 0%,
+              #eef3e8 100%
+            );
         }
 
         .experience {
@@ -1178,11 +1150,6 @@ export default function PersonalLandingPage() {
           text-align: center;
         }
 
-        .memoryExperience {
-         position: relative;
-         left: -42px;
-        }  
-        
         .experience h3 {
           margin: 0;
           font-family: Arial, sans-serif;
@@ -1198,7 +1165,7 @@ export default function PersonalLandingPage() {
           line-height: 1.4;
         }
 
-                .device {
+        .device {
           width: min(165px, 100%);
           min-height: 220px;
           margin: 0 auto;
@@ -1260,29 +1227,6 @@ export default function PersonalLandingPage() {
           line-height: 1.5;
         }
 
-        .tinyChart {
-          height: 26px;
-          margin-top: 10px;
-          position: relative;
-          border-bottom:
-            1px solid
-              rgba(55, 77, 55, 0.12);
-        }
-
-        .tinyChart::after {
-          content: "";
-          position: absolute;
-          left: 4px;
-          right: 4px;
-          top: 14px;
-          height: 1px;
-          transform: rotate(-4deg);
-          background: #6e8d70;
-          box-shadow:
-            20px -2px 0 #6e8d70,
-            45px 1px 0 #6e8d70;
-        }
-
         .planGoal {
           display: block;
           margin: 4px 0 11px;
@@ -1340,12 +1284,12 @@ export default function PersonalLandingPage() {
           gap: 35px;
           align-items: center;
           background:
-          linear-gradient(
-          90deg,
-          #f5f1e8 0%,
-          #edf2e7 60%,
-          #f7f4ed 100%
-         );
+            linear-gradient(
+              90deg,
+              #f5f1e8 0%,
+              #edf2e7 60%,
+              #f7f4ed 100%
+            );
         }
 
         .buildHeading h2 {
@@ -1379,122 +1323,6 @@ export default function PersonalLandingPage() {
 
         .buildNote {
           font-size: 14px;
-        }
-
-        /* ================= PLAYBOOK ================= */
-
-        .playbookBridge {
-          padding: 55px 7vw;
-          display: grid;
-          grid-template-columns: 45% 55%;
-          gap: 55px;
-          background:
-            linear-gradient(
-              90deg,
-              #f5f2e9,
-              #e9eee3
-            );
-        }
-
-        .kicker {
-          color: #58745b;
-          font-size: 8px;
-          font-weight: 800;
-          letter-spacing: 0.16em;
-        }
-
-        .playbookBridge h2 {
-          margin: 12px 0 19px;
-          font-size:
-            clamp(
-              39px,
-              4.4vw,
-              60px
-            );
-          line-height: 0.98;
-        }
-
-        .playbookBridge h2 em {
-          color: #4c7958;
-          font-style: normal;
-        }
-
-        .playbookBridge > div:first-child > p {
-          max-width: 440px;
-          color: #626b61;
-          font-size: 12px;
-          line-height: 1.7;
-        }
-
-        .playbookDemo {
-          padding: 23px;
-          border-radius: 28px;
-          background:
-            rgba(255, 255, 255, 0.74);
-          box-shadow:
-            0 20px 50px
-              rgba(48, 66, 48, 0.08);
-        }
-
-        .pbUser,
-        .pbRoot {
-          max-width: 80%;
-          padding: 10px 13px;
-          border-radius: 13px;
-          font-size: 8px;
-          line-height: 1.5;
-        }
-
-        .pbUser {
-          margin-left: auto;
-          background: #243527;
-          color: white;
-        }
-
-        .pbRoot {
-          margin-top: 9px;
-          background: #e9eee5;
-          color: #445144;
-        }
-
-        .savedPlan {
-          margin: 18px 0;
-          padding: 18px;
-          border-radius: 19px;
-          background: #efede6;
-        }
-
-        .savedPlan small {
-          color: #6f806d;
-          font-size: 6px;
-          font-weight: 800;
-          letter-spacing: 0.12em;
-        }
-
-        .savedPlan h3 {
-          margin: 7px 0 12px;
-          font-size: 19px;
-        }
-
-        .savedPlanRow {
-          padding: 8px 0;
-          border-top:
-            1px solid
-              rgba(38, 58, 39, 0.1);
-          display: flex;
-          justify-content: space-between;
-          gap: 20px;
-          color: #666e64;
-          font-size: 7px;
-        }
-
-        .savedPlanRow strong {
-          color: #354137;
-        }
-
-        .pbUser.short,
-        .pbRoot.short {
-          padding: 8px 11px;
         }
 
         /* ================= TRUST ================= */
@@ -1590,12 +1418,12 @@ export default function PersonalLandingPage() {
           gap: 35px;
           align-items: center;
           background:
-          linear-gradient(
-          90deg,
-          #f8f5ee 0%,
-          #eef3e8 70%,
-          #f8f5ee 100%
-         );
+            linear-gradient(
+              90deg,
+              #f8f5ee 0%,
+              #eef3e8 70%,
+              #f8f5ee 100%
+            );
         }
 
         .stageRow {
@@ -1621,8 +1449,7 @@ export default function PersonalLandingPage() {
           border-radius: 50%;
           display: grid;
           place-items: center;
-          border:
-            1px solid #738674;
+          border: 1px solid #738674;
           color: #55725a;
         }
 
@@ -1654,12 +1481,12 @@ export default function PersonalLandingPage() {
           display: grid;
           grid-template-columns: 1fr 280px;
           background:
-          linear-gradient(
-          90deg,
-          #f3f0e7 0%,
-          #e9efe3 70%,
-          #f5f1e9 100%
-         );
+            linear-gradient(
+              90deg,
+              #f3f0e7 0%,
+              #e9efe3 70%,
+              #f5f1e9 100%
+            );
         }
 
         .futureSteps {
@@ -1713,29 +1540,26 @@ export default function PersonalLandingPage() {
 
         .offer {
           min-height: 190px;
+          padding: 0 7vw;
           display: grid;
           grid-template-columns:
             0.82fr
             0.9fr
-            0.9fr
-            0.75fr;
+            0.9fr;
+          gap: 38px;
           align-items: center;
           background:
-          radial-gradient(
-          circle at 70% 35%,
-         rgba(177, 199, 164, 0.18),
-         transparent 34%
-        ),
-         linear-gradient(
-         90deg,
-         #f7f3eb 0%,
-         #edf2e7 72%,
-         #eee8dd 100%
-        );
-      }
-
-        .offerTitle {
-          padding-left: 7vw;
+            radial-gradient(
+              circle at 70% 35%,
+              rgba(177, 199, 164, 0.18),
+              transparent 34%
+            ),
+            linear-gradient(
+              90deg,
+              #f7f3eb 0%,
+              #edf2e7 72%,
+              #eee8dd 100%
+            );
         }
 
         .offerTitle h2 {
@@ -1787,47 +1611,6 @@ export default function PersonalLandingPage() {
           line-height: 1.45;
         }
 
-        .offerStillLife {
-          height: 190px;
-          position: relative;
-          overflow: hidden;
-          background:
-            radial-gradient(
-              circle at 75% 30%,
-              rgba(167, 188, 141, 0.33),
-              transparent 48%
-            );
-        }
-
-        .bowl {
-          position: absolute;
-          width: 100px;
-          height: 38px;
-          left: 30px;
-          bottom: 34px;
-          border-radius:
-            0 0 70px 70px;
-          background:
-            linear-gradient(
-              180deg,
-              #826e4e,
-              #4c4b36
-            );
-        }
-
-        .plant {
-          position: absolute;
-          right: 45px;
-          bottom: 35px;
-          color: #67815c;
-          font-size: 34px;
-          line-height: 0.6;
-        }
-
-        .plant span {
-          display: block;
-        }
-
         /* ================= FOOTER ================= */
 
         .footer {
@@ -1872,17 +1655,17 @@ export default function PersonalLandingPage() {
             grid-column: 2;
           }
 
-          .whatIf {
-            grid-template-columns: 1fr;
-          }
-
-          .whatIfTitle {
-            padding: 35px 7vw 20px;
+          .noise {
+            grid-template-columns: 48% 52%;
           }
 
           .whatIfItems {
-            grid-template-columns:
-              repeat(4, 1fr);
+            padding: 0 4vw;
+            grid-template-columns: repeat(4, 1fr);
+          }
+
+          .whatIfItem:nth-child(5) {
+            border-left: none;
           }
 
           .meetRoot {
@@ -1898,13 +1681,11 @@ export default function PersonalLandingPage() {
           }
 
           .goalGrid {
-            grid-template-columns:
-              repeat(4, 1fr);
+            grid-template-columns: repeat(4, 1fr);
           }
 
           .trust {
-            grid-template-columns:
-              repeat(4, 1fr);
+            grid-template-columns: repeat(4, 1fr);
           }
 
           .trustHeadline {
@@ -1926,18 +1707,9 @@ export default function PersonalLandingPage() {
           }
 
           .offer {
-            grid-template-columns:
-              1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             padding: 35px 7vw;
             gap: 30px;
-          }
-
-          .offerTitle {
-            padding-left: 0;
-          }
-
-          .offerStillLife {
-            display: none;
           }
         }
 
@@ -1984,11 +1756,24 @@ export default function PersonalLandingPage() {
 
           .noiseCopy {
             order: -1;
-            padding: 48px 25px 30px;
+            padding: 48px 25px 32px;
+          }
+
+          .whatIfQuestion {
+            font-size: 32px;
           }
 
           .whatIfItems {
+            padding: 0 24px;
             grid-template-columns: 1fr 1fr;
+          }
+
+          .whatIfItem:nth-child(odd) {
+            border-left: none;
+          }
+
+          .whatIfItem:last-child {
+            border-right: none;
           }
 
           .meetRoot {
@@ -2012,11 +1797,6 @@ export default function PersonalLandingPage() {
 
           .goalGrid {
             grid-template-columns: 1fr 1fr;
-          }
-
-          .playbookBridge {
-            padding: 55px 24px;
-            grid-template-columns: 1fr;
           }
 
           .trust {
@@ -2099,10 +1879,10 @@ function Experience({
   title,
   subtitle,
   children,
-  className = "",
 }) {
   return (
-    <article className={`experience ${className}`}>      <h3>{title}</h3>
+    <article className="experience">
+      <h3>{title}</h3>
       <p>{subtitle}</p>
 
       <div className="device">
@@ -2132,18 +1912,6 @@ function PlanLine({
       {side ? (
         <span>{side}</span>
       ) : null}
-    </div>
-  );
-}
-
-function SavedPlanRow({
-  week,
-  text,
-}) {
-  return (
-    <div className="savedPlanRow">
-      <span>{week}</span>
-      <strong>{text}</strong>
     </div>
   );
 }
