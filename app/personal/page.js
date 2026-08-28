@@ -103,10 +103,7 @@ export default function PersonalLandingPage() {
             <br />
             You just need a way that makes sense for you.
           </p>
-
-          <a href="#questions" className="downArrow">
-           ⌄
-          </a>
+        
         </div>
 
         <div className="heroPhoto" />
@@ -698,7 +695,17 @@ export default function PersonalLandingPage() {
           min-height: 570px;
           display: grid;
           grid-template-columns: 43% 57%;
-          background: var(--ivory);
+          background:
+          radial-gradient(
+          circle at 28% 22%,
+          rgba(179, 198, 166, 0.16),
+          transparent 32%
+         ),
+          linear-gradient(
+          135deg,
+          #f7f4ed 0%,
+          #eef2e8 100%
+         );
         }
 
         .heroCopy {
@@ -781,11 +788,16 @@ export default function PersonalLandingPage() {
           gap: 42px;
           align-items: center;
           background:
-          linear-gradient(
-          90deg,
-          #f7f4ed 0%,
-          #f1f4ea 52%,
-          #f7f4ed 100%
+            radial-gradient(
+            circle at 12% 45%,
+            rgba(173, 196, 160, 0.15),
+            transparent 28%
+           ),
+         linear-gradient(
+           90deg,
+           #f6f2e9 0%,
+           #edf2e7 55%,
+           #f5f1e9 100%
           );
         }
 
