@@ -1565,8 +1565,8 @@ export default function PersonalLandingPage() {
         /* ================= LIFE ================= */
 
         .lifeJourney {
-          min-height: 140px;
-          padding: 28px 5vw;
+          min-height: 104px;
+          padding: 18px 5vw;
           display: grid;
           grid-template-columns: 1fr 160px;
           gap: 35px;
@@ -1632,7 +1632,7 @@ export default function PersonalLandingPage() {
         /* ================= FUTURE ================= */
 
         .future {
-          min-height: 125px;
+          min-height: 100px;
           display: grid;
           grid-template-columns: 1fr 280px;
           background:
@@ -1645,7 +1645,7 @@ export default function PersonalLandingPage() {
         }
 
         .futureSteps {
-          padding: 24px 5vw;
+          padding: 16px 5vw;
           display: grid;
           grid-template-columns:
             repeat(4, 1fr 30px)
