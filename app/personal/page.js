@@ -1177,6 +1177,10 @@ export default function PersonalLandingPage() {
           text-align: center;
         }
 
+        .experienceStrip > .experience:nth-child(4) {
+         transform: translateX(-42px);
+        }
+
         .experience h3 {
           margin: 0;
           font-family: Arial, sans-serif;
@@ -1192,13 +1196,7 @@ export default function PersonalLandingPage() {
           line-height: 1.4;
         }
 
-        .experience:last-child h3,
-        .experience:last-child > p {
-         position: relative;
-         left: -28px;
-        }
-
-        .device {
+                .device {
           width: min(165px, 100%);
           min-height: 220px;
           margin: 0 auto;
