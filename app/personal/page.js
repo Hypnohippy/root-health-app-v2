@@ -386,76 +386,6 @@ export default function PersonalLandingPage() {
       </section>
 
       {/* =====================================================
-          PLAYBOOK BRIDGE
-      ===================================================== */}
-      <section className="playbookBridge">
-        <div>
-          <span className="kicker">
-            BUILD YOURS
-          </span>
-
-          <h2>
-            A plan shouldn&apos;t
-            <br />
-            just fit the goal.
-            <br />
-            <em>It should fit you.</em>
-          </h2>
-
-          <p>
-            Tell Root what you&apos;re trying to achieve.
-            Talk it through. Build something useful.
-            Change it when life changes.
-          </p>
-        </div>
-
-        <div className="playbookDemo">
-          <div className="playbookConversation">
-            <div className="pbUser">
-              I want to start exercising again, but I&apos;ve
-              been exhausted lately and I know I&apos;ll give up
-              if I do too much.
-            </div>
-
-            <div className="pbRoot">
-              Let&apos;s start gently. Your recent check-ins have
-              also shown low energy, so we can make this something
-              you can actually live with.
-            </div>
-          </div>
-
-          <div className="savedPlan">
-            <small>PLAYBOOK</small>
-
-            <h3>My return-to-fitness plan</h3>
-
-            <SavedPlanRow
-              week="Week 1"
-              text="2 gentle sessions"
-            />
-
-            <SavedPlanRow
-              week="Week 2"
-              text="Build gradually"
-            />
-
-            <SavedPlanRow
-              week="Week 3"
-              text="Review how I feel"
-            />
-          </div>
-
-          <div className="pbUser short">
-            Tuesdays don&apos;t work for me.
-          </div>
-
-          <div className="pbRoot short">
-            Done. Let&apos;s move it.
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
           8. TRUST
       ===================================================== */}
       <section className="trust">
@@ -649,15 +579,19 @@ export default function PersonalLandingPage() {
 
       <style jsx global>{`
         :root {
-          --ink: #152218;
-          --green: #315b3c;
-          --deep-green: #17351f;
-          --soft-green: #dfe6da;
-          --ivory: #f7f4ed;
-          --warm: #eee9df;
-          --line: rgba(23, 53, 31, 0.13);
-          --muted: #687168;
-        }
+  --ink: #152218;
+  --green: #315b3c;
+  --deep-green: #17351f;
+  --soft-green: #dfe6da;
+
+  --ivory: #f7f4ed;
+  --ivory-green: #f1f4ea;
+  --sage-wash: #e7eee1;
+  --warm: #eee9df;
+
+  --line: rgba(23, 53, 31, 0.13);
+  --muted: #687168;
+}
 
         * {
           box-sizing: border-box;
@@ -668,9 +602,25 @@ export default function PersonalLandingPage() {
         }
 
         body {
-          margin: 0;
-          background: var(--ivory);
-        }
+  margin: 0;
+  background:
+    radial-gradient(
+      circle at 15% 12%,
+      rgba(171, 194, 160, 0.18),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 88% 38%,
+      rgba(191, 207, 179, 0.14),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #f8f5ee 0%,
+      #f1f4ea 46%,
+      #f7f4ed 100%
+    );
+}
 
         button,
         a {
@@ -678,9 +628,15 @@ export default function PersonalLandingPage() {
         }
 
         .rootPersonal {
-          min-height: 100vh;
-          overflow-x: hidden;
-          background: var(--ivory);
+         min-height: 100vh;
+         overflow-x: hidden;
+         background:
+         linear-gradient(
+         180deg,
+         rgba(248, 245, 238, 0.94) 0%,
+         rgba(238, 243, 232, 0.96) 48%,
+         rgba(247, 244, 237, 0.96) 100%
+        );
           color: var(--ink);
           font-family:
             Arial,
@@ -824,7 +780,13 @@ export default function PersonalLandingPage() {
             205px;
           gap: 42px;
           align-items: center;
-          background: #fbf8f1;
+          background:
+          linear-gradient(
+          90deg,
+          #f7f4ed 0%,
+          #f1f4ea 52%,
+          #f7f4ed 100%
+          );
         }
 
         .questionIcon {
@@ -1190,7 +1152,12 @@ export default function PersonalLandingPage() {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 24px;
-          background: #fbf8f1;
+          background:
+          linear-gradient(
+          180deg,
+          #f8f5ee 0%,
+          #eef3e8 100%
+         );
         }
 
         .experience {
@@ -1354,7 +1321,13 @@ export default function PersonalLandingPage() {
             170px;
           gap: 35px;
           align-items: center;
-          background: #f7f3eb;
+          background:
+          linear-gradient(
+          90deg,
+          #f5f1e8 0%,
+          #edf2e7 60%,
+          #f7f4ed 100%
+         );
         }
 
         .buildHeading h2 {
@@ -1598,7 +1571,13 @@ export default function PersonalLandingPage() {
           grid-template-columns: 1fr 160px;
           gap: 35px;
           align-items: center;
-          background: #faf7f0;
+          background:
+          linear-gradient(
+          90deg,
+          #f8f5ee 0%,
+          #eef3e8 70%,
+          #f8f5ee 100%
+         );
         }
 
         .stageRow {
@@ -1656,7 +1635,13 @@ export default function PersonalLandingPage() {
           min-height: 125px;
           display: grid;
           grid-template-columns: 1fr 280px;
-          background: #f5f1e9;
+          background:
+          linear-gradient(
+          90deg,
+          #f3f0e7 0%,
+          #e9efe3 70%,
+          #f5f1e9 100%
+         );
         }
 
         .futureSteps {
@@ -1718,12 +1703,18 @@ export default function PersonalLandingPage() {
             0.75fr;
           align-items: center;
           background:
-            linear-gradient(
-              90deg,
-              #f7f3eb,
-              #ede8de
-            );
-        }
+          radial-gradient(
+          circle at 70% 35%,
+         rgba(177, 199, 164, 0.18),
+         transparent 34%
+        ),
+         linear-gradient(
+         90deg,
+         #f7f3eb 0%,
+         #edf2e7 72%,
+         #eee8dd 100%
+        );
+      }
 
         .offerTitle {
           padding-left: 7vw;
