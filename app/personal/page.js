@@ -3,36 +3,91 @@
 const MONTHLY_PRICE = "£19.99";
 const ANNUAL_PRICE = "£199";
 
+const questions = [
+  "Why am I tired when I've slept?",
+  "Why can't I stick to the things I know are good for me?",
+  "Is anything I'm doing actually working?",
+  "Why does stress affect my stomach?",
+  "Why do I feel fine one week and awful the next?",
+  "Why is getting a straight answer so difficult?",
+];
+
+const whatIfs = [
+  {
+    icon: "◌",
+    text: "Remembered what helped you before?",
+  },
+  {
+    icon: "▥",
+    text: "Noticed when things started changing?",
+  },
+  {
+    icon: "♡",
+    text: "Saw the bigger picture of your body and mind?",
+  },
+  {
+    icon: "○",
+    text: "Let you talk something through?",
+  },
+  {
+    icon: "▯",
+    text: "Helped you turn it into a plan?",
+  },
+  {
+    icon: "↻",
+    text: "Changed with you?",
+  },
+  {
+    icon: "◇",
+    text: "Gave you a place to turn when you didn't know what to do next?",
+  },
+];
+
+const rootGoals = [
+  ["☾", "Better sleep"],
+  ["♡", "Less anxiety"],
+  ["↗", "Getting fitter"],
+  ["♧", "Eating better"],
+  ["◡", "Recovery"],
+  ["◇", "Understanding your body"],
+  ["☁", "Getting through a difficult period"],
+  ["♙", "Staying well as you get older"],
+];
+
+const lifeStages = [
+  ["Your 20s", "Finding direction"],
+  ["Your 30s", "Building and balancing"],
+  ["Your 40s", "Responsibility and pressure"],
+  ["Your 50s", "Reassessing and refocusing"],
+  ["Your 60s+", "Living well and staying strong"],
+];
+
 export default function PersonalLandingPage() {
   const joinRoot = () => {
     window.location.href = "/personal/join";
   };
 
   return (
-    <main className="personal-page">
-      {/* ======================================================
+    <main className="rootPersonal">
+      {/* =====================================================
           HEADER
-      ====================================================== */}
-      <header className="topbar">
+      ===================================================== */}
+      <header className="header">
         <a href="/personal" className="brand">
-          <span className="brand-name">Root</span>
-          <span className="brand-type">PERSONAL</span>
+          <span className="brandRoot">Root</span>
+          <span className="brandPersonal">PERSONAL</span>
         </a>
 
-        <a href="/login" className="sign-in">
+        <a href="/login" className="signIn">
           Already a member? <strong>Sign in</strong>
         </a>
       </header>
 
-      {/* ======================================================
-          1 — HERO
-      ====================================================== */}
+      {/* =====================================================
+          1. HERO
+      ===================================================== */}
       <section className="hero">
-        <div className="hero-copy">
-          <p className="small-label">
-            ROOT PERSONAL
-          </p>
-
+        <div className="heroCopy">
           <h1>
             LOOKING AFTER
             <br />
@@ -43,141 +98,87 @@ export default function PersonalLandingPage() {
             <em>THIS HARD.</em>
           </h1>
 
-          <p className="hero-sub">
+          <p>
             You want to feel better.
             <br />
-            You just need a way that makes
-            sense for you.
+            You just need a way that makes sense for you.
           </p>
 
-          <a href="#questions" className="scroll-cue">
-            ↓
+          <a href="#questions" className="downArrow">
+           ⌄
           </a>
         </div>
 
-        <div className="hero-image" aria-hidden="true">
-          <div className="hero-image-shade" />
-        </div>
+        <div className="heroPhoto" />
       </section>
 
-      {/* ======================================================
-          2 — THE QUESTIONS
-      ====================================================== */}
-      <section
-        id="questions"
-        className="questions-section"
-      >
-        <div className="questions-heading">
-          <h2>
-            QUESTIONS
-            <br />
-            YOU ASK
-            <br />
-            YOURSELF.
-          </h2>
-
-          <div className="question-mark">
-            ?
-          </div>
+      {/* =====================================================
+          2. QUESTIONS
+      ===================================================== */}
+      <section id="questions" className="questionsBand">
+        <div className="questionIcon">
+          ?
         </div>
 
-        <div className="questions">
-          <p>
-            Why am I tired
-            <br />
-            when I&apos;ve slept?
-          </p>
-
-          <p>
-            Why can&apos;t I stick to
-            <br />
-            the things I know are
-            <br />
-            good for me?
-          </p>
-
-          <p>
-            Is anything I&apos;m
-            <br />
-            doing actually
-            <br />
-            working?
-          </p>
-
-          <p>
-            Why does stress
-            <br />
-            affect my stomach?
-          </p>
-
-          <p>
-            Why do I feel fine
-            <br />
-            one week and awful
-            <br />
-            the next?
-          </p>
-
-          <p>
-            Why is getting a
-            <br />
-            straight answer
-            <br />
-            so difficult?
-          </p>
+        <div className="questionGrid">
+          {questions.map((question) => (
+            <p key={question}>
+              {question}
+            </p>
+          ))}
         </div>
 
-        <div className="questions-note">
+        <div className="handNote">
           If you&apos;ve asked
           <br />
           yourself even a
           <br />
           few of these...
           <br />
-          <strong>
-            you&apos;re not alone.
-          </strong>
+          <strong>you&apos;re not alone.</strong>
         </div>
       </section>
 
-      {/* ======================================================
-          3 — THE NOISE
-      ====================================================== */}
-      <section className="noise-section">
-        <div className="noise-phone">
-          <div className="fake-phone">
-            <div className="fake-phone-top">
-              YOUR FEED
-            </div>
+      {/* =====================================================
+          3. NOISE
+      ===================================================== */}
+      <section className="noise">
+        <div className="phoneScene">
+          <div className="handShape" />
 
-            <NoiseMessage
+          <div className="noisePhone">
+            <div className="phoneTop">YOUR FEED</div>
+
+            <NoiseRow
               title="MIRACLE SOLUTION"
-              text="This will fix everything!"
+              text="This changes everything!"
             />
 
-            <NoiseMessage
+            <NoiseRow
               title="NEW DIET"
               text="Do this every day."
             />
 
-            <NoiseMessage
+            <NoiseRow
               title="LATEST SUPPLEMENT"
               text="You need this."
             />
 
-            <NoiseMessage
+            <NoiseRow
               title="ONE EXPERT SAYS YES"
               text="Another says no."
             />
 
-            <NoiseMessage
+            <NoiseRow
               title="DOCTORS DON'T WANT YOU TO KNOW"
               text="The truth is..."
             />
+
+            <div className="dots">•••</div>
           </div>
         </div>
 
-        <div className="noise-copy">
+        <div className="noiseCopy">
           <h2>
             EVERYBODY
             <br />
@@ -189,18 +190,18 @@ export default function PersonalLandingPage() {
           <p>
             But none of them
             <br />
-            <strong>
-              really know you.
-            </strong>
+            <em>really know you.</em>
           </p>
         </div>
       </section>
 
-      {/* ======================================================
-          4 — WHAT IF
-      ====================================================== */}
-      <section className="what-if-section">
-        <div className="what-if-heading">
+      {/* =====================================================
+          4. WHAT IF
+      ===================================================== */}
+      <section className="whatIf">
+        <div className="softLeaves" />
+
+        <div className="whatIfTitle">
           <h2>
             WHAT IF
             <br />
@@ -208,223 +209,133 @@ export default function PersonalLandingPage() {
           </h2>
         </div>
 
-        <Possibility
-          icon="↶"
-          text={
-            <>
-              Remembered
-              <br />
-              what helped
-              <br />
-              you before?
-            </>
-          }
-        />
-
-        <Possibility
-          icon="↗"
-          text={
-            <>
-              Noticed when
-              <br />
-              things started
-              <br />
-              changing?
-            </>
-          }
-        />
-
-        <Possibility
-          icon="♡"
-          text={
-            <>
-              Saw the bigger
-              <br />
-              picture of your
-              <br />
-              body and mind?
-            </>
-          }
-        />
-
-        <Possibility
-          icon="○"
-          text={
-            <>
-              Let you talk
-              <br />
-              something
-              <br />
-              through?
-            </>
-          }
-        />
-
-        <Possibility
-          icon="□"
-          text={
-            <>
-              Helped you
-              <br />
-              turn it into
-              <br />
-              a plan?
-            </>
-          }
-        />
-
-        <Possibility
-          icon="⟳"
-          text={
-            <>
-              Changed
-              <br />
-              that plan
-              <br />
-              with you?
-            </>
-          }
-        />
-
-        <Possibility
-          icon="◇"
-          text={
-            <>
-              Gave you somewhere
-              <br />
-              to turn when you
-              <br />
-              didn&apos;t know what next?
-            </>
-          }
-        />
+        <div className="whatIfItems">
+          {whatIfs.map((item) => (
+            <div className="whatIfItem" key={item.text}>
+              <span>{item.icon}</span>
+              <p>{item.text}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* ======================================================
-          5 — MEET ROOT
-      ====================================================== */}
-      <section className="meet-root">
-        <div className="meet-copy">
-          <p className="small-label">
-            MEET ROOT
-          </p>
+      {/* =====================================================
+          5. MEET ROOT
+      ===================================================== */}
+      <section className="meetRoot">
+        <div className="meetCopy">
+          <h2>MEET ROOT.</h2>
 
-          <h2>
-            Your personal
+          <h3>
+            Your personal health and
             <br />
-            health and wellbeing
-            <br />
-            companion.
-          </h2>
+            wellbeing companion.
+          </h3>
 
           <p>
             Talk. Ask. Explore. Plan.
             <br />
-            Reflect. Try things.
+            Reflect. Try things. Keep what
             <br />
-            Keep what helps.
-            <br />
-            Change what doesn&apos;t.
+            helps. Change what doesn&apos;t.
           </p>
 
-          <strong>
+          <p className="rootRemembers">
             And Root remembers
             <br />
             the journey with you.
-          </strong>
+          </p>
         </div>
 
-        <div className="root-orb-wrap">
-          <div className="root-ring ring-one">
-            <div className="root-ring ring-two">
-              <div className="root-ring ring-three">
-                <div className="root-core">
-                  Root
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <RootOrb />
 
-        <div className="meet-image" />
+        <div className="meetLeaves" />
       </section>
 
-      {/* ======================================================
-          6 — ROOT IN ACTION
-      ====================================================== */}
-      <section className="root-action">
-        <MiniExperience
+      {/* =====================================================
+          6. ROOT IN ACTION
+      ===================================================== */}
+      <section className="experienceStrip">
+        <Experience
           title="TALK FREELY"
           subtitle="A conversation that remembers you."
         >
-          <div className="mini-chat">
-            <div className="mini-user">
-              I&apos;ve been feeling really
-              overwhelmed lately.
+          <div className="chatPhone">
+            <div className="appHeader">
+              <span>‹</span>
+              <strong>Root Coach</strong>
             </div>
 
-            <div className="mini-root">
-              You&apos;ve mentioned feeling
-              overwhelmed a few times.
-              Shall we talk about what&apos;s
-              been happening?
+            <div className="userBubble">
+              I&apos;ve been feeling really overwhelmed lately.
+            </div>
+
+            <div className="rootBubble">
+              You&apos;ve mentioned feeling overwhelmed a few
+              times. Shall we talk about what&apos;s been happening?
             </div>
           </div>
-        </MiniExperience>
+        </Experience>
 
-        <MiniExperience
+        <Experience
           title="SEE CLEARLY"
           subtitle="Insights that turn memory into clarity."
         >
-          <div className="insight-demo">
-            <Metric label="Stress" value="8 → 5" />
-            <Metric label="Sleep" value="7 → 6" />
-            <Metric label="Energy" value="8 → 6" />
+          <div className="insightsPhone">
+            <div className="appHeader">
+              <span>‹</span>
+              <strong>Insights</strong>
+            </div>
+
+            <small>THIS WEEK</small>
+
+            <Metric name="Stress" value="8 → 5" />
+            <Metric name="Sleep" value="7 → 6" />
+            <Metric name="Energy" value="8 → 6" />
 
             <p>
               You&apos;re showing progress.
+              <br />
               Keep going.
             </p>
-          </div>
-        </MiniExperience>
 
-        <MiniExperience
+            <div className="tinyChart" />
+          </div>
+        </Experience>
+
+        <Experience
           title="BUILD YOUR PLAN"
           subtitle="Turn ideas into a plan that fits your life."
         >
-          <div className="plan-demo">
-            <span>Goal</span>
-            <strong>Improve sleep</strong>
+          <div className="planPhone">
+            <div className="appHeader">
+              <span>‹</span>
+              <strong>Playbook</strong>
+            </div>
 
-            <label>
-              ○ Evening wind-down
-            </label>
-            <label>
-              ○ Dim lights
-            </label>
-            <label>
-              ○ Breathing exercise
-            </label>
-            <label>
-              ○ No screens
-            </label>
-            <label>
-              ○ Bed by 11:00pm
-            </label>
+            <small>Goal</small>
+            <strong className="planGoal">Improve sleep</strong>
+
+            <PlanLine text="Evening wind-down" />
+            <PlanLine text="Dim lights" side="10:00pm" />
+            <PlanLine text="Breathing exercise" />
+            <PlanLine text="No screens" />
+            <PlanLine text="Bed by 11:00pm" />
           </div>
-        </MiniExperience>
+        </Experience>
 
-        <MiniExperience
+        <Experience
           title="NEVER START FROM ZERO"
           subtitle="Root carries what matters forward."
         >
-          <div className="memory-demo">
-            <span>ROOT MEMORY</span>
+          <div className="memoryPhone">
+            <div className="appHeader">
+              <strong>Root Memory</strong>
+            </div>
 
-            <p>
-              Last time you had trouble
-              sleeping, a slower evening
-              routine helped.
+            <p className="memoryStatement">
+              Last time you had trouble sleeping, a slower
+              evening routine helped.
             </p>
 
             <button type="button">
@@ -434,18 +345,17 @@ export default function PersonalLandingPage() {
             <small>
               What helped then:
               <br />
-              Evening routine, less caffeine,
-              breathing.
+              Evening routine, less caffeine, breathing.
             </small>
           </div>
-        </MiniExperience>
+        </Experience>
       </section>
 
-      {/* ======================================================
-          7 — WHAT WOULD YOU BUILD?
-      ====================================================== */}
-      <section className="build-around">
-        <div className="build-title">
+      {/* =====================================================
+          7. WHAT WOULD YOU BUILD?
+      ===================================================== */}
+      <section className="buildRoot">
+        <div className="buildHeading">
           <h2>
             WHAT WOULD
             <br />
@@ -457,16 +367,16 @@ export default function PersonalLandingPage() {
           </h2>
         </div>
 
-        <LifeGoal icon="☾" text="Better sleep" />
-        <LifeGoal icon="♡" text="Less anxiety" />
-        <LifeGoal icon="↗" text="Getting fitter" />
-        <LifeGoal icon="♧" text="Eating better" />
-        <LifeGoal icon="◡" text="Recovery" />
-        <LifeGoal icon="◇" text="Understanding your body" />
-        <LifeGoal icon="☁" text="Getting through a difficult period" />
-        <LifeGoal icon="♙" text="Staying well as you get older" />
+        <div className="goalGrid">
+          {rootGoals.map(([icon, text]) => (
+            <div className="goal" key={text}>
+              <span>{icon}</span>
+              <p>{text}</p>
+            </div>
+          ))}
+        </div>
 
-        <div className="build-last">
+        <div className="handNote buildNote">
           Maybe something
           <br />
           you haven&apos;t
@@ -475,255 +385,205 @@ export default function PersonalLandingPage() {
         </div>
       </section>
 
-      {/* ======================================================
-          PLAYBOOK POSSIBILITY
-      ====================================================== */}
-      <section className="playbook-story">
-        <div className="playbook-text">
-          <p className="small-label">
-            YOUR PLAYBOOK
-          </p>
+      {/* =====================================================
+          PLAYBOOK BRIDGE
+      ===================================================== */}
+      <section className="playbookBridge">
+        <div>
+          <span className="kicker">
+            BUILD YOURS
+          </span>
 
           <h2>
             A plan shouldn&apos;t
             <br />
             just fit the goal.
             <br />
-            <em>
-              It should fit you.
-            </em>
+            <em>It should fit you.</em>
           </h2>
 
           <p>
-            Ask Root to help you build
-            something around what you&apos;re
-            trying to achieve.
+            Tell Root what you&apos;re trying to achieve.
+            Talk it through. Build something useful.
+            Change it when life changes.
           </p>
-
-          <div className="playbook-words">
-            <span>Nutrition</span>
-            <span>Gut health</span>
-            <span>Stress & anxiety</span>
-            <span>Sleep</span>
-            <span>Movement</span>
-            <span>Recovery</span>
-            <span>Mind & mood</span>
-            <span>Routines</span>
-            <span>Anything else</span>
-          </div>
         </div>
 
-        <div className="playbook-demo-large">
-          <p className="demo-you">
-            I want to start exercising again,
-            but I&apos;ve been exhausted lately
-            and I know I&apos;ll give up if I
-            do too much.
-          </p>
-
-          <p className="demo-root">
-            Let&apos;s start gently.
-            Your recent check-ins have also
-            shown low energy, so we can make
-            this something you can actually
-            live with.
-          </p>
-
-          <div className="saved-plan">
-            <span>PLAYBOOK</span>
-
-            <strong>
-              My return-to-fitness plan
-            </strong>
-
-            <div>
-              Week 1
-              <b>
-                2 gentle sessions
-              </b>
+        <div className="playbookDemo">
+          <div className="playbookConversation">
+            <div className="pbUser">
+              I want to start exercising again, but I&apos;ve
+              been exhausted lately and I know I&apos;ll give up
+              if I do too much.
             </div>
 
-            <div>
-              Week 2
-              <b>
-                Build gradually
-              </b>
-            </div>
-
-            <div>
-              Week 3
-              <b>
-                Review how I feel
-              </b>
+            <div className="pbRoot">
+              Let&apos;s start gently. Your recent check-ins have
+              also shown low energy, so we can make this something
+              you can actually live with.
             </div>
           </div>
 
-          <p className="demo-you small">
+          <div className="savedPlan">
+            <small>PLAYBOOK</small>
+
+            <h3>My return-to-fitness plan</h3>
+
+            <SavedPlanRow
+              week="Week 1"
+              text="2 gentle sessions"
+            />
+
+            <SavedPlanRow
+              week="Week 2"
+              text="Build gradually"
+            />
+
+            <SavedPlanRow
+              week="Week 3"
+              text="Review how I feel"
+            />
+          </div>
+
+          <div className="pbUser short">
             Tuesdays don&apos;t work for me.
-          </p>
+          </div>
 
-          <p className="demo-root small">
+          <div className="pbRoot short">
             Done. Let&apos;s move it.
-          </p>
+          </div>
         </div>
       </section>
 
-      {/* ======================================================
-          8 — TRUST
-      ====================================================== */}
+      {/* =====================================================
+          8. TRUST
+      ===================================================== */}
       <section className="trust">
-        <div className="trust-title">
-          <h2>
-            HEALTH MATTERS
-            <br />
-            TOO MUCH FOR
-            <br />
-            EMPTY PROMISES.
-          </h2>
+        <div className="trustHeadline">
+          HEALTH MATTERS
+          <br />
+          TOO MUCH FOR
+          <br />
+          EMPTY PROMISES.
         </div>
 
-        <TrustPoint
-          icon="□"
-          title="Studies support."
-        />
+        <TrustStatement icon="▯">
+          Studies
+          <br />
+          support.
+        </TrustStatement>
 
-        <TrustPoint
-          icon="○"
-          title="Evidence suggests."
-        />
+        <TrustStatement icon="○">
+          Evidence
+          <br />
+          suggests.
+        </TrustStatement>
 
-        <TrustPoint
-          icon="♡"
-          title="Experience informs."
-        />
+        <TrustStatement icon="♡">
+          Experience
+          <br />
+          informs.
+        </TrustStatement>
 
-        <TrustPoint
-          icon="♙"
-          title="You decide."
-        />
+        <TrustStatement icon="♙">
+          You
+          <br />
+          decide.
+        </TrustStatement>
 
-        <div className="trust-bottom">
-          <div>
-            Built with human and AI intelligence.
-            <br />
-            Structured with therapeutic thinking
-            and lived experience.
-          </div>
+        <div className="trustSmall first">
+          Built with human and AI intelligence.
+          <br />
+          Structured with therapeutic thinking and lived
+          experience.
+        </div>
 
-          <div>
-            Root doesn&apos;t diagnose.
-            It doesn&apos;t promise miracle cures.
-            <br />
-            It helps you make better sense of
-            your own journey and discover what
-            may work better for you over time.
-          </div>
+        <div className="trustSmall second">
+          Root doesn&apos;t diagnose. It doesn&apos;t promise
+          miracle cures. It helps you make better sense of your
+          own journey and discover what may work better for you
+          over time.
         </div>
       </section>
 
-      {/* ======================================================
-          9 — LIFE CHANGES
-      ====================================================== */}
-      <section className="life-section">
-        <div className="life-note">
+      {/* =====================================================
+          9. LIFE JOURNEY
+      ===================================================== */}
+      <section className="lifeJourney">
+        <div className="stageRow">
+          {lifeStages.map(([title, text], index) => (
+            <div className="stageWrap" key={title}>
+              <div className="lifeStage">
+                <div className="stageIcon">♙</div>
+
+                <strong>{title}</strong>
+
+                <p>{text}</p>
+              </div>
+
+              {index < lifeStages.length - 1 ? (
+                <div className="stageArrow">→</div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+
+        <div className="handNote lifeNote">
           Life changes.
           <br />
           Root changes
           <br />
           with you.
         </div>
-
-        <LifeStage
-          title="Your 20s"
-          text="Finding direction"
-        />
-
-        <LifeArrow />
-
-        <LifeStage
-          title="Your 30s"
-          text="Building and balancing"
-        />
-
-        <LifeArrow />
-
-        <LifeStage
-          title="Your 40s"
-          text="Responsibility and pressure"
-        />
-
-        <LifeArrow />
-
-        <LifeStage
-          title="Your 50s"
-          text="Reassessing and refocusing"
-        />
-
-        <LifeArrow />
-
-        <LifeStage
-          title="Your 60s+"
-          text="Living well and staying strong"
-        />
       </section>
 
-      {/* ======================================================
-          10 — SMALL CHANGES
-      ====================================================== */}
-      <section className="small-changes">
-        <div className="change-heading">
-          <h2>
-            MAKE POWERFUL
-            <br />
-            CHANGES.
-            <br />
-            ONE STEP
-            <br />
-            AT A TIME.
-          </h2>
+      {/* =====================================================
+          10. FUTURE
+      ===================================================== */}
+      <section className="future">
+        <div className="futureSteps">
+          <FutureStep
+            icon="♙"
+            text="Notice what matters"
+          />
+
+          <Arrow />
+
+          <FutureStep
+            icon="◫"
+            text="Make a small change"
+          />
+
+          <Arrow />
+
+          <FutureStep
+            icon="♡"
+            text="See what helps"
+          />
+
+          <Arrow />
+
+          <FutureStep
+            icon="◴"
+            text="Keep building consistency"
+          />
+
+          <Arrow />
+
+          <FutureStep
+            icon="◇"
+            text="Create the life you want"
+          />
         </div>
 
-        <ChangeStep
-          icon="○"
-          text="Notice what matters"
-        />
-
-        <ChangeArrow />
-
-        <ChangeStep
-          icon="□"
-          text="Make a small change"
-        />
-
-        <ChangeArrow />
-
-        <ChangeStep
-          icon="♡"
-          text="See what helps"
-        />
-
-        <ChangeArrow />
-
-        <ChangeStep
-          icon="◴"
-          text="Keep building consistency"
-        />
-
-        <ChangeArrow />
-
-        <ChangeStep
-          icon="◇"
-          text="Create the life you want"
-        />
-
-        <div className="change-image" />
+        <div className="journeyPhoto" />
       </section>
 
-      {/* ======================================================
-          11 — PRICE / CTA
-      ====================================================== */}
-      <section className="final-offer">
-        <div className="offer-title">
+      {/* =====================================================
+          11. PRICE
+      ===================================================== */}
+      <section className="offer">
+        <div className="offerTitle">
           <h2>
             MAKE
             <br />
@@ -733,7 +593,7 @@ export default function PersonalLandingPage() {
           </h2>
         </div>
 
-        <div className="offer-price">
+        <div className="price">
           <div>
             <strong>{MONTHLY_PRICE}</strong>
             <span>/ month</span>
@@ -748,7 +608,7 @@ export default function PersonalLandingPage() {
           </small>
         </div>
 
-        <div className="offer-action">
+        <div className="buy">
           <button
             type="button"
             onClick={joinRoot}
@@ -760,38 +620,45 @@ export default function PersonalLandingPage() {
           <p>
             One decision.
             <br />
-            A companion for the journey.
+            A lifetime of support.
           </p>
         </div>
 
-        <div className="offer-image" />
+        <div className="offerStillLife">
+          <div className="bowl" />
+          <div className="plant">
+            <span>╱</span>
+            <span>╲</span>
+            <span>│</span>
+          </div>
+        </div>
       </section>
 
-      {/* ======================================================
-          FOOTER
-      ====================================================== */}
       <footer className="footer">
         <div>
-          <strong>Root</strong>
-          <span> Personal</span>
+          <strong>Root</strong>{" "}
+          <span>Personal</span>
         </div>
 
-        <div className="footer-links">
-          <a href="/privacy">
-            Privacy
-          </a>
-
-          <a href="/terms">
-            Terms
-          </a>
-
-          <a href="/login">
-            Sign in
-          </a>
-        </div>
+        <nav>
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="/login">Sign in</a>
+        </nav>
       </footer>
 
       <style jsx global>{`
+        :root {
+          --ink: #152218;
+          --green: #315b3c;
+          --deep-green: #17351f;
+          --soft-green: #dfe6da;
+          --ivory: #f7f4ed;
+          --warm: #eee9df;
+          --line: rgba(23, 53, 31, 0.13);
+          --muted: #687168;
+        }
+
         * {
           box-sizing: border-box;
         }
@@ -802,7 +669,7 @@ export default function PersonalLandingPage() {
 
         body {
           margin: 0;
-          background: #f4f0e6;
+          background: var(--ivory);
         }
 
         button,
@@ -810,25 +677,22 @@ export default function PersonalLandingPage() {
           -webkit-tap-highlight-color: transparent;
         }
 
-        .personal-page {
+        .rootPersonal {
           min-height: 100vh;
-          overflow: hidden;
-          color: #1c241c;
-          background:
-            linear-gradient(
-              180deg,
-              #f8f5ee 0%,
-              #f0ebe1 100%
-            );
+          overflow-x: hidden;
+          background: var(--ivory);
+          color: var(--ink);
           font-family:
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
+            Arial,
+            Helvetica,
             sans-serif;
         }
 
-        .personal-page h1,
-        .personal-page h2 {
+        .rootPersonal h1,
+        .rootPersonal h2,
+        .rootPersonal h3,
+        .price strong,
+        .trustHeadline {
           font-family:
             Georgia,
             "Times New Roman",
@@ -836,1229 +700,1139 @@ export default function PersonalLandingPage() {
           font-weight: 400;
         }
 
-        /* HEADER */
+        /* ================= HEADER ================= */
 
-        .topbar {
-          width:
-            min(
-              1400px,
-              calc(100% - 60px)
-            );
-          margin: 0 auto;
-          padding: 28px 0;
+        .header {
+          height: 72px;
+          padding: 0 5.5vw;
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          justify-content: space-between;
+          background: var(--ivory);
         }
 
         .brand {
           display: flex;
-          align-items: center;
-          gap: 12px;
+          align-items: baseline;
+          gap: 11px;
+          color: var(--ink);
           text-decoration: none;
-          color: #1e251e;
         }
 
-        .brand-name {
+        .brandRoot {
           font-family: Georgia, serif;
-          font-size: 25px;
+          font-size: 22px;
         }
 
-        .brand-type {
-          font-size: 8px;
+        .brandPersonal {
+          font-size: 7px;
           font-weight: 800;
           letter-spacing: 0.35em;
         }
 
-        .sign-in {
-          color: #41483f;
+        .signIn {
+          color: var(--ink);
           text-decoration: none;
-          font-size: 12px;
+          font-size: 10px;
         }
 
-        /* HERO */
+        /* ================= HERO ================= */
 
         .hero {
-          min-height: 650px;
+          min-height: 570px;
           display: grid;
-          grid-template-columns:
-            0.78fr 1.22fr;
+          grid-template-columns: 43% 57%;
+          background: var(--ivory);
         }
 
-        .hero-copy {
+        .heroCopy {
           padding:
-            85px
-            50px
-            70px
-            max(
-              50px,
-              calc(
-                (100vw - 1400px) / 2
-              )
-            );
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          background: #faf7f0;
+            78px
+            45px
+            60px
+            7vw;
+          position: relative;
+          z-index: 2;
         }
 
-        .small-label {
-          margin: 0 0 18px;
-          color: #637b65;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.17em;
-        }
-
-        .hero h1 {
+        .heroCopy h1 {
           margin: 0;
           font-size:
             clamp(
-              44px,
-              5.2vw,
-              74px
+              46px,
+              4.65vw,
+              70px
             );
-          line-height: 0.97;
+          line-height: 0.96;
           letter-spacing: -0.045em;
         }
 
-        .hero h1 em {
-          color: #496f52;
+        .heroCopy h1 em {
+          color: #4d7958;
           font-style: normal;
         }
 
-        .hero-sub {
+        .heroCopy p {
           margin: 28px 0 0;
-          color: #404940;
           font-family: Georgia, serif;
-          font-size: 18px;
+          font-size: 14px;
           line-height: 1.55;
         }
 
-        .scroll-cue {
-          width: 40px;
-          margin-top: 35px;
-          color: #446047;
+        .downArrow {
+          display: inline-block;
+          margin-top: 36px;
+          color: var(--green);
           text-decoration: none;
-          font-size: 28px;
+          font-family: Georgia, serif;
+          font-size: 30px;
+          font-weight: 300;
         }
 
-        .hero-image {
-          position: relative;
-          min-height: 650px;
+        .heroPhoto {
+          min-height: 570px;
           background:
             linear-gradient(
               90deg,
-              rgba(
-                248,
-                245,
-                238,
-                0.55
-              ),
-              rgba(
-                248,
-                245,
-                238,
-                0.05
-              )
+              rgba(247, 244, 237, 0.75) 0%,
+              rgba(247, 244, 237, 0.08) 28%,
+              rgba(247, 244, 237, 0) 100%
             ),
-            url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=85")
-              center / cover no-repeat;
-        }
-
-        .hero-image-shade {
-          position: absolute;
-          inset: 0;
-          background:
             linear-gradient(
               180deg,
-              rgba(
-                30,
-                48,
-                32,
-                0.02
-              ),
-              rgba(
-                30,
-                48,
-                32,
-                0.13
-              )
+              rgba(34, 55, 36, 0.02),
+              rgba(34, 55, 36, 0.10)
+            ),
+            url("/visuals/root-personal-hero.jpg")
+              center / cover no-repeat,
+            radial-gradient(
+              circle at 40% 45%,
+              #e9d6ad,
+              #8b9b78 70%
             );
         }
 
-        /* QUESTIONS */
+        /* ================= QUESTIONS ================= */
 
-        .questions-section {
-          width:
-            min(
-              1400px,
-              calc(100% - 50px)
-            );
-          margin: 0 auto;
-          padding: 80px 0;
+        .questionsBand {
+          min-height: 235px;
+          padding: 34px 6.5vw;
           display: grid;
           grid-template-columns:
-            220px 1fr 250px;
-          gap: 48px;
+            115px
+            minmax(0, 1fr)
+            205px;
+          gap: 42px;
           align-items: center;
+          background: #fbf8f1;
         }
 
-        .questions-heading {
-          display: grid;
-          grid-template-columns:
-            1fr 90px;
-          align-items: center;
-        }
-
-        .questions-heading h2 {
-          margin: 0;
-          font-size: 25px;
-          line-height: 1.1;
-        }
-
-        .question-mark {
+        .questionIcon {
           width: 78px;
           height: 78px;
           border-radius: 50%;
           display: grid;
           place-items: center;
-          background: #e3e2d7;
-          color: #426349;
+          background: #e4e3d7;
+          color: #477052;
           font-family: Georgia, serif;
-          font-size: 48px;
+          font-size: 45px;
         }
 
-        .questions {
+        .questionGrid {
           display: grid;
-          grid-template-columns:
-            repeat(3, 1fr);
-          gap: 38px 40px;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 30px 44px;
         }
 
-        .questions p {
+        .questionGrid p {
           margin: 0;
-          color: #262e26;
-          font-size: 14px;
-          line-height: 1.5;
+          max-width: 180px;
+          font-size: 11px;
+          line-height: 1.55;
         }
 
-        .questions-note {
-          padding-left: 30px;
-          border-left:
-            1px solid
-              rgba(
-                47,
-                64,
-                48,
-                0.15
-              );
-          color: #477153;
-          font-family: Georgia, serif;
-          font-size: 20px;
+        .handNote {
+          color: #3e7250;
+          font-family:
+            "Segoe Print",
+            "Bradley Hand",
+            cursive;
+          font-size: 16px;
           font-style: italic;
           line-height: 1.5;
+          transform: rotate(-2deg);
         }
 
-        /* NOISE */
+        .handNote strong {
+          font-weight: 700;
+        }
 
-        .noise-section {
-          min-height: 470px;
+        /* ================= NOISE ================= */
+
+        .noise {
+          min-height: 320px;
           display: grid;
-          grid-template-columns:
-            1.05fr 0.95fr;
-          align-items: center;
+          grid-template-columns: 52% 48%;
           background:
             linear-gradient(
               90deg,
-              #dbd6cc,
-              #eee9df
+              #ddd9d1,
+              #ece7de
             );
         }
 
-        .noise-phone {
-          height: 470px;
+        .phoneScene {
+          min-height: 320px;
           position: relative;
           overflow: hidden;
           display: grid;
           place-items: end center;
         }
 
-        .fake-phone {
-          width: 280px;
-          min-height: 430px;
-          padding: 22px;
-          transform:
-            rotate(-6deg)
-            translateY(35px);
-          border:
-            9px solid
-              #1c211d;
-          border-radius: 42px;
-          background: #fafafa;
-          box-shadow:
-            0 30px 60px
-              rgba(
-                0,
-                0,
-                0,
-                0.22
-              );
-        }
-
-        .fake-phone-top {
-          margin-bottom: 16px;
-          text-align: center;
-          color: #777;
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: 0.12em;
-        }
-
-        .noise-message {
-          margin-bottom: 7px;
-          padding: 10px 11px;
-          border-radius: 12px;
-          background: #f1f1f1;
-        }
-
-        .noise-message strong {
-          display: block;
-          color: #303630;
-          font-size: 10px;
-        }
-
-        .noise-message span {
-          color: #898989;
-          font-size: 9px;
-        }
-
-        .noise-copy {
-          padding: 50px 70px;
-        }
-
-        .noise-copy h2 {
-          margin: 0;
-          font-size:
-            clamp(
-              42px,
-              4.5vw,
-              66px
-            );
-          line-height: 1;
-        }
-
-        .noise-copy p {
-          margin: 25px 0 0;
-          color: #354237;
-          font-family: Georgia, serif;
-          font-size: 27px;
-          line-height: 1.25;
-        }
-
-        .noise-copy strong {
-          color: #477451;
-          font-weight: 400;
-        }
-
-        /* WHAT IF */
-
-        .what-if-section {
-          width:
-            min(
-              1400px,
-              calc(100% - 40px)
-            );
-          margin: 0 auto;
-          padding: 70px 0;
-          display: grid;
-          grid-template-columns:
-            210px repeat(
-              7,
-              1fr
-            );
-          align-items: stretch;
-        }
-
-        .what-if-heading {
-          padding-right: 30px;
-          display: flex;
-          align-items: center;
-        }
-
-        .what-if-heading h2 {
-          margin: 0;
-          font-size: 33px;
-          line-height: 1.04;
-        }
-
-        .possibility {
-          padding: 10px 18px;
-          min-height: 145px;
-          border-left:
-            1px solid
-              rgba(
-                54,
-                72,
-                54,
-                0.12
-              );
-          text-align: center;
-        }
-
-        .possibility-icon {
-          margin-bottom: 16px;
-          color: #517659;
-          font-size: 32px;
-          font-family: Georgia, serif;
-        }
-
-        .possibility p {
-          margin: 0;
-          color: #333b33;
-          font-size: 11px;
-          line-height: 1.45;
-        }
-
-        /* MEET ROOT */
-
-        .meet-root {
-          min-height: 500px;
-          display: grid;
-          grid-template-columns:
-            0.85fr 1fr 0.8fr;
-          align-items: center;
-          overflow: hidden;
+        .handShape {
+          position: absolute;
+          width: 120px;
+          height: 220px;
+          left: calc(50% - 125px);
+          bottom: -85px;
+          border-radius: 70px 70px 30px 30px;
+          transform: rotate(-13deg);
           background:
             linear-gradient(
-              90deg,
-              #f8f5ee,
-              #eeede4
+              145deg,
+              #d7a177,
+              #bd7e5b
             );
         }
 
-        .meet-copy {
-          padding: 60px 70px;
+        .noisePhone {
+          position: relative;
+          z-index: 2;
+          width: 220px;
+          padding: 13px;
+          transform:
+            rotate(-6deg)
+            translateY(25px);
+          border: 6px solid #192019;
+          border-radius: 24px;
+          background: white;
+          box-shadow:
+            0 20px 40px
+              rgba(0, 0, 0, 0.16);
         }
 
-        .meet-copy h2 {
+        .phoneTop {
+          padding: 5px 0 9px;
+          color: #566158;
+          text-align: center;
+          font-size: 7px;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+        }
+
+        .noiseRow {
+          margin-bottom: 5px;
+          padding: 7px 9px;
+          border-radius: 8px;
+          background: #f0f0ef;
+        }
+
+        .noiseRow strong {
+          display: block;
+          font-size: 7px;
+        }
+
+        .noiseRow span {
+          color: #8b8e89;
+          font-size: 6px;
+        }
+
+        .dots {
+          color: #777;
+          text-align: center;
+          letter-spacing: 3px;
+        }
+
+        .noiseCopy {
+          padding: 57px 7vw 45px 45px;
+        }
+
+        .noiseCopy h2 {
           margin: 0;
           font-size:
             clamp(
               37px,
-              3.7vw,
-              53px
+              3.4vw,
+              54px
             );
-          line-height: 1.05;
+          line-height: 0.98;
         }
 
-        .meet-copy > p:not(.small-label) {
-          margin: 20px 0;
-          color: #484f47;
-          font-size: 14px;
-          line-height: 1.7;
-        }
-
-        .meet-copy > strong {
-          color: #36523c;
+        .noiseCopy p {
+          margin: 22px 0 0;
           font-family: Georgia, serif;
-          font-size: 17px;
-          font-weight: 400;
-          line-height: 1.5;
+          font-size: 20px;
+          line-height: 1.25;
         }
 
-        .root-orb-wrap {
-          display: grid;
-          place-items: center;
-        }
-
-        .root-ring {
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-        }
-
-        .ring-one {
-          width: 340px;
-          height: 340px;
-          border:
-            1px solid
-              rgba(
-                61,
-                89,
-                64,
-                0.08
-              );
-          box-shadow:
-            0 0 60px
-              rgba(
-                81,
-                111,
-                82,
-                0.08
-              );
-        }
-
-        .ring-two {
-          width: 275px;
-          height: 275px;
-          border:
-            1px solid
-              rgba(
-                61,
-                89,
-                64,
-                0.11
-              );
-        }
-
-        .ring-three {
-          width: 215px;
-          height: 215px;
-          border:
-            1px solid
-              rgba(
-                61,
-                89,
-                64,
-                0.14
-              );
-        }
-
-        .root-core {
-          width: 165px;
-          height: 165px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          background:
-            linear-gradient(
-              145deg,
-              #31543a,
-              #183522
-            );
-          color: white;
-          font-family: Georgia, serif;
-          font-size: 38px;
-          box-shadow:
-            0 20px 50px
-              rgba(
-                36,
-                68,
-                42,
-                0.23
-              );
-        }
-
-        .meet-image {
-          height: 500px;
-          background:
-            linear-gradient(
-              90deg,
-              rgba(
-                239,
-                238,
-                228,
-                0.65
-              ),
-              rgba(
-                239,
-                238,
-                228,
-                0
-              )
-            ),
-            url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80")
-              center / cover no-repeat;
-        }
-
-        /* ROOT ACTION */
-
-        .root-action {
-          width:
-            min(
-              1400px,
-              calc(100% - 40px)
-            );
-          margin: 0 auto;
-          padding: 65px 0 80px;
-          display: grid;
-          grid-template-columns:
-            repeat(4, 1fr);
-          gap: 40px;
-        }
-
-        .mini-experience {
-          text-align: center;
-        }
-
-        .mini-experience h3 {
-          margin: 0;
-          font-size: 11px;
-          letter-spacing: 0.05em;
-        }
-
-        .mini-subtitle {
-          min-height: 36px;
-          margin: 8px auto 24px;
-          color: #777c75;
-          font-size: 10px;
-          line-height: 1.45;
-        }
-
-        .phone-shell {
-          width: 220px;
-          min-height: 355px;
-          margin: 0 auto;
-          padding: 17px;
-          border:
-            5px solid
-              #e7e4dd;
-          border-radius: 35px;
-          background: #f9f8f4;
-          box-shadow:
-            0 15px 35px
-              rgba(
-                38,
-                46,
-                37,
-                0.08
-              );
-        }
-
-        .mini-phone-top {
-          margin-bottom: 18px;
-          color: #777;
-          text-align: left;
-          font-size: 8px;
-          font-weight: 800;
-        }
-
-        .mini-chat {
-          display: grid;
-          gap: 10px;
-        }
-
-        .mini-user,
-        .mini-root {
-          padding: 12px;
-          border-radius: 15px;
-          text-align: left;
-          font-size: 10px;
-          line-height: 1.5;
-        }
-
-        .mini-user {
-          background: #eeeae3;
-        }
-
-        .mini-root {
-          background: #e2e9de;
-          color: #3d493c;
-        }
-
-        .insight-demo {
-          text-align: left;
-        }
-
-        .metric {
-          margin-bottom: 8px;
-          padding: 9px 10px;
-          border-radius: 12px;
-          display: flex;
-          justify-content: space-between;
-          background: #eeece7;
-          font-size: 10px;
-        }
-
-        .insight-demo p {
-          margin-top: 20px;
-          color: #60705f;
-          font-size: 10px;
-          line-height: 1.5;
-        }
-
-        .plan-demo {
-          display: grid;
-          gap: 8px;
-          text-align: left;
-        }
-
-        .plan-demo > span {
-          color: #879184;
-          font-size: 8px;
-          font-weight: 800;
-        }
-
-        .plan-demo > strong {
-          margin-bottom: 8px;
-          font-family: Georgia, serif;
-          font-size: 16px;
-          font-weight: 400;
-        }
-
-        .plan-demo label {
-          padding: 8px;
-          border-bottom:
-            1px solid #ebe8e1;
-          color: #536052;
-          font-size: 10px;
-        }
-
-        .memory-demo {
-          text-align: left;
-        }
-
-        .memory-demo > span {
-          color: #81907c;
-          font-size: 8px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-        }
-
-        .memory-demo > p {
-          color: #3c463b;
-          font-family: Georgia, serif;
-          font-size: 14px;
-          line-height: 1.45;
-        }
-
-        .memory-demo button {
-          width: 100%;
-          margin: 10px 0;
-          padding: 9px;
-          border:
-            1px solid #e0dfd9;
-          border-radius: 10px;
-          background: white;
-          color: #47624a;
-          font-size: 9px;
-        }
-
-        .memory-demo small {
-          color: #777c75;
-          font-size: 8px;
-          line-height: 1.5;
-        }
-
-        /* BUILD AROUND */
-
-        .build-around {
-          width:
-            min(
-              1400px,
-              calc(100% - 40px)
-            );
-          margin: 0 auto;
-          padding: 58px 0;
-          display: grid;
-          grid-template-columns:
-            220px repeat(
-              8,
-              1fr
-            ) 170px;
-          align-items: center;
-        }
-
-        .build-title h2 {
-          margin: 0;
-          font-size: 28px;
-          line-height: 1;
-        }
-
-        .life-goal {
-          text-align: center;
-        }
-
-        .life-goal-icon {
-          color: #55775b;
-          font-family: Georgia, serif;
-          font-size: 30px;
-        }
-
-        .life-goal p {
-          color: #3e463d;
-          font-size: 9px;
-          line-height: 1.4;
-        }
-
-        .build-last {
-          color: #4d7557;
-          font-family: Georgia, serif;
-          font-size: 15px;
-          font-style: italic;
-          line-height: 1.45;
-        }
-
-        /* PLAYBOOK STORY */
-
-        .playbook-story {
-          width:
-            min(
-              1260px,
-              calc(100% - 40px)
-            );
-          margin: 45px auto 100px;
-          padding: 70px;
-          border-radius: 44px;
-          display: grid;
-          grid-template-columns:
-            0.9fr 1.1fr;
-          gap: 80px;
-          background:
-            linear-gradient(
-              145deg,
-              #f8f5ee,
-              #e6eadf
-            );
-        }
-
-        .playbook-text h2 {
-          margin: 0;
-          font-size:
-            clamp(
-              40px,
-              4.8vw,
-              65px
-            );
-          line-height: 1;
-        }
-
-        .playbook-text h2 em {
-          color: #4d7557;
+        .noiseCopy em {
+          color: #477756;
           font-style: normal;
         }
 
-        .playbook-text > p:not(.small-label) {
-          max-width: 520px;
-          color: #626a61;
-          font-size: 15px;
-          line-height: 1.7;
-        }
+        /* ================= WHAT IF ================= */
 
-        .playbook-words {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 25px;
-        }
-
-        .playbook-words span {
-          padding: 8px 11px;
-          border-radius: 999px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.7
-            );
-          color: #526451;
-          font-size: 10px;
-        }
-
-        .playbook-demo-large {
-          padding: 25px;
-          border-radius: 32px;
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.68
-            );
-          box-shadow:
-            0 25px 60px
-              rgba(
-                45,
-                58,
-                43,
-                0.09
-              );
-        }
-
-        .demo-you,
-        .demo-root {
-          max-width: 80%;
-          padding: 13px 15px;
-          border-radius: 17px;
-          font-size: 11px;
-          line-height: 1.55;
-        }
-
-        .demo-you {
-          margin-left: auto;
-          background: #283329;
-          color: white;
-        }
-
-        .demo-root {
-          background: #edf0e8;
-          color: #465145;
-        }
-
-        .demo-you.small,
-        .demo-root.small {
-          margin-top: 9px;
-        }
-
-        .saved-plan {
-          margin: 20px 0;
-          padding: 20px;
-          border-radius: 22px;
-          background: #f0efe8;
-        }
-
-        .saved-plan > span {
-          color: #788875;
-          font-size: 8px;
-          font-weight: 800;
-          letter-spacing: 0.1em;
-        }
-
-        .saved-plan > strong {
-          display: block;
-          margin: 8px 0 13px;
-          font-family: Georgia, serif;
-          font-size: 21px;
-          font-weight: 400;
-        }
-
-        .saved-plan > div {
-          padding: 9px 0;
-          border-top:
-            1px solid #deddd5;
-          display: flex;
-          justify-content: space-between;
-          color: #72786f;
-          font-size: 9px;
-        }
-
-        .saved-plan b {
-          color: #394538;
-          font-weight: 600;
-        }
-
-        /* TRUST */
-
-        .trust {
-          padding: 62px
-            max(
-              40px,
-              calc(
-                (100vw - 1400px) / 2
-              )
-            );
+        .whatIf {
+          min-height: 180px;
+          position: relative;
           display: grid;
-          grid-template-columns:
-            1.2fr repeat(
-              4,
-              0.7fr
-            );
-          gap: 30px;
+          grid-template-columns: 240px 1fr;
+          overflow: hidden;
           background:
             linear-gradient(
               90deg,
-              #17351f,
-              #28452d
+              #e5e9dc,
+              #faf8f2
             );
-          color: white;
         }
 
-        .trust-title {
-          padding-right: 35px;
-          border-right:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.18
-              );
-        }
-
-        .trust-title h2 {
-          margin: 0;
-          font-size: 34px;
-          line-height: 1.05;
-        }
-
-        .trust-point {
-          text-align: center;
-        }
-
-        .trust-icon {
-          color: #dfe7da;
-          font-family: Georgia, serif;
-          font-size: 31px;
-        }
-
-        .trust-point h3 {
-          margin: 10px 0 0;
-          font-family: Georgia, serif;
-          font-size: 21px;
-          font-weight: 400;
-          line-height: 1.15;
-        }
-
-        .trust-bottom {
-          grid-column: 2 / -1;
-          margin-top: 15px;
-          padding-top: 20px;
-          border-top:
-            1px solid
-              rgba(
-                255,
-                255,
-                255,
-                0.11
-              );
-          display: grid;
-          grid-template-columns:
-            1fr 1.2fr;
-          gap: 40px;
-          color:
-            rgba(
-              255,
-              255,
-              255,
-              0.64
+        .softLeaves {
+          position: absolute;
+          inset: 0 auto 0 0;
+          width: 360px;
+          opacity: 0.42;
+          background:
+            radial-gradient(
+              circle at 10% 30%,
+              rgba(60, 101, 61, 0.24),
+              transparent 33%
+            ),
+            radial-gradient(
+              circle at 32% 68%,
+              rgba(60, 101, 61, 0.21),
+              transparent 27%
             );
-          font-size: 10px;
-          line-height: 1.6;
+          filter: blur(18px);
         }
 
-        /* LIFE */
-
-        .life-section {
-          width:
-            min(
-              1400px,
-              calc(100% - 40px)
-            );
-          margin: 0 auto;
-          padding: 52px 0;
-          display: grid;
-          grid-template-columns:
-            190px 1fr 40px 1fr 40px 1fr
-            40px 1fr 40px 1fr;
+        .whatIfTitle {
+          padding-left: 6.5vw;
+          position: relative;
+          z-index: 2;
+          display: flex;
           align-items: center;
-          gap: 10px;
         }
 
-        .life-note {
-          color: #4d7456;
-          font-family: Georgia, serif;
-          font-size: 18px;
-          font-style: italic;
-          line-height: 1.5;
+        .whatIfTitle h2 {
+          margin: 0;
+          font-size: 28px;
+          line-height: 1.03;
         }
 
-        .life-stage {
+        .whatIfItems {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          position: relative;
+          z-index: 2;
+        }
+
+        .whatIfItem {
+          min-width: 0;
+          padding: 27px 11px 18px;
+          border-left: 1px solid var(--line);
           text-align: center;
         }
 
-        .life-stage-icon {
-          width: 42px;
-          height: 42px;
-          margin: 0 auto 8px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          border:
-            1px solid #879886;
-          color: #55735a;
-        }
-
-        .life-stage strong {
+        .whatIfItem > span {
           display: block;
-          color: #333b33;
-          font-size: 10px;
-        }
-
-        .life-stage p {
-          margin: 5px 0 0;
-          color: #777d76;
-          font-size: 8px;
-          line-height: 1.4;
-        }
-
-        .life-arrow {
-          color: #a4aaa2;
-          text-align: center;
-        }
-
-        /* CHANGES */
-
-        .small-changes {
-          min-height: 180px;
-          display: grid;
-          grid-template-columns:
-            220px 1fr 25px 1fr 25px
-            1fr 25px 1fr 25px 1fr
-            230px;
-          align-items: center;
-          background: #f7f4ed;
-        }
-
-        .change-heading {
-          padding-left: 55px;
-        }
-
-        .change-heading h2 {
-          margin: 0;
-          font-size: 21px;
-          line-height: 1.05;
-        }
-
-        .change-step {
-          text-align: center;
-        }
-
-        .change-step-icon {
-          color: #55725a;
+          height: 34px;
+          color: #51735a;
           font-family: Georgia, serif;
           font-size: 25px;
         }
 
-        .change-step p {
-          margin: 8px auto 0;
-          max-width: 100px;
-          color: #464e45;
-          font-size: 9px;
+        .whatIfItem p {
+          margin: 10px auto 0;
+          max-width: 110px;
+          font-size: 8px;
+          line-height: 1.5;
+        }
+
+        /* ================= MEET ROOT ================= */
+
+        .meetRoot {
+          min-height: 300px;
+          display: grid;
+          grid-template-columns: 31% 38% 31%;
+          align-items: center;
+          position: relative;
+          overflow: hidden;
+          background:
+            linear-gradient(
+              90deg,
+              #f9f7f1,
+              #f0f3ea
+            );
+        }
+
+        .meetCopy {
+          padding-left: 7vw;
+          position: relative;
+          z-index: 3;
+        }
+
+        .meetCopy h2 {
+          margin: 0 0 10px;
+          font-size: 26px;
+        }
+
+        .meetCopy h3 {
+          margin: 0 0 16px;
+          font-family: Arial, sans-serif;
+          font-size: 12px;
           line-height: 1.4;
         }
 
-        .change-arrow {
-          color: #afb3ac;
+        .meetCopy p {
+          margin: 0;
+          font-size: 10px;
+          line-height: 1.6;
         }
 
-        .change-image {
+        .meetCopy .rootRemembers {
+          margin-top: 15px;
+          color: #2e603d;
+          font-family: Georgia, serif;
+          font-size: 13px;
+        }
+
+        .rootOrbWrap {
+          display: grid;
+          place-items: center;
+          position: relative;
+          z-index: 3;
+        }
+
+        .rootOuter,
+        .rootMid,
+        .rootInner {
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+        }
+
+        .rootOuter {
+          width: 275px;
+          height: 275px;
+          border:
+            1px solid
+              rgba(45, 83, 50, 0.08);
+        }
+
+        .rootMid {
+          width: 220px;
+          height: 220px;
+          border:
+            1px solid
+              rgba(45, 83, 50, 0.12);
+        }
+
+        .rootInner {
+          width: 168px;
+          height: 168px;
+          border:
+            1px solid
+              rgba(45, 83, 50, 0.17);
+        }
+
+        .rootCore {
+          width: 128px;
+          height: 128px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background:
+            radial-gradient(
+              circle at 35% 30%,
+              #4e724d,
+              #24452d 72%
+            );
+          color: white;
+          font-family: Georgia, serif;
+          font-size: 28px;
+          box-shadow:
+            0 14px 40px
+              rgba(36, 69, 45, 0.25);
+        }
+
+        .meetLeaves {
           align-self: stretch;
           background:
-            url("https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=700&q=80")
-              center / cover no-repeat;
+            linear-gradient(
+              90deg,
+              rgba(240, 243, 234, 0.97),
+              rgba(240, 243, 234, 0.26)
+            ),
+            url("/visuals/root-personal-journey.jpg")
+              center / cover no-repeat,
+            linear-gradient(
+              145deg,
+              #cad6bc,
+              #78916a
+            );
         }
 
-        /* OFFER */
+        /* ================= PRODUCT GLIMPSES ================= */
 
-        .final-offer {
-          min-height: 250px;
+        .experienceStrip {
+          padding: 38px 6vw 48px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 24px;
+          background: #fbf8f1;
+        }
+
+        .experience {
+          min-width: 0;
+          text-align: center;
+        }
+
+        .experience h3 {
+          margin: 0;
+          font-family: Arial, sans-serif;
+          font-size: 9px;
+          letter-spacing: 0.02em;
+        }
+
+        .experience > p {
+          min-height: 28px;
+          margin: 7px auto 14px;
+          color: var(--muted);
+          font-size: 7px;
+          line-height: 1.4;
+        }
+
+        .device {
+          width: min(185px, 100%);
+          min-height: 255px;
+          margin: 0 auto;
+          padding: 14px;
+          border: 4px solid #ebe8e0;
+          border-radius: 26px;
+          background: #fcfbf8;
+          box-shadow:
+            0 12px 30px
+              rgba(37, 48, 38, 0.08);
+          text-align: left;
+        }
+
+        .appHeader {
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 7px;
+        }
+
+        .userBubble,
+        .rootBubble {
+          margin-bottom: 8px;
+          padding: 9px;
+          border-radius: 11px;
+          font-size: 7px;
+          line-height: 1.45;
+        }
+
+        .userBubble {
+          background: #eeeae3;
+        }
+
+        .rootBubble {
+          background: #e2e9dd;
+        }
+
+        .insightsPhone small,
+        .planPhone small {
+          color: #758273;
+          font-size: 6px;
+        }
+
+        .metric {
+          margin-top: 7px;
+          padding: 7px;
+          display: flex;
+          justify-content: space-between;
+          border-radius: 7px;
+          background: #f0eee9;
+          font-size: 7px;
+        }
+
+        .insightsPhone p {
+          margin-top: 16px;
+          color: #5a6858;
+          font-size: 7px;
+          line-height: 1.5;
+        }
+
+        .tinyChart {
+          height: 26px;
+          margin-top: 10px;
+          position: relative;
+          border-bottom:
+            1px solid
+              rgba(55, 77, 55, 0.12);
+        }
+
+        .tinyChart::after {
+          content: "";
+          position: absolute;
+          left: 4px;
+          right: 4px;
+          top: 14px;
+          height: 1px;
+          transform: rotate(-4deg);
+          background: #6e8d70;
+          box-shadow:
+            20px -2px 0 #6e8d70,
+            45px 1px 0 #6e8d70;
+        }
+
+        .planGoal {
+          display: block;
+          margin: 4px 0 11px;
+          font-family: Georgia, serif;
+          font-size: 13px;
+          font-weight: 400;
+        }
+
+        .planLine {
+          padding: 8px 0;
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          border-bottom:
+            1px solid
+              rgba(34, 58, 38, 0.09);
+          color: #546151;
+          font-size: 7px;
+        }
+
+        .memoryStatement {
+          font-family: Georgia, serif;
+          font-size: 12px;
+          line-height: 1.45;
+        }
+
+        .memoryPhone button {
+          width: 100%;
+          margin: 12px 0;
+          padding: 8px;
+          border:
+            1px solid #e1dfd8;
+          border-radius: 8px;
+          background: white;
+          color: #3e6245;
+          font-size: 7px;
+        }
+
+        .memoryPhone small {
+          color: #727970;
+          font-size: 6px;
+          line-height: 1.5;
+        }
+
+        /* ================= BUILD ROOT ================= */
+
+        .buildRoot {
+          min-height: 185px;
+          padding: 28px 5vw;
           display: grid;
           grid-template-columns:
-            0.7fr 0.9fr 1fr 0.9fr;
+            185px
+            1fr
+            170px;
+          gap: 35px;
+          align-items: center;
+          background: #f7f3eb;
+        }
+
+        .buildHeading h2 {
+          margin: 0;
+          font-size: 24px;
+          line-height: 1;
+        }
+
+        .goalGrid {
+          display: grid;
+          grid-template-columns: repeat(8, 1fr);
+          gap: 12px;
+        }
+
+        .goal {
+          text-align: center;
+        }
+
+        .goal span {
+          color: #55765b;
+          font-family: Georgia, serif;
+          font-size: 24px;
+        }
+
+        .goal p {
+          margin: 6px auto 0;
+          max-width: 80px;
+          font-size: 7px;
+          line-height: 1.4;
+        }
+
+        .buildNote {
+          font-size: 14px;
+        }
+
+        /* ================= PLAYBOOK ================= */
+
+        .playbookBridge {
+          padding: 55px 7vw;
+          display: grid;
+          grid-template-columns: 45% 55%;
+          gap: 55px;
+          background:
+            linear-gradient(
+              90deg,
+              #f5f2e9,
+              #e9eee3
+            );
+        }
+
+        .kicker {
+          color: #58745b;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+        }
+
+        .playbookBridge h2 {
+          margin: 12px 0 19px;
+          font-size:
+            clamp(
+              39px,
+              4.4vw,
+              60px
+            );
+          line-height: 0.98;
+        }
+
+        .playbookBridge h2 em {
+          color: #4c7958;
+          font-style: normal;
+        }
+
+        .playbookBridge > div:first-child > p {
+          max-width: 440px;
+          color: #626b61;
+          font-size: 12px;
+          line-height: 1.7;
+        }
+
+        .playbookDemo {
+          padding: 23px;
+          border-radius: 28px;
+          background:
+            rgba(255, 255, 255, 0.74);
+          box-shadow:
+            0 20px 50px
+              rgba(48, 66, 48, 0.08);
+        }
+
+        .pbUser,
+        .pbRoot {
+          max-width: 80%;
+          padding: 10px 13px;
+          border-radius: 13px;
+          font-size: 8px;
+          line-height: 1.5;
+        }
+
+        .pbUser {
+          margin-left: auto;
+          background: #243527;
+          color: white;
+        }
+
+        .pbRoot {
+          margin-top: 9px;
+          background: #e9eee5;
+          color: #445144;
+        }
+
+        .savedPlan {
+          margin: 18px 0;
+          padding: 18px;
+          border-radius: 19px;
+          background: #efede6;
+        }
+
+        .savedPlan small {
+          color: #6f806d;
+          font-size: 6px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+        }
+
+        .savedPlan h3 {
+          margin: 7px 0 12px;
+          font-size: 19px;
+        }
+
+        .savedPlanRow {
+          padding: 8px 0;
+          border-top:
+            1px solid
+              rgba(38, 58, 39, 0.1);
+          display: flex;
+          justify-content: space-between;
+          gap: 20px;
+          color: #666e64;
+          font-size: 7px;
+        }
+
+        .savedPlanRow strong {
+          color: #354137;
+        }
+
+        .pbUser.short,
+        .pbRoot.short {
+          padding: 8px 11px;
+        }
+
+        /* ================= TRUST ================= */
+
+        .trust {
+          min-height: 260px;
+          padding: 43px 6vw 35px;
+          display: grid;
+          grid-template-columns:
+            1.3fr
+            repeat(4, 0.72fr);
+          gap: 20px;
+          position: relative;
+          background:
+            linear-gradient(
+              90deg,
+              rgba(22, 52, 29, 0.97),
+              rgba(31, 66, 35, 0.96)
+            );
+          color: white;
+        }
+
+        .trust::after {
+          content: "";
+          position: absolute;
+          inset: auto 0 0 auto;
+          width: 290px;
+          height: 160px;
+          opacity: 0.14;
+          background:
+            radial-gradient(
+              ellipse at 60% 100%,
+              #b4c99d,
+              transparent 65%
+            );
+        }
+
+        .trustHeadline {
+          padding-right: 30px;
+          border-right:
+            1px solid
+              rgba(255, 255, 255, 0.22);
+          font-size: 30px;
+          line-height: 1.04;
+        }
+
+        .trustStatement {
+          text-align: center;
+        }
+
+        .trustStatement span {
+          display: block;
+          margin-bottom: 10px;
+          color: #d7e0d2;
+          font-family: Georgia, serif;
+          font-size: 27px;
+        }
+
+        .trustStatement p {
+          margin: 0;
+          font-family: Georgia, serif;
+          font-size: 20px;
+          line-height: 1.2;
+        }
+
+        .trustSmall {
+          margin-top: 10px;
+          padding-top: 13px;
+          border-top:
+            1px solid
+              rgba(255, 255, 255, 0.11);
+          color:
+            rgba(255, 255, 255, 0.7);
+          font-size: 7px;
+          line-height: 1.5;
+        }
+
+        .trustSmall.first {
+          grid-column: 2 / 4;
+        }
+
+        .trustSmall.second {
+          grid-column: 4 / 6;
+        }
+
+        /* ================= LIFE ================= */
+
+        .lifeJourney {
+          min-height: 140px;
+          padding: 28px 5vw;
+          display: grid;
+          grid-template-columns: 1fr 160px;
+          gap: 35px;
+          align-items: center;
+          background: #faf7f0;
+        }
+
+        .stageRow {
+          display: grid;
+          grid-template-columns:
+            repeat(4, 1fr 45px)
+            1fr;
+          align-items: center;
+        }
+
+        .stageWrap {
+          display: contents;
+        }
+
+        .lifeStage {
+          text-align: center;
+        }
+
+        .stageIcon {
+          width: 32px;
+          height: 32px;
+          margin: 0 auto 5px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          border:
+            1px solid #738674;
+          color: #55725a;
+        }
+
+        .lifeStage strong {
+          display: block;
+          font-size: 7px;
+        }
+
+        .lifeStage p {
+          margin: 3px 0 0;
+          color: #737a72;
+          font-size: 6px;
+          line-height: 1.35;
+        }
+
+        .stageArrow {
+          color: #a6aca4;
+          text-align: center;
+        }
+
+        .lifeNote {
+          font-size: 14px;
+        }
+
+        /* ================= FUTURE ================= */
+
+        .future {
+          min-height: 125px;
+          display: grid;
+          grid-template-columns: 1fr 280px;
+          background: #f5f1e9;
+        }
+
+        .futureSteps {
+          padding: 24px 5vw;
+          display: grid;
+          grid-template-columns:
+            repeat(4, 1fr 30px)
+            1fr;
+          align-items: center;
+        }
+
+        .futureStep {
+          text-align: center;
+        }
+
+        .futureStep span {
+          color: #59765d;
+          font-family: Georgia, serif;
+          font-size: 21px;
+        }
+
+        .futureStep p {
+          margin: 5px auto 0;
+          max-width: 90px;
+          font-size: 7px;
+          line-height: 1.4;
+        }
+
+        .arrow {
+          color: #a6aca4;
+          text-align: center;
+        }
+
+        .journeyPhoto {
+          background:
+            linear-gradient(
+              90deg,
+              rgba(245, 241, 233, 0.66),
+              rgba(245, 241, 233, 0)
+            ),
+            url("/visuals/root-personal-journey.jpg")
+              center / cover no-repeat,
+            linear-gradient(
+              145deg,
+              #d6dcbf,
+              #6d865f
+            );
+        }
+
+        /* ================= OFFER ================= */
+
+        .offer {
+          min-height: 190px;
+          display: grid;
+          grid-template-columns:
+            0.82fr
+            0.9fr
+            0.9fr
+            0.75fr;
           align-items: center;
           background:
             linear-gradient(
               90deg,
               #f7f3eb,
-              #eee9df
+              #ede8de
             );
         }
 
-        .offer-title {
-          padding-left: 65px;
+        .offerTitle {
+          padding-left: 7vw;
         }
 
-        .offer-title h2 {
+        .offerTitle h2 {
           margin: 0;
-          font-size: 40px;
-          line-height: 0.95;
+          font-size: 38px;
+          line-height: 0.92;
         }
 
-        .offer-price strong {
+        .price strong {
+          font-size: 34px;
+        }
+
+        .price span {
+          font-size: 8px;
+        }
+
+        .price p {
+          margin: 3px 0 8px;
           font-family: Georgia, serif;
-          font-size: 37px;
-          font-weight: 400;
+          font-size: 14px;
         }
 
-        .offer-price span {
-          margin-left: 5px;
-          font-size: 11px;
+        .price small {
+          color: #737a71;
+          font-size: 7px;
         }
 
-        .offer-price p {
-          margin: 3px 0 9px;
-          font-family: Georgia, serif;
-          font-size: 17px;
-        }
-
-        .offer-price small {
-          color: #747a72;
-          font-size: 9px;
-        }
-
-        .offer-action button {
-          width: 240px;
-          padding: 14px 19px;
+        .buy button {
+          width: 180px;
+          padding: 11px 15px;
           border: none;
           border-radius: 999px;
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          background: #26432e;
+          background: #294c32;
           color: white;
-          font-size: 13px;
+          font-size: 9px;
           font-weight: 700;
           cursor: pointer;
           box-shadow:
-            0 14px 30px
-              rgba(
-                32,
-                67,
-                40,
-                0.18
-              );
+            0 10px 23px
+              rgba(41, 76, 50, 0.2);
         }
 
-        .offer-action p {
-          margin: 12px 0 0;
-          color: #6b7169;
-          font-size: 9px;
-          line-height: 1.5;
+        .buy p {
+          margin: 10px 0 0;
+          color: #70766f;
+          font-size: 7px;
+          line-height: 1.45;
         }
 
-        .offer-image {
-          align-self: stretch;
+        .offerStillLife {
+          height: 190px;
+          position: relative;
+          overflow: hidden;
+          background:
+            radial-gradient(
+              circle at 75% 30%,
+              rgba(167, 188, 141, 0.33),
+              transparent 48%
+            );
+        }
+
+        .bowl {
+          position: absolute;
+          width: 100px;
+          height: 38px;
+          left: 30px;
+          bottom: 34px;
+          border-radius:
+            0 0 70px 70px;
           background:
             linear-gradient(
-              90deg,
-              rgba(
-                238,
-                233,
-                223,
-                0.4
-              ),
-              rgba(
-                238,
-                233,
-                223,
-                0
-              )
-            ),
-            url("https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=700&q=80")
-              center / cover no-repeat;
+              180deg,
+              #826e4e,
+              #4c4b36
+            );
         }
 
-        /* FOOTER */
+        .plant {
+          position: absolute;
+          right: 45px;
+          bottom: 35px;
+          color: #67815c;
+          font-size: 34px;
+          line-height: 0.6;
+        }
+
+        .plant span {
+          display: block;
+        }
+
+        /* ================= FOOTER ================= */
 
         .footer {
-          width:
-            min(
-              1400px,
-              calc(100% - 50px)
-            );
-          margin: 0 auto;
-          padding: 25px 0 35px;
+          padding: 18px 6vw 28px;
           display: flex;
           justify-content: space-between;
-          color: #757b73;
-          font-size: 10px;
+          color: #737a72;
+          font-size: 8px;
+          background: #f7f3eb;
         }
 
-        .footer-links {
+        .footer nav {
           display: flex;
-          gap: 18px;
+          gap: 16px;
         }
 
         .footer a {
@@ -2066,227 +1840,220 @@ export default function PersonalLandingPage() {
           text-decoration: none;
         }
 
-        /* MOBILE */
+        /* ================= RESPONSIVE ================= */
 
-        @media (max-width: 1000px) {
+        @media (max-width: 980px) {
           .hero {
             grid-template-columns: 1fr;
           }
 
-          .hero-copy {
-            padding: 70px 35px;
+          .heroCopy {
+            padding: 70px 8vw 55px;
           }
 
-          .hero-image {
+          .heroPhoto {
             min-height: 470px;
           }
 
-          .questions-section {
+          .questionsBand {
+            grid-template-columns: 90px 1fr;
+          }
+
+          .handNote {
+            grid-column: 2;
+          }
+
+          .whatIf {
             grid-template-columns: 1fr;
           }
 
-          .questions-heading {
-            max-width: 260px;
+          .whatIfTitle {
+            padding: 35px 7vw 20px;
           }
 
-          .questions-note {
-            border-left: none;
-            padding-left: 0;
-          }
-
-          .noise-section {
-            grid-template-columns: 1fr;
-          }
-
-          .noise-copy {
-            order: -1;
-          }
-
-          .what-if-section {
+          .whatIfItems {
             grid-template-columns:
-              repeat(
-                2,
-                1fr
-              );
+              repeat(4, 1fr);
           }
 
-          .what-if-heading {
-            grid-column: 1 / -1;
-            padding-bottom: 35px;
+          .meetRoot {
+            grid-template-columns: 1fr 1fr;
           }
 
-          .possibility {
-            border-left: none;
-            border-top:
-              1px solid
-                rgba(
-                  54,
-                  72,
-                  54,
-                  0.12
-                );
+          .meetLeaves {
+            display: none;
           }
 
-          .meet-root {
-            grid-template-columns: 1fr;
+          .experienceStrip {
+            grid-template-columns: 1fr 1fr;
           }
 
-          .meet-image {
-            min-height: 350px;
-          }
-
-          .root-action {
+          .goalGrid {
             grid-template-columns:
-              1fr 1fr;
-          }
-
-          .build-around {
-            grid-template-columns:
-              repeat(
-                3,
-                1fr
-              );
-            gap: 28px;
-          }
-
-          .build-title,
-          .build-last {
-            grid-column: 1 / -1;
-          }
-
-          .playbook-story {
-            grid-template-columns: 1fr;
+              repeat(4, 1fr);
           }
 
           .trust {
             grid-template-columns:
-              1fr 1fr;
+              repeat(4, 1fr);
           }
 
-          .trust-title {
+          .trustHeadline {
             grid-column: 1 / -1;
             border-right: none;
+            padding-bottom: 20px;
           }
 
-          .trust-bottom {
-            grid-column: 1 / -1;
+          .trustSmall.first {
+            grid-column: 1 / 3;
           }
 
-          .life-section {
+          .trustSmall.second {
+            grid-column: 3 / 5;
+          }
+
+          .lifeJourney {
             grid-template-columns: 1fr;
-            gap: 25px;
           }
 
-          .life-arrow {
-            transform: rotate(90deg);
-          }
-
-          .small-changes {
-            padding: 55px 30px;
-            grid-template-columns: 1fr;
-            gap: 25px;
-          }
-
-          .change-heading {
-            padding-left: 0;
-          }
-
-          .change-arrow {
-            transform: rotate(90deg);
-            text-align: center;
-          }
-
-          .change-image {
-            min-height: 250px;
-          }
-
-          .final-offer {
-            padding: 55px 35px;
-            grid-template-columns: 1fr;
+          .offer {
+            grid-template-columns:
+              1fr 1fr;
+            padding: 35px 7vw;
             gap: 30px;
           }
 
-          .offer-title {
+          .offerTitle {
             padding-left: 0;
           }
 
-          .offer-image {
-            min-height: 240px;
+          .offerStillLife {
+            display: none;
           }
         }
 
-        @media (max-width: 640px) {
-          .topbar {
-            width:
-              calc(
-                100% - 30px
-              );
+        @media (max-width: 660px) {
+          .header {
+            padding: 0 20px;
           }
 
-          .sign-in {
-            font-size: 10px;
-          }
-
-          .hero h1 {
+          .heroCopy h1 {
             font-size:
               clamp(
-                44px,
+                43px,
                 13vw,
                 60px
               );
           }
 
-          .questions {
-            grid-template-columns: 1fr;
-            gap: 25px;
+          .heroPhoto {
+            min-height: 390px;
           }
 
-          .questions p {
-            font-family: Georgia, serif;
-            font-size: 19px;
-          }
-
-          .noise-copy {
-            padding: 55px 28px;
-          }
-
-          .what-if-section {
-            grid-template-columns: 1fr;
-          }
-
-          .root-action {
-            grid-template-columns: 1fr;
-          }
-
-          .playbook-story {
-            width:
-              calc(
-                100% - 24px
-              );
+          .questionsBand {
             padding: 45px 24px;
+            grid-template-columns: 1fr;
           }
 
-          .trust {
+          .questionGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .questionGrid p {
+            max-width: none;
+            font-family: Georgia, serif;
+            font-size: 18px;
+          }
+
+          .handNote {
+            grid-column: auto;
+          }
+
+          .noise {
+            grid-template-columns: 1fr;
+          }
+
+          .noiseCopy {
+            order: -1;
+            padding: 48px 25px 30px;
+          }
+
+          .whatIfItems {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .meetRoot {
+            padding: 50px 24px;
+            grid-template-columns: 1fr;
+            gap: 40px;
+          }
+
+          .meetCopy {
+            padding-left: 0;
+          }
+
+          .experienceStrip {
+            grid-template-columns: 1fr;
+          }
+
+          .buildRoot {
+            padding: 45px 24px;
+            grid-template-columns: 1fr;
+          }
+
+          .goalGrid {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .playbookBridge {
             padding: 55px 24px;
             grid-template-columns: 1fr;
           }
 
-          .trust-bottom {
+          .trust {
+            padding: 50px 24px;
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .trustHeadline,
+          .trustSmall.first,
+          .trustSmall.second {
+            grid-column: 1 / -1;
+          }
+
+          .stageRow {
+            grid-template-columns: 1fr;
+            gap: 18px;
+          }
+
+          .stageWrap {
+            display: block;
+          }
+
+          .stageArrow {
+            margin: 10px 0;
+            transform: rotate(90deg);
+          }
+
+          .future {
             grid-template-columns: 1fr;
           }
 
-          .build-around {
-            grid-template-columns:
-              1fr 1fr;
+          .futureSteps {
+            grid-template-columns: 1fr;
+            gap: 16px;
           }
 
-          .life-goal {
-            padding: 10px;
+          .arrow {
+            transform: rotate(90deg);
           }
 
-          .footer {
-            flex-direction: column;
-            gap: 15px;
+          .journeyPhoto {
+            min-height: 220px;
+          }
+
+          .offer {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
@@ -2294,141 +2061,111 @@ export default function PersonalLandingPage() {
   );
 }
 
-function NoiseMessage({
-  title,
-  text,
-}) {
+function NoiseRow({ title, text }) {
   return (
-    <div className="noise-message">
+    <div className="noiseRow">
       <strong>{title}</strong>
       <span>{text}</span>
     </div>
   );
 }
 
-function Possibility({
-  icon,
-  text,
-}) {
+function RootOrb() {
   return (
-    <div className="possibility">
-      <div className="possibility-icon">
-        {icon}
+    <div className="rootOrbWrap">
+      <div className="rootOuter">
+        <div className="rootMid">
+          <div className="rootInner">
+            <div className="rootCore">
+              Root
+            </div>
+          </div>
+        </div>
       </div>
-
-      <p>{text}</p>
     </div>
   );
 }
 
-function MiniExperience({
+function Experience({
   title,
   subtitle,
   children,
 }) {
   return (
-    <div className="mini-experience">
+    <article className="experience">
       <h3>{title}</h3>
+      <p>{subtitle}</p>
 
-      <p className="mini-subtitle">
-        {subtitle}
-      </p>
-
-      <div className="phone-shell">
-        <div className="mini-phone-top">
-          Root
-        </div>
-
+      <div className="device">
         {children}
       </div>
-    </div>
+    </article>
   );
 }
 
-function Metric({
-  label,
-  value,
-}) {
+function Metric({ name, value }) {
   return (
     <div className="metric">
-      <span>{label}</span>
+      <span>{name}</span>
       <strong>{value}</strong>
     </div>
   );
 }
 
-function LifeGoal({
+function PlanLine({
+  text,
+  side,
+}) {
+  return (
+    <div className="planLine">
+      <span>○ {text}</span>
+
+      {side ? (
+        <span>{side}</span>
+      ) : null}
+    </div>
+  );
+}
+
+function SavedPlanRow({
+  week,
+  text,
+}) {
+  return (
+    <div className="savedPlanRow">
+      <span>{week}</span>
+      <strong>{text}</strong>
+    </div>
+  );
+}
+
+function TrustStatement({
+  icon,
+  children,
+}) {
+  return (
+    <div className="trustStatement">
+      <span>{icon}</span>
+      <p>{children}</p>
+    </div>
+  );
+}
+
+function FutureStep({
   icon,
   text,
 }) {
   return (
-    <div className="life-goal">
-      <div className="life-goal-icon">
-        {icon}
-      </div>
-
+    <div className="futureStep">
+      <span>{icon}</span>
       <p>{text}</p>
     </div>
   );
 }
 
-function TrustPoint({
-  icon,
-  title,
-}) {
+function Arrow() {
   return (
-    <div className="trust-point">
-      <div className="trust-icon">
-        {icon}
-      </div>
-
-      <h3>{title}</h3>
-    </div>
-  );
-}
-
-function LifeStage({
-  title,
-  text,
-}) {
-  return (
-    <div className="life-stage">
-      <div className="life-stage-icon">
-        ♙
-      </div>
-
-      <strong>{title}</strong>
-      <p>{text}</p>
-    </div>
-  );
-}
-
-function LifeArrow() {
-  return (
-    <div className="life-arrow">
-      →
-    </div>
-  );
-}
-
-function ChangeStep({
-  icon,
-  text,
-}) {
-  return (
-    <div className="change-step">
-      <div className="change-step-icon">
-        {icon}
-      </div>
-
-      <p>{text}</p>
-    </div>
-  );
-}
-
-function ChangeArrow() {
-  return (
-    <div className="change-arrow">
+    <div className="arrow">
       →
     </div>
   );
