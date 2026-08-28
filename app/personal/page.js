@@ -1177,10 +1177,10 @@ export default function PersonalLandingPage() {
           text-align: center;
         }
 
-        .experienceStrip > .experience:nth-child(4) {
-         transform: translateX(-42px);
-        }
-
+        .experience:nth-of-type(4) {
+         position: relative;
+         left: -42px;
+        }        
         .experience h3 {
           margin: 0;
           font-family: Arial, sans-serif;
