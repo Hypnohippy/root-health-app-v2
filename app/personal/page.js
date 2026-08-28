@@ -1177,6 +1177,10 @@ export default function PersonalLandingPage() {
           text-align: center;
         }
 
+        .experience:last-child {
+          padding-right: 22px;
+         }
+
         .experience h3 {
           margin: 0;
           font-family: Arial, sans-serif;
