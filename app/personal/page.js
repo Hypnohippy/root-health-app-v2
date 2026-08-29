@@ -1878,7 +1878,7 @@ export default function PersonalLandingPage() {
 
           .previewNav {
             display: none;
-          }
+          } 
 
           .coachPreviewBody {
             min-height: 220px;
