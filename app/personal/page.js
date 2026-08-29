@@ -434,55 +434,78 @@ export default function PersonalLandingPage() {
             </div>
           </article>
 
-          {/* NEVER START FROM ZERO */}
+                   {/* NEVER START FROM ZERO */}
           <article className="rootProductCard memoryPreview">
-            <div className="previewTopbar dark">
+            <div className="coachMemoryTop">
               <strong>Root</strong>
 
-              <div className="previewNav">
+              <div className="coachMemoryNav">
+                <span>Home</span>
+                <span className="active">Coach</span>
                 <span>Insights</span>
-                <span className="active">You</span>
               </div>
             </div>
 
-            <div className="memoryPreviewBody">
-              <div className="memoryGlow" />
+            <div className="coachMemoryScene">
+              <div className="coachMemoryHeading">
+                <small>ROOT COACH</small>
 
-              <small>ROOT REMEMBERS</small>
-
-              <h3>
-                You never have
-                <br />
-                to start from zero.
-              </h3>
-
-              <div className="memoryGlass">
-                <span>LAST TIME</span>
+                <h3>Root Coach</h3>
 
                 <p>
-                  When sleep became difficult, a slower evening
-                  routine and less caffeine seemed to help.
+                  A calm guide for mind, body, recovery
+                  and whole-person wellbeing.
                 </p>
               </div>
 
-              <div className="memoryGlass secondary">
-                <span>ROOT NOTICED</span>
+              <div className="coachMemoryGlass">
+                <div className="coachMemoryCopy">
+                  <small>ROOT ATMOSPHERE</small>
 
-                <p>
-                  Stress and sleep often seem to shift together
-                  for you.
-                </p>
+                  <h4>
+                    Slow down.
+                    <br />
+                    Speak freely.
+                  </h4>
+
+                  <p>
+                    Root remembers enough of your journey
+                    to help the next conversation begin
+                    somewhere meaningful.
+                  </p>
+                </div>
+
+                <div className="coachMemoryOrb">
+                  <div className="coachMemoryOrbMid">
+                    <div className="coachMemoryOrbCore">
+                      Root
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <button type="button">
-                Carry this forward
-                <span>→</span>
-              </button>
+              <div className="coachMemoryTopics">
+                <span>🌙 Sleep</span>
+                <span>🧠 Mind &amp; mood</span>
+                <span>🌿 Recovery</span>
+              </div>
+
+              <div className="coachMemoryRecall">
+                <small>WELCOME BACK</small>
+
+                <p>
+                  Last time we spoke, feeling overwhelmed
+                  seemed connected to sleep and pressure.
+                  Would you like to pick that up again?
+                </p>
+              </div>
             </div>
 
-            <div className="previewCaption darkCaption">
+            <div className="previewCaption memoryCoachCaption">
               <strong>NEVER START FROM ZERO</strong>
-              <span>Root carries what matters forward.</span>
+              <span>
+                Root carries what matters into the next conversation.
+              </span>
             </div>
           </article>
         </div>
@@ -1705,136 +1728,258 @@ export default function PersonalLandingPage() {
           font-size: 5px;
         }
 
-        /* ================= MEMORY ================= */
+        /* ================= MEMORY / COACH ================= */
 
         .memoryPreview {
+          color: var(--ink);
           background:
             radial-gradient(
-              circle at 82% 12%,
-              rgba(119, 154, 112, 0.2),
+              circle at 18% 8%,
+              rgba(247, 196, 133, 0.48),
               transparent 32%
             ),
             linear-gradient(
               145deg,
-              #34513b,
-              #1d3927 68%,
-              #152e1e
-            );
-          color: white;
-        }
-
-        .memoryPreview .previewTopbar {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(17, 40, 24, 0.68);
-        }
-
-        .memoryPreview .previewTopbar > strong {
-          color: white;
-        }
-
-        .memoryPreview .previewNav span {
-          color: rgba(255, 255, 255, 0.62);
-          background: rgba(255, 255, 255, 0.06);
-        }
-
-        .memoryPreview .previewNav span.active {
-          color: #233d29;
-          background: #edf2e8;
-        }
-
-        .memoryPreviewBody {
-          padding: 25px 18px 18px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .memoryGlow {
-          position: absolute;
-          width: 240px;
-          height: 240px;
-          right: -100px;
-          top: -105px;
-          border-radius: 50%;
-          background:
-            radial-gradient(
-              circle,
-              rgba(193, 214, 177, 0.28),
-              transparent 70%
+              #e7c09b 0%,
+              #b5a19a 54%,
+              #8f9190 100%
             );
         }
 
-        .memoryPreviewBody > * {
-          position: relative;
-          z-index: 2;
-        }
-
-        .memoryPreviewBody > small {
-          color: rgba(226, 235, 220, 0.72);
-        }
-
-        .memoryPreviewBody h3 {
-          margin: 9px 0 15px;
-          color: white;
-          font-size: 27px;
-          line-height: 0.96;
-          letter-spacing: -0.035em;
-        }
-
-        .memoryGlass {
-          padding: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.13);
-          border-radius: 15px;
-          background: rgba(255, 255, 255, 0.085);
-          backdrop-filter: blur(10px);
-        }
-
-        .memoryGlass.secondary {
-          margin-top: 8px;
-        }
-
-        .memoryGlass span {
-          color: rgba(223, 234, 218, 0.65);
-          font-size: 5px;
-          font-weight: 900;
-          letter-spacing: 0.11em;
-        }
-
-        .memoryGlass p {
-          margin: 6px 0 0;
-          color: rgba(255, 255, 255, 0.92);
-          font-family: Georgia, serif;
-          font-size: 8px;
-          line-height: 1.45;
-        }
-
-        .memoryPreviewBody button {
-          width: 100%;
-          margin-top: 10px;
-          padding: 9px 11px;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          border-radius: 999px;
+        .coachMemoryTop {
+          min-height: 47px;
+          padding: 9px 14px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #edf2e8;
-          color: #233d29;
-          font-size: 6px;
+          gap: 8px;
+          border-bottom:
+            1px solid
+              rgba(255, 255, 255, 0.46);
+          background:
+            rgba(244, 226, 207, 0.82);
+          backdrop-filter: blur(14px);
+        }
+
+        .coachMemoryTop > strong {
+          font-family: Georgia, serif;
+          font-size: 12px;
+        }
+
+        .coachMemoryNav {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .coachMemoryNav span {
+          padding: 5px 7px;
+          border-radius: 999px;
+          color: #687068;
+          background:
+            rgba(255, 255, 255, 0.34);
+          font-size: 7px;
+        }
+
+        .coachMemoryNav span.active {
+          color: #294b31;
+          background: white;
           font-weight: 800;
         }
 
-        .darkCaption {
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(13, 34, 20, 0.96);
+        .coachMemoryScene {
+          flex: 1;
+          min-height: 0;
+          padding: 17px 15px 14px;
+          background:
+            radial-gradient(
+              circle at 23% 9%,
+              rgba(255, 213, 157, 0.53),
+              transparent 30%
+            ),
+            linear-gradient(
+              180deg,
+              rgba(220, 179, 137, 0.54),
+              rgba(135, 137, 137, 0.73)
+            );
         }
 
-        .darkCaption strong {
+        .coachMemoryHeading {
+          margin-bottom: 12px;
+          text-align: center;
+        }
+
+        .coachMemoryHeading small {
+          color:
+            rgba(45, 67, 49, 0.69);
+          font-size: 5px;
+          font-weight: 900;
+          letter-spacing: 0.15em;
+        }
+
+        .coachMemoryHeading h3 {
+          margin: 3px 0 4px;
+          font-size: 21px;
+          line-height: 1;
+        }
+
+        .coachMemoryHeading p {
+          max-width: 250px;
+          margin: 0 auto;
+          color:
+            rgba(41, 50, 43, 0.71);
+          font-family: Georgia, serif;
+          font-size: 7px;
+          line-height: 1.4;
+        }
+
+        .coachMemoryGlass {
+          min-height: 135px;
+          padding: 15px 14px;
+          display: grid;
+          grid-template-columns: 1.15fr 0.85fr;
+          gap: 8px;
+          align-items: center;
+          border:
+            1px solid
+              rgba(255, 255, 255, 0.66);
+          border-radius: 20px;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(251, 248, 243, 0.85),
+              rgba(230, 227, 220, 0.78)
+            );
+          box-shadow:
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(12px);
+        }
+
+        .coachMemoryCopy small {
+          color: #687467;
+          font-size: 5px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+        }
+
+        .coachMemoryCopy h4 {
+          margin: 6px 0 6px;
+          font-family:
+            Georgia,
+            "Times New Roman",
+            serif;
+          font-size: 20px;
+          font-weight: 400;
+          line-height: 0.96;
+        }
+
+        .coachMemoryCopy p {
+          margin: 0;
+          color: #687068;
+          font-family: Georgia, serif;
+          font-size: 6px;
+          line-height: 1.45;
+        }
+
+        .coachMemoryOrb {
+          display: grid;
+          place-items: center;
+        }
+
+        .coachMemoryOrbMid {
+          width: 88px;
+          height: 88px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          border:
+            1px solid
+              rgba(65, 89, 66, 0.12);
+          box-shadow:
+            0 0 0 10px
+              rgba(255, 255, 255, 0.42),
+            0 0 0 20px
+              rgba(255, 255, 255, 0.19);
+        }
+
+        .coachMemoryOrbCore {
+          width: 58px;
+          height: 58px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background:
+            radial-gradient(
+              circle at 35% 28%,
+              #628063,
+              #294c32 72%
+            );
           color: white;
+          font-family: Georgia, serif;
+          font-size: 14px;
+          box-shadow:
+            0 9px 20px
+              rgba(34, 64, 40, 0.22);
         }
 
-        .darkCaption span {
-          color: rgba(255, 255, 255, 0.65);
+        .coachMemoryTopics {
+          margin-top: 9px;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 6px;
         }
 
+        .coachMemoryTopics span {
+          min-width: 0;
+          padding: 7px 4px;
+          overflow: hidden;
+          border:
+            1px solid
+              rgba(255, 255, 255, 0.5);
+          border-radius: 10px;
+          background:
+            rgba(250, 247, 242, 0.72);
+          color: #3e4e42;
+          text-align: center;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 5px;
+        }
+
+        .coachMemoryRecall {
+          margin-top: 9px;
+          padding: 10px 11px;
+          border:
+            1px solid
+              rgba(255, 255, 255, 0.52);
+          border-radius: 14px;
+          background:
+            rgba(248, 247, 244, 0.83);
+          box-shadow:
+            0 8px 18px
+              rgba(54, 54, 47, 0.05);
+        }
+
+        .coachMemoryRecall small {
+          color: #5d705f;
+          font-size: 5px;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+        }
+
+        .coachMemoryRecall p {
+          margin: 5px 0 0;
+          color: #374139;
+          font-family: Georgia, serif;
+          font-size: 7px;
+          line-height: 1.45;
+        }
+
+        .memoryCoachCaption {
+          background:
+            rgba(249, 247, 241, 0.96);
+        }
         /* ================= RESPONSIVE ================= */
 
         @media (max-width: 1180px) {
