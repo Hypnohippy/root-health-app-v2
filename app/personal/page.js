@@ -596,76 +596,92 @@ export default function PersonalLandingPage() {
         </div>
       </section>
 
-      {/* =====================================================
-          9. LIFE JOURNEY
+            {/* =====================================================
+          9 + 10. LIFE JOURNEY
       ===================================================== */}
-      <section className="lifeJourney">
-        <div className="stageRow">
-          {lifeStages.map(([title, text], index) => (
-            <div className="stageWrap" key={title}>
-              <div className="lifeStage">
-                <div className="stageIcon">♙</div>
+      <section className="lifeStory">
+        <div className="lifeStoryIntro">
+          <span>BUILT FOR A LIFE THAT KEEPS CHANGING</span>
 
-                <strong>{title}</strong>
-                <p>{text}</p>
+          <h2>
+            ROOT ISN&apos;T JUST FOR
+            <br />
+            <em>HOW YOU FEEL TODAY.</em>
+          </h2>
+
+          <p>
+            What matters in your twenties may be very different
+            from what matters in your forties, sixties or beyond.
+            Root keeps learning with you — so the support can
+            change as your life changes.
+          </p>
+        </div>
+
+        <div className="lifeJourney">
+          <div className="stageRow">
+            {lifeStages.map(([title, text], index) => (
+              <div className="stageWrap" key={title}>
+                <div className="lifeStage">
+                  <div className="stageIcon">♙</div>
+
+                  <strong>{title}</strong>
+                  <p>{text}</p>
+                </div>
+
+                {index < lifeStages.length - 1 ? (
+                  <div className="stageArrow">→</div>
+                ) : null}
               </div>
+            ))}
+          </div>
 
-              {index < lifeStages.length - 1 ? (
-                <div className="stageArrow">→</div>
-              ) : null}
-            </div>
-          ))}
+          <div className="handNote lifeNote">
+            Life changes.
+            <br />
+            Root changes
+            <br />
+            with you.
+          </div>
         </div>
 
-        <div className="handNote lifeNote">
-          Life changes.
-          <br />
-          Root changes
-          <br />
-          with you.
+        <div className="future">
+          <div className="futureSteps">
+            <FutureStep
+              icon="♙"
+              text="Notice what matters"
+            />
+
+            <Arrow />
+
+            <FutureStep
+              icon="◫"
+              text="Make a small change"
+            />
+
+            <Arrow />
+
+            <FutureStep
+              icon="♡"
+              text="See what helps"
+            />
+
+            <Arrow />
+
+            <FutureStep
+              icon="◴"
+              text="Keep building consistency"
+            />
+
+            <Arrow />
+
+            <FutureStep
+              icon="◇"
+              text="Create the life you want"
+            />
+          </div>
+
+          <div className="journeyPhoto" />
         </div>
-      </section>
-
-      {/* =====================================================
-          10. FUTURE
-      ===================================================== */}
-      <section className="future">
-        <div className="futureSteps">
-          <FutureStep
-            icon="♙"
-            text="Notice what matters"
-          />
-
-          <Arrow />
-
-          <FutureStep
-            icon="◫"
-            text="Make a small change"
-          />
-
-          <Arrow />
-
-          <FutureStep
-            icon="♡"
-            text="See what helps"
-          />
-
-          <Arrow />
-
-          <FutureStep
-            icon="◴"
-            text="Keep building consistency"
-          />
-
-          <Arrow />
-
-          <FutureStep
-            icon="◇"
-            text="Create the life you want"
-          />
-        </div>
-
-        <div className="journeyPhoto" />
       </section>
 
       {/* =====================================================
@@ -2164,14 +2180,64 @@ export default function PersonalLandingPage() {
           grid-column: 4 / 6;
         }
 
-        /* ================= LIFE ================= */
+        /* ================= LIFE STORY ================= */
+
+        .lifeStory {
+          padding-top: 54px;
+          background:
+            radial-gradient(
+              circle at 18% 15%,
+              rgba(181, 200, 168, 0.18),
+              transparent 30%
+            ),
+            linear-gradient(
+              180deg,
+              #f7f4ed 0%,
+              #edf2e7 100%
+            );
+        }
+
+        .lifeStoryIntro {
+          max-width: 760px;
+          margin: 0 auto 42px;
+          padding: 0 24px;
+          text-align: center;
+        }
+
+        .lifeStoryIntro > span {
+          color: #58745c;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 0.18em;
+        }
+
+        .lifeStoryIntro h2 {
+          margin: 11px 0 15px;
+          font-size: clamp(34px, 3.5vw, 52px);
+          line-height: 0.96;
+          letter-spacing: -0.04em;
+        }
+
+        .lifeStoryIntro h2 em {
+          color: #4d7958;
+          font-style: normal;
+        }
+
+        .lifeStoryIntro p {
+          max-width: 620px;
+          margin: 0 auto;
+          color: #687168;
+          font-family: Georgia, serif;
+          font-size: 12px;
+          line-height: 1.65;
+        }
 
         .lifeJourney {
-          min-height: 104px;
-          padding: 18px 5vw;
+          min-height: 205px;
+          padding: 38px 5vw 34px;
           display: grid;
-          grid-template-columns: 1fr 160px;
-          gap: 35px;
+          grid-template-columns: 1fr 190px;
+          gap: 38px;
           align-items: center;
           background:
             linear-gradient(
@@ -2180,12 +2246,14 @@ export default function PersonalLandingPage() {
               #eef3e8 70%,
               #f8f5ee 100%
             );
+          border-top: 1px solid rgba(23, 53, 31, 0.08);
+          border-bottom: 1px solid rgba(23, 53, 31, 0.08);
         }
 
         .stageRow {
           display: grid;
           grid-template-columns:
-            repeat(4, 1fr 45px)
+            repeat(4, 1fr 54px)
             1fr;
           align-items: center;
         }
@@ -2199,43 +2267,50 @@ export default function PersonalLandingPage() {
         }
 
         .stageIcon {
-          width: 32px;
-          height: 32px;
-          margin: 0 auto 5px;
+          width: 54px;
+          height: 54px;
+          margin: 0 auto 10px;
           border-radius: 50%;
           display: grid;
           place-items: center;
           border: 1px solid #738674;
           color: #55725a;
+          font-size: 20px;
+          background: rgba(255, 255, 255, 0.28);
         }
 
         .lifeStage strong {
           display: block;
-          font-size: 7px;
+          font-family: Georgia, serif;
+          font-size: 15px;
+          font-weight: 600;
         }
 
         .lifeStage p {
-          margin: 3px 0 0;
+          margin: 6px auto 0;
+          max-width: 130px;
           color: #737a72;
-          font-size: 6px;
-          line-height: 1.35;
+          font-size: 10px;
+          line-height: 1.4;
         }
 
         .stageArrow {
           color: #a6aca4;
           text-align: center;
+          font-size: 24px;
         }
 
         .lifeNote {
-          font-size: 14px;
+          font-size: 19px;
+          line-height: 1.45;
         }
 
         /* ================= FUTURE ================= */
 
         .future {
-          min-height: 100px;
+          min-height: 185px;
           display: grid;
-          grid-template-columns: 1fr 280px;
+          grid-template-columns: 1fr 370px;
           background:
             linear-gradient(
               90deg,
@@ -2246,10 +2321,10 @@ export default function PersonalLandingPage() {
         }
 
         .futureSteps {
-          padding: 16px 5vw;
+          padding: 32px 5vw;
           display: grid;
           grid-template-columns:
-            repeat(4, 1fr 30px)
+            repeat(4, 1fr 42px)
             1fr;
           align-items: center;
         }
@@ -2261,22 +2336,24 @@ export default function PersonalLandingPage() {
         .futureStep span {
           color: #59765d;
           font-family: Georgia, serif;
-          font-size: 21px;
+          font-size: 31px;
         }
 
         .futureStep p {
-          margin: 5px auto 0;
-          max-width: 90px;
-          font-size: 7px;
-          line-height: 1.4;
+          margin: 9px auto 0;
+          max-width: 120px;
+          font-size: 10px;
+          line-height: 1.45;
         }
 
         .arrow {
           color: #a6aca4;
           text-align: center;
+          font-size: 22px;
         }
 
         .journeyPhoto {
+          min-height: 185px;
           background:
             linear-gradient(
               90deg,
@@ -2292,6 +2369,66 @@ export default function PersonalLandingPage() {
             );
         }
 
+        @media (max-width: 980px) {
+          .lifeJourney {
+            grid-template-columns: 1fr;
+          }
+
+          .lifeNote {
+            text-align: center;
+          }
+
+          .future {
+            grid-template-columns: 1fr;
+          }
+
+          .journeyPhoto {
+            min-height: 220px;
+          }
+        }
+
+        @media (max-width: 660px) {
+          .lifeStory {
+            padding-top: 42px;
+          }
+
+          .lifeStoryIntro {
+            text-align: left;
+          }
+
+          .lifeStoryIntro h2 {
+            font-size: 36px;
+          }
+
+          .lifeJourney {
+            padding: 35px 24px;
+          }
+
+          .stageRow {
+            grid-template-columns: 1fr;
+            gap: 18px;
+          }
+
+          .stageWrap {
+            display: block;
+          }
+
+          .stageArrow {
+            margin: 6px 0;
+            transform: rotate(90deg);
+          }
+
+          .futureSteps {
+            padding: 32px 24px;
+            grid-template-columns: 1fr;
+            gap: 18px;
+          }
+
+          .arrow {
+            transform: rotate(90deg);
+          }
+        }
+          
         /* ================= OFFER ================= */
 
         .offer {
