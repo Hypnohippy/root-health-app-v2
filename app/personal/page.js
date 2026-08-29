@@ -1279,15 +1279,15 @@ export default function PersonalLandingPage() {
             );
         }
 
-                /* ================= ROOT IN ACTION ================= */
+        /* ================= ROOT IN ACTION ================= */
 
         .rootInAction {
-          padding: 45px 5.5vw 52px;
+          padding: 76px 5.5vw 88px;
           background:
             radial-gradient(
-              circle at 52% 20%,
-              rgba(174, 198, 161, 0.18),
-              transparent 34%
+              circle at 50% 10%,
+              rgba(174, 198, 161, 0.2),
+              transparent 31%
             ),
             linear-gradient(
               180deg,
@@ -1297,28 +1297,23 @@ export default function PersonalLandingPage() {
         }
 
         .rootActionIntro {
-          max-width: 720px;
-          margin: 0 auto 34px;
+          max-width: 850px;
+          margin: 0 auto 58px;
           text-align: center;
         }
 
         .rootActionIntro > span {
           color: #59765d;
-          font-size: 8px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.2em;
         }
 
         .rootActionIntro h2 {
-          margin: 9px 0 12px;
-          font-size:
-            clamp(
-              29px,
-              2.8vw,
-              43px
-            );
-          line-height: 0.98;
-          letter-spacing: -0.035em;
+          margin: 13px 0 18px;
+          font-size: clamp(42px, 4vw, 64px);
+          line-height: 0.94;
+          letter-spacing: -0.045em;
         }
 
         .rootActionIntro h2 em {
@@ -1327,70 +1322,75 @@ export default function PersonalLandingPage() {
         }
 
         .rootActionIntro p {
-          max-width: 570px;
+          max-width: 670px;
           margin: 0 auto;
           color: #657066;
-          font-size: 10px;
-          line-height: 1.65;
+          font-size: 13px;
+          line-height: 1.7;
         }
 
+        /*
+         * Two large product experiences per row.
+         * These are intentionally substantial rather than
+         * four compressed feature cards.
+         */
+
         .rootActionGrid {
+          max-width: 1500px;
+          margin: 0 auto;
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 22px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 34px;
           align-items: stretch;
         }
 
         .rootProductCard {
           min-width: 0;
-          min-height: 430px;
+          min-height: 650px;
           position: relative;
           overflow: hidden;
           display: flex;
           flex-direction: column;
-          border:
-            1px solid
-              rgba(35, 63, 40, 0.11);
-          border-radius: 28px;
-          background:
-            rgba(250, 248, 243, 0.92);
+          border: 1px solid rgba(35, 63, 40, 0.12);
+          border-radius: 36px;
+          background: rgba(250, 248, 243, 0.94);
           box-shadow:
-            0 18px 45px
-              rgba(44, 65, 46, 0.11);
+            0 28px 70px rgba(44, 65, 46, 0.13),
+            0 2px 8px rgba(44, 65, 46, 0.05);
         }
 
+        /* ---------- ROOT-STYLE MINI NAV ---------- */
+
         .previewTopbar {
-          min-height: 42px;
-          padding: 9px 13px;
+          min-height: 66px;
+          padding: 12px 22px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 10px;
-          border-bottom:
-            1px solid
-              rgba(45, 69, 48, 0.08);
-          background:
-            rgba(255, 255, 255, 0.68);
-          font-size: 7px;
+          gap: 18px;
+          border-bottom: 1px solid rgba(45, 69, 48, 0.09);
+          background: rgba(255, 255, 255, 0.66);
+          backdrop-filter: blur(16px);
+          font-size: 10px;
         }
 
         .previewTopbar > strong {
           font-family: Georgia, serif;
-          font-size: 10px;
+          font-size: 17px;
+          font-weight: 600;
         }
 
         .previewNav {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 7px;
         }
 
         .previewNav span {
-          padding: 4px 6px;
+          padding: 8px 12px;
           border-radius: 999px;
           color: #697268;
-          background:
-            rgba(245, 242, 235, 0.7);
+          background: rgba(245, 242, 235, 0.72);
           white-space: nowrap;
         }
 
@@ -1398,60 +1398,70 @@ export default function PersonalLandingPage() {
           color: #294b31;
           background: white;
           font-weight: 800;
+          box-shadow: 0 4px 15px rgba(34, 55, 37, 0.06);
         }
 
+        /* ---------- CAPTIONS ---------- */
+
         .previewCaption {
+          min-height: 84px;
           margin-top: auto;
-          padding: 14px 16px 16px;
-          border-top:
-            1px solid
-              rgba(37, 64, 40, 0.08);
-          background:
-            rgba(249, 247, 241, 0.94);
+          padding: 19px 24px 21px;
+          border-top: 1px solid rgba(37, 64, 40, 0.08);
+          background: rgba(249, 247, 241, 0.96);
         }
 
         .previewCaption strong {
           display: block;
-          margin-bottom: 4px;
-          font-size: 8px;
-          letter-spacing: 0.06em;
+          margin-bottom: 6px;
+          font-size: 11px;
+          letter-spacing: 0.09em;
         }
 
         .previewCaption span {
           display: block;
           color: #687168;
-          font-size: 7px;
-          line-height: 1.4;
+          font-family: Georgia, serif;
+          font-size: 11px;
+          line-height: 1.45;
         }
 
-        /* COACH */
+        /* ==================================================
+           COACH — CALM, SPACIOUS, ATMOSPHERIC
+        ================================================== */
 
         .coachPreview {
           background:
             linear-gradient(
               145deg,
               rgba(249, 245, 237, 0.98),
-              rgba(232, 220, 205, 0.92)
+              rgba(232, 220, 205, 0.94)
             );
         }
 
         .coachPreviewBody {
-          min-height: 190px;
-          padding: 23px 19px 14px;
+          min-height: 350px;
+          padding: 54px 45px 38px;
           display: grid;
-          grid-template-columns: 1.15fr 0.85fr;
-          gap: 10px;
+          grid-template-columns: 1.08fr 0.92fr;
+          gap: 26px;
           align-items: center;
           background:
             radial-gradient(
-              circle at 80% 45%,
-              rgba(255, 255, 255, 0.92),
-              transparent 35%
+              circle at 78% 47%,
+              rgba(255, 255, 255, 0.98),
+              rgba(255, 255, 255, 0.35) 28%,
+              transparent 52%
+            ),
+            radial-gradient(
+              circle at 20% 20%,
+              rgba(239, 193, 146, 0.38),
+              transparent 38%
             ),
             linear-gradient(
               135deg,
-              rgba(232, 202, 169, 0.5),
-              rgba(238, 237, 228, 0.8)
+              rgba(234, 199, 163, 0.62),
+              rgba(235, 234, 224, 0.88)
             );
         }
 
@@ -1460,23 +1470,25 @@ export default function PersonalLandingPage() {
         .playbookPreviewBody > small,
         .memoryPreviewBody > small {
           color: #667666;
-          font-size: 6px;
+          font-size: 9px;
           font-weight: 900;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.16em;
         }
 
         .previewCopy h3 {
-          margin: 8px 0 8px;
-          font-size: 24px;
-          line-height: 0.98;
+          margin: 14px 0 15px;
+          font-size: clamp(37px, 3.1vw, 52px);
+          line-height: 0.94;
+          letter-spacing: -0.035em;
         }
 
         .previewCopy p {
+          max-width: 260px;
           margin: 0;
-          color: #60675f;
+          color: #5e665d;
           font-family: Georgia, serif;
-          font-size: 9px;
-          line-height: 1.5;
+          font-size: 13px;
+          line-height: 1.55;
         }
 
         .previewOrb {
@@ -1485,251 +1497,283 @@ export default function PersonalLandingPage() {
         }
 
         .previewOrbRing {
-          width: 108px;
-          height: 108px;
+          width: 205px;
+          height: 205px;
           border-radius: 50%;
           display: grid;
           place-items: center;
-          border:
-            1px solid
-              rgba(56, 87, 58, 0.12);
+          border: 1px solid rgba(56, 87, 58, 0.12);
           box-shadow:
-            0 0 0 14px
-              rgba(255, 255, 255, 0.38),
-            0 0 0 29px
-              rgba(255, 255, 255, 0.17);
+            0 0 0 25px rgba(255, 255, 255, 0.43),
+            0 0 0 52px rgba(255, 255, 255, 0.2),
+            0 0 0 78px rgba(255, 255, 255, 0.09);
         }
 
         .previewOrbCore {
-          width: 72px;
-          height: 72px;
+          width: 137px;
+          height: 137px;
           border-radius: 50%;
           display: grid;
           place-items: center;
           background:
             radial-gradient(
               circle at 35% 28%,
-              #587959,
-              #24472e 75%
+              #638664,
+              #31583b 48%,
+              #1f3d28 100%
             );
           color: white;
           font-family: Georgia, serif;
-          font-size: 17px;
+          font-size: 29px;
           box-shadow:
-            0 10px 25px
-              rgba(40, 70, 45, 0.25);
+            0 18px 38px rgba(40, 70, 45, 0.27),
+            inset 0 1px 0 rgba(255, 255, 255, 0.18);
         }
 
         .previewConversation {
-          padding: 14px 17px 17px;
+          padding: 25px 34px 31px;
+          background:
+            linear-gradient(
+              180deg,
+              rgba(250, 247, 240, 0.82),
+              rgba(246, 241, 233, 0.94)
+            );
         }
 
         .previewUserMessage,
         .previewRootMessage {
-          max-width: 88%;
-          padding: 9px 11px;
-          border-radius: 12px;
-          font-size: 7px;
-          line-height: 1.45;
+          max-width: 78%;
+          padding: 15px 18px;
+          border-radius: 19px;
+          font-size: 11px;
+          line-height: 1.5;
         }
 
         .previewUserMessage {
           margin-left: auto;
-          background: #eee9e1;
+          background: rgba(235, 230, 221, 0.95);
         }
 
         .previewRootMessage {
-          margin-top: 8px;
+          margin-top: 13px;
           background: #dfe8da;
+          color: #294332;
         }
 
-        /* INSIGHTS */
+        /* ==================================================
+           INSIGHTS — ROOT'S PATTERN MAP
+        ================================================== */
 
         .insightsPreview {
           background:
+            radial-gradient(
+              circle at 15% 8%,
+              rgba(237, 196, 153, 0.36),
+              transparent 30%
+            ),
             linear-gradient(
               145deg,
               #f6f1e8,
-              #e5e8df
+              #e2e7dc
             );
         }
 
         .insightsPreviewBody {
-          padding: 22px 16px 18px;
+          min-height: 500px;
+          padding: 43px 34px 34px;
         }
 
         .insightsPreviewBody > h3 {
-          margin: 7px 0 14px;
-          font-size: 21px;
-          line-height: 1;
+          max-width: 500px;
+          margin: 11px 0 26px;
+          font-size: clamp(34px, 2.8vw, 47px);
+          line-height: 0.98;
+          letter-spacing: -0.035em;
         }
 
         .insightMiniGrid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 8px;
+          gap: 14px;
         }
 
         .insightMiniCard {
-          min-height: 76px;
-          padding: 10px;
-          border:
-            1px solid
-              rgba(51, 74, 54, 0.09);
-          border-radius: 14px;
-          background:
-            rgba(255, 255, 255, 0.54);
+          min-height: 126px;
+          padding: 20px;
+          border: 1px solid rgba(51, 74, 54, 0.1);
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.61);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
         }
 
         .insightMiniCard.warm {
-          background:
-            rgba(241, 221, 197, 0.55);
+          background: rgba(241, 221, 197, 0.64);
         }
 
         .insightMiniCard span {
           display: block;
-          margin-bottom: 7px;
+          margin-bottom: 12px;
           color: #6c776a;
-          font-size: 5px;
+          font-size: 8px;
           font-weight: 900;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.11em;
         }
 
         .insightMiniCard strong {
           display: block;
           font-family: Georgia, serif;
-          font-size: 10px;
+          font-size: 20px;
+          font-weight: 600;
         }
 
         .insightMiniCard p {
-          margin: 4px 0 0;
+          margin: 7px 0 0;
           color: #777e75;
-          font-size: 6px;
-          line-height: 1.35;
+          font-size: 10px;
+          line-height: 1.4;
         }
 
         .recentInsight {
-          margin-top: 10px;
-          padding: 10px 12px;
-          border-radius: 14px;
-          background:
-            rgba(255, 255, 255, 0.55);
+          margin-top: 16px;
+          padding: 19px 21px;
+          border: 1px solid rgba(51, 74, 54, 0.07);
+          border-radius: 22px;
+          background: rgba(255, 255, 255, 0.62);
         }
 
         .recentInsight span {
           color: #6e796c;
-          font-size: 5px;
+          font-size: 8px;
           font-weight: 900;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.12em;
         }
 
         .recentInsight p {
-          margin: 5px 0 0;
+          margin: 9px 0 0;
           font-family: Georgia, serif;
-          font-size: 8px;
-          line-height: 1.45;
+          font-size: 13px;
+          line-height: 1.5;
         }
 
-        /* PLAYBOOK */
+        /* ==================================================
+           PLAYBOOK — WARM ROOT ENVIRONMENT
+        ================================================== */
 
         .playbookPreview {
           background:
+            radial-gradient(
+              circle at 14% 6%,
+              rgba(255, 213, 164, 0.8),
+              transparent 30%
+            ),
             linear-gradient(
               145deg,
-              #e5c7a4,
-              #92908e 75%
+              #e6c49d 0%,
+              #a6968c 56%,
+              #7d8580 100%
             );
         }
 
         .playbookPreview .previewTopbar {
-          background:
-            rgba(248, 237, 224, 0.75);
+          background: rgba(248, 237, 224, 0.77);
         }
 
         .playbookPreviewBody {
-          padding: 21px 17px 18px;
+          min-height: 500px;
+          padding: 42px 36px 36px;
+          background:
+            radial-gradient(
+              circle at 5% 10%,
+              rgba(255, 207, 151, 0.42),
+              transparent 34%
+            );
         }
 
         .playbookPreviewBody > small {
-          color:
-            rgba(37, 54, 40, 0.72);
+          color: rgba(37, 54, 40, 0.76);
         }
 
         .playbookPreviewBody h3 {
-          margin: 7px 0 8px;
-          font-size: 23px;
-          line-height: 0.98;
+          margin: 11px 0 12px;
+          font-size: clamp(36px, 3vw, 50px);
+          line-height: 0.94;
+          letter-spacing: -0.04em;
         }
 
         .playbookIntro {
-          margin: 0 0 13px;
-          color:
-            rgba(38, 48, 40, 0.72);
-          font-size: 7px;
-          line-height: 1.5;
+          max-width: 470px;
+          margin: 0 0 24px;
+          color: rgba(38, 48, 40, 0.78);
+          font-size: 11px;
+          line-height: 1.55;
         }
 
         .playbookGlass {
-          padding: 13px;
-          border:
-            1px solid
-              rgba(255, 255, 255, 0.5);
-          border-radius: 18px;
-          background:
-            rgba(248, 246, 241, 0.68);
-          backdrop-filter: blur(10px);
+          padding: 24px 25px;
+          border: 1px solid rgba(255, 255, 255, 0.57);
+          border-radius: 30px;
+          background: rgba(248, 246, 241, 0.7);
+          backdrop-filter: blur(18px);
+          box-shadow:
+            0 20px 50px rgba(57, 50, 43, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
         }
 
         .playbookGlass > span {
           display: block;
           color: #657063;
-          font-size: 5px;
+          font-size: 8px;
           font-weight: 900;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.12em;
         }
 
         .playbookGlass > strong {
           display: block;
-          margin: 6px 0 8px;
+          margin: 11px 0 15px;
           font-family: Georgia, serif;
-          font-size: 11px;
+          font-size: 21px;
+          font-weight: 600;
         }
 
         .playbookPreviewRow {
-          padding: 7px 0;
+          padding: 13px 0;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 8px;
-          border-top:
-            1px solid
-              rgba(48, 67, 48, 0.1);
-          font-size: 6px;
+          gap: 14px;
+          border-top: 1px solid rgba(48, 67, 48, 0.11);
+          font-size: 10px;
         }
 
         .playbookPreviewRow b {
           color: #4c6b50;
-          font-size: 5px;
+          font-size: 8px;
         }
 
-        /* MEMORY */
+        /* ==================================================
+           MEMORY — THE EMOTIONAL PAYOFF
+        ================================================== */
 
         .memoryPreview {
           background:
+            radial-gradient(
+              circle at 82% 12%,
+              rgba(119, 154, 112, 0.23),
+              transparent 32%
+            ),
             linear-gradient(
               145deg,
               #304b36,
-              #183121
+              #183121 68%,
+              #10271a
             );
           color: white;
         }
 
         .memoryPreview .previewTopbar {
-          border-bottom:
-            1px solid
-              rgba(255, 255, 255, 0.1);
-          background:
-            rgba(17, 40, 24, 0.68);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(17, 40, 24, 0.68);
         }
 
         .memoryPreview .previewTopbar > strong {
@@ -1737,10 +1781,8 @@ export default function PersonalLandingPage() {
         }
 
         .memoryPreview .previewNav span {
-          color:
-            rgba(255, 255, 255, 0.62);
-          background:
-            rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.62);
+          background: rgba(255, 255, 255, 0.06);
         }
 
         .memoryPreview .previewNav span.active {
@@ -1749,24 +1791,25 @@ export default function PersonalLandingPage() {
         }
 
         .memoryPreviewBody {
-          min-height: 327px;
-          padding: 23px 18px 18px;
+          min-height: 500px;
+          padding: 44px 38px 37px;
           position: relative;
           overflow: hidden;
         }
 
         .memoryGlow {
           position: absolute;
-          width: 220px;
-          height: 220px;
-          right: -95px;
-          top: -95px;
+          width: 430px;
+          height: 430px;
+          right: -175px;
+          top: -180px;
           border-radius: 50%;
           background:
             radial-gradient(
               circle,
-              rgba(193, 214, 177, 0.28),
-              transparent 68%
+              rgba(193, 214, 177, 0.3),
+              rgba(193, 214, 177, 0.08) 38%,
+              transparent 70%
             );
         }
 
@@ -1776,72 +1819,67 @@ export default function PersonalLandingPage() {
         }
 
         .memoryPreviewBody > small {
-          color:
-            rgba(226, 235, 220, 0.72);
+          color: rgba(226, 235, 220, 0.72);
         }
 
         .memoryPreviewBody h3 {
-          margin: 8px 0 15px;
+          max-width: 480px;
+          margin: 13px 0 26px;
           color: white;
-          font-size: 24px;
-          line-height: 0.98;
+          font-size: clamp(38px, 3.2vw, 54px);
+          line-height: 0.94;
+          letter-spacing: -0.04em;
         }
 
         .memoryGlass {
-          padding: 12px;
-          border:
-            1px solid
-              rgba(255, 255, 255, 0.13);
-          border-radius: 15px;
-          background:
-            rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(10px);
+          padding: 21px 23px;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.085);
+          backdrop-filter: blur(14px);
         }
 
         .memoryGlass.secondary {
-          margin-top: 8px;
+          margin-top: 14px;
         }
 
         .memoryGlass span {
-          color:
-            rgba(223, 234, 218, 0.64);
-          font-size: 5px;
+          color: rgba(223, 234, 218, 0.65);
+          font-size: 8px;
           font-weight: 900;
-          letter-spacing: 0.11em;
+          letter-spacing: 0.13em;
         }
 
         .memoryGlass p {
-          margin: 6px 0 0;
-          color:
-            rgba(255, 255, 255, 0.9);
+          margin: 10px 0 0;
+          color: rgba(255, 255, 255, 0.92);
           font-family: Georgia, serif;
-          font-size: 8px;
-          line-height: 1.45;
+          font-size: 13px;
+          line-height: 1.55;
         }
 
         .memoryPreviewBody button {
           width: 100%;
-          margin-top: 11px;
-          padding: 9px 11px;
-          border:
-            1px solid
-              rgba(255, 255, 255, 0.18);
+          margin-top: 18px;
+          padding: 14px 17px;
+          border: 1px solid rgba(255, 255, 255, 0.18);
           border-radius: 999px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           background: #edf2e8;
           color: #233d29;
-          font-size: 6px;
+          font-size: 10px;
           font-weight: 800;
         }
 
+        .memoryPreviewBody button span {
+          font-size: 15px;
+        }
+
         .darkCaption {
-          border-top:
-            1px solid
-              rgba(255, 255, 255, 0.08);
-          background:
-            rgba(13, 34, 20, 0.94);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(13, 34, 20, 0.96);
         }
 
         .darkCaption strong {
@@ -1849,46 +1887,88 @@ export default function PersonalLandingPage() {
         }
 
         .darkCaption span {
-          color:
-            rgba(255, 255, 255, 0.62);
+          color: rgba(255, 255, 255, 0.65);
         }
 
-        @media (max-width: 1150px) {
+        /* ---------- RESPONSIVE ---------- */
+
+        @media (max-width: 1180px) {
           .rootActionGrid {
-            grid-template-columns: 1fr 1fr;
+            gap: 24px;
           }
 
           .rootProductCard {
-            min-height: 420px;
+            min-height: 600px;
+          }
+
+          .previewNav span {
+            padding: 7px 9px;
+            font-size: 9px;
+          }
+
+          .previewOrbRing {
+            width: 170px;
+            height: 170px;
+          }
+
+          .previewOrbCore {
+            width: 112px;
+            height: 112px;
+          }
+        }
+
+        @media (max-width: 900px) {
+          .rootInAction {
+            padding: 58px 28px 66px;
+          }
+
+          .rootActionGrid {
+            grid-template-columns: 1fr;
+            max-width: 720px;
+          }
+
+          .rootProductCard {
+            min-height: 0;
+          }
+
+          .coachPreviewBody,
+          .insightsPreviewBody,
+          .playbookPreviewBody,
+          .memoryPreviewBody {
+            min-height: 460px;
           }
         }
 
         @media (max-width: 660px) {
           .rootInAction {
-            padding:
-              38px
-              22px
-              42px;
+            padding: 46px 18px 52px;
           }
 
           .rootActionIntro {
+            margin-bottom: 34px;
             text-align: left;
           }
 
           .rootActionIntro h2 {
-            font-size: 34px;
+            font-size: 39px;
           }
 
           .rootActionIntro p {
             margin-left: 0;
+            font-size: 12px;
           }
 
           .rootActionGrid {
-            grid-template-columns: 1fr;
+            gap: 22px;
           }
 
           .rootProductCard {
-            min-height: 0;
+            border-radius: 25px;
+          }
+
+          .previewTopbar {
+            min-height: 54px;
+            padding: 10px 17px;
           }
 
           .previewNav {
@@ -1896,13 +1976,97 @@ export default function PersonalLandingPage() {
           }
 
           .coachPreviewBody {
-            grid-template-columns:
-              1fr
-              110px;
+            min-height: 390px;
+            padding: 38px 26px 28px;
+            grid-template-columns: 1fr 125px;
+          }
+
+          .previewCopy h3 {
+            font-size: 35px;
+          }
+
+          .previewCopy p {
+            font-size: 11px;
+          }
+
+          .previewOrbRing {
+            width: 110px;
+            height: 110px;
+            box-shadow:
+              0 0 0 14px rgba(255, 255, 255, 0.4),
+              0 0 0 28px rgba(255, 255, 255, 0.17);
+          }
+
+          .previewOrbCore {
+            width: 78px;
+            height: 78px;
+            font-size: 18px;
+          }
+
+          .previewConversation {
+            padding: 20px;
+          }
+
+          .previewUserMessage,
+          .previewRootMessage {
+            max-width: 90%;
+            font-size: 10px;
+          }
+
+          .insightsPreviewBody,
+          .playbookPreviewBody,
+          .memoryPreviewBody {
+            min-height: 0;
+            padding: 34px 24px 30px;
+          }
+
+          .insightsPreviewBody > h3,
+          .playbookPreviewBody h3,
+          .memoryPreviewBody h3 {
+            font-size: 35px;
+          }
+
+          .insightMiniCard {
+            min-height: 110px;
+            padding: 16px;
+          }
+
+          .insightMiniCard strong {
+            font-size: 17px;
+          }
+
+          .playbookGlass {
+            padding: 20px;
+            border-radius: 24px;
+          }
+
+          .memoryGlass {
+            padding: 18px;
+            border-radius: 20px;
+          }
+
+          .previewCaption {
+            padding: 17px 20px 19px;
           }
         }
 
-        /* ================= BUILD ROOT ================= */
+        @media (max-width: 430px) {
+          .coachPreviewBody {
+            display: block;
+          }
+
+          .previewOrb {
+            margin: 48px 0 26px;
+          }
+
+          .insightMiniGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .rootActionIntro h2 {
+            font-size: 35px;
+          }
+        }
 
         .buildRoot {
           min-height: 185px;
