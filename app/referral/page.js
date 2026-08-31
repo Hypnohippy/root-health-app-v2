@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import {
   useEffect,
@@ -6,12 +6,18 @@ import {
 } from "react";
 
 import {
+  usePathname,
   useSearchParams,
 } from "next/navigation";
 
 export default function ReferralPage() {
+  const pathname = usePathname();
+
   const searchParams =
     useSearchParams();
+
+  const isDirectTrial =
+    pathname === "/workplace";
 
   const [
     status,
@@ -29,7 +35,19 @@ export default function ReferralPage() {
   ] = useState("");
 
   useEffect(() => {
-    async function validateReferral() {
+    async function preparePage() {
+      /*
+       * The email-campaign page uses the same
+       * landing experience without introducer
+       * or commission attribution.
+       */
+      if (isDirectTrial) {
+        setReferralCode("");
+        setCampaignCode("");
+        setStatus("valid");
+        return;
+      }
+
       const ref =
         String(
           searchParams.get("ref") ||
@@ -66,9 +84,7 @@ export default function ReferralPage() {
 
               body:
                 JSON.stringify({
-                  referralCode:
-                    ref,
-
+                  referralCode: ref,
                   campaignCode:
                     campaign,
                 }),
@@ -92,8 +108,7 @@ export default function ReferralPage() {
         );
 
         setCampaignCode(
-          result.campaignCode ||
-            ""
+          result.campaignCode || ""
         );
 
         setStatus("valid");
@@ -107,8 +122,8 @@ export default function ReferralPage() {
       }
     }
 
-    validateReferral();
-  }, [searchParams]);
+    preparePage();
+  }, [isDirectTrial, searchParams]);
 
   function continueToRoot() {
     const params =
@@ -116,15 +131,25 @@ export default function ReferralPage() {
 
     params.set(
       "path",
-      "paid"
+      isDirectTrial
+        ? "trial"
+        : "paid"
     );
 
-    params.set(
-      "ref",
+    if (
+      !isDirectTrial &&
       referralCode
-    );
+    ) {
+      params.set(
+        "ref",
+        referralCode
+      );
+    }
 
-    if (campaignCode) {
+    if (
+      !isDirectTrial &&
+      campaignCode
+    ) {
       params.set(
         "campaign",
         campaignCode
@@ -134,7 +159,6 @@ export default function ReferralPage() {
     window.location.href =
       `/organisation/register?${params.toString()}`;
   }
-
   if (status === "loading") {
     return (
       <main style={styles.page}>
