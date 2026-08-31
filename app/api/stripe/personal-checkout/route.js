@@ -371,3 +371,44 @@ export async function POST(request) {
     );
   }
 }
+
+export async function GET(request) {
+  try {
+    const accessToken = request.headers
+      .get("authorization")
+      ?.replace(/^Bearer\s+/i, "");
+    const sessionId = new URL(request.url).searchParams.get("session_id");
+
+    if (!accessToken || !sessionId || !supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({ error: "Root could not verify this checkout." }, { status: 400 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    });
+    const { data, error } = await supabase.auth.getUser(accessToken);
+
+    if (error || !data?.user) {
+      return NextResponse.json({ error: "Root could not verify your account." }, { status: 401 });
+    }
+
+    const checkout = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["subscription"],
+    });
+    const subscriptionStatus = checkout.subscription?.status;
+    const paid =
+      checkout.client_reference_id === data.user.id &&
+      checkout.metadata?.root_product === "personal" &&
+      checkout.payment_status === "paid" &&
+      (subscriptionStatus === "active" || subscriptionStatus === "trialing");
+
+    if (!paid) {
+      return NextResponse.json({ error: "Your Root membership is not active yet." }, { status: 409 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("ROOT PERSONAL CHECKOUT VERIFICATION ERROR:", error);
+    return NextResponse.json({ error: "Root could not verify this checkout." }, { status: 500 });
+  }
+}

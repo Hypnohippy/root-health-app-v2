@@ -1,22 +1,200 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "../../../lib/supabase";
+
+const PERSONAL_PLAN_KEY = "root_pending_personal_plan_v1";
 
 export default function PersonalJoinPage() {
   const router = useRouter();
 
   const [selectedPlan, setSelectedPlan] = useState("annual");
+  const [showAccount, setShowAccount] = useState(false);
+  const [authMode, setAuthMode] = useState("create");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
-  function continueToCheckout() {
-    /*
-     * Stripe wiring comes next.
-     *
-     * For now this proves that the page, plan selection
-     * and button behaviour all work without touching
-     * the existing Personal landing page.
-     */
-    console.log("Selected Root plan:", selectedPlan);
+  async function startCheckout(plan) {
+    setLoading(true);
+    setMessage("");
+
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      setShowAccount(true);
+      setMessage("Please sign in or create your Root account to continue.");
+      setLoading(false);
+      return;
+    }
+
+    const response = await fetch("/api/stripe/personal-checkout", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ plan }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result?.url) {
+      setMessage(result?.error || "Root could not start checkout.");
+      setLoading(false);
+      return;
+    }
+
+    localStorage.removeItem(PERSONAL_PLAN_KEY);
+    window.location.href = result.url;
+  }
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedPlan = searchParams.get("plan");
+    const storedPlan = localStorage.getItem(PERSONAL_PLAN_KEY);
+    const safePlan = [requestedPlan, storedPlan].find(
+      (plan) => plan === "monthly" || plan === "annual"
+    );
+
+    if (safePlan) setSelectedPlan(safePlan);
+
+    if (searchParams.get("checkout") === "cancelled") {
+      setMessage("Checkout was cancelled. Your membership has not started.");
+    }
+
+    if (searchParams.get("checkout") !== "resume") return;
+
+    const resumePlan = safePlan || "annual";
+    let resumed = false;
+
+    const resumeCheckout = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (!resumed && data?.session?.user?.email_confirmed_at) {
+        resumed = true;
+        await startCheckout(resumePlan);
+      }
+    };
+
+    resumeCheckout();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!resumed && session?.user?.email_confirmed_at) {
+          resumed = true;
+          setTimeout(() => startCheckout(resumePlan), 0);
+        }
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  async function continueToCheckout() {
+    localStorage.setItem(PERSONAL_PLAN_KEY, selectedPlan);
+    const { data } = await supabase.auth.getSession();
+
+    if (data?.session?.user?.email_confirmed_at) {
+      await startCheckout(selectedPlan);
+      return;
+    }
+
+    setShowAccount(true);
+    setMessage("");
+  }
+
+  async function handleAccount(event) {
+    event.preventDefault();
+    setMessage("");
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      setMessage("Please enter your email address and password.");
+      return;
+    }
+
+    setLoading(true);
+
+    if (authMode === "signin") {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (error || !data?.user) {
+        setMessage(error?.message || "Root could not sign you in.");
+        setLoading(false);
+        return;
+      }
+
+      await startCheckout(selectedPlan);
+      return;
+    }
+
+    if (!name.trim()) {
+      setMessage("Please enter your name.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setMessage("Please choose a password containing at least 8 characters.");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setMessage("The two passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
+    const returnUrl = `${window.location.origin}/personal/join?checkout=resume&plan=${encodeURIComponent(selectedPlan)}`;
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password,
+      options: {
+        emailRedirectTo: returnUrl,
+        data: { name: name.trim(), full_name: name.trim() },
+      },
+    });
+
+    if (error) {
+      setMessage(error.message || "Root could not create your account.");
+      setLoading(false);
+      return;
+    }
+
+    if (
+      data?.user &&
+      Array.isArray(data.user.identities) &&
+      data.user.identities.length === 0
+    ) {
+      setAuthMode("signin");
+      setPassword("");
+      setConfirmPassword("");
+      setMessage("A Root account already exists for this email address. Sign in to continue with the same identity and history.");
+      setLoading(false);
+      return;
+    }
+
+    if (data?.session && data?.user?.email_confirmed_at) {
+      await startCheckout(selectedPlan);
+      return;
+    }
+
+    setVerificationSent(true);
+    setLoading(false);
   }
 
   return (
@@ -218,13 +396,12 @@ export default function PersonalJoinPage() {
               type="button"
               className="continueButton"
               onClick={continueToCheckout}
+              disabled={loading}
             >
               <span>
-                Continue with{" "}
-                {selectedPlan === "annual"
-                  ? "annual"
-                  : "monthly"}{" "}
-                Root
+                {loading
+                  ? "Please wait..."
+                  : `Continue with ${selectedPlan} Root`}
               </span>
 
               <b>→</b>
@@ -239,6 +416,60 @@ export default function PersonalJoinPage() {
                 Everything in Root is included in your membership.
               </p>
             </div>
+
+            {message ? <p className="accountMessage">{message}</p> : null}
+
+            {showAccount ? (
+              <div className="accountPanel">
+                {verificationSent ? (
+                  <div>
+                    <h3>Check your email</h3>
+                    <p>
+                      Confirm {email.trim().toLowerCase()} using the link from
+                      Root. We&apos;ll keep your {selectedPlan} plan selected and
+                      continue you securely to payment.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="accountTabs">
+                      <button type="button" onClick={() => setAuthMode("create")}>
+                        Create account
+                      </button>
+                      <button type="button" onClick={() => setAuthMode("signin")}>
+                        Sign in
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleAccount} className="accountForm">
+                      {authMode === "create" ? (
+                        <label>
+                          Name
+                          <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required />
+                        </label>
+                      ) : null}
+                      <label>
+                        Email address
+                        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
+                      </label>
+                      <label>
+                        Password
+                        <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={authMode === "create" ? "new-password" : "current-password"} required />
+                      </label>
+                      {authMode === "create" ? (
+                        <label>
+                          Confirm password
+                          <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required />
+                        </label>
+                      ) : null}
+                      <button type="submit" disabled={loading}>
+                        {loading ? "Please wait..." : authMode === "create" ? "Create account" : "Sign in and continue"}
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -730,6 +961,78 @@ export default function PersonalJoinPage() {
           margin: 0;
           font-size: 9px;
           line-height: 1.5;
+        }
+
+        .accountMessage {
+          margin: 15px 0 0;
+          color: #704b3b;
+          font-size: 11px;
+          line-height: 1.5;
+          text-align: center;
+        }
+
+        .accountPanel {
+          margin-top: 22px;
+          padding: 24px;
+          border: 1px solid rgba(47, 72, 50, 0.12);
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.58);
+        }
+
+        .accountPanel h3 {
+          margin: 0 0 8px;
+          font-family: Georgia, serif;
+          font-size: 22px;
+          font-weight: 400;
+        }
+
+        .accountPanel p {
+          margin: 0;
+          color: #687168;
+          font-size: 11px;
+          line-height: 1.6;
+        }
+
+        .accountTabs {
+          margin-bottom: 18px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        .accountTabs button,
+        .accountForm > button {
+          padding: 11px 14px;
+          border: 1px solid rgba(47, 72, 50, 0.16);
+          border-radius: 999px;
+          background: rgba(238, 242, 232, 0.8);
+          color: #355b3e;
+          cursor: pointer;
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        .accountForm {
+          display: grid;
+          gap: 14px;
+        }
+
+        .accountForm label {
+          display: grid;
+          gap: 6px;
+          color: #4e6652;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
+        .accountForm input {
+          width: 100%;
+          padding: 12px 14px;
+          border: 1px solid rgba(47, 72, 50, 0.16);
+          border-radius: 13px;
+          background: rgba(255, 255, 255, 0.88);
+          color: #203326;
+          font-size: 14px;
         }
 
         .closingLine {
