@@ -402,7 +402,12 @@ export async function GET(request) {
       checkout.payment_status === "paid" &&
       (subscriptionStatus === "active" || subscriptionStatus === "trialing");
 
-    if (!paid) {
+    const entitled =
+      data.user.app_metadata?.root_personal_entitlement?.active === true &&
+      data.user.app_metadata?.root_personal_entitlement?.stripe_subscription_id ===
+        checkout.subscription?.id;
+
+    if (!paid || !entitled) {
       return NextResponse.json({ error: "Your Root membership is not active yet." }, { status: 409 });
     }
 
