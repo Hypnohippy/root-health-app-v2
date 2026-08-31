@@ -406,6 +406,19 @@ export async function GET(request) {
       return NextResponse.json({ error: "Your Root membership is not active yet." }, { status: 409 });
     }
 
+    const { data: entitlement, error: entitlementError } = await supabase
+      .from("personal_subscriptions")
+      .select("user_id")
+      .eq("user_id", data.user.id)
+      .eq("stripe_subscription_id", checkout.subscription.id)
+      .eq("subscription_status", "active")
+      .eq("subscription_active", true)
+      .maybeSingle();
+
+    if (entitlementError || !entitlement) {
+      return NextResponse.json({ error: "Your Root membership is still being activated." }, { status: 409 });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("ROOT PERSONAL CHECKOUT VERIFICATION ERROR:", error);
