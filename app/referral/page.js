@@ -131,9 +131,7 @@ export default function ReferralPage() {
 
     params.set(
       "path",
-      isDirectTrial
-        ? "trial"
-        : "paid"
+      "paid"
     );
 
     if (
