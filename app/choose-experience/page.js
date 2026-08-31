@@ -28,6 +28,11 @@ export default function ChooseExperiencePage() {
   if (!identity) return null;
 
   function openPersonal() {
+    if (!identity.capabilities?.canUsePersonal) {
+      window.location.href = "/personal/join";
+      return;
+    }
+
     setActiveExperience("personal");
     window.location.href = "/";
   }

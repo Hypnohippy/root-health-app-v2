@@ -19,12 +19,19 @@ export default function PersonalWelcomePage() {
       }
 
       const sessionId = new URLSearchParams(window.location.search).get("session_id");
-      const response = await fetch(
-        `/api/stripe/personal-checkout?session_id=${encodeURIComponent(sessionId || "")}`,
-        { headers: { Authorization: `Bearer ${data.session.access_token}` } }
-      );
+      let response;
 
-      if (!response.ok) {
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        response = await fetch(
+          `/api/stripe/personal-checkout?session_id=${encodeURIComponent(sessionId || "")}`,
+          { headers: { Authorization: `Bearer ${data.session.access_token}` } }
+        );
+
+        if (response.ok || response.status !== 409) break;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      if (!response?.ok) {
         const result = await response.json().catch(() => ({}));
         setMessage(result?.error || "Root could not confirm your membership yet.");
         return;
