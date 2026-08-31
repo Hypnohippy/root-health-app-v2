@@ -6,6 +6,7 @@ import { useRoot } from "../context/RootContext";
 export default function ExperienceSwitcher() {
   const {
     identity,
+    canUsePersonal,
     canUseWorkplace,
     activeExperience,
     switchExperience,
@@ -51,9 +52,11 @@ export default function ExperienceSwitcher() {
         disabled={changing}
         style={styles.select}
       >
-        <option value="personal">
-          🌿 Personal
-        </option>
+        {canUsePersonal ? (
+          <option value="personal">
+            🌿 Personal
+          </option>
+        ) : null}
 
         <option value="workplace">
           🏢 Workplace
