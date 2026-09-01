@@ -6,7 +6,7 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { getRootIdentity } from "../../lib/rootLongitudinalEngine";
-import { loadPublishedInterventions } from "../../lib/rootInterventionLibrary";
+import { loadPublishedRootContent } from "../../lib/rootContentLibrary";
 
 const emotionalStates = [
   {
@@ -450,11 +450,11 @@ export default function MindPage() {
   const [overthinkingBodyIntervention, setOverthinkingBodyIntervention] = useState(null);
 
   useEffect(() => {
-    loadPublishedInterventions({
+    loadPublishedRootContent({
       categories: ["body_regulation", "breathing"],
       targetTerms: ["overthinking"],
-    }).then(({ interventions }) => {
-      const playable = interventions.find((item) => item.audio_url && item.script);
+    }).then(({ items }) => {
+      const playable = items.find((item) => item.audio_url && item.script);
       if (playable) {
         setOverthinkingBodyIntervention({
           id: playable.id,
