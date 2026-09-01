@@ -683,7 +683,7 @@ const styles = {
     minHeight: "100vh",
     display: "flex",
     justifyContent: "center",
-    padding: "24px",
+    padding: "112px 24px 24px",
   },
 logoWrap: {
   display: "flex",

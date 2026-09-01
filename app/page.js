@@ -802,7 +802,7 @@ checkUser();
             {livingMessage && (
               <MiniInsightCard
                 id="living"
-                label="Today’s Reflection"
+                label="A gentle next step"
                 title="What may matter today."
                 summary={livingMessage}
                 openCard={openCard}
@@ -1405,10 +1405,9 @@ const styles = {
   },
 
   footer: {
-    position: "fixed",
-    bottom: "18px",
-    left: "50%",
-    transform: "translateX(-50%)",
+    position: "relative",
+    width: "fit-content",
+    margin: "0 auto 18px",
     zIndex: 20,
     display: "flex",
     alignItems: "center",

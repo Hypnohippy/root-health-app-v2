@@ -53,6 +53,7 @@ Rules:
 - If the user asks to replace something, replace it consistently throughout the document.
 - Preserve all unrelated content unless the requested change genuinely requires modifying it.
 - Do not make additional improvements, substitutions, rewrites, or assumptions beyond the user's instruction unless necessary to keep the document coherent.
+- When adding or revising supermarket or ingredient prices, treat them as estimates unless a live price source is provided. Label them as estimated or indicative, note that prices vary by store, location, offer and date, and never present them as live, current or verified prices without a real live lookup.
 - Keep the result clean, practical, and ready to save.
 `;
 

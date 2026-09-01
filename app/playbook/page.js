@@ -24,6 +24,125 @@ const categories = [
   "General",
 ];
 
+function renderInlineFormatting(text) {
+  return String(text || "")
+    .split(/(\*\*[^*]+\*\*)/g)
+    .filter(Boolean)
+    .map((part, index) =>
+      part.startsWith("**") && part.endsWith("**") ? (
+        <strong key={index}>{part.slice(2, -2)}</strong>
+      ) : (
+        part
+      )
+    );
+}
+
+function isTableDivider(line) {
+  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+}
+
+function tableCells(line) {
+  return line
+    .trim()
+    .replace(/^\||\|$/g, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+function PlaybookContent({ content }) {
+  const lines = String(content || "").replace(/\r\n/g, "\n").split("\n");
+  const blocks = [];
+
+  for (let index = 0; index < lines.length; ) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      index += 1;
+      continue;
+    }
+
+    if (
+      trimmed.includes("|") &&
+      index + 1 < lines.length &&
+      isTableDivider(lines[index + 1])
+    ) {
+      const header = tableCells(trimmed);
+      const rows = [];
+      index += 2;
+
+      while (index < lines.length && lines[index].trim().includes("|")) {
+        rows.push(tableCells(lines[index]));
+        index += 1;
+      }
+
+      blocks.push(
+        <div key={`table-${index}`} style={styles.markdownTableScroll}>
+          <table style={styles.markdownTable}>
+            <thead>
+              <tr>
+                {header.map((cell, cellIndex) => (
+                  <th key={cellIndex} style={styles.markdownTh}>
+                    {renderInlineFormatting(cell)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {row.map((cell, cellIndex) => (
+                    <td key={cellIndex} style={styles.markdownTd}>
+                      {renderInlineFormatting(cell)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+      continue;
+    }
+
+    const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      blocks.push(
+        <h3 key={`heading-${index}`} style={styles.markdownHeading}>
+          {renderInlineFormatting(heading[2])}
+        </h3>
+      );
+      index += 1;
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(trimmed)) {
+      const items = [];
+      while (index < lines.length && /^[-*]\s+/.test(lines[index].trim())) {
+        items.push(lines[index].trim().replace(/^[-*]\s+/, ""));
+        index += 1;
+      }
+      blocks.push(
+        <ul key={`list-${index}`} style={styles.markdownList}>
+          {items.map((item, itemIndex) => (
+            <li key={itemIndex}>{renderInlineFormatting(item)}</li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    blocks.push(
+      <p key={`paragraph-${index}`} style={styles.markdownParagraph}>
+        {renderInlineFormatting(trimmed)}
+      </p>
+    );
+    index += 1;
+  }
+
+  return <div style={styles.markdownContent}>{blocks}</div>;
+}
+
 export default function PlaybookPage() {
   const { identity } = useRoot();
   const profileKey = identity?.personal?.profileKey;
@@ -470,7 +589,7 @@ const stopReviewVoiceInput = async (
                     <strong style={styles.listTitle}>{entry.title}</strong>
 
                     {isOpen ? (
-                      <p style={styles.listExpanded}>{entry.content}</p>
+                      <PlaybookContent content={entry.content} />
                     ) : (
                       <p style={styles.listPreview}>
                         {getPreview(entry.content, 90)}
@@ -743,9 +862,11 @@ setReviewStatus("saved");
                     </span>
                   </div>
 
-                  <p style={styles.entryContent}>
-                    {isOpen ? entry.content : getPreview(entry.content)}
-                  </p>
+                  {isOpen ? (
+                    <PlaybookContent content={entry.content} />
+                  ) : (
+                    <p style={styles.entryContent}>{getPreview(entry.content)}</p>
+                  )}
 
                   <div style={styles.actionRow}>
                     <button
@@ -1097,6 +1218,59 @@ const styles = {
     color: "#3E372F",
     fontSize: "14px",
     lineHeight: "1.7",
+  },
+
+  markdownContent: {
+    marginTop: "10px",
+    color: "#3E372F",
+    fontSize: "15px",
+    lineHeight: "1.75",
+  },
+
+  markdownParagraph: {
+    margin: "0 0 10px",
+    whiteSpace: "pre-wrap",
+  },
+
+  markdownHeading: {
+    margin: "20px 0 8px",
+    color: "#243224",
+    fontFamily: "Georgia, serif",
+    fontSize: "19px",
+    lineHeight: "1.35",
+  },
+
+  markdownList: {
+    margin: "6px 0 14px",
+    paddingLeft: "22px",
+  },
+
+  markdownTableScroll: {
+    width: "100%",
+    margin: "12px 0 18px",
+    overflowX: "auto",
+  },
+
+  markdownTable: {
+    width: "100%",
+    minWidth: "520px",
+    borderCollapse: "collapse",
+    fontSize: "14px",
+  },
+
+  markdownTh: {
+    padding: "10px 12px",
+    borderBottom: "1px solid rgba(36,50,36,0.22)",
+    background: "rgba(36,50,36,0.07)",
+    textAlign: "left",
+    color: "#243224",
+  },
+
+  markdownTd: {
+    padding: "9px 12px",
+    borderBottom: "1px solid rgba(36,50,36,0.10)",
+    textAlign: "left",
+    verticalAlign: "top",
   },
 
   listCategory: {
