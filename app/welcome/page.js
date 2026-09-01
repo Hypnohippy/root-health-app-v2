@@ -102,7 +102,7 @@ export default function WelcomePage() {
 
         <div style={styles.options}>
           <a
-            href="/register"
+            href="/personal/join"
             className="root-welcome-reveal"
             style={{
               ...styles.primaryCard,
