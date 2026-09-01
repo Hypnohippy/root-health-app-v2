@@ -413,13 +413,14 @@ if (
     : "your body";
 
   const focus = parsedJourney.focus || "stress";
+  const selectedSignal = parsedJourney.selectedSignal || "the signal you noticed";
 
   setMessages([
     {
       role: "coach",
       content:
         `We’re continuing your Root journey.\n\n` +
-        `You mentioned ${focus} and signals around ${bodyAreas}.\n\n` +
+        `You mentioned ${focus} and noticed ${selectedSignal} around ${bodyAreas}.\n\n` +
         `Let’s gently explore what may be contributing to that pattern.`,
     },
   ]);
@@ -1010,6 +1011,7 @@ console.log("VOICE CONTEXT SENT:", {
   mindEntries,
   journalEntries,
   name,
+  journey,
 }),
 });
     if (!sdpResponse.ok) {

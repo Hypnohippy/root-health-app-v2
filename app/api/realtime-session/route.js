@@ -53,6 +53,7 @@ export async function POST(req) {
   mindEntries = [],
   journalEntries = [],
   name = "",
+  journey = null,
 } = body;
 
     if (!sdp) {
@@ -61,6 +62,12 @@ export async function POST(req) {
 
     const rootContext = `
 Active mode: ${coachMode || "auto"}
+
+${
+  journey?.currentStage === "coach" && journey?.selectedSignal
+    ? `Current Body-to-Coach handoff (prioritise this over older body history):\nSignal: ${journey.selectedSignal}\nBody areas: ${Array.isArray(journey.bodyAreas) ? journey.bodyAreas.join(", ") : "not recorded"}\nIntensity: ${journey.intensity || "not recorded"}/10`
+    : "Current Body-to-Coach handoff: none."
+}
 
 ${summariseProfile(profile)}
 

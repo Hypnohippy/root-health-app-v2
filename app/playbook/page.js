@@ -78,7 +78,7 @@ function PlaybookContent({ content }) {
 
       blocks.push(
         <div key={`table-${index}`} style={styles.markdownTableScroll}>
-          <table style={styles.markdownTable}>
+          <table className="root-playbook-markdown-table" style={styles.markdownTable}>
             <thead>
               <tr>
                 {header.map((cell, cellIndex) => (
@@ -585,7 +585,12 @@ const stopReviewVoiceInput = async (
 
               return (
                 <div key={entry.id} className="playbook-list-item" style={styles.listItem}>
-                  <div style={styles.listMain}>
+                  <div
+                    style={{
+                      ...styles.listMain,
+                      ...(isOpen ? styles.listMainExpanded : {}),
+                    }}
+                  >
                     <strong style={styles.listTitle}>{entry.title}</strong>
 
                     {isOpen ? (
@@ -928,6 +933,10 @@ setReviewStatus("saved");
     .playbook-list-actions {
       justify-content: flex-start !important;
     }
+
+    .root-playbook-markdown-table {
+      min-width: 520px;
+    }
   }
 `}</style>
         </main>
@@ -1198,6 +1207,10 @@ const styles = {
     minWidth: 0,
   },
 
+  listMainExpanded: {
+    gridColumn: "1 / -1",
+  },
+
   listTitle: {
     display: "block",
     color: "#1F241E",
@@ -1253,9 +1266,9 @@ const styles = {
 
   markdownTable: {
     width: "100%",
-    minWidth: "520px",
     borderCollapse: "collapse",
     fontSize: "14px",
+    tableLayout: "auto",
   },
 
   markdownTh: {
