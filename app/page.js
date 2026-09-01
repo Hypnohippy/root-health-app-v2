@@ -506,7 +506,7 @@ checkUser();
           science:
             "Regular reflective practice supports self-awareness, resilience, and nervous-system regulation.",
           action: {
-            href: "/body",
+            href: "/check-in",
             label: "Continue check-in",
           },
         };
