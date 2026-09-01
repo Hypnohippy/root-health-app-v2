@@ -147,6 +147,12 @@ Notice how your body begins to soften.`,
   const [errorMessage, setErrorMessage] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [authorised, setAuthorised] = useState(null);
+
+  const getAccessToken = async () => {
+    const { data } = await supabase.auth.getSession();
+    return data?.session?.access_token || null;
+  };
 
   const isEditing = Boolean(form.id);
 
@@ -165,18 +171,15 @@ Notice how your body begins to soften.`,
     setErrorMessage("");
 
     try {
-      const { data, error } = await supabase
-        .from("root_interventions")
-        .select("*")
-        .order("updated_at", {
-          ascending: false,
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      setInterventions(data || []);
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/interventions", {
+        headers: { Authorization: `Bearer ${token || ""}` },
+        cache: "no-store",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Access denied.");
+      setAuthorised(true);
+      setInterventions(result.interventions || []);
     } catch (error) {
       console.error(
         "ROOT INTERVENTION LIBRARY LOAD ERROR:",
@@ -187,6 +190,7 @@ Notice how your body begins to soften.`,
         error?.message ||
           "Root could not load the intervention library."
       );
+      setAuthorised(false);
     } finally {
       setLoadingLibrary(false);
     }
@@ -235,23 +239,7 @@ Notice how your body begins to soften.`,
     let counter = 2;
 
     while (counter < 100) {
-      let query = supabase
-        .from("root_interventions")
-        .select("id")
-        .eq("slug", candidate)
-        .limit(1);
-
-      if (form.id) {
-        query = query.neq("id", form.id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
+      if (!interventions.some((item) => item.slug === candidate && item.id !== form.id)) {
         return candidate;
       }
 
@@ -295,6 +283,7 @@ Notice how your body begins to soften.`,
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${(await getAccessToken()) || ""}`,
         },
         body: JSON.stringify({
           title: audioTitle,
@@ -363,28 +352,17 @@ Notice how your body begins to soften.`,
         version: Number(form.version) || 1,
       };
 
-      let result;
-
-      if (form.id) {
-        result = await supabase
-          .from("root_interventions")
-          .update(interventionRow)
-          .eq("id", form.id)
-          .select("*")
-          .single();
-      } else {
-        result = await supabase
-          .from("root_interventions")
-          .insert(interventionRow)
-          .select("*")
-          .single();
-      }
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      const savedIntervention = result.data;
+      const response = await fetch("/api/admin/interventions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await getAccessToken()) || ""}`,
+        },
+        body: JSON.stringify({ action: "save", id: form.id, intervention: interventionRow }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Save failed.");
+      const savedIntervention = result.intervention;
 
       setForm({
         id: savedIntervention.id,
@@ -484,14 +462,16 @@ Notice how your body begins to soften.`,
     setErrorMessage("");
 
     try {
-      const { error } = await supabase
-        .from("root_interventions")
-        .delete()
-        .eq("id", form.id);
-
-      if (error) {
-        throw error;
-      }
+      const response = await fetch("/api/admin/interventions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await getAccessToken()) || ""}`,
+        },
+        body: JSON.stringify({ action: "delete", id: form.id }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Delete failed.");
 
       setForm({
         ...EMPTY_FORM,
@@ -517,6 +497,10 @@ Notice how your body begins to soften.`,
 
   const busy =
     saving || generatingAudio || deleting;
+
+  if (authorised !== true) {
+    return <main style={styles.page}><div style={styles.emptyState}>Root administrator access is required.</div></main>;
+  }
 
   return (
     <main style={styles.page}>
