@@ -623,9 +623,19 @@ if (journey && journey.currentStage === "coach") {
   setThinking(true);
 
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+
+    if (!accessToken) {
+      throw new Error("Root could not verify your signed-in account.");
+    }
+
     const res = await fetch("/api/voice-actions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
   action: "save_journal",
   title: "Root Coach Reflection",
@@ -901,9 +911,17 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     console.log("========== ABOUT TO SAVE ==========");
 console.log("PROFILE:", profileKey);
 console.log("PENDING:", pending);
+   const { data: sessionData } = await supabase.auth.getSession();
+   const accessToken = sessionData?.session?.access_token;
+
+   if (!accessToken) {
+     throw new Error("Root could not verify your signed-in account.");
+   }
+
    const saveResponse = await fetch("/api/voice-actions", {
   method: "POST",
   headers: {
+    Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
   },
   body: JSON.stringify({

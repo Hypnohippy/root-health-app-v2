@@ -52,8 +52,8 @@ const [openEntryId, setOpenEntryId] = useState(null);
   const [content, setContent] = useState("");
 
   useEffect(() => {
-    loadEntries();
-  }, []);
+    if (profileKey) loadEntries();
+  }, [profileKey]);
 
   const loadEntries = async () => {
  if (!profileKey) return;
@@ -68,6 +68,8 @@ const [openEntryId, setOpenEntryId] = useState(null);
 
     if (!error) {
       setEntries(Array.isArray(data) ? data : []);
+    } else {
+      console.error("PLAYBOOK LOAD ERROR:", error);
     }
 
     setLoading(false);
