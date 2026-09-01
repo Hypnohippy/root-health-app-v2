@@ -1413,7 +1413,7 @@ style={{
 const styles = {
   page: {
     minHeight: "100vh",
-    padding: "28px",
+    padding: "112px 28px 28px",
     display: "flex",
     justifyContent: "center",
   },
@@ -1902,7 +1902,7 @@ journeyNextButton: {
   fontWeight: "700",
 },
   pageMobile: {
-  padding: "16px",
+  padding: "96px 16px 16px",
   alignItems: "stretch",
 },
 

@@ -150,6 +150,8 @@ Do not save or output conversational phrases inside the Playbook content, such a
 
 The Playbook content should contain only the finished useful document.
 
+When including supermarket or ingredient prices, treat them as estimates unless a live price source is explicitly present in the Root context. Label them naturally as estimated or indicative, mention that prices vary by store, location, offer and date, and never describe them as live, current or verified prices without a real live lookup.
+
 For example, output:
 Title: 2-Day IBS-Friendly Weight Loss Meal Plan
 Day 1:
