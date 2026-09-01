@@ -101,7 +101,7 @@ if (activeExperience === "workplace") {
   }
 
   const {
-    data: personalProfile,
+    data: existingPersonalProfile,
     error: profileError,
   } = await supabase
     .from("profiles")
@@ -109,7 +109,7 @@ if (activeExperience === "workplace") {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (profileError || !personalProfile?.profile_key) {
+  if (profileError) {
     console.error(
       "PERSONAL PROFILE ERROR:",
       profileError
@@ -123,7 +123,53 @@ if (activeExperience === "workplace") {
     return;
   }
 
+  let personalProfile = existingPersonalProfile;
+
+  if (!personalProfile) {
+    const profileKey = crypto.randomUUID();
+    const userName =
+      user.user_metadata?.name ||
+      user.user_metadata?.full_name ||
+      "";
+
+    const {
+      data: createdProfile,
+      error: profileCreateError,
+    } = await supabase
+      .from("profiles")
+      .insert({
+        user_id: user.id,
+        profile_key: profileKey,
+        name: userName,
+        email: user.email || "",
+        orientation_completed: false,
+      })
+      .select("profile_key, organisation_id")
+      .single();
+
+    if (profileCreateError || !createdProfile?.profile_key) {
+      console.error(
+        "PERSONAL PROFILE CREATION ERROR:",
+        profileCreateError
+      );
+
+      alert(
+        "Root could not create your personal profile."
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    personalProfile = createdProfile;
+  }
+
   profileKey = personalProfile.profile_key;
+
+  localStorage.setItem(
+    "root_profile_key_v1",
+    profileKey
+  );
 
   organisationId =
     personalProfile.organisation_id ||
