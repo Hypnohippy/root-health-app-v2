@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import { requireRootAdmin } from "../../../lib/rootAdminAuth";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,6 +21,11 @@ function safeFileName(value = "") {
 
 export async function POST(request) {
   try {
+    const admin = await requireRootAdmin(request);
+    if (!admin.authorised) {
+      return Response.json({ ok: false, error: admin.error }, { status: admin.status });
+    }
+
     const { title, text } = await request.json();
 
     if (!title || !text) {

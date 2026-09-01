@@ -6,6 +6,7 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { getRootIdentity } from "../../lib/rootLongitudinalEngine";
+import { loadPublishedInterventions } from "../../lib/rootInterventionLibrary";
 
 const emotionalStates = [
   {
@@ -446,6 +447,31 @@ export default function MindPage() {
   const [calmingIndex, setCalmingIndex] = useState(0);
   const [groundingIndex, setGroundingIndex] = useState(0);
   const [bodyIndex, setBodyIndex] = useState(0);
+  const [overthinkingBodyIntervention, setOverthinkingBodyIntervention] = useState(null);
+
+  useEffect(() => {
+    loadPublishedInterventions({
+      categories: ["body_regulation", "breathing"],
+      targetTerms: ["overthinking"],
+    }).then(({ interventions }) => {
+      const playable = interventions.find((item) => item.audio_url && item.script);
+      if (playable) {
+        setOverthinkingBodyIntervention({
+          id: playable.id,
+          slug: playable.slug,
+          version: playable.version,
+          title: playable.title,
+          body: playable.description || playable.script,
+          audio: playable.audio_url,
+        });
+      }
+    });
+  }, []);
+
+  const activeBodyTechniques =
+    activeState?.id === "overthinking" && overthinkingBodyIntervention
+      ? [overthinkingBodyIntervention, ...bodyTechniques]
+      : bodyTechniques;
   
   useEffect(() => {
   const loadMindIdentity = async () => {
@@ -1302,26 +1328,26 @@ const { error } = await supabase
 
           {activeTool === "breathwork" && (
   <ToolExperience
-    kicker={`Technique ${bodyIndex + 1} of ${bodyTechniques.length}`}
-    title={bodyTechniques[bodyIndex].title}
+    kicker={`Technique ${bodyIndex + 1} of ${activeBodyTechniques.length}`}
+    title={activeBodyTechniques[bodyIndex]?.title}
     subtitle="A body-based pathway to reduce physical activation."
-    body={bodyTechniques[bodyIndex].body}
-    audio={bodyTechniques[bodyIndex].audio}
+    body={activeBodyTechniques[bodyIndex]?.body}
+    audio={activeBodyTechniques[bodyIndex]?.audio}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setBodyIndex((current) =>
-        current === 0 ? bodyTechniques.length - 1 : current - 1
+        current === 0 ? activeBodyTechniques.length - 1 : current - 1
       )
     }
     onNextTechnique={() =>
       setBodyIndex((current) =>
-        current === bodyTechniques.length - 1 ? 0 : current + 1
+        current === activeBodyTechniques.length - 1 ? 0 : current + 1
       )
     }
     saveEntry={(entry) =>
       saveEntry({
         ...entry,
-        tool: bodyTechniques[bodyIndex].title,
+        tool: activeBodyTechniques[bodyIndex]?.title,
         situation: "The user completed a body regulation intervention.",
         reframe: "The user completed a body regulation intervention.",
         next_step: "Check whether physical activation has reduced.",
