@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
@@ -496,6 +496,7 @@ export default function BodyPage() {
   const [journey, setJourney] = useState(null);
   const [journeyIntro, setJourneyIntro] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const responseRef = useRef(null);
 
   const selectedItems = bodySystems.filter((item) => selectedSystems.includes(item.id));
   const current = bodySystems.find((item) => item.id === activeSystemId);
@@ -781,6 +782,13 @@ if (journey) {
     setResponse(message);
     setJourneyStep("body");
     setSaving(false);
+
+    setTimeout(() => {
+      responseRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
   };
 
  return (
@@ -795,6 +803,16 @@ if (journey) {
         @keyframes jointsPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
         @keyframes kidneysPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
         @keyframes nervousPop { 0% { opacity: 0; transform: scale(0.88) translateX(-20px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+
+.root-body-overlay {
+  top: 92px !important;
+  bottom: 16px !important;
+  max-height: calc(100dvh - 108px) !important;
+  transform: translateX(-50%) !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
         @media (max-width: 900px) {
   main {
     overflow-x: hidden;
@@ -802,6 +820,15 @@ if (journey) {
 
   .root-mobile-stack {
     max-height: none !important;
+  }
+
+  .root-body-overlay {
+    top: 84px !important;
+    bottom: 12px !important;
+    max-height: calc(100dvh - 96px) !important;
+    transform: translateX(-50%) !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
       `}</style>
@@ -850,56 +877,56 @@ if (journey) {
             {current && <div style={styles.activeGlow}>{current.label}</div>}
 
             {journeyStep === "nervous" && current?.id === "stress_nerves" && (
-              <div className="root-mobile-stack" style={styles.nervousCallout}>
+              <div className="root-mobile-stack root-body-overlay" style={styles.nervousCallout}>
                 <div style={styles.nervousConnectorLine} />
                 <NervousSystemView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "digestion" && current?.id === "digestion" && (
-              <div className="root-mobile-stack" style={styles.digestiveCallout}>
+              <div className="root-mobile-stack root-body-overlay" style={styles.digestiveCallout}>
                 <div style={styles.digestiveConnectorLine} />
                 <DigestionView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "heart" && current?.id === "heart_circulation" && (
-              <div className="root-mobile-stack" style={styles.heartCallout}>
+              <div className="root-mobile-stack root-body-overlay" style={styles.heartCallout}>
                 <div style={styles.heartConnectorLine} />
                 <HeartView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "lungs" && current?.id === "breathing" && (
-              <div className="root-mobile-stack" style={styles.lungsCallout}>
+              <div className="root-mobile-stack root-body-overlay" style={styles.lungsCallout}>
                 <div style={styles.lungsConnectorLine} />
                 <LungsView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "skin" && current?.id === "skin" && (
-             <div className="root-mobile-stack" style={styles.skinCallout}>
+             <div className="root-mobile-stack root-body-overlay" style={styles.skinCallout}>
                 <div style={styles.skinConnectorLine} />
                 <SkinView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "joints" && current?.id === "muscles_joints" && (
-              <div className="root-mobile-stack" style={styles.jointsCallout}>
+              <div className="root-mobile-stack root-body-overlay" style={styles.jointsCallout}>
                 <div style={styles.jointsConnectorLine} />
                 <JointsView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
 
             {journeyStep === "kidneys" && current?.id === "bladder_hydration" && (
-              <div className="root-mobile-stack" style={styles.kidneysCallout}>
+              <div className="root-mobile-stack root-body-overlay" style={styles.kidneysCallout}>
                 <div style={styles.kidneysConnectorLine} />
                 <KidneysView selectedSignal={selectedSignal} setSelectedSignal={setSelectedSignal} context={context} setContext={setContext} intensity={intensity} setIntensity={setIntensity} whatHelped={whatHelped} setWhatHelped={setWhatHelped} saving={saving} onBack={clearSelections} onSave={handleExplore} />
               </div>
             )}
           </div>
 {journeyStep === "senses" && current?.id === "senses" && (
-  <div className="root-mobile-stack" style={styles.sensesCallout}>
+  <div className="root-mobile-stack root-body-overlay" style={styles.sensesCallout}>
     <div style={styles.sensesConnectorLine} />
 
     <SensesView
@@ -1023,7 +1050,7 @@ if (journey) {
           )}
 
                {(response || trendInsight || suggestedHelp || rankedHelp.length > 0) && (
-          <div style={styles.responsePanel}>
+          <div ref={responseRef} style={styles.responsePanel}>
             <p style={styles.panelKicker}>Root response</p>
 
             {suggestedHelp && (
@@ -1094,6 +1121,7 @@ const styles = {  page: {
     position: "relative",
     overflowX: "hidden",
     overflowY: "auto",
+    paddingTop: "82px",
     fontFamily: "Inter, sans-serif",
   },
 
@@ -1449,6 +1477,7 @@ tapHint: {    marginTop: "-34px",
     boxShadow: "0 24px 70px rgba(40,34,25,0.18)",
     maxWidth: "1000px",
     margin: "0 auto",
+    scrollMarginTop: "96px",
   },
 
   responseText: {
