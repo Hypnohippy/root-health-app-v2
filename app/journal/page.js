@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-import { getCurrentProfileKey } from "../../lib/currentUser";
+import { resolvePersonalRootContext } from "../../lib/personalRootContext";
 import {
   createRootDictation,
   transcribeRootAudio,
@@ -203,16 +203,18 @@ export default function JournalPage() {
   const [recordingStep, setRecordingStep] = useState(null);
   const [transcribingStep, setTranscribingStep] = useState(null);
   const [dictationError, setDictationError] = useState("");
+  const [personalContext, setPersonalContext] = useState(null);
   const dictationRef = useRef(null);
 
   const config = getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
 
  useEffect(() => {
-  const profileKey = getCurrentProfileKey();
-  if (!profileKey) return;
-
-  loadEntries(profileKey);
+  resolvePersonalRootContext({ client: supabase }).then((result) => {
+    if (!result.ok) return;
+    setPersonalContext(result.context);
+    loadEntries(result.context.profileKey);
+  });
 
   const stored = localStorage.getItem("root_journey_v1");
 
@@ -243,7 +245,7 @@ export default function JournalPage() {
 
     const pattern = detectPattern(checkIn.label);
 
-const profileKey = getCurrentProfileKey();
+const profileKey = personalContext?.profileKey;
 
 if (!profileKey) {
   alert("Root could not find your profile. Please return to your profile and try again.");
@@ -361,7 +363,7 @@ const stopVoiceInput = async () => {
     if (!content.trim()) return;
 
     const pattern = detectPattern(content);
-const profileKey = getCurrentProfileKey();
+const profileKey = personalContext?.profileKey;
 
 if (!profileKey) {
   alert("Root could not find your profile. Please return to your profile and try again.");

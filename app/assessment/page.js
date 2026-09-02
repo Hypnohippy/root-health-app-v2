@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
+import { resolvePersonalRootContext } from "../../lib/personalRootContext";
 
 const questions = [
   ["stress_score", "Stress", "0 = calm, 10 = overwhelmed"],
@@ -100,14 +101,14 @@ if (activeExperience === "workplace") {
     return;
   }
 
-  const {
-    data: existingPersonalProfile,
-    error: profileError,
-  } = await supabase
-    .from("profiles")
-    .select("profile_key, organisation_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const resolvedPersonal = await resolvePersonalRootContext({ client: supabase });
+  const existingPersonalProfile = resolvedPersonal.ok
+    ? resolvedPersonal.context.profile
+    : null;
+  const profileError =
+    resolvedPersonal.reason === "profile_lookup_error"
+      ? resolvedPersonal.error
+      : null;
 
   if (profileError) {
     console.error(
@@ -166,15 +167,7 @@ if (activeExperience === "workplace") {
 
   profileKey = personalProfile.profile_key;
 
-  localStorage.setItem(
-    "root_profile_key_v1",
-    profileKey
-  );
-
-  organisationId =
-    personalProfile.organisation_id ||
-    organisation.organisation_id ||
-    null;
+  organisationId = null;
 }
 /*
  * ROOT ASSESSMENT TYPE

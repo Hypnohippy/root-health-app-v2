@@ -5,14 +5,12 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-const getProfileKey = () => {
-  if (typeof window === "undefined") return "main";
-  return localStorage.getItem("root_profile_key_v1") || "main";
-};
+import { resolvePersonalRootContext } from "../../lib/personalRootContext";
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [personalContext, setPersonalContext] = useState(null);
 
   const [profile, setProfile] = useState({
    profile_key: "",
@@ -32,10 +30,19 @@ export default function ProfilePage() {
   }, []);
 
   const loadProfile = async () => {
+    const identityResult = await resolvePersonalRootContext({ client: supabase });
+
+    if (!identityResult.ok) {
+      console.error("Load profile identity error:", identityResult.error || identityResult.reason);
+      setLoading(false);
+      return;
+    }
+
+    setPersonalContext(identityResult.context);
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("profile_key", getProfileKey())
+      .eq("user_id", identityResult.context.userId)
       .maybeSingle();
 
     if (error) {
@@ -44,7 +51,7 @@ export default function ProfilePage() {
 
     if (data) {
       setProfile({
-        profile_key: getProfileKey(),
+        profile_key: identityResult.context.profileKey,
         name: data.name || "",
         age: data.age || "",
         height: data.height || "",
@@ -64,14 +71,14 @@ export default function ProfilePage() {
   setSaving(true);
 
   try {
-  const profileKey = getProfileKey();
+  const profileKey = personalContext?.profileKey;
 
   const {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
 
-  if (userError || !user) {
+  if (userError || !user || !profileKey || user.id !== personalContext?.userId) {
     alert("Root could not confirm your signed-in account.");
     return;
   }
