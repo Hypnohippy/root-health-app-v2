@@ -35,6 +35,30 @@ Diet style: ${profile.diet || "unknown"}
 `.trim();
 }
 
+function summariseSharedKnowledge(knowledge = null) {
+  if (!knowledge) return "Shared Personal Root knowledge: unavailable.";
+
+  const assessment = knowledge.assessments || {};
+  const planTitles = Array.isArray(knowledge.playbook?.entries)
+    ? knowledge.playbook.entries
+        .slice(0, 8)
+        .map((entry) => `${entry.title || "Untitled"} (${entry.category || "General"})`)
+    : [];
+
+  return [
+    `Check-In direction: ${assessment.movement?.direction || "unknown"}.`,
+    `Latest Check-In scores: ${JSON.stringify(assessment.latest?.scores || {})}.`,
+    planTitles.length
+      ? `Existing Playbook resources: ${planTitles.join("; ")}. Full content is not included.`
+      : "No Playbook resource titles are available.",
+    knowledge.interventionInsight ||
+      "No measured intervention-effectiveness statement is available.",
+    knowledge.loadStatus?.partial
+      ? "Some evidence sources failed to load; missing evidence is unknown rather than absent."
+      : "No partial evidence-source failure was reported.",
+  ].join("\n");
+}
+
 export async function POST(req) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -54,6 +78,7 @@ export async function POST(req) {
   journalEntries = [],
   name = "",
   journey = null,
+  personalKnowledge = null,
 } = body;
 
     if (!sdp) {
@@ -90,6 +115,9 @@ ${summariseList("Recent journal reflections", journalEntries, [
   "emotional_theme",
   "recommended_coach_mode",
 ])}
+
+Shared Personal Root knowledge:
+${summariseSharedKnowledge(personalKnowledge)}
 `;
     const rootMemory = buildRootMemoryService({
   name,

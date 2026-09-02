@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { loadPersonalRootKnowledge } from "../../lib/personalKnowledgeService";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
@@ -260,7 +261,8 @@ function inferPlaybookMeta(transcript = "", coachMode = "") {
 
 export default function CoachPage() {
   const { identity } = useRoot();
-  const profileKey = identity?.personal?.profileKey;
+  const [profileKey, setProfileKey] = useState(null);
+  const [personalKnowledge, setPersonalKnowledge] = useState(null);
   const [latestVoiceTranscript, setLatestVoiceTranscript] = useState("");
   const [name, setName] = useState("");
   const [profile, setProfile] = useState(null);
@@ -302,7 +304,7 @@ export default function CoachPage() {
   const latestAssistantTranscriptRef = useRef("");
   useEffect(() => {
   const load = async () => {
-  if (!profileKey) return;
+  if (!identity?.personal?.profileKey) return;
   const storedJourney = localStorage.getItem("root_journey_v1");
 
 let parsedJourney = null;
@@ -315,56 +317,29 @@ if (storedJourney) {
     console.log(err);
   }
 }
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
+      const result = await loadPersonalRootKnowledge({ journey: parsedJourney });
 
-      let displayName =
-        user?.user_metadata?.full_name ||
-        user?.user_metadata?.name ||
-        user?.email?.split("@")[0] ||
-        "";
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("profile_key", profileKey)
-        .maybeSingle();
-
-      if (profileData) {
-        setProfile(profileData);
-        if (profileData.name) displayName = profileData.name;
+      if (!result.ok) {
+        console.error("COACH PERSONAL KNOWLEDGE ERROR:", result.reason);
+        return;
       }
 
+      const projection = result.projections.coach;
+      const authoritativeProfileKey = projection.identity.profileKey;
+      const profileData = projection.profile;
+      const displayName =
+        profileData?.name || result.knowledge.person?.name || "";
+      const rows = projection.promptEvidence.bodySignals;
+      const recentMind = projection.promptEvidence.mindEntries;
+      const journalRows = projection.promptEvidence.journalEntries;
+
+      setProfileKey(authoritativeProfileKey);
+      setPersonalKnowledge(projection);
+      setProfile(profileData);
       setName(displayName);
-
-      const { data } = await supabase
-        .from("body_signals")
-        .select("*")
-        .eq("profile_key", profileKey)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      const rows = Array.isArray(data) ? data : [];
       setHistory(rows);
-
-      const { data: mindData } = await supabase
-        .from("mind_entries")
-        .select("*")
-        .eq("profile_key", profileKey)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      const { data: journalData } = await supabase
-        .from("journal_entries")
-        .select("*")
-        .eq("profile_key", profileKey)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      const journalRows = Array.isArray(journalData) ? journalData : [];
-
       setJournalEntries(journalRows);
-      setMindEntries(Array.isArray(mindData) ? mindData : []);
+      setMindEntries(recentMind);
 
       const pendingCoachContext =
   typeof window !== "undefined"
@@ -400,7 +375,7 @@ if (pendingCoachContext) {
      const baseWelcome = buildWelcome(
   displayName,
   rows,
-  Array.isArray(mindData) ? mindData : [],
+  recentMind,
   journalRows
 );
 
@@ -435,7 +410,7 @@ if (
     };
 
     load();
-    }, [profileKey]);
+    }, [identity]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -569,6 +544,7 @@ if (!previousUserMessage) {
   history,
   mindEntries,
   journalEntries,
+  personalKnowledge,
   conversation: nextMessages.slice(-10),
   coachMode,
 }),
@@ -1012,6 +988,7 @@ console.log("VOICE CONTEXT SENT:", {
   journalEntries,
   name,
   journey,
+  personalKnowledge,
 }),
 });
     if (!sdpResponse.ok) {

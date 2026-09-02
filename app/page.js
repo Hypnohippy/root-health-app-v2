@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 import Nav from "../components/Nav";
-import { buildRootKnowledge } from "../lib/rootKnowledgeBuilder";
+import { loadPersonalRootKnowledge } from "../lib/personalKnowledgeService";
 import { buildRootTrialStatus } from "../lib/rootTrialStatus";
 import { useRoot } from "../context/RootContext";
 
@@ -321,79 +321,26 @@ checkUser();
 
   useEffect(() => {
   const load = async () => {
-    let loadedName = "";
+    if (!identity?.personal?.profileKey) return;
 
-   const profileKey = identity?.personal?.profileKey;
+      const result = await loadPersonalRootKnowledge({ journey });
 
-   if (!profileKey) {
-  console.warn("No profile key found for current user.");
-  return;
-}
-
-    if (!profileKey) {
-      console.warn("No profile key found for current user.");
-      return;
-    }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("name")
-        .eq("profile_key", profileKey)
-        .maybeSingle();
-
-      if (profile?.name) {
-        const firstName = profile.name.trim().split(" ")[0];
-        loadedName = firstName;
-        setUserName(firstName);
+      if (!result.ok) {
+        console.error("HOME PERSONAL KNOWLEDGE ERROR:", result.reason);
+        return;
       }
 
-      const { data: bodyData } = await supabase
-        .from("body_signals")
-.select("*")
-.eq("profile_key", profileKey)
-.order("created_at", { ascending: false })
-.limit(40);
-      const { data: journalData } = await supabase
-        .from("journal_entries")
-.select("*")
-.eq("profile_key", profileKey)
-.order("created_at", { ascending: false })
-.limit(40);
-      const { data: mindData } = await supabase
-        .from("mind_entries")
-.select("*")
-.eq("profile_key", profileKey)
-.order("created_at", { ascending: false })
-.limit(40);
-      const { data: assessmentData } = await supabase
-        .from("wellbeing_assessments")
-        .select("*")
-        .eq("profile_key", profileKey)
-        .order("created_at", { ascending: false })
-        .limit(20);
+      const projection = result.projections.home;
+      const knowledge = projection.knowledge;
+      const loadedName = knowledge.person?.firstName || "";
+      const safeBody = projection.recent.bodySignals;
+      const safeJournal = projection.recent.journalEntries;
+      const safeMind = projection.recent.mindEntries;
 
-      const safeBody = Array.isArray(bodyData) ? bodyData : [];
-      const safeJournal = Array.isArray(journalData) ? journalData : [];
-      const safeMind = Array.isArray(mindData) ? mindData : [];
-      const safeAssessments = Array.isArray(assessmentData)
-        ? assessmentData
-        : [];
+      if (loadedName) setUserName(loadedName);
 
-      const latestSavedAssessment = safeAssessments[0] || null;
-      const baselineSavedAssessment =
-        safeAssessments.find((item) => item.assessment_type === "baseline") ||
-        null;
-
-      setLatestAssessment(latestSavedAssessment);
-      setBaselineAssessment(baselineSavedAssessment);
-
-      const knowledge = buildRootKnowledge({
-        name: loadedName,
-        bodySignals: safeBody,
-        journalEntries: safeJournal,
-        mindEntries: safeMind,
-        assessments: safeAssessments,
-        journey,
-      });
+      setLatestAssessment(projection.latestAssessment);
+      setBaselineAssessment(projection.originalAssessmentBaseline);
 
       const reflection = knowledge.reflection;
       const memory = knowledge.longitudinal;
@@ -461,7 +408,11 @@ checkUser();
         safeMind.length +
         safeBody.length;
 
-      if (loadedName && evidenceCount >= 20) {
+      if (projection.loadStatus?.partial) {
+        setRootConfidence(
+          "Some recent evidence could not be loaded, so Root is keeping this reflection tentative."
+        );
+      } else if (loadedName && evidenceCount >= 20) {
         setRootConfidence(
           "Root is becoming more confident in this pattern, though it will keep watching gently."
         );
@@ -516,7 +467,7 @@ checkUser();
     };
 
     load();
-  }, [journey]);
+  }, [identity, journey]);
 
   const baselineLoad = useMemo(
     () => calculateSymptomLoad(baselineAssessment),

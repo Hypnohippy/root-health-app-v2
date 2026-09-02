@@ -161,6 +161,38 @@ function buildRootContext({ history = [], mindEntries = [], journalEntries = [] 
 
   return lines.join("\n");
 }
+
+function summariseSharedKnowledge(knowledge = null) {
+  if (!knowledge) return "Shared Personal Root knowledge is not available.";
+
+  const assessment = knowledge.assessments || {};
+  const movement = assessment.movement || {};
+  const highSignals = Array.isArray(assessment.repeatedHighSignals)
+    ? assessment.repeatedHighSignals.map((item) => item.label).filter(Boolean)
+    : [];
+  const plans = Array.isArray(knowledge.playbook?.entries)
+    ? knowledge.playbook.entries
+        .slice(0, 12)
+        .map((entry) => `${entry.title || "Untitled"} (${entry.category || "General"})`)
+    : [];
+
+  return [
+    `Check-In baseline scores: ${JSON.stringify(assessment.baseline?.scores || {})}.`,
+    `Latest Check-In scores: ${JSON.stringify(assessment.latest?.scores || {})}.`,
+    `Measured Check-In direction: ${movement.direction || "unknown"}.`,
+    highSignals.length
+      ? `Repeated higher Check-In signals: ${highSignals.join(", ")}.`
+      : "No repeated higher Check-In signal is established.",
+    plans.length
+      ? `Existing Playbook resources: ${plans.join("; ")}. Full plan content has not been supplied.`
+      : "No Playbook resource titles are available.",
+    knowledge.interventionInsight ||
+      "No measured intervention-effectiveness statement is available.",
+    knowledge.loadStatus?.partial
+      ? "Some Personal evidence sources failed to load. Treat missing context as unknown, not absent."
+      : "Shared Personal evidence loaded without a reported partial-source failure.",
+  ].join("\n");
+}
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -172,6 +204,7 @@ export async function POST(req) {
   history,
   mindEntries,
   journalEntries,
+  personalKnowledge,
   conversation,
   coachMode,
 } = body;
@@ -757,6 +790,8 @@ Recent mind work:
 ${summariseMind(mindEntries)}
 Recent journal reflections:
 ${summariseJournal(journalEntries)}
+Shared Personal Root knowledge:
+${summariseSharedKnowledge(personalKnowledge)}
 Root reflective context:
 ${rootContext}
 Core principle:
