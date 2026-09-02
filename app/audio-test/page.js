@@ -508,6 +508,10 @@ Notice how your body begins to soften.`,
       <div style={styles.backgroundGlowTwo} />
 
       <div style={styles.pageInner}>
+        <a href="/admin" style={styles.backLink}>
+          ← Back to Global Admin
+        </a>
+
         <header style={styles.header}>
           <div>
             <p style={styles.eyebrow}>
@@ -1080,6 +1084,20 @@ const styles = {
     width: "100%",
     maxWidth: "1180px",
     margin: "0 auto",
+  },
+
+  backLink: {
+    display: "inline-flex",
+    alignItems: "center",
+    marginBottom: "24px",
+    padding: "9px 13px",
+    border: "1px solid rgba(148, 180, 167, 0.24)",
+    borderRadius: "999px",
+    background: "rgba(255,255,255,0.04)",
+    color: "#b8c8c1",
+    fontSize: "13px",
+    fontWeight: 700,
+    textDecoration: "none",
   },
 
   header: {
