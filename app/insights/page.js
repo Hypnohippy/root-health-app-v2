@@ -241,7 +241,9 @@ const wellbeingProgress = useMemo(() => {
     const insights = useMemo(() => {
     const commonSignals = countBy(bodySignals, "signal");
     const commonContexts = countBy(bodySignals, "context");
-    const emotionalThemes = countBy(journalEntries, "emotional_theme");
+    const emotionalThemes = countBy(journalEntries, "emotional_theme").map(
+      ([theme, count]) => [`${theme} (Root grouping)`, count]
+    );
     const recommendedModes = countBy(journalEntries, "recommended_coach_mode");
     const toolsUsed = countBy(mindEntries, "tool");
 
@@ -251,12 +253,19 @@ const wellbeingProgress = useMemo(() => {
 
     let mainObservation = "Start adding body signals, journal reflections, and tools to build your pattern map.";
 
-    if (emotionalThemes.length > 0 && commonSignals.length > 0) {
-      mainObservation = `${emotionalThemes[0][0]} and ${commonSignals[0][0]} have both shown up recently. That may be worth watching as a mind-body pattern.`;
+    if (
+      emotionalThemes[0]?.[1] >= 2 &&
+      commonSignals[0]?.[1] >= 2
+    ) {
+      mainObservation = `${emotionalThemes[0][0]} and ${commonSignals[0][0]} have each been recorded more than once. Root has not established that they occur together.`;
     } else if (emotionalThemes.length > 0) {
-      mainObservation = `${emotionalThemes[0][0]} has appeared in your recent reflections. This may be a useful place to focus next.`;
+      mainObservation = emotionalThemes[0][1] >= 2
+        ? `${emotionalThemes[0][0]} appears across ${emotionalThemes[0][1]} reflections. This is Root's classification, not necessarily wording you used.`
+        : `Root grouped one reflection as ${emotionalThemes[0][0]}. One classification is not a repeated pattern.`;
     } else if (commonSignals.length > 0) {
-      mainObservation = `${commonSignals[0][0]} has appeared in your recent body signals. Tracking when it shows up may help reveal the pattern.`;
+      mainObservation = commonSignals[0][1] >= 2
+        ? `${commonSignals[0][0]} has been recorded ${commonSignals[0][1]} times.`
+        : `${commonSignals[0][0]} was recorded once. Root will not treat one entry as a pattern.`;
     }
 
     let suggestedFocus = "Use Coach to explore what feels most relevant today.";
@@ -336,7 +345,7 @@ const wellbeingProgress = useMemo(() => {
 </h2>
 
 <p style={styles.heroConfidence}>
-  Based on your recent body signals, reflections and wellbeing check-ins.
+  Derived from your loaded Body, Journal and Mind evidence.
 </p>
 
 
@@ -367,8 +376,8 @@ const wellbeingProgress = useMemo(() => {
             />
 
             <InsightCard
-              title="Emotional themes"
-              empty="No journal themes yet."
+              title="Root-grouped reflection themes"
+              empty="No Root-grouped reflection themes yet."
               rows={insights.emotionalThemes}
             />
 
@@ -408,7 +417,7 @@ const wellbeingProgress = useMemo(() => {
                 title={insights.recentJournal?.title || "None yet"}
                 meta={
                   insights.recentJournal
-                    ? `${insights.recentJournal.emotional_theme || "general reflection"} · ${formatDate(insights.recentJournal.created_at)}`
+                    ? `${insights.recentJournal.content ? `You noted: ${insights.recentJournal.content}` : "Reflection saved"} · ${formatDate(insights.recentJournal.created_at)}`
                     : "Add a journal reflection to see themes."
                 }
               />
