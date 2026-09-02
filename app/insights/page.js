@@ -9,6 +9,12 @@ import {
   selectLatestMeasuredIntervention,
 } from "../../lib/personalKnowledgeService";
 import { getRootMeasurementHistory } from "../../lib/rootCore/rootMemory";
+import {
+  loadPersonalPresentationReceipts,
+  recordPersonalPresentationReceipts,
+  savePersonalPresentationReceipts,
+  selectPersonalPresentation,
+} from "../../lib/personalPresentationService";
 
 function countBy(items, key) {
   const counts = {};
@@ -39,8 +45,8 @@ export default function InsightsPage() {
   const [measurements, setMeasurements] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [journey, setJourney] = useState(null);
-  const [rootReflection, setRootReflection] = useState(null);
   const [measuredIntervention, setMeasuredIntervention] = useState(null);
+  const [presentation, setPresentation] = useState({ selected: [], emptyReason: null });
 
  useEffect(() => {
   const stored = localStorage.getItem("root_journey_v1");
@@ -67,6 +73,22 @@ export default function InsightsPage() {
   }
 
   const projection = result.projections.insights;
+  const receipts = loadPersonalPresentationReceipts(projection.identity.profileKey);
+  const presentationResult = selectPersonalPresentation({
+    candidates: projection.presentationCandidates,
+    receipts,
+    limit: 1,
+  });
+  setPresentation(presentationResult);
+  if (presentationResult.selected.length) {
+    savePersonalPresentationReceipts(
+      projection.identity.profileKey,
+      recordPersonalPresentationReceipts({
+        receipts,
+        presented: presentationResult.selected,
+      })
+    );
+  }
 
   setBodySignals(projection.evidence.bodySignals);
   setMindEntries(projection.evidence.mindEntries);
@@ -81,7 +103,6 @@ export default function InsightsPage() {
   setMeasuredIntervention(
     selectLatestMeasuredIntervention(projection.evidence.interventionOutcomes)
   );
-  setRootReflection(projection.knowledge.reflection);
     try {
   const measurementHistory = await getRootMeasurementHistory({
     limit: 50,
@@ -241,9 +262,8 @@ const wellbeingProgress = useMemo(() => {
     const insights = useMemo(() => {
     const commonSignals = countBy(bodySignals, "signal");
     const commonContexts = countBy(bodySignals, "context");
-    const emotionalThemes = countBy(journalEntries, "emotional_theme").map(
-      ([theme, count]) => [`${theme} (Root grouping)`, count]
-    );
+    const emotionalThemes = countBy(journalEntries, "emotional_theme")
+      .filter(([, count]) => count >= 2);
     const recommendedModes = countBy(journalEntries, "recommended_coach_mode");
     const toolsUsed = countBy(mindEntries, "tool");
 
@@ -334,33 +354,37 @@ const wellbeingProgress = useMemo(() => {
     </p>
   </div>
 )}
-         {rootReflection && (
+         {presentation.selected[0] && (
   <div style={styles.heroCard}>
     <p style={styles.heroLabel}>
   Root has noticed...
 </p>
 
    <h2 style={styles.heroTitle}>
-  {rootReflection.title}
+  {presentation.selected[0].title}
 </h2>
 
 <p style={styles.heroConfidence}>
-  Derived from your loaded Body, Journal and Mind evidence.
+  Selected from new, measured or developing evidence without changing your history.
 </p>
 
 
     <p style={styles.heroText}>
-      {rootReflection.reflection}
+      {presentation.selected[0].message}
     </p>
 
-    <a
-      href={rootReflection.suggestedAction.href}
-      style={styles.heroButton}
-    >
-      {rootReflection.suggestedAction.title} →
-    </a>
   </div>
 )}
+
+          {!presentation.selected.length && presentation.emptyReason && (
+            <div style={styles.heroCard}>
+              <p style={styles.heroLabel}>Root is keeping watch</p>
+              <h2 style={styles.heroTitle}>There is nothing materially new to add right now.</h2>
+              <p style={styles.heroText}>
+                Your historical evidence remains available below. Root will not present the same unchanged observation as though it were new.
+              </p>
+            </div>
+          )}
 
           <div style={styles.grid}>
             <InsightCard
@@ -376,8 +400,8 @@ const wellbeingProgress = useMemo(() => {
             />
 
             <InsightCard
-              title="Root-grouped reflection themes"
-              empty="No Root-grouped reflection themes yet."
+              title="Themes Root is beginning to notice"
+              empty="Root needs repeated reflections before showing a developing theme here."
               rows={insights.emotionalThemes}
             />
 
