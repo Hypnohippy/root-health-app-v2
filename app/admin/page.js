@@ -29,11 +29,6 @@ export default function RootGlobalAdminPage() {
     setError,
   ] = useState("");
 
-  const [
-    authDiagnostic,
-    setAuthDiagnostic,
-  ] = useState(null);
-
   async function getAccessToken() {
     const {
       data,
@@ -148,42 +143,8 @@ export default function RootGlobalAdminPage() {
     }
   }
 
-  async function loadAuthDiagnostic() {
-    try {
-      const token = await getAccessToken();
-      if (!token) {
-        setAuthDiagnostic(null);
-        return;
-      }
-
-      const response = await fetch(
-        "/api/admin/debug-auth",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          cache: "no-store",
-        }
-      );
-      const result = await response.json();
-
-      setAuthDiagnostic(
-        response.ok && result?.ok
-          ? result
-          : null
-      );
-    } catch (diagnosticError) {
-      console.error(
-        "ROOT ADMIN AUTH DIAGNOSTIC ERROR:",
-        diagnosticError
-      );
-      setAuthDiagnostic(null);
-    }
-  }
-
   useEffect(() => {
     loadAdmin();
-    loadAuthDiagnostic();
   }, []);
 
   const summary =
@@ -368,44 +329,6 @@ export default function RootGlobalAdminPage() {
               </button>
             ) : null}
           </div>
-        ) : null}
-
-        {authDiagnostic ? (
-          <section style={styles.diagnosticPanel}>
-            <p style={styles.sectionKicker}>
-              TEMPORARY AUTH DIAGNOSTIC
-            </p>
-            <dl style={styles.diagnosticGrid}>
-              <div>
-                <dt style={styles.diagnosticLabel}>Authenticated user ID</dt>
-                <dd style={styles.diagnosticValue}>{authDiagnostic.user.id}</dd>
-              </div>
-              <div>
-                <dt style={styles.diagnosticLabel}>Authenticated email</dt>
-                <dd style={styles.diagnosticValue}>{authDiagnostic.user.email || "(empty)"}</dd>
-              </div>
-              <div>
-                <dt style={styles.diagnosticLabel}>Runtime allowlist present</dt>
-                <dd style={styles.diagnosticValue}>{authDiagnostic.rootAdminEmailPresent ? "Yes" : "No"}</dd>
-              </div>
-              <div>
-                <dt style={styles.diagnosticLabel}>Runtime allowlist</dt>
-                <dd style={styles.diagnosticValue}>
-                  {authDiagnostic.allowlistEmails.length
-                    ? authDiagnostic.allowlistEmails.join(", ")
-                    : "(empty)"}
-                </dd>
-              </div>
-              <div>
-                <dt style={styles.diagnosticLabel}>Exact match</dt>
-                <dd style={styles.diagnosticValue}>{authDiagnostic.matchesAllowlist ? "Yes" : "No"}</dd>
-              </div>
-              <div>
-                <dt style={styles.diagnosticLabel}>Supabase project ref</dt>
-                <dd style={styles.diagnosticValue}>{authDiagnostic.supabaseProjectRef || "(unavailable)"}</dd>
-              </div>
-            </dl>
-          </section>
         ) : null}
 
         {loading ? (
@@ -642,6 +565,13 @@ export default function RootGlobalAdminPage() {
               kicker="ROOT ENTRY POINTS"
               title="Useful journeys"
             >
+              <AdminCard
+                icon="🎧"
+                title="Intervention Studio"
+                description="Create, review, generate, preview and publish Root interventions and guided content."
+                href="/audio-test"
+              />
+
               <AdminCard
                 icon="🌿"
                 title="Workplace pricing"
@@ -978,38 +908,6 @@ const styles = {
     background: "#F7E4E1",
     color: "#8B2A22",
     fontWeight: "800",
-  },
-
-  diagnosticPanel: {
-    marginTop: "18px",
-    padding: "20px",
-    borderRadius: "20px",
-    background: "rgba(255,255,255,0.7)",
-    border: "1px solid rgba(38,59,43,0.12)",
-  },
-
-  diagnosticGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "16px",
-    margin: "16px 0 0",
-  },
-
-  diagnosticLabel: {
-    color: "#6D786F",
-    fontSize: "10px",
-    fontWeight: "900",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-  },
-
-  diagnosticValue: {
-    margin: "6px 0 0",
-    color: "#263B2B",
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-    fontSize: "12px",
-    lineHeight: 1.5,
-    overflowWrap: "anywhere",
   },
 
   signInButton: {
