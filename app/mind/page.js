@@ -18,6 +18,12 @@ import {
   buildMindInterventionStart,
   createPersonalInterventionLifecycle,
 } from "../../lib/personalInterventionLifecycle";
+import {
+  createMindOutcomeFlow,
+  markMindInterventionFinished,
+  MIND_OUTCOME_STAGES,
+  recordMindAfterScore,
+} from "../../lib/mindOutcomeFlow";
 
 const emotionalStates = [
   {
@@ -611,7 +617,7 @@ export default function MindPage() {
   setSpeakingText("");
 };
 
-const speakText = (text) => {
+const speakText = (text, onFinished = null) => {
   if (typeof window === "undefined") return;
 
   window.speechSynthesis.cancel();
@@ -623,6 +629,7 @@ const speakText = (text) => {
 
   utterance.onend = () => {
     setSpeakingText("");
+    if (typeof onFinished === "function") onFinished();
   };
 
   utterance.onerror = () => {
@@ -1570,13 +1577,20 @@ function OutcomeButtons({
   completeOutcome,
   saveObservation,
   stateLabel,
+  outcomeFlow,
+  onAfterScoreRecorded,
 }) {
   const [savedOutcome, setSavedOutcome] = useState("");
-  const [afterScore, setAfterScore] = useState(null);
   const [measurementSaving, setMeasurementSaving] = useState(false);
+  const afterScore = outcomeFlow?.afterScore ?? null;
+
+  if (outcomeFlow?.stage === MIND_OUTCOME_STAGES.INTERVENTION) {
+    return null;
+  }
 
   return (
     <div style={styles.outcomeCard}>
+      {outcomeFlow?.stage === MIND_OUTCOME_STAGES.POST_SCORE && <>
       <p style={styles.outcomeLabel}>
         How intense does {(stateLabel || "this experience").toLowerCase()} feel now?
       </p>
@@ -1589,7 +1603,7 @@ function OutcomeButtons({
           <button
             key={score}
             type="button"
-            disabled={afterScore !== null || measurementSaving}
+            disabled={measurementSaving}
             style={{
               ...styles.scoreButton,
               background: afterScore === score ? "#181818" : "rgba(255,255,255,0.7)",
@@ -1599,19 +1613,20 @@ function OutcomeButtons({
               setMeasurementSaving(true);
               const measurementSaved = await completeOutcome({ afterScore: score });
               setMeasurementSaving(false);
-              if (measurementSaved) setAfterScore(score);
+              if (measurementSaved) onAfterScoreRecorded(score);
             }}
           >
             {score}
           </button>
         ))}
       </div>
+      </>}
 
-      {afterScore !== null && (
+      {outcomeFlow?.stage === MIND_OUTCOME_STAGES.QUALITATIVE && (
         <p style={styles.outcomeSaved}>After measurement saved: {afterScore}/10.</p>
       )}
 
-      {afterScore !== null && <>
+      {outcomeFlow?.stage === MIND_OUTCOME_STAGES.QUALITATIVE && <>
       <p style={styles.outcomeLabel}>Did this help?</p>
       <div style={styles.outcomeOptions}>
         {outcomeOptions.map((option) => (
@@ -1672,6 +1687,11 @@ function ToolExperience({
   stopSpeaking,
   speakingText,
 }) {
+  const [outcomeFlow, setOutcomeFlow] = useState(createMindOutcomeFlow);
+  const finishIntervention = () => {
+    setOutcomeFlow((current) => markMindInterventionFinished(current));
+  };
+
   return (
     <div style={styles.panel}>
       <p style={styles.kicker}>{kicker}</p>
@@ -1690,6 +1710,7 @@ function ToolExperience({
       src={audio}
       style={styles.audioPlayer}
       onPlay={onStart}
+      onEnded={finishIntervention}
     />
   </div>
 ) : (
@@ -1701,7 +1722,7 @@ function ToolExperience({
           await onStart();
         }
         if (typeof speakText === "function") {
-          speakText(`${title}. ${body}`);
+          speakText(`${title}. ${body}`, finishIntervention);
         }
       }}
     >
@@ -1744,6 +1765,10 @@ function ToolExperience({
         completeOutcome={completeOutcome}
         saveObservation={saveObservation}
         stateLabel={stateLabel}
+        outcomeFlow={outcomeFlow}
+        onAfterScoreRecorded={(score) => {
+          setOutcomeFlow((current) => recordMindAfterScore(current, score));
+        }}
       />
     </div>
   );
