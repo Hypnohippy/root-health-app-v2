@@ -7,6 +7,13 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { useRoot } from "../../context/RootContext";
+import {
+  cleanVoicePlaybookContent,
+  hasExplicitPlaybookSaveIntent,
+  inferVoicePlaybookMeta,
+  isCompleteVoicePlaybookContent,
+  persistVoicePlaybookEntry,
+} from "../../lib/voicePlaybookAction";
 
 const signalToCoach = {
   "racing thoughts": "mind",
@@ -113,150 +120,6 @@ function buildWelcome(name, history = [], mindEntries = [], journalEntries = [])
   }
 
   return `${greeting} I’m Root Coach. Choose what you want help with today, or just start typing.`;
-}
-function inferPlaybookMeta(transcript = "", coachMode = "") {
-  const text = transcript.toLowerCase();
-
-  if (
-    text.includes("ibs") ||
-    text.includes("bloating") ||
-    text.includes("gut") ||
-    text.includes("digest") ||
-    text.includes("reflux") ||
-    text.includes("constipation")
-  ) {
-    return {
-      title: "Gut Health Plan",
-      category: "Gut Health",
-    };
-  }
-
-  if (
-    text.includes("meal") ||
-    text.includes("food") ||
-    text.includes("nutrition") ||
-    text.includes("diet") ||
-    text.includes("protein") ||
-    text.includes("breakfast") ||
-    text.includes("lunch") ||
-    text.includes("dinner")
-  ) {
-    return {
-      title: "Nutrition Plan",
-      category: "Nutrition",
-    };
-  }
-
-  if (
-    text.includes("sleep") ||
-    text.includes("bedtime") ||
-    text.includes("wind down") ||
-    text.includes("insomnia")
-  ) {
-    return {
-      title: "Sleep Support Plan",
-      category: "Sleep",
-    };
-  }
-
-  if (
-    text.includes("stress") ||
-    text.includes("anxiety") ||
-    text.includes("panic") ||
-    text.includes("overwhelm") ||
-    text.includes("grounding") ||
-    text.includes("breathing")
-  ) {
-    return {
-      title: "Stress & Anxiety Support Plan",
-      category: "Stress & Anxiety",
-    };
-  }
-
-  if (
-    text.includes("movement") ||
-    text.includes("exercise") ||
-    text.includes("stretch") ||
-    text.includes("walk") ||
-    text.includes("mobility")
-  ) {
-    return {
-      title: "Movement Support Plan",
-      category: "Movement",
-    };
-  }
-
-  if (
-    text.includes("recovery") ||
-    text.includes("burnout") ||
-    text.includes("fatigue") ||
-    text.includes("reset")
-  ) {
-    return {
-      title: "Recovery Plan",
-      category: "Recovery",
-    };
-  }
-
-  if (
-    text.includes("emotion") ||
-    text.includes("mood") ||
-    text.includes("mind") ||
-    text.includes("confidence") ||
-    text.includes("motivation") ||
-    text.includes("overthinking")
-  ) {
-    return {
-      title: "Mind & Mood Support Plan",
-      category: "Mind & Mood",
-    };
-  }
-
-  if (
-    text.includes("routine") ||
-    text.includes("habit") ||
-    text.includes("morning") ||
-    text.includes("evening") ||
-    text.includes("daily")
-  ) {
-    return {
-      title: "Routine Plan",
-      category: "Routines",
-    };
-  }
-
-  if (coachMode === "sleep") {
-    return {
-      title: "Sleep Support Plan",
-      category: "Sleep",
-    };
-  }
-
-  if (coachMode === "nutrition") {
-    return {
-      title: "Nutrition Plan",
-      category: "Nutrition",
-    };
-  }
-
-  if (coachMode === "movement") {
-    return {
-      title: "Movement Support Plan",
-      category: "Movement",
-    };
-  }
-
-  if (coachMode === "mind") {
-    return {
-      title: "Mind & Mood Support Plan",
-      category: "Mind & Mood",
-    };
-  }
-
-  return {
-    title: "Voice Coach Playbook Entry",
-    category: "General",
-  };
 }
 
 export default function CoachPage() {
@@ -767,29 +630,13 @@ dc.onmessage = async (event) => {
   "conversation.item.input_audio_transcription.completed"
 ) {
   const transcript = message.transcript || "";
-  const lowerTranscript = transcript.toLowerCase();
-
   console.log("USER SAID:", transcript);
 
-  const wantsPlaybookSave =
-  lowerTranscript.includes("playbook") ||
-  lowerTranscript.includes("myplaybook") ||
-  lowerTranscript.includes("save it") ||
-  lowerTranscript.includes("save this") ||
-  lowerTranscript.includes("save that") ||
-  lowerTranscript.includes("save the") ||
-  lowerTranscript.includes("save my") ||
-  lowerTranscript.includes("record it") ||
-  lowerTranscript.includes("record this") ||
-  lowerTranscript.includes("record that") ||
-  lowerTranscript.includes("add it") ||
-  lowerTranscript.includes("add this") ||
-  lowerTranscript.includes("add that") ||
-  lowerTranscript.includes("keep this") ||
-  lowerTranscript.includes("store this");
-  if (wantsPlaybookSave) {
-   pendingPlaybookSaveRef.current =
-  inferPlaybookMeta(transcript, coachMode);
+  if (hasExplicitPlaybookSaveIntent(transcript)) {
+    pendingPlaybookSaveRef.current = {
+      ...inferVoicePlaybookMeta(transcript, coachMode),
+      userIntent: transcript,
+    };
     console.log(
       "PLAYBOOK SAVE PENDING:",
       pendingPlaybookSaveRef.current
@@ -841,23 +688,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     lowerAssistant.includes("before i create") ||
     lowerAssistant.includes("before creating");
 
-  const hasCompletePlan =
-  lowerAssistant.includes("title:") &&
-  (
-    lowerAssistant.includes("day 1") ||
-    lowerAssistant.includes("1-day") ||
-    lowerAssistant.includes("2-day") ||
-    lowerAssistant.includes("3-day") ||
-    lowerAssistant.includes("4-day") ||
-    lowerAssistant.includes("5-day") ||
-    lowerAssistant.includes("6-day") ||
-    lowerAssistant.includes("7-day") ||
-    lowerAssistant.includes("breakfast") ||
-    lowerAssistant.includes("lunch") ||
-    lowerAssistant.includes("dinner") ||
-    lowerAssistant.includes("step 1") ||
-    lowerAssistant.includes("1.")
-  );
+  const hasCompletePlan = isCompleteVoicePlaybookContent(assistantTranscript);
 
   const isJustConfirmation =
     lowerAssistant.includes("saved to your playbook") ||
@@ -872,16 +703,7 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
     hasCompletePlan &&
     assistantTranscript.trim()
   ) {
-   const cleanPlaybookContent = assistantTranscript
-  .replace(/^[\s\S]*?Title:/i, "Title:")
-  .replace(/\n*\s*that[’']?s[\s\S]*$/i, "")
-  .replace(/\n*\s*it[’']?s now recorded[\s\S]*$/i, "")
-  .replace(/\n*\s*i[’']?ve saved[\s\S]*$/i, "")
-  .replace(/\n*\s*we[’']?ll save[\s\S]*$/i, "")
-  .replace(/\n*\s*(this|your|the)\s+(plan|guide|programme|program|entry)[\s\S]{0,80}(saved|ready|added|available)[\s\S]{0,80}playbook\.?\s*$/i,
-  ""
-)
-  .trim();
+   const cleanPlaybookContent = cleanVoicePlaybookContent(assistantTranscript);
 
     console.log("PLAYBOOK SAVE STARTING");
 
@@ -895,34 +717,23 @@ console.log("PENDING:", pending);
      throw new Error("Root could not verify your signed-in account.");
    }
 
-   const saveResponse = await fetch("/api/voice-actions", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    action: "save_playbook",
-    title: pending.title,
-    category: pending.category,
-    content: cleanPlaybookContent,
-    profileKey,
-  }),
+const saveResult = await persistVoicePlaybookEntry({
+  accessToken,
+  profileKey,
+  userIntent: pending.userIntent,
+  title: pending.title,
+  category: pending.category,
+  content: cleanPlaybookContent,
 });
-
-const saveResult = await saveResponse.json();
 console.log("SAVE RESULT:", saveResult);
 
 console.log("PLAYBOOK SAVE RESPONSE:", {
-  status: saveResponse.status,
   profileKey,
   result: saveResult,
 });
 
-if (!saveResponse.ok || !saveResult.ok) {
-  throw new Error(
-    saveResult.error || `Playbook save failed with status ${saveResponse.status}`
-  );
+if (!saveResult.ok) {
+  throw new Error(saveResult.error || "Playbook save failed.");
 }
 
 console.log("PLAYBOOK SAVE FINISHED");
@@ -954,6 +765,8 @@ if (message.type === "error") {
 }
 } catch (error) {
   console.error("VOICE OR PLAYBOOK ERROR:", error);
+
+  pendingPlaybookSaveRef.current = null;
 
   setMessages((prev) => [
     ...prev,

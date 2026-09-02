@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"; 
+import { hasExplicitPlaybookSaveIntent } from "../../../lib/voicePlaybookAction";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -108,6 +109,13 @@ export async function POST(req) {
     }
 
     if (action === "save_playbook") {
+      if (!hasExplicitPlaybookSaveIntent(body.userIntent)) {
+        return Response.json(
+          { ok: false, error: "A clear request to save to Playbook is required." },
+          { status: 400 }
+        );
+      }
+
       const category = body.category || "General";
       const title = body.title || "Voice Coach Playbook Entry";
 
