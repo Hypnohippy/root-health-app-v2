@@ -19,10 +19,11 @@ import {
   createPersonalInterventionLifecycle,
 } from "../../lib/personalInterventionLifecycle";
 import {
+  applyMindPostScoreCompletion,
+  canSubmitMindPostScore,
   createMindOutcomeFlow,
   markMindInterventionFinished,
   MIND_OUTCOME_STAGES,
-  recordMindAfterScore,
 } from "../../lib/mindOutcomeFlow";
 
 const emotionalStates = [
@@ -803,14 +804,12 @@ const generatedReframe = buildReframe({
 
   const completeMindIntervention = async ({ technique, category, afterScore }) => {
     const startResult = await beginMindIntervention(technique, category);
-    if (!startResult?.success) return false;
+    if (!startResult?.success) return startResult;
 
-    const completion = await interventionLifecycleRef.current.completeActive({
+    return interventionLifecycleRef.current.completeActive({
       afterScore,
       userObservation: null,
     });
-
-    return completion?.success === true;
   };
 
   const saveMindInterventionObservation = async ({ option, entry }) => {
@@ -1582,6 +1581,7 @@ function OutcomeButtons({
 }) {
   const [savedOutcome, setSavedOutcome] = useState("");
   const [measurementSaving, setMeasurementSaving] = useState(false);
+  const [measurementError, setMeasurementError] = useState("");
   const afterScore = outcomeFlow?.afterScore ?? null;
 
   if (outcomeFlow?.stage === MIND_OUTCOME_STAGES.INTERVENTION) {
@@ -1603,7 +1603,7 @@ function OutcomeButtons({
           <button
             key={score}
             type="button"
-            disabled={measurementSaving}
+            disabled={!canSubmitMindPostScore(outcomeFlow, measurementSaving)}
             style={{
               ...styles.scoreButton,
               background: afterScore === score ? "#181818" : "rgba(255,255,255,0.7)",
@@ -1611,15 +1611,34 @@ function OutcomeButtons({
             }}
             onClick={async () => {
               setMeasurementSaving(true);
-              const measurementSaved = await completeOutcome({ afterScore: score });
-              setMeasurementSaving(false);
-              if (measurementSaved) onAfterScoreRecorded(score);
+              setMeasurementError("");
+              try {
+                const completion = await completeOutcome({ afterScore: score });
+                if (completion?.success) {
+                  onAfterScoreRecorded(score, completion);
+                } else {
+                  console.error("MIND POST-SCORE SAVE ERROR:", completion);
+                  setMeasurementError(
+                    "Root could not save that measurement. Please try the score again."
+                  );
+                }
+              } catch (error) {
+                console.error("MIND POST-SCORE SAVE EXCEPTION:", error);
+                setMeasurementError(
+                  "Root could not save that measurement. Please try the score again."
+                );
+              } finally {
+                setMeasurementSaving(false);
+              }
             }}
           >
             {score}
           </button>
         ))}
       </div>
+      {measurementError && (
+        <p role="alert" style={styles.outcomeError}>{measurementError}</p>
+      )}
       </>}
 
       {outcomeFlow?.stage === MIND_OUTCOME_STAGES.QUALITATIVE && (
@@ -1766,8 +1785,10 @@ function ToolExperience({
         saveObservation={saveObservation}
         stateLabel={stateLabel}
         outcomeFlow={outcomeFlow}
-        onAfterScoreRecorded={(score) => {
-          setOutcomeFlow((current) => recordMindAfterScore(current, score));
+        onAfterScoreRecorded={(score, completion) => {
+          setOutcomeFlow((current) =>
+            applyMindPostScoreCompletion(current, score, completion)
+          );
         }}
       />
     </div>
@@ -2464,12 +2485,18 @@ outcomeButton: {
   cursor: "pointer",
 },
 
-outcomeSaved: {
+  outcomeSaved: {
   margin: "14px 0 0",
   color: "#FFFFFF",
   lineHeight: "1.6",
   fontWeight: "700",
-},
+  },
+  outcomeError: {
+    marginTop: "12px",
+    color: "#8A2E2E",
+    fontSize: "14px",
+    lineHeight: 1.5,
+  },
 supportPanel: {
   marginBottom: "24px",
   padding: "28px",

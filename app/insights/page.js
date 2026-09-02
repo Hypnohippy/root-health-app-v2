@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-import { loadPersonalRootKnowledge } from "../../lib/personalKnowledgeService";
+import {
+  loadPersonalRootKnowledge,
+  selectLatestMeasuredIntervention,
+} from "../../lib/personalKnowledgeService";
 import { getRootMeasurementHistory } from "../../lib/rootCore/rootMemory";
 
 function countBy(items, key) {
@@ -76,13 +79,7 @@ export default function InsightsPage() {
     )
   );
   setMeasuredIntervention(
-    projection.evidence.interventionOutcomes.find((outcome) =>
-      outcome?.completed === true &&
-      outcome?.before_score !== null &&
-      outcome?.after_score !== null &&
-      Number.isFinite(Number(outcome.before_score)) &&
-      Number.isFinite(Number(outcome.after_score))
-    ) || null
+    selectLatestMeasuredIntervention(projection.evidence.interventionOutcomes)
   );
   setRootReflection(projection.knowledge.reflection);
     try {

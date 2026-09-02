@@ -13,11 +13,14 @@ import {
 } from "../lib/rootInterventionEngine.js";
 import { buildRootMemoryService } from "../lib/rootMemoryService.js";
 import {
+  applyMindPostScoreCompletion,
+  canSubmitMindPostScore,
   createMindOutcomeFlow,
   markMindInterventionFinished,
   MIND_OUTCOME_STAGES,
   recordMindAfterScore,
 } from "../lib/mindOutcomeFlow.js";
+import { selectLatestMeasuredIntervention } from "../lib/personalKnowledgeService.js";
 
 function identityClient({ userId = "personal-user", profileKey = "personal-profile" } = {}) {
   return {
@@ -184,10 +187,38 @@ test("ordinary Mind UI follows intervention -> post score -> qualitative order",
   const awaitingPostScore = markMindInterventionFinished(duringIntervention);
   assert.equal(awaitingPostScore.stage, MIND_OUTCOME_STAGES.POST_SCORE);
   assert.equal(awaitingPostScore.afterScore, null);
+  assert.equal(canSubmitMindPostScore(awaitingPostScore, false), true);
+  assert.equal(canSubmitMindPostScore(awaitingPostScore, true), false);
 
   const awaitingQualitative = recordMindAfterScore(awaitingPostScore, 5);
   assert.equal(awaitingQualitative.stage, MIND_OUTCOME_STAGES.QUALITATIVE);
   assert.equal(awaitingQualitative.afterScore, 5);
+});
+
+test("post-score advances only after successful completion", () => {
+  const postScore = markMindInterventionFinished(createMindOutcomeFlow());
+  const failed = applyMindPostScoreCompletion(postScore, 5, {
+    success: false,
+    reason: "database_error",
+  });
+  assert.strictEqual(failed, postScore);
+  assert.equal(failed.stage, MIND_OUTCOME_STAGES.POST_SCORE);
+
+  const completed = applyMindPostScoreCompletion(postScore, 5, {
+    success: true,
+    record: { id: "same-outcome-id", after_score: 5, completed: true },
+  });
+  assert.equal(completed.stage, MIND_OUTCOME_STAGES.QUALITATIVE);
+  assert.equal(completed.afterScore, 5);
+});
+
+test("Insights selects only a completed measured intervention", () => {
+  const incomplete = { id: "incomplete", completed: false, before_score: 8, after_score: null };
+  const unmeasured = { id: "unmeasured", completed: true, before_score: 8, after_score: null };
+  const measured = { id: "measured", completed: true, before_score: 8, after_score: 5 };
+
+  assert.equal(selectLatestMeasuredIntervention([incomplete, unmeasured]), null);
+  assert.equal(selectLatestMeasuredIntervention([incomplete, measured])?.id, "measured");
 });
 
 test("qualitative stage cannot be reached before a valid post score", () => {
