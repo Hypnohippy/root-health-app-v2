@@ -134,6 +134,58 @@ test("higher difficulty means 8 -> 5 improves and 5 -> 8 worsens", () => {
   assert.equal(calculateInterventionChange(5, 8), -3);
 });
 
+test("numeric completion and qualitative observation update the same attempt separately", async () => {
+  const completed = [];
+  const observed = [];
+  const lifecycle = createPersonalInterventionLifecycle({
+    start: async () => ({ success: true, record: { id: "same-attempt-id" } }),
+    complete: async (payload) => {
+      completed.push(payload);
+      return {
+        success: true,
+        record: {
+          id: payload.interventionId,
+          before_score: 8,
+          after_score: payload.afterScore,
+          completed: true,
+        },
+      };
+    },
+    abandon: async () => ({ success: true }),
+    observe: async (payload) => {
+      observed.push(payload);
+      return { success: true, record: { id: payload.interventionId } };
+    },
+  });
+
+  await lifecycle.begin({ profileKey: "personal-profile", interventionName: "Root Calm Reset" });
+  await lifecycle.completeActive({ afterScore: 5 });
+  await lifecycle.observeCompleted("Much better");
+
+  assert.equal(completed[0].interventionId, "same-attempt-id");
+  assert.equal(completed[0].afterScore, 5);
+  assert.equal(observed[0].interventionId, "same-attempt-id");
+  assert.equal(observed[0].userObservation, "Much better");
+  assert.equal("afterScore" in observed[0], false);
+  assert.equal(calculateInterventionChange(8, completed[0].afterScore), 3);
+});
+
+test("qualitative feedback cannot manufacture a numeric after score", async () => {
+  const observed = [];
+  const lifecycle = createPersonalInterventionLifecycle({
+    start: async () => ({ success: true, record: { id: "attempt" } }),
+    complete: async (payload) => ({ success: true, record: { id: payload.interventionId } }),
+    abandon: async () => ({ success: true }),
+    observe: async (payload) => {
+      observed.push(payload);
+      return { success: true, record: { id: payload.interventionId } };
+    },
+  });
+  const result = await lifecycle.observeCompleted("Much better");
+  assert.equal(result.success, false);
+  assert.equal(observed.length, 0);
+});
+
 test("missing after and incomplete attempts provide no effectiveness evidence", () => {
   const evidence = buildInterventionEvidence([
     { id: "completed-unmeasured", completed: true, before_score: 8, after_score: null },
@@ -154,6 +206,7 @@ test("Pass 2 cautious helpfulness remains intact", () => {
   });
   const text = JSON.stringify(memory);
   assert.match(text, /may have helped once/i);
+  assert.equal(memory.mostImportantObservation?.confidence, "early");
   assert.doesNotMatch(text, /intensity.*helped/i);
 });
 

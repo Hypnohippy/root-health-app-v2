@@ -11,6 +11,7 @@ import { resolvePersonalRootContext } from "../../lib/personalRootContext";
 import {
   abandonIntervention,
   completeIntervention,
+  recordInterventionObservation,
   startIntervention,
 } from "../../lib/rootInterventionEngine";
 import {
@@ -465,6 +466,7 @@ export default function MindPage() {
       start: startIntervention,
       complete: completeIntervention,
       abandon: abandonIntervention,
+      observe: recordInterventionObservation,
     });
   }
 
@@ -792,19 +794,26 @@ const generatedReframe = buildReframe({
   return true;
 };
 
-  const completeMindIntervention = async ({ technique, category, option, entry }) => {
-    const entrySaved = await saveEntry(entry);
-    if (!entrySaved) return false;
-
+  const completeMindIntervention = async ({ technique, category, afterScore }) => {
     const startResult = await beginMindIntervention(technique, category);
     if (!startResult?.success) return false;
 
     const completion = await interventionLifecycleRef.current.completeActive({
-      afterScore: null,
-      userObservation: option.label,
+      afterScore,
+      userObservation: null,
     });
 
     return completion?.success === true;
+  };
+
+  const saveMindInterventionObservation = async ({ option, entry }) => {
+    const entrySaved = await saveEntry(entry);
+    if (!entrySaved) return false;
+
+    const observation = await interventionLifecycleRef.current.observeCompleted(
+      option.label
+    );
+    return observation?.success === true;
   };
 
   const saveCbt = async () => {
@@ -1351,6 +1360,7 @@ const { error } = await supabase
 
 {activeTool === "breathwork" && (
   <ToolExperience
+    key={activeBodyTechniques[bodyIndex]?.id || activeBodyTechniques[bodyIndex]?.title}
     kicker={`Technique ${bodyIndex + 1} of ${activeBodyTechniques.length}`}
     title={activeBodyTechniques[bodyIndex]?.title}
     subtitle="A body-based pathway to reduce physical activation."
@@ -1363,6 +1373,8 @@ const { error } = await supabase
       technique: activeBodyTechniques[bodyIndex],
       category: "body_regulation",
     })}
+    saveObservation={saveMindInterventionObservation}
+    stateLabel={activeState?.title}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setBodyIndex((current) =>
@@ -1388,6 +1400,7 @@ const { error } = await supabase
 
 {activeTool === "grounding" && (
   <ToolExperience
+    key={activeGroundingTechniques[groundingIndex]?.id || activeGroundingTechniques[groundingIndex]?.title}
     kicker={`Technique ${groundingIndex + 1} of ${activeGroundingTechniques.length}`}
     title={activeGroundingTechniques[groundingIndex]?.title}
     subtitle="A grounding pathway to help the nervous system recognise the present moment."
@@ -1400,6 +1413,8 @@ const { error } = await supabase
       technique: activeGroundingTechniques[groundingIndex],
       category: "grounding",
     })}
+    saveObservation={saveMindInterventionObservation}
+    stateLabel={activeState?.title}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setGroundingIndex((current) =>
@@ -1425,6 +1440,7 @@ const { error } = await supabase
 )}
 {activeTool === "calming" && (
   <ToolExperience
+    key={calmingTechniques[calmingIndex]?.title}
     kicker={`Technique ${calmingIndex + 1} of ${calmingTechniques.length}`}
     title={calmingTechniques[calmingIndex].title}
     subtitle="A gentle inner reset for the body and mind."
@@ -1437,6 +1453,8 @@ const { error } = await supabase
       technique: calmingTechniques[calmingIndex],
       category: "calming",
     })}
+    saveObservation={saveMindInterventionObservation}
+    stateLabel={activeState?.title}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setCalmingIndex((current) =>
@@ -1544,13 +1562,57 @@ const { error } = await supabase
     </RootAtmosphere>
   );
 }
-function OutcomeButtons({ toolName, summary, nextStepText, saveEntry, completeOutcome }) {
+function OutcomeButtons({
+  toolName,
+  summary,
+  nextStepText,
+  saveEntry,
+  completeOutcome,
+  saveObservation,
+  stateLabel,
+}) {
   const [savedOutcome, setSavedOutcome] = useState("");
+  const [afterScore, setAfterScore] = useState(null);
+  const [measurementSaving, setMeasurementSaving] = useState(false);
 
   return (
     <div style={styles.outcomeCard}>
-      <p style={styles.outcomeLabel}>Did this help?</p>
+      <p style={styles.outcomeLabel}>
+        How intense does {(stateLabel || "this experience").toLowerCase()} feel now?
+      </p>
+      <p style={styles.recommendationText}>
+        Use the same scale as before: 0 means not present, 10 means as intense as it could be.
+      </p>
 
+      <div style={styles.scoreRow}>
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+          <button
+            key={score}
+            type="button"
+            disabled={afterScore !== null || measurementSaving}
+            style={{
+              ...styles.scoreButton,
+              background: afterScore === score ? "#181818" : "rgba(255,255,255,0.7)",
+              color: afterScore === score ? "#FFFFFF" : "#333333",
+            }}
+            onClick={async () => {
+              setMeasurementSaving(true);
+              const measurementSaved = await completeOutcome({ afterScore: score });
+              setMeasurementSaving(false);
+              if (measurementSaved) setAfterScore(score);
+            }}
+          >
+            {score}
+          </button>
+        ))}
+      </div>
+
+      {afterScore !== null && (
+        <p style={styles.outcomeSaved}>After measurement saved: {afterScore}/10.</p>
+      )}
+
+      {afterScore !== null && <>
+      <p style={styles.outcomeLabel}>Did this help?</p>
       <div style={styles.outcomeOptions}>
         {outcomeOptions.map((option) => (
           <button
@@ -1569,8 +1631,8 @@ function OutcomeButtons({ toolName, summary, nextStepText, saveEntry, completeOu
                 outcome_score: option.score,
               };
 
-              const outcomeSaved = completeOutcome
-                ? await completeOutcome({ option, entry })
+              const outcomeSaved = saveObservation
+                ? await saveObservation({ option, entry })
                 : await saveEntry(entry);
 
               if (outcomeSaved) setSavedOutcome(option.label);
@@ -1586,6 +1648,7 @@ function OutcomeButtons({ toolName, summary, nextStepText, saveEntry, completeOu
           Saved. Root will remember that this felt: {savedOutcome}.
         </p>
       )}
+      </>}
     </div>
   );
 }
@@ -1603,6 +1666,8 @@ function ToolExperience({
   audio,
   onStart,
   completeOutcome,
+  saveObservation,
+  stateLabel,
   speakText,
   stopSpeaking,
   speakingText,
@@ -1677,6 +1742,8 @@ function ToolExperience({
         nextStepText="Root will watch whether this support helps over time."
         saveEntry={saveEntry}
         completeOutcome={completeOutcome}
+        saveObservation={saveObservation}
+        stateLabel={stateLabel}
       />
     </div>
   );

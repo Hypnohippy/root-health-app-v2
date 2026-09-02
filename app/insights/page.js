@@ -37,6 +37,7 @@ export default function InsightsPage() {
   const [assessments, setAssessments] = useState([]);
   const [journey, setJourney] = useState(null);
   const [rootReflection, setRootReflection] = useState(null);
+  const [measuredIntervention, setMeasuredIntervention] = useState(null);
 
  useEffect(() => {
   const stored = localStorage.getItem("root_journey_v1");
@@ -73,6 +74,15 @@ export default function InsightsPage() {
         new Date(first?.created_at || 0).getTime() -
         new Date(second?.created_at || 0).getTime()
     )
+  );
+  setMeasuredIntervention(
+    projection.evidence.interventionOutcomes.find((outcome) =>
+      outcome?.completed === true &&
+      outcome?.before_score !== null &&
+      outcome?.after_score !== null &&
+      Number.isFinite(Number(outcome.before_score)) &&
+      Number.isFinite(Number(outcome.after_score))
+    ) || null
   );
   setRootReflection(projection.knowledge.reflection);
     try {
@@ -403,6 +413,16 @@ const wellbeingProgress = useMemo(() => {
                   insights.recentJournal
                     ? `${insights.recentJournal.emotional_theme || "general reflection"} · ${formatDate(insights.recentJournal.created_at)}`
                     : "Add a journal reflection to see themes."
+                }
+              />
+
+              <RecentCard
+                label="Latest measured intervention"
+                title={measuredIntervention?.intervention_name || "None yet"}
+                meta={
+                  measuredIntervention
+                    ? `${measuredIntervention.before_score} → ${measuredIntervention.after_score} on this measured use · ${formatDate(measuredIntervention.completed_at)}`
+                    : "Complete a before-and-after Mind intervention to build measured evidence."
                 }
               />
             </div>
