@@ -12,6 +12,12 @@ import {
   buildInterventionEvidence,
 } from "../lib/rootInterventionEngine.js";
 import { buildRootMemoryService } from "../lib/rootMemoryService.js";
+import {
+  createMindOutcomeFlow,
+  markMindInterventionFinished,
+  MIND_OUTCOME_STAGES,
+  recordMindAfterScore,
+} from "../lib/mindOutcomeFlow.js";
 
 function identityClient({ userId = "personal-user", profileKey = "personal-profile" } = {}) {
   return {
@@ -168,6 +174,29 @@ test("numeric completion and qualitative observation update the same attempt sep
   assert.equal(observed[0].userObservation, "Much better");
   assert.equal("afterScore" in observed[0], false);
   assert.equal(calculateInterventionChange(8, completed[0].afterScore), 3);
+});
+
+test("ordinary Mind UI follows intervention -> post score -> qualitative order", () => {
+  const duringIntervention = createMindOutcomeFlow();
+  assert.equal(duringIntervention.stage, MIND_OUTCOME_STAGES.INTERVENTION);
+  assert.equal(duringIntervention.afterScore, null);
+
+  const awaitingPostScore = markMindInterventionFinished(duringIntervention);
+  assert.equal(awaitingPostScore.stage, MIND_OUTCOME_STAGES.POST_SCORE);
+  assert.equal(awaitingPostScore.afterScore, null);
+
+  const awaitingQualitative = recordMindAfterScore(awaitingPostScore, 5);
+  assert.equal(awaitingQualitative.stage, MIND_OUTCOME_STAGES.QUALITATIVE);
+  assert.equal(awaitingQualitative.afterScore, 5);
+});
+
+test("qualitative stage cannot be reached before a valid post score", () => {
+  const duringIntervention = createMindOutcomeFlow();
+  assert.strictEqual(recordMindAfterScore(duringIntervention, 5), duringIntervention);
+
+  const awaitingPostScore = markMindInterventionFinished(duringIntervention);
+  assert.strictEqual(recordMindAfterScore(awaitingPostScore, "not-a-score"), awaitingPostScore);
+  assert.strictEqual(recordMindAfterScore(awaitingPostScore, 11), awaitingPostScore);
 });
 
 test("qualitative feedback cannot manufacture a numeric after score", async () => {
