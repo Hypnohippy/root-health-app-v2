@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import RootEnso from "../components/RootEnso";
 import Nav from "../components/Nav";
 import { loadPersonalRootKnowledge } from "../lib/personalKnowledgeService";
+import {
+  loadPersonalPresentationReceipts,
+  recordPersonalPresentationReceipts,
+  savePersonalPresentationReceipts,
+  selectPersonalPresentation,
+} from "../lib/personalPresentationService";
 import { buildRootTrialStatus } from "../lib/rootTrialStatus";
 import { useRoot } from "../context/RootContext";
 
@@ -113,6 +119,8 @@ export default function Home() {
   const [dailyReflection, setDailyReflection] = useState("");
   const [interventionInsight, setInterventionInsight] = useState("");
   const [livingMessage, setLivingMessage] = useState("");
+  const [presentationObservation, setPresentationObservation] = useState(null);
+  const [presentationEmptyReason, setPresentationEmptyReason] = useState(null);
 
   const [latestAssessment, setLatestAssessment] = useState(null);
   const [baselineAssessment, setBaselineAssessment] = useState(null);
@@ -120,6 +128,10 @@ export default function Home() {
   const [openCard, setOpenCard] = useState(null);
   const [employeeProgramme, setEmployeeProgramme] = useState(null);
   const [programmeLoading, setProgrammeLoading] = useState(true);
+  const presentedThisMountRef = useRef(new Set());
+  // Pass 4B replaces the old unranked observation cards with one shared,
+  // receipt-aware presentation selection. Their underlying knowledge remains.
+  const showLegacyDerivedCards = false;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -336,6 +348,27 @@ checkUser();
       const safeBody = projection.recent.bodySignals;
       const safeJournal = projection.recent.journalEntries;
       const safeMind = projection.recent.mindEntries;
+      const receipts = loadPersonalPresentationReceipts(projection.identity.profileKey);
+      const presentation = selectPersonalPresentation({
+        candidates: projection.presentationCandidates,
+        receipts: receipts.filter(
+          (receipt) => !presentedThisMountRef.current.has(receipt?.fingerprint)
+        ),
+        limit: 1,
+      });
+      const selectedPresentation = presentation.selected[0] || null;
+      setPresentationObservation(selectedPresentation);
+      setPresentationEmptyReason(presentation.emptyReason);
+      if (selectedPresentation) {
+        presentedThisMountRef.current.add(selectedPresentation.fingerprint);
+        savePersonalPresentationReceipts(
+          projection.identity.profileKey,
+          recordPersonalPresentationReceipts({
+            receipts,
+            presented: [selectedPresentation],
+          })
+        );
+      }
 
       if (loadedName) setUserName(loadedName);
 
@@ -719,7 +752,38 @@ checkUser();
               </MiniInsightCard>
             )}
 
-            {rootRecognition && (
+            {presentationObservation && (
+              <MiniInsightCard
+                id="presentation"
+                label="What matters now"
+                title={presentationObservation.title}
+                summary={presentationObservation.message}
+                openCard={openCard}
+                setOpenCard={setOpenCard}
+                dark
+              >
+                <p style={styles.expandedTextLight}>
+                  This view favours meaningful new or measured evidence. Your wider history remains available in Insights.
+                </p>
+              </MiniInsightCard>
+            )}
+
+            {!presentationObservation && presentationEmptyReason && (
+              <MiniInsightCard
+                id="presentation-empty"
+                label="What matters now"
+                title="There is nothing materially new to add right now."
+                summary="Root is keeping your history in view without recycling the same observation as a new insight."
+                openCard={openCard}
+                setOpenCard={setOpenCard}
+              >
+                <p style={styles.expandedText}>
+                  A new check-in, measured change or repeated observation will update this view when it adds something meaningful.
+                </p>
+              </MiniInsightCard>
+            )}
+
+            {showLegacyDerivedCards && rootRecognition && (
               <MiniInsightCard
                 id="recognition"
                 label="What Root noticed"
@@ -735,7 +799,7 @@ checkUser();
               </MiniInsightCard>
             )}
 
-            {dailyReflection && (
+            {showLegacyDerivedCards && dailyReflection && (
               <MiniInsightCard
                 id="daily"
                 label="Today’s Root Reflection"
@@ -750,7 +814,7 @@ checkUser();
               </MiniInsightCard>
             )}
 
-            {livingMessage && (
+            {showLegacyDerivedCards && livingMessage && (
               <MiniInsightCard
                 id="living"
                 label="A gentle next step"
@@ -765,7 +829,7 @@ checkUser();
               </MiniInsightCard>
             )}
 
-            {rootMemoryNarrative && (
+            {showLegacyDerivedCards && rootMemoryNarrative && (
               <MiniInsightCard
                 id="memory"
                 label="Root’s memory of you"
@@ -825,7 +889,7 @@ checkUser();
               </MiniInsightCard>
             )}
 
-            {rootReflection && (
+            {showLegacyDerivedCards && rootReflection && (
               <MiniInsightCard
                 id="reflection"
                 label="Root Reflection"
