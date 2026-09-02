@@ -2415,7 +2415,7 @@ export default function PersonalLandingPage() {
 
           .stageArrow {
             margin: 6px 0;
-            transform: rotate(90deg);
+            transform: rotate(90deg); 
           }
 
           .futureSteps {
@@ -2428,7 +2428,7 @@ export default function PersonalLandingPage() {
             transform: rotate(90deg);
           }
         }
-          
+
         /* ================= OFFER ================= */
 
         .offer {
