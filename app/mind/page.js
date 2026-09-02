@@ -447,31 +447,52 @@ export default function MindPage() {
   const [calmingIndex, setCalmingIndex] = useState(0);
   const [groundingIndex, setGroundingIndex] = useState(0);
   const [bodyIndex, setBodyIndex] = useState(0);
-  const [overthinkingBodyIntervention, setOverthinkingBodyIntervention] = useState(null);
+  const [overthinkingPublishedContent, setOverthinkingPublishedContent] = useState([]);
 
   useEffect(() => {
     loadPublishedRootContent({
-      categories: ["body_regulation", "breathing"],
+      categories: ["grounding", "body_regulation", "breathing"],
       targetTerms: ["overthinking"],
     }).then(({ items }) => {
-      const playable = items.find((item) => item.audio_url && item.script);
-      if (playable) {
-        setOverthinkingBodyIntervention({
-          id: playable.id,
-          slug: playable.slug,
-          version: playable.version,
-          title: playable.title,
-          body: playable.description || playable.script,
-          audio: playable.audio_url,
-        });
-      }
+      setOverthinkingPublishedContent(
+        items
+          .filter((item) => item.title && item.audio_url && item.script)
+          .map((item) => ({
+            id: item.id,
+            slug: item.slug,
+            version: item.version,
+            category: String(item.category || "")
+              .trim()
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "_"),
+            title: item.title,
+            body: item.description || item.script,
+            audio: item.audio_url,
+          }))
+      );
     });
   }, []);
 
+  const publishedBodyTechniques = overthinkingPublishedContent.filter(
+    (item) => item.category === "body_regulation" || item.category === "breathing"
+  );
+  const publishedGroundingTechniques = overthinkingPublishedContent.filter(
+    (item) => item.category === "grounding"
+  );
   const activeBodyTechniques =
-    activeState?.id === "overthinking" && overthinkingBodyIntervention
-      ? [overthinkingBodyIntervention, ...bodyTechniques]
+    activeState?.id === "overthinking" && publishedBodyTechniques.length
+      ? [...publishedBodyTechniques, ...bodyTechniques]
       : bodyTechniques;
+  const activeGroundingTechniques =
+    activeState?.id === "overthinking" && publishedGroundingTechniques.length
+      ? [...publishedGroundingTechniques, ...groundingTechniques]
+      : groundingTechniques;
+
+  useEffect(() => {
+    setCalmingIndex(0);
+    setGroundingIndex(0);
+    setBodyIndex(0);
+  }, [activeState?.id]);
   
   useEffect(() => {
   const loadMindIdentity = async () => {
@@ -1358,26 +1379,26 @@ const { error } = await supabase
 
 {activeTool === "grounding" && (
   <ToolExperience
-    kicker={`Technique ${groundingIndex + 1} of ${groundingTechniques.length}`}
-    title={groundingTechniques[groundingIndex].title}
+    kicker={`Technique ${groundingIndex + 1} of ${activeGroundingTechniques.length}`}
+    title={activeGroundingTechniques[groundingIndex]?.title}
     subtitle="A grounding pathway to help the nervous system recognise the present moment."
-    body={groundingTechniques[groundingIndex].body}
-    audio={groundingTechniques[groundingIndex].audio}
+    body={activeGroundingTechniques[groundingIndex]?.body}
+    audio={activeGroundingTechniques[groundingIndex]?.audio}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setGroundingIndex((current) =>
-        current === 0 ? groundingTechniques.length - 1 : current - 1
+        current === 0 ? activeGroundingTechniques.length - 1 : current - 1
       )
     }
     onNextTechnique={() =>
       setGroundingIndex((current) =>
-        current === groundingTechniques.length - 1 ? 0 : current + 1
+        current === activeGroundingTechniques.length - 1 ? 0 : current + 1
       )
     }
     saveEntry={(entry) =>
       saveEntry({
         ...entry,
-        tool: groundingTechniques[groundingIndex].title,
+        tool: activeGroundingTechniques[groundingIndex]?.title,
         situation: "The user completed a grounding intervention.",
         reframe: "The user completed a grounding intervention.",
         next_step:
