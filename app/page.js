@@ -723,7 +723,7 @@ checkUser();
               <MiniInsightCard
                 id="recognition"
                 label="What Root noticed"
-                title="A recent pattern is becoming visible."
+                title="An observation from your Root activity."
                 summary={rootRecognition}
                 openCard={openCard}
                 setOpenCard={setOpenCard}
@@ -739,13 +739,13 @@ checkUser();
               <MiniInsightCard
                 id="daily"
                 label="Today’s Root Reflection"
-                title="A quiet note from your recent signals."
+                title="A quiet note from your Root activity."
                 summary={dailyReflection}
                 openCard={openCard}
                 setOpenCard={setOpenCard}
               >
                <p style={styles.expandedText}>
-  This reflection is drawn from your recent Root activity. Use it as a gentle prompt rather than a fixed conclusion.
+  This is a derived Root reflection. Use it as a gentle prompt rather than a direct quote or fixed conclusion.
 </p>
               </MiniInsightCard>
             )}
