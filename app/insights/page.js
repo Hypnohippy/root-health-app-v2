@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
-import { buildRootReflection } from "../../lib/rootReflectionEngine";
-import { getCurrentProfileKey } from "../../lib/currentUser";
-import { getInsightsPageModel } from "../../lib/rootCore/rootInsightEngine";
+import { loadPersonalRootKnowledge } from "../../lib/personalKnowledgeService";
 import { getRootMeasurementHistory } from "../../lib/rootCore/rootMemory";
 
 function countBy(items, key) {
@@ -40,155 +37,52 @@ export default function InsightsPage() {
   const [assessments, setAssessments] = useState([]);
   const [journey, setJourney] = useState(null);
   const [rootReflection, setRootReflection] = useState(null);
-  const [rootCoreModel, setRootCoreModel] = useState(null);
 
  useEffect(() => {
-  loadInsights();
-
   const stored = localStorage.getItem("root_journey_v1");
+  let storedJourney = null;
 
-  if (!stored) return;
-
-  try {
-    setJourney(JSON.parse(stored));
-  } catch (err) {
-    console.log(err);
+  if (stored) {
+    try {
+      storedJourney = JSON.parse(stored);
+      setJourney(storedJourney);
+    } catch (err) {
+      console.log(err);
+    }
   }
+
+  loadInsights(storedJourney);
 }, []);
-useEffect(() => {
-  if (!journey) return;
+ const loadInsights = async (activeJourney = null) => {
+  const result = await loadPersonalRootKnowledge({ journey: activeJourney });
 
-  setRootReflection(
-    buildRootReflection({
-      bodySignals,
-      journalEntries,
-      mindEntries,
-      journey,
-    })
-  );
-}, [
-  journey,
-  bodySignals,
-  journalEntries,
-  mindEntries,
-]);
- const loadInsights = async () => {
-  let profileKey = getCurrentProfileKey();
-
-  if (!profileKey) {
-    setLoading(false); 
+  if (!result.ok) {
+    console.error("INSIGHTS PERSONAL KNOWLEDGE ERROR:", result.reason);
+    setLoading(false);
     return;
   }
 
-  console.log(
-    "INSIGHTS ACTIVE PROFILE:",
-    profileKey
-  );
+  const projection = result.projections.insights;
 
- const {
-  data: bodyData,
-  error: bodyError,
-} = await supabase
-  .from("body_signals")
-  .select("*")
-  .eq("profile_key", profileKey)
-  .order("created_at", { ascending: false })
-  .limit(30);
-
-if (bodyError) {
-  console.error(
-    "INSIGHTS BODY SIGNALS ERROR:",
-    bodyError
-  );
-}
-
-console.log(
-  "INSIGHTS BODY SIGNALS:",
-  bodyData
-);
-
-const {
-  data: mindData,
-  error: mindError,
-} = await supabase
-  .from("mind_entries")
-  .select("*")
-  .eq("profile_key", profileKey)
-  .order("created_at", { ascending: false })
-  .limit(30);
-
-if (mindError) {
-  console.error(
-    "INSIGHTS MIND ENTRIES ERROR:",
-    mindError
-  );
-}
-
-console.log(
-  "INSIGHTS MIND ENTRIES:",
-  mindData
-);
-
-
-const {
-  data: journalData,
-  error: journalError,
-} = await supabase
-  .from("journal_entries")
-  .select("*")
-  .eq("profile_key", profileKey)
-  .order("created_at", { ascending: false })
-  .limit(30);
-
-if (journalError) {
-  console.error(
-    "INSIGHTS JOURNAL ENTRIES ERROR:",
-    journalError
-  );
-}
-
-console.log(
-  "INSIGHTS JOURNAL ENTRIES:",
-  journalData
-);
-
- const {
-  data: assessmentData,
-  error: assessmentError,
-} = await supabase
-  .from("wellbeing_assessments")
-  .select("*")
-  .eq("profile_key", profileKey)
-  .order("created_at", { ascending: true })
-  .limit(100);
-
-if (assessmentError) {
-  console.error(
-    "INSIGHTS ASSESSMENT LOAD ERROR:",
-    JSON.stringify(
-      assessmentError,
-      null,
-      2
+  setBodySignals(projection.evidence.bodySignals);
+  setMindEntries(projection.evidence.mindEntries);
+  setJournalEntries(projection.evidence.journalEntries);
+  setAssessments(
+    [...projection.evidence.assessments].sort(
+      (first, second) =>
+        new Date(first?.created_at || 0).getTime() -
+        new Date(second?.created_at || 0).getTime()
     )
   );
-}
-
-setBodySignals(Array.isArray(bodyData) ? bodyData : []);
-setMindEntries(Array.isArray(mindData) ? mindData : []);
-setJournalEntries(Array.isArray(journalData) ? journalData : []);
-setAssessments(
-  Array.isArray(assessmentData)
-    ? assessmentData
-    : []
-);
-
-console.log(
-  "INSIGHTS WELLBEING HISTORY:",
-  assessmentData
-);
+  setRootReflection(projection.knowledge.reflection);
     try {
   const measurementHistory = await getRootMeasurementHistory({
     limit: 50,
+    personalContext: {
+      scope: "personal",
+      userId: projection.identity.userId,
+      profileKey: projection.identity.profileKey,
+    },
   });
   console.log(
   "INSIGHTS MEASUREMENT HISTORY:",
@@ -203,18 +97,6 @@ console.log(
 } catch (error) {
   console.error("Measurement history could not load:", error);
   setMeasurements([]);
-}
-
-try {
-  const rootModel = await getInsightsPageModel({
-    limit: 1,
-    includeRecentlyShown: true,
-  });
-
-  setRootCoreModel(rootModel);
-} catch (error) {
-  console.error("Root Insight Engine could not load:", error);
-  setRootCoreModel(null);
 }
 
 setLoading(false);
