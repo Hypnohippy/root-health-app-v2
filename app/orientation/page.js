@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { resolvePersonalRootContext } from "../../lib/personalRootContext";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
@@ -86,7 +87,8 @@ export default function OrientationPage() {
     })
   );
 
-  const profileKey = localStorage.getItem("root_profile_key_v1");
+  const identityResult = await resolvePersonalRootContext({ client: supabase });
+  const profileKey = identityResult.context?.profileKey || null;
 
   if (profileKey) {
     const { error } = await supabase

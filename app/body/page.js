@@ -15,7 +15,7 @@ import JointsView from "../../components/body/JointsView";
 import KidneysView from "../../components/body/KidneysView";
 import SensesView from "../../components/body/SensesView";
 import NervousSystemView from "../../components/body/NervousSystemView";
-import { getCurrentProfileKey } from "../../lib/currentUser";
+import { resolvePersonalRootContext } from "../../lib/personalRootContext";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -673,14 +673,14 @@ message += `\n\nA practical next step could be:`;
 
     setSaving(true);
     resetLearningUI();
-    const profileKey = getCurrentProfileKey();
-    console.log("Profile Key:", profileKey);
+    const identityResult = await resolvePersonalRootContext({ client: supabase });
+    const profileKey = identityResult.context?.profileKey || null;
 
 const { data: auth } = await supabase.auth.getUser();
 
 console.log("Authenticated User:", auth?.user);
 
-if (!profileKey) {
+if (!identityResult.ok || !profileKey) {
   window.location.href = "/reconnect";
   return;
 }

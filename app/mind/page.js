@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { getRootIdentity } from "../../lib/rootLongitudinalEngine";
 import { loadPublishedRootContent } from "../../lib/rootContentLibrary";
+import { resolvePersonalRootContext } from "../../lib/personalRootContext";
+import {
+  abandonIntervention,
+  completeIntervention,
+  startIntervention,
+} from "../../lib/rootInterventionEngine";
+import {
+  buildMindInterventionStart,
+  createPersonalInterventionLifecycle,
+} from "../../lib/personalInterventionLifecycle";
 
 const emotionalStates = [
   {
@@ -448,6 +458,15 @@ export default function MindPage() {
   const [groundingIndex, setGroundingIndex] = useState(0);
   const [bodyIndex, setBodyIndex] = useState(0);
   const [overthinkingPublishedContent, setOverthinkingPublishedContent] = useState([]);
+  const interventionLifecycleRef = useRef(null);
+
+  if (!interventionLifecycleRef.current) {
+    interventionLifecycleRef.current = createPersonalInterventionLifecycle({
+      start: startIntervention,
+      complete: completeIntervention,
+      abandon: abandonIntervention,
+    });
+  }
 
   useEffect(() => {
     loadPublishedRootContent({
@@ -461,6 +480,7 @@ export default function MindPage() {
             id: item.id,
             slug: item.slug,
             version: item.version,
+            target: item.target,
             category: String(item.category || "")
               .trim()
               .toLowerCase()
@@ -497,94 +517,15 @@ export default function MindPage() {
   useEffect(() => {
   const loadMindIdentity = async () => {
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const identityResult = await resolvePersonalRootContext({ client: supabase });
 
-      if (userError) {
-        throw userError;
+      if (!identityResult.ok) {
+        throw identityResult.error || new Error(identityResult.reason);
       }
-
-      if (!user) {
-        console.error("MIND IDENTITY ERROR: No signed-in user.");
-        setMindIdentity(null);
-        return;
-      }
-
-      const storedProfileKey =
-        localStorage.getItem("root_profile_key_v1");
-
-      if (!storedProfileKey || storedProfileKey === "main") {
-        console.error(
-          "MIND IDENTITY ERROR: No valid active profile key.",
-          storedProfileKey
-        );
-        setMindIdentity(null);
-        return;
-      }
-
-      const activeExperience =
-        localStorage.getItem("root_active_experience_v1") ||
-        "personal";
-
-      const rememberedOrganisationId =
-        localStorage.getItem("root_active_organisation_v1");
-
-      const {
-        data: memberships,
-        error: membershipError,
-      } = await supabase
-        .from("organisation_members")
-        .select("organisation_id, profile_key, role")
-        .eq("user_id", user.id);
-
-      if (membershipError) {
-        console.error(
-          "MIND MEMBERSHIP ERROR:",
-          membershipError
-        );
-      }
-
-      const membershipList =
-        Array.isArray(memberships)
-          ? memberships
-          : [];
-
-      const matchingProfileMembership =
-        membershipList.find(
-          (membership) =>
-            membership.profile_key === storedProfileKey
-        ) || null;
-
-      const rememberedMembership =
-        membershipList.find(
-          (membership) =>
-            membership.organisation_id ===
-            rememberedOrganisationId
-        ) || null;
-
-      const selectedMembership =
-        matchingProfileMembership ||
-        rememberedMembership ||
-        membershipList[0] ||
-        null;
-
-      const organisationId =
-        selectedMembership?.organisation_id || null;
 
       setMindIdentity({
-        userId: user.id,
-        profileKey: storedProfileKey,
-        organisationId,
-        activeExperience,
-      });
-
-      console.log("MIND ACTIVE IDENTITY:", {
-        userId: user.id,
-        profileKey: storedProfileKey,
-        organisationId,
-        activeExperience,
+        ...identityResult.context,
+        organisationId: null,
       });
     } catch (error) {
       console.error(
@@ -773,6 +714,29 @@ const visibleTools = activeState
     resetTool();
   };
 
+  const beginMindIntervention = async (technique, category) => {
+    if (!technique || !mindIdentity?.profileKey || baselineScore === "") {
+      return { success: false, reason: "measurement_or_identity_missing" };
+    }
+
+    return interventionLifecycleRef.current.begin(
+      buildMindInterventionStart({
+        personalContext: mindIdentity,
+        emotionalState: activeState,
+        beforeScore: baselineScore,
+        category,
+        technique,
+      })
+    );
+  };
+
+  const switchMindIntervention = async (changeIndex) => {
+    await interventionLifecycleRef.current.abandonActive(
+      "Changed technique before completing this attempt."
+    );
+    changeIndex();
+  };
+
   const generateReframe = () => {
 const generatedReframe = buildReframe({
   situation,
@@ -827,6 +791,21 @@ const generatedReframe = buildReframe({
   setSaved(true);
   return true;
 };
+
+  const completeMindIntervention = async ({ technique, category, option, entry }) => {
+    const entrySaved = await saveEntry(entry);
+    if (!entrySaved) return false;
+
+    const startResult = await beginMindIntervention(technique, category);
+    if (!startResult?.success) return false;
+
+    const completion = await interventionLifecycleRef.current.completeActive({
+      afterScore: null,
+      userObservation: option.label,
+    });
+
+    return completion?.success === true;
+  };
 
   const saveCbt = async () => {
   if (!reframe) return;
@@ -1052,10 +1031,21 @@ const { error } = await supabase
   {activeState.journey && (
   <button
     style={styles.journeyButton}
-    onClick={() => {
+    onClick={async () => {
+  await interventionLifecycleRef.current.abandonActive(
+    "Left the intervention before completion."
+  );
   setActiveJourney(journeys[activeState.journey]);
   setJourneyStep(0);
   setJourneyComplete(false);
+  await beginMindIntervention(
+    {
+      title: journeys[activeState.journey].title,
+      target: activeState.title,
+      category: "grounding",
+    },
+    "grounding"
+  );
 }}
   >
     Begin {journeys[activeState.journey].title}
@@ -1197,7 +1187,7 @@ const { error } = await supabase
         const improvement = beforeScore - afterScore;
 
         try {
-          await saveEntry({
+          const entrySaved = await saveEntry({
             tool: "Root Measurement — After",
             situation: activeState?.title || "Emotional experience",
             automatic_thought: "",
@@ -1206,6 +1196,13 @@ const { error } = await supabase
             reframe: "The user completed the Panic Reset journey.",
             next_step: `Before: ${beforeScore}/10. After: ${afterScore}/10. Improvement: ${improvement} points.`,
           });
+
+          if (entrySaved) {
+            await interventionLifecycleRef.current.completeActive({
+              afterScore,
+              userObservation: "Completed the guided Panic Reset journey.",
+            });
+          }
 
           if (improvement > 0) {
             setRecoverySavedMessage(
@@ -1248,7 +1245,12 @@ const { error } = await supabase
   </div>
 )}
 {activeTool && (
-            <button style={styles.backButton} onClick={() => setActiveTool(null)}>
+            <button style={styles.backButton} onClick={async () => {
+              await interventionLifecycleRef.current.abandonActive(
+                "Left the intervention before completion."
+              );
+              setActiveTool(null);
+            }}>
               ← Back to tools
             </button>
           )}
@@ -1347,13 +1349,20 @@ const { error } = await supabase
             </div>
           )}
 
-          {activeTool === "breathwork" && (
+{activeTool === "breathwork" && (
   <ToolExperience
     kicker={`Technique ${bodyIndex + 1} of ${activeBodyTechniques.length}`}
     title={activeBodyTechniques[bodyIndex]?.title}
     subtitle="A body-based pathway to reduce physical activation."
     body={activeBodyTechniques[bodyIndex]?.body}
     audio={activeBodyTechniques[bodyIndex]?.audio}
+    onSwitch={switchMindIntervention}
+    onStart={() => beginMindIntervention(activeBodyTechniques[bodyIndex], "body_regulation")}
+    completeOutcome={(payload) => completeMindIntervention({
+      ...payload,
+      technique: activeBodyTechniques[bodyIndex],
+      category: "body_regulation",
+    })}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setBodyIndex((current) =>
@@ -1384,6 +1393,13 @@ const { error } = await supabase
     subtitle="A grounding pathway to help the nervous system recognise the present moment."
     body={activeGroundingTechniques[groundingIndex]?.body}
     audio={activeGroundingTechniques[groundingIndex]?.audio}
+    onSwitch={switchMindIntervention}
+    onStart={() => beginMindIntervention(activeGroundingTechniques[groundingIndex], "grounding")}
+    completeOutcome={(payload) => completeMindIntervention({
+      ...payload,
+      technique: activeGroundingTechniques[groundingIndex],
+      category: "grounding",
+    })}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setGroundingIndex((current) =>
@@ -1414,6 +1430,13 @@ const { error } = await supabase
     subtitle="A gentle inner reset for the body and mind."
     body={calmingTechniques[calmingIndex].body}
     audio={calmingTechniques[calmingIndex].audio}
+    onSwitch={switchMindIntervention}
+    onStart={() => beginMindIntervention(calmingTechniques[calmingIndex], "calming")}
+    completeOutcome={(payload) => completeMindIntervention({
+      ...payload,
+      technique: calmingTechniques[calmingIndex],
+      category: "calming",
+    })}
     showTechniqueButtons={true}
     onPreviousTechnique={() =>
       setCalmingIndex((current) =>
@@ -1521,7 +1544,7 @@ const { error } = await supabase
     </RootAtmosphere>
   );
 }
-function OutcomeButtons({ toolName, summary, nextStepText, saveEntry }) {
+function OutcomeButtons({ toolName, summary, nextStepText, saveEntry, completeOutcome }) {
   const [savedOutcome, setSavedOutcome] = useState("");
 
   return (
@@ -1534,7 +1557,7 @@ function OutcomeButtons({ toolName, summary, nextStepText, saveEntry }) {
             key={option.label}
             style={styles.outcomeButton}
             onClick={async () => {
-              await saveEntry({
+              const entry = {
                 tool: toolName,
                 situation: summary,
                 automatic_thought: "",
@@ -1544,9 +1567,13 @@ function OutcomeButtons({ toolName, summary, nextStepText, saveEntry }) {
                 next_step: nextStepText,
                 outcome_label: option.label,
                 outcome_score: option.score,
-              });
+              };
 
-              setSavedOutcome(option.label);
+              const outcomeSaved = completeOutcome
+                ? await completeOutcome({ option, entry })
+                : await saveEntry(entry);
+
+              if (outcomeSaved) setSavedOutcome(option.label);
             }}
           >
             {option.label}
@@ -1572,7 +1599,10 @@ function ToolExperience({
   showTechniqueButtons = false,
   onPreviousTechnique,
   onNextTechnique,
+  onSwitch,
   audio,
+  onStart,
+  completeOutcome,
   speakText,
   stopSpeaking,
   speakingText,
@@ -1594,13 +1624,17 @@ function ToolExperience({
       controls
       src={audio}
       style={styles.audioPlayer}
+      onPlay={onStart}
     />
   </div>
 ) : (
   <div style={styles.listenRow}>
     <button
       style={styles.listenButton}
-      onClick={() => {
+      onClick={async () => {
+        if (typeof onStart === "function") {
+          await onStart();
+        }
         if (typeof speakText === "function") {
           speakText(`${title}. ${body}`);
         }
@@ -1623,14 +1657,14 @@ function ToolExperience({
   <div style={styles.techniqueBar}>
     <button
       style={styles.techniqueButton}
-      onClick={onPreviousTechnique}
+      onClick={() => onSwitch ? onSwitch(onPreviousTechnique) : onPreviousTechnique()}
     >
       Previous Technique
     </button>
 
     <button
       style={styles.techniqueButton}
-      onClick={onNextTechnique}
+      onClick={() => onSwitch ? onSwitch(onNextTechnique) : onNextTechnique()}
     >
       Try Another Technique
     </button>
@@ -1642,6 +1676,7 @@ function ToolExperience({
         summary={body}
         nextStepText="Root will watch whether this support helps over time."
         saveEntry={saveEntry}
+        completeOutcome={completeOutcome}
       />
     </div>
   );

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test:personal-evidence": "node --experimental-default-type=module --test tests/personal-evidence-pass-1.test.mjs",
-    "test:personal-integration": "node --experimental-default-type=module --test tests/personal-integration-pass-2.test.mjs"
+    "test:personal-integration": "node --experimental-default-type=module --test tests/personal-integration-pass-2.test.mjs",
+    "test:personal-integration-3a": "node --experimental-default-type=module --test tests/personal-integration-pass-3a.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
