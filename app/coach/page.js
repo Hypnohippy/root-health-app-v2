@@ -8,6 +8,7 @@ import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { useRoot } from "../../context/RootContext";
 import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestigationHandoff";
+import { detectPersonalInvestigationIntent } from "../../lib/personalInvestigationContinuity";
 import {
   cleanVoicePlaybookContent,
   hasExplicitPlaybookSaveIntent,
@@ -172,6 +173,7 @@ export default function CoachPage() {
   const pendingPlaybookSaveRef = useRef(null);
   const pendingFoodClarificationRef = useRef(false);
   const latestAssistantTranscriptRef = useRef("");
+  const personalKnowledgeRef = useRef(null);
   useEffect(() => {
   const load = async () => {
   if (!identity?.personal?.profileKey) return;
@@ -205,6 +207,7 @@ if (storedJourney) {
 
       setProfileKey(authoritativeProfileKey);
       setPersonalKnowledge(projection);
+      personalKnowledgeRef.current = projection;
       setProfile(profileData);
       setName(displayName);
       setHistory(rows);
@@ -321,6 +324,42 @@ if (
     ]);
   };
 
+  const persistInvestigationIntent = async (text, currentKnowledge = personalKnowledgeRef.current) => {
+    const event = detectPersonalInvestigationIntent(
+      text,
+      currentKnowledge?.activeInvestigation || null
+    );
+    if (!event) return { ok: true, knowledge: currentKnowledge, event: null };
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken || !profileKey) return { ok: false, knowledge: currentKnowledge, event };
+
+    const response = await fetch("/api/voice-actions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "save_investigation_event",
+        content: event.userStatement,
+        profileKey,
+        event,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) return { ok: false, knowledge: currentKnowledge, event };
+
+    const refreshed = await loadPersonalRootKnowledge();
+    const knowledge = refreshed.ok ? refreshed.projections.coach : currentKnowledge;
+    if (refreshed.ok) {
+      personalKnowledgeRef.current = knowledge;
+      setPersonalKnowledge(knowledge);
+    }
+    return { ok: true, knowledge, event };
+  };
+
   const sendMessage = async (text) => {
     const clean = String(text || "").trim();
     if (!clean || thinking) return;
@@ -421,6 +460,16 @@ if (!previousUserMessage) {
     setVoiceState("thinking");
 
     try {
+      const investigationResult = await persistInvestigationIntent(clean);
+      if (!investigationResult.ok) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "coach", content: "I understood that you want to keep exploring this, but I couldn’t safely retain it across Root yet. Please try once more." },
+        ]);
+        setThinking(false);
+        setVoiceState("ready");
+        return;
+      }
       const res = await fetch("/api/root-coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -432,7 +481,7 @@ if (!previousUserMessage) {
   history,
   mindEntries,
   journalEntries,
-  personalKnowledge,
+  personalKnowledge: investigationResult.knowledge,
   conversation: nextMessages.slice(-10),
   coachMode,
 }),
@@ -656,6 +705,17 @@ dc.onmessage = async (event) => {
 ) {
   const transcript = message.transcript || "";
   console.log("USER SAID:", transcript);
+
+  const investigationResult = await persistInvestigationIntent(transcript);
+  if (!investigationResult.ok) {
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions: "Tell the user that Root understood they want to keep exploring this concern, but could not safely retain the investigation across Root yet. Ask them to try again. Do not claim it was remembered.",
+      },
+    }));
+    return;
+  }
 
   if (hasExplicitPlaybookSaveIntent(transcript)) {
     pendingPlaybookSaveRef.current = {

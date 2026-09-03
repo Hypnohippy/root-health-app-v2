@@ -46,6 +46,7 @@ function summariseSharedKnowledge(knowledge = null) {
         .slice(0, 8)
         .map((entry) => `${entry.title || "Untitled"} (${entry.category || "General"})`)
     : [];
+  const activeInvestigation = knowledge.activeInvestigation;
 
   return [
     `Check-In direction: ${assessment.movement?.direction || "unknown"}.`,
@@ -55,6 +56,9 @@ function summariseSharedKnowledge(knowledge = null) {
       : "No Playbook resource titles are available.",
     knowledge.interventionInsight ||
       "No measured intervention-effectiveness statement is available.",
+    activeInvestigation
+      ? `Active Personal investigation: ${activeInvestigation.label}. ${activeInvestigation.reconciledSummary} What remains unknown: ${activeInvestigation.whatRemainsUnknown} Return to this when the user asks broadly what to focus on, and ask: ${activeInvestigation.nextQuestion}`
+      : "No active Personal investigation has been explicitly retained.",
     knowledge.loadStatus?.partial
       ? "Some evidence sources failed to load; missing evidence is unknown rather than absent."
       : "No partial evidence-source failure was reported.",

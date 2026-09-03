@@ -249,9 +249,15 @@ export default function JournalPage() {
       .select("*")
       .eq("profile_key", profileKey)
       .order("created_at", { ascending: false })
-      .limit(8);
+      .limit(50);
 
-    setEntries(Array.isArray(data) ? data : []);
+    setEntries(
+      Array.isArray(data)
+        ? data
+            .filter((entry) => entry?.prompt_type !== "root_investigation_event_v1")
+            .slice(0, 8)
+        : []
+    );
   };
 
   const saveQuickCheckIn = async (checkIn) => {
