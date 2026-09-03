@@ -16,6 +16,11 @@ import {
   healthContextValuesFromRecord,
 } from "../lib/personalHealthContext.js";
 import { buildRootCoachInvestigationPolicy } from "../lib/rootCoachInvestigationPolicy.js";
+import {
+  ALLERGY_CLARIFICATION_PROMPT,
+  classifyAllergyClarificationAnswer,
+  foodPlanSafetyDecision,
+} from "../lib/rootFoodPlanSafety.js";
 
 function storage() {
   const values = new Map();
@@ -115,6 +120,49 @@ test("allergy prompt semantics distinguish absence, presence and every unknown f
   assert.match(formatHealthContextForPrompt("I don't know whether dairy affects me"), /^unknown/);
 });
 
+test("exact production meal-plan request is blocked before foods when allergies are unknown", () => {
+  const decision = foodPlanSafetyDecision({
+    message: "Write a two day meal plan for me",
+    allergies: "None Prefer not to say",
+  });
+  assert.equal(decision.clarificationRequired, true);
+  assert.equal(decision.allergy.knowledge, "unknown");
+  assert.match(ALLERGY_CLARIFICATION_PROMPT, /food allergies or intolerances/i);
+  assert.doesNotMatch(ALLERGY_CLARIFICATION_PROMPT, /eggs|toast|orange|chicken|almonds|salmon|yoghurt|hummus|peanut butter|tofu/i);
+});
+
+test("known absence permits food generation and a disclosed allergy remains a constraint", () => {
+  assert.equal(foodPlanSafetyDecision({
+    message: "Write a two day meal plan for me",
+    allergies: "No known allergies/intolerances",
+  }).clarificationRequired, false);
+  const disclosed = foodPlanSafetyDecision({
+    message: "Write a two day meal plan for me",
+    allergies: "Peanuts and shellfish",
+  });
+  assert.equal(disclosed.clarificationRequired, false);
+  assert.equal(disclosed.allergy.knowledge, "known_present");
+  assert.equal(disclosed.allergy.value, "Peanuts and shellfish");
+});
+
+test("a clarification answer is request-scoped and does not require a Profile rewrite", () => {
+  assert.deepEqual(classifyAllergyClarificationAnswer("No"), {
+    knowledge: "known_absence",
+    value: "No known allergies/intolerances",
+    resolved: true,
+  });
+  const decision = foodPlanSafetyDecision({
+    message: "Peanuts",
+    allergies: "Prefer not to say",
+    conversation: [
+      { role: "coach", content: ALLERGY_CLARIFICATION_PROMPT },
+      { role: "user", content: "Peanuts" },
+    ],
+  });
+  assert.equal(decision.clarificationRequired, false);
+  assert.equal(decision.allergy.value, "Peanuts");
+});
+
 test("Profile health values round-trip unchanged without defaults or historical fallbacks", () => {
   const supplied = {
     conditions: "Type 1 diabetes; discussing weight goals with my clinic",
@@ -185,8 +233,8 @@ test("Type 1 diabetes, insulin and unknown allergies materially constrain a meal
   });
   assert.match(policy, /Allergy\/intolerance semantic status: unknown/);
   assert.match(policy, /Unknown must change behaviour/);
-  assert.match(policy, /ask one brief clarifying question/i);
-  assert.match(policy, /allergy\/intolerance suitability has not been established/i);
+  assert.match(policy, /First ask one concise clarification/i);
+  assert.match(policy, /do not generate that food content yet/i);
   assert.match(policy, /Never imply that specific foods are personally suitable/i);
   assert.match(policy, /Do not recommend changing prescribed treatment, medication, insulin/i);
 });
@@ -212,6 +260,25 @@ test("Text and Voice Coach summaries receive semantic health context rather than
     const source = await readFile(new URL(path, import.meta.url), "utf8");
     assert.match(source, /formatHealthContextForPrompt\(profile\.allergies\)/);
   }
+});
+
+test("Text and Voice block normal generation until unknown allergies are clarified", async () => {
+  const textRoute = await readFile(new URL("../app/api/root-coach/route.js", import.meta.url), "utf8");
+  const voicePage = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  const voiceRoute = await readFile(new URL("../app/api/realtime-session/route.js", import.meta.url), "utf8");
+  assert.ok(textRoute.indexOf("foodSafety.clarificationRequired") < textRoute.indexOf('fetch("https://api.openai.com/v1/chat/completions"'));
+  assert.match(textRoute, /reply: ALLERGY_CLARIFICATION_PROMPT/);
+  assert.match(voiceRoute, /create_response: false/);
+  assert.match(voicePage, /foodPlanSafetyDecision/);
+  assert.match(voicePage, /Do not generate a meal plan, recipe, menu, or specific foods/);
+  assert.match(voicePage, /Do not update or imply an update to their persistent Profile/);
+});
+
+test("Playbook review cannot bypass unknown-allergy food generation gate", async () => {
+  const route = await readFile(new URL("../app/api/playbook-review/route.js", import.meta.url), "utf8");
+  assert.match(route, /reviewFoodSafety\.clarificationRequired/);
+  assert.match(route, /status: 409/);
+  assert.ok(route.indexOf("reviewFoodSafety.clarificationRequired") < route.indexOf('fetch("https://api.openai.com/v1/chat/completions"'));
 });
 
 test("persistent high evidence can escalate calmly without diagnosis", () => {

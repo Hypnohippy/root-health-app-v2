@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { buildRootHealthEducationPolicy } from "../../../lib/rootHealthEducationPolicy.js";
+import { foodPlanSafetyDecision } from "../../../lib/rootFoodPlanSafety.js";
 
 export const runtime = "nodejs";
 
@@ -60,6 +61,21 @@ export async function POST(req) {
         return Response.json({ ok: false, error: organisationResult.error.message }, { status: 500 });
       }
       ownsProfile = Boolean(organisationResult.data);
+    }
+
+    const reviewFoodSafety = foodPlanSafetyDecision({
+      message: `${title || ""} ${category || ""} ${currentContent || ""} ${instruction || ""}`,
+      allergies: personalResult.data?.allergies,
+    });
+    if (personalResult.data && reviewFoodSafety.clarificationRequired) {
+      return Response.json(
+        {
+          ok: false,
+          error: "Root needs a clear allergy/intolerance answer in Coach before generating or rewriting specific food content.",
+          allergyClarificationRequired: true,
+        },
+        { status: 409 }
+      );
     }
     if (!ownsProfile) {
       return Response.json({ ok: false, error: "This Playbook does not belong to your Root account." }, { status: 403 });
