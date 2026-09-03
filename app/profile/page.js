@@ -8,6 +8,7 @@ import RootAtmosphere from "../../components/RootAtmosphere";
 import { resolvePersonalRootContext } from "../../lib/personalRootContext";
 import {
   assessPersonalHealthContext,
+  healthContextValuesFromRecord,
   HEALTH_CONTEXT_FIELDS,
 } from "../../lib/personalHealthContext";
 
@@ -21,13 +22,6 @@ function HealthContextField({ field, value, onChange }) {
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
-      <div style={styles.healthOptions}>
-        {field.options.map((option) => (
-          <button key={option} type="button" style={styles.healthOption} onClick={() => onChange(option)}>
-            {option}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -83,14 +77,12 @@ export default function ProfilePage() {
         height: data.height || "",
         weight: data.weight || "",
         goal: data.goal || "",
-        conditions: data.conditions || "",
-        medications: data.medications || "",
-        allergies: data.allergies || "",
+        ...healthContextValuesFromRecord(data),
         diet: data.diet || "",
       });
       if (!assessPersonalHealthContext(data).complete) {
         setHealthContextMessage(
-          "Please complete the health context below. Blank answers remain unknown; you can choose an explicit none or prefer-not-to-say response."
+          "Please complete each health question in your own words. Blank answers remain unanswered."
         );
       }
     }
@@ -102,7 +94,7 @@ export default function ProfilePage() {
   const healthContext = assessPersonalHealthContext(profile);
   if (!healthContext.complete) {
     setHealthContextMessage(
-      "Please give an explicit response for health conditions, medications and allergies/intolerances. Choose a clear none or prefer-not-to-say option where appropriate."
+      "Please answer health conditions, medications and allergies/intolerances in your own words. Blank fields are not saved as completed responses."
     );
     return;
   }
@@ -133,9 +125,7 @@ export default function ProfilePage() {
       height: profile.height,
       weight: profile.weight,
       goal: profile.goal,
-      conditions: profile.conditions,
-      medications: profile.medications,
-      allergies: profile.allergies,
+      ...healthContextValuesFromRecord(profile),
       diet: profile.diet,
     },
     { onConflict: "profile_key" }
@@ -281,21 +271,6 @@ const styles = {
     color: "rgba(26,26,26,0.76)",
     fontSize: "13px",
     fontWeight: 700,
-  },
-  healthOptions: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-    paddingLeft: "8px",
-  },
-  healthOption: {
-    border: "1px solid rgba(26,26,26,0.14)",
-    borderRadius: "999px",
-    padding: "7px 11px",
-    background: "rgba(255,255,255,0.34)",
-    color: "#333333",
-    cursor: "pointer",
-    fontSize: "12px",
   },
   healthMessage: {
     margin: "18px 0 0",
