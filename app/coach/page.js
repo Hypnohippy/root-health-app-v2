@@ -7,6 +7,7 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { useRoot } from "../../context/RootContext";
+import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestigationHandoff";
 import {
   cleanVoicePlaybookContent,
   hasExplicitPlaybookSaveIntent,
@@ -203,6 +204,24 @@ if (storedJourney) {
       setHistory(rows);
       setJournalEntries(journalRows);
       setMindEntries(recentMind);
+
+      const investigationHandoff = consumePersonalInvestigationHandoff({
+        profileKey: authoritativeProfileKey,
+        destination: "coach",
+      });
+
+      if (investigationHandoff) {
+        setCoachMode(investigationHandoff.route === "nutrition" ? "nutrition" : "reflection");
+        setMessages([{
+          role: "coach",
+          content:
+            `Let’s continue with what stood out in your recent check-ins.\n\n` +
+            `${investigationHandoff.known}\n\n` +
+            `${investigationHandoff.question}` +
+            (investigationHandoff.safetyNotice ? `\n\n${investigationHandoff.safetyNotice}` : ""),
+        }]);
+        return;
+      }
 
       const pendingCoachContext =
   typeof window !== "undefined"

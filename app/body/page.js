@@ -16,6 +16,7 @@ import KidneysView from "../../components/body/KidneysView";
 import SensesView from "../../components/body/SensesView";
 import NervousSystemView from "../../components/body/NervousSystemView";
 import { resolvePersonalRootContext } from "../../lib/personalRootContext";
+import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestigationHandoff";
 
 const bodySystems = [
   { id: "stress_nerves", label: "Head / nervous system", system: "nervous/autonomic", signals: ["overwhelm", "racing thoughts", "panic feeling", "tension", "wired but tired", "shaky", "numb or detached", "hard to settle"] },
@@ -790,6 +791,24 @@ if (journey) {
       });
     }, 0);
   };
+
+  useEffect(() => {
+    resolvePersonalRootContext({ client: supabase }).then((result) => {
+      if (!result.ok) return;
+      const handoff = consumePersonalInvestigationHandoff({
+        profileKey: result.context.profileKey,
+        destination: "body",
+      });
+      if (!handoff) return;
+      const systemId = handoff.body?.systemId || "energy_recovery";
+      selectSystem(systemId);
+      if (handoff.body?.signal) setSelectedSignal(handoff.body.signal);
+      setJourneyIntro(
+        `${handoff.known} ${handoff.question}` +
+        (handoff.safetyNotice ? ` ${handoff.safetyNotice}` : "")
+      );
+    });
+  }, []);
 
  return (
   <RootAtmosphere type="body">

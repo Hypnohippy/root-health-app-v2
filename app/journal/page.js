@@ -6,6 +6,7 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { resolvePersonalRootContext } from "../../lib/personalRootContext";
+import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestigationHandoff";
 import {
   createRootDictation,
   transcribeRootAudio,
@@ -204,9 +205,10 @@ export default function JournalPage() {
   const [transcribingStep, setTranscribingStep] = useState(null);
   const [dictationError, setDictationError] = useState("");
   const [personalContext, setPersonalContext] = useState(null);
+  const [investigationPrompt, setInvestigationPrompt] = useState(null);
   const dictationRef = useRef(null);
 
-  const config = getPromptStructure(activePrompt);
+  const config = investigationPrompt || getPromptStructure(activePrompt);
   const currentPrompt = config.prompts[step];
 
  useEffect(() => {
@@ -214,6 +216,18 @@ export default function JournalPage() {
     if (!result.ok) return;
     setPersonalContext(result.context);
     loadEntries(result.context.profileKey);
+    const handoff = consumePersonalInvestigationHandoff({
+      profileKey: result.context.profileKey,
+      destination: "journal",
+    });
+    if (handoff) {
+      setActivePrompt("investigation_reflection");
+      setInvestigationPrompt({
+        heading: "Explore what may be affecting your energy",
+        intro: handoff.known,
+        prompts: [handoff.question],
+      });
+    }
   });
 
   const stored = localStorage.getItem("root_journey_v1");
