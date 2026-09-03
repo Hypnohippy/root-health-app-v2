@@ -9,7 +9,11 @@ import {
   savePersonalInvestigationHandoff,
 } from "../lib/personalInvestigationHandoff.js";
 import { buildPersonalInvestigationDiscovery } from "../lib/personalInvestigationService.js";
-import { assessPersonalHealthContext, classifyHealthContextValue } from "../lib/personalHealthContext.js";
+import {
+  assessPersonalHealthContext,
+  classifyHealthContextValue,
+  healthContextValuesFromRecord,
+} from "../lib/personalHealthContext.js";
 import { buildRootCoachInvestigationPolicy } from "../lib/rootCoachInvestigationPolicy.js";
 
 function storage() {
@@ -88,17 +92,39 @@ test("blank is unknown, explicit none is valid, and prefer-not-to-say remains un
   assert.equal(assessPersonalHealthContext({ conditions: "None", medications: "Not currently taking medication", allergies: "No known allergies/intolerances" }).complete, true);
 });
 
-test("contradictory health input is unknown and cannot complete Profile health context", () => {
+test("contradictory or uncertain free text is a valid response but never known absence", () => {
   const contradictory = classifyHealthContextValue("None Prefer not to say");
   assert.equal(contradictory.knowledge, "unknown");
-  assert.equal(contradictory.responseProvided, false);
-  assert.equal(contradictory.valid, false);
-  assert.equal(contradictory.reason, "contradictory_response");
+  assert.equal(contradictory.responseProvided, true);
+  assert.equal(contradictory.valid, true);
+  assert.equal(classifyHealthContextValue("I don't know whether pollen affects me").knowledge, "unknown");
   assert.equal(assessPersonalHealthContext({
     conditions: "None Prefer not to say",
     medications: "Not currently taking medication",
     allergies: "No known allergies/intolerances",
-  }).complete, false);
+  }).complete, true);
+});
+
+test("Profile health values round-trip unchanged without defaults or historical fallbacks", () => {
+  const supplied = {
+    conditions: "Type 1 diabetes; discussing weight goals with my clinic",
+    medications: "Insulin pump — settings managed with my diabetes team",
+    allergies: "Not sure whether dairy is an intolerance",
+  };
+  assert.deepEqual(healthContextValuesFromRecord(supplied), supplied);
+  assert.deepEqual(healthContextValuesFromRecord({}), {
+    conditions: "",
+    medications: "",
+    allergies: "",
+  });
+});
+
+test("Profile renders mandatory free text without preset answer buttons", async () => {
+  const source = await readFile(new URL("../app/profile/page.js", import.meta.url), "utf8");
+  assert.match(source, /placeholder={`Enter \${field\.label\.toLowerCase\(\)}`}/);
+  assert.doesNotMatch(source, /field\.options|healthOption|onClick=\{\(\) => onChange\(option\)\}/);
+  assert.match(source, /healthContextValuesFromRecord\(data\)/);
+  assert.match(source, /healthContextValuesFromRecord\(profile\)/);
 });
 
 test("Coach treats the first investigation answer as evidence and asks a follow-up before advice", () => {
