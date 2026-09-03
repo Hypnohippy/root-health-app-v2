@@ -344,6 +344,7 @@ checkUser();
 
       const projection = result.projections.home;
       const knowledge = projection.knowledge;
+      const discovery = projection.discovery?.primary || null;
       const loadedName = knowledge.person?.firstName || "";
       const safeBody = projection.recent.bodySignals;
       const safeJournal = projection.recent.journalEntries;
@@ -461,7 +462,17 @@ checkUser();
 
       let guidance = null;
 
-      if (
+      if (discovery) {
+        guidance = {
+          title: `${discovery.known.statement}`,
+          why: discovery.worthExploring.statement,
+          recommendation: discovery.emerging.statement,
+          science:
+            "Root is comparing your own check-ins. This is a prompt to explore, not a diagnosis or explanation of cause.",
+          action: discovery.worthExploring.routes[0],
+          actions: discovery.worthExploring.routes,
+        };
+      } else if (
         memory?.topEmotionalTheme &&
         memory.topEmotionalTheme.toLowerCase().includes("panic")
       ) {
@@ -765,6 +776,15 @@ checkUser();
                 <p style={styles.expandedTextLight}>
                   This view favours meaningful new or measured evidence. Your wider history remains available in Insights.
                 </p>
+                {presentationObservation.metadata?.discovery?.worthExploring?.routes?.length > 0 && (
+                  <div style={styles.actionRow}>
+                    {presentationObservation.metadata.discovery.worthExploring.routes.map((route) => (
+                      <a key={`${route.href}-${route.label}`} href={route.href} style={styles.whiteButton}>
+                        {route.label} →
+                      </a>
+                    ))}
+                  </div>
+                )}
               </MiniInsightCard>
             )}
 
@@ -883,9 +903,11 @@ checkUser();
                   )}
                 </div>
 
-                <a href={rootGuidance.action.href} style={styles.whiteButton}>
-                  {rootGuidance.action.label}
-                </a>
+                {(rootGuidance.actions || [rootGuidance.action]).map((action) => (
+                  <a key={`${action.href}-${action.label}`} href={action.href} style={styles.whiteButton}>
+                    {action.label}
+                  </a>
+                ))}
               </MiniInsightCard>
             )}
 

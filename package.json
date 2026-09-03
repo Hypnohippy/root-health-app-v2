@@ -11,7 +11,8 @@
     "test:personal-integration-3a": "node --experimental-default-type=module --test tests/personal-integration-pass-3a.test.mjs",
     "test:personal-integration-4a": "node --experimental-default-type=module --test tests/personal-integration-pass-4a.test.mjs",
     "test:personal-integration-4b": "node --experimental-default-type=module --test tests/personal-integration-pass-4b.test.mjs",
-    "test:voice-playbook": "node --experimental-default-type=module --test tests/voice-playbook-persistence.test.mjs"
+    "test:voice-playbook": "node --experimental-default-type=module --test tests/voice-playbook-persistence.test.mjs",
+    "test:personal-integration-5a": "node --experimental-default-type=module --test tests/personal-integration-pass-5a.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
