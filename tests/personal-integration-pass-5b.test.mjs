@@ -12,6 +12,7 @@ import { buildPersonalInvestigationDiscovery } from "../lib/personalInvestigatio
 import {
   assessPersonalHealthContext,
   classifyHealthContextValue,
+  formatHealthContextForPrompt,
   healthContextValuesFromRecord,
 } from "../lib/personalHealthContext.js";
 import { buildRootCoachInvestigationPolicy } from "../lib/rootCoachInvestigationPolicy.js";
@@ -105,6 +106,15 @@ test("contradictory or uncertain free text is a valid response but never known a
   }).complete, true);
 });
 
+test("allergy prompt semantics distinguish absence, presence and every unknown form", () => {
+  assert.equal(formatHealthContextForPrompt("none"), "known absence");
+  assert.equal(formatHealthContextForPrompt("No known allergies/intolerances"), "known absence");
+  assert.equal(formatHealthContextForPrompt("Peanuts and shellfish"), "Peanuts and shellfish");
+  assert.match(formatHealthContextForPrompt("Prefer not to say"), /^unknown/);
+  assert.match(formatHealthContextForPrompt("None Prefer not to say"), /^unknown/);
+  assert.match(formatHealthContextForPrompt("I don't know whether dairy affects me"), /^unknown/);
+});
+
 test("Profile health values round-trip unchanged without defaults or historical fallbacks", () => {
   const supplied = {
     conditions: "Type 1 diabetes; discussing weight goals with my clinic",
@@ -164,6 +174,23 @@ test("Type 1 diabetes, insulin and weight-loss content remains useful but clinic
   assert.match(policy, /entire generated Playbook document/i);
 });
 
+test("Type 1 diabetes, insulin and unknown allergies materially constrain a meal plan", () => {
+  const policy = buildRootCoachInvestigationPolicy({
+    profile: {
+      conditions: "Type 1 diabetes",
+      medications: "Insulin",
+      allergies: "None Prefer not to say",
+      goal: "Weight loss",
+    },
+  });
+  assert.match(policy, /Allergy\/intolerance semantic status: unknown/);
+  assert.match(policy, /Unknown must change behaviour/);
+  assert.match(policy, /ask one brief clarifying question/i);
+  assert.match(policy, /allergy\/intolerance suitability has not been established/i);
+  assert.match(policy, /Never imply that specific foods are personally suitable/i);
+  assert.match(policy, /Do not recommend changing prescribed treatment, medication, insulin/i);
+});
+
 test("generated nutrition Playbook review uses authenticated ownership and the shared policy", async () => {
   const routeSource = await readFile(new URL("../app/api/playbook-review/route.js", import.meta.url), "utf8");
   const pageSource = await readFile(new URL("../app/playbook/page.js", import.meta.url), "utf8");
@@ -173,6 +200,18 @@ test("generated nutrition Playbook review uses authenticated ownership and the s
   assert.match(routeSource, /generatedContent: true/);
   assert.match(pageSource, /Authorization: `Bearer/);
   assert.match(pageSource, /profileKey,/);
+  const reviewPolicy = buildRootCoachInvestigationPolicy({
+    profile: { conditions: "Type 1 diabetes", medications: "Insulin", allergies: "Prefer not to say" },
+  });
+  assert.match(reviewPolicy, /Allergy\/intolerance semantic status: unknown/);
+  assert.match(reviewPolicy, /entire generated Playbook document/i);
+});
+
+test("Text and Voice Coach summaries receive semantic health context rather than ambiguous raw wording", async () => {
+  for (const path of ["../app/api/root-coach/route.js", "../app/api/realtime-session/route.js"]) {
+    const source = await readFile(new URL(path, import.meta.url), "utf8");
+    assert.match(source, /formatHealthContextForPrompt\(profile\.allergies\)/);
+  }
 });
 
 test("persistent high evidence can escalate calmly without diagnosis", () => {
