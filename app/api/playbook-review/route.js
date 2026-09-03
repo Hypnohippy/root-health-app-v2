@@ -1,16 +1,68 @@
+import { createClient } from "@supabase/supabase-js";
+import { buildRootHealthEducationPolicy } from "../../../lib/rootHealthEducationPolicy.js";
+
 export const runtime = "nodejs";
+
+function authenticatedSupabase(req) {
+  const accessToken = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!accessToken || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
+  return {
+    accessToken,
+    client: createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    }),
+  };
+}
 
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    const { title, category, currentContent, instruction } = body;
+    const { title, category, currentContent, instruction, profileKey } = body;
 
     if (!currentContent || !instruction) {
       return Response.json(
         { ok: false, error: "Missing playbook content or update instruction." },
         { status: 400 }
       );
+    }
+
+    const authenticated = authenticatedSupabase(req);
+    if (!authenticated || !profileKey) {
+      return Response.json({ ok: false, error: "You need to be signed in to review this entry." }, { status: 401 });
+    }
+    const { data: userData, error: userError } = await authenticated.client.auth.getUser(authenticated.accessToken);
+    if (userError || !userData?.user) {
+      return Response.json({ ok: false, error: "Root could not verify your account." }, { status: 401 });
+    }
+
+    const personalResult = await authenticated.client
+      .from("profiles")
+      .select("profile_key, conditions, medications, allergies, diet")
+      .eq("user_id", userData.user.id)
+      .eq("profile_key", profileKey)
+      .maybeSingle();
+    if (personalResult.error) {
+      return Response.json({ ok: false, error: personalResult.error.message }, { status: 500 });
+    }
+
+    let ownsProfile = Boolean(personalResult.data);
+    if (!ownsProfile) {
+      const organisationResult = await authenticated.client
+        .from("organisation_members")
+        .select("profile_key")
+        .eq("user_id", userData.user.id)
+        .eq("profile_key", profileKey)
+        .limit(1)
+        .maybeSingle();
+      if (organisationResult.error) {
+        return Response.json({ ok: false, error: organisationResult.error.message }, { status: 500 });
+      }
+      ownsProfile = Boolean(organisationResult.data);
+    }
+    if (!ownsProfile) {
+      return Response.json({ ok: false, error: "This Playbook does not belong to your Root account." }, { status: 403 });
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
@@ -69,8 +121,7 @@ Rules:
         messages: [
           {
             role: "system",
-            content:
-              "You rewrite Playbook documents cleanly. Return only the finished updated document.",
+            content: `You rewrite Playbook documents cleanly. Return only the finished updated document.\n${buildRootHealthEducationPolicy({ profile: personalResult.data || {}, generatedContent: true })}`,
           },
           {
             role: "user",

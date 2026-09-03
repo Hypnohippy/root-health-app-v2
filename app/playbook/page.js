@@ -229,8 +229,12 @@ const [openEntryId, setOpenEntryId] = useState(null);
 
   const res = await fetch("/api/playbook-review", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ""}`,
+    },
     body: JSON.stringify({
+     profileKey,
      title: entryForReview.title,
     category: entryForReview.category,
     currentContent: entryForReview.content,
