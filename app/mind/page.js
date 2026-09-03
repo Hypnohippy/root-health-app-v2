@@ -25,6 +25,7 @@ import {
   markMindInterventionFinished,
   MIND_OUTCOME_STAGES,
 } from "../../lib/mindOutcomeFlow";
+import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestigationHandoff";
 
 const emotionalStates = [
   {
@@ -466,6 +467,7 @@ export default function MindPage() {
   const [groundingIndex, setGroundingIndex] = useState(0);
   const [bodyIndex, setBodyIndex] = useState(0);
   const [overthinkingPublishedContent, setOverthinkingPublishedContent] = useState([]);
+  const [pendingMindRecommendation, setPendingMindRecommendation] = useState(null);
   const interventionLifecycleRef = useRef(null);
 
   if (!interventionLifecycleRef.current) {
@@ -522,6 +524,21 @@ export default function MindPage() {
     setGroundingIndex(0);
     setBodyIndex(0);
   }, [activeState?.id]);
+
+  useEffect(() => {
+    const slug = pendingMindRecommendation?.interventionSlug;
+    if (!slug || !overthinkingPublishedContent.length) return;
+    const item = overthinkingPublishedContent.find((candidate) => candidate.slug === slug);
+    if (!item) return;
+    if (item.category === "grounding") {
+      setActiveTool("grounding");
+      setGroundingIndex(Math.max(0, publishedGroundingTechniques.findIndex((candidate) => candidate.slug === slug)));
+    } else if (item.category === "body_regulation" || item.category === "breathing") {
+      setActiveTool("breathwork");
+      setBodyIndex(Math.max(0, publishedBodyTechniques.findIndex((candidate) => candidate.slug === slug)));
+    }
+    setPendingMindRecommendation(null);
+  }, [pendingMindRecommendation, overthinkingPublishedContent]);
   
   useEffect(() => {
   const loadMindIdentity = async () => {
@@ -550,8 +567,19 @@ export default function MindPage() {
   loadMindIdentity();
 }, []);
 
-  useEffect(() => {
+useEffect(() => {
   if (!mindIdentity?.profileKey) return;
+
+  const handoff = consumePersonalInvestigationHandoff({
+    profileKey: mindIdentity.profileKey,
+    destination: "mind",
+  });
+  if (handoff?.mind) {
+    const state = emotionalStates.find((item) => item.id === handoff.mind.stateId);
+    if (state) setActiveState(state);
+    if (handoff.mind.toolId) setActiveTool(handoff.mind.toolId);
+    setPendingMindRecommendation(handoff.mind);
+  }
 
   const loadRecentStates = async () => {
     const { data, error: recentError } = await supabase

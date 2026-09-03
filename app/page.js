@@ -13,6 +13,10 @@ import {
 } from "../lib/personalPresentationService";
 import { buildRootTrialStatus } from "../lib/rootTrialStatus";
 import { useRoot } from "../context/RootContext";
+import {
+  createPersonalInvestigationHandoff,
+  savePersonalInvestigationHandoff,
+} from "../lib/personalInvestigationHandoff";
 
 const progressMetrics = [
   ["stress_score", "Stress"],
@@ -121,6 +125,7 @@ export default function Home() {
   const [livingMessage, setLivingMessage] = useState("");
   const [presentationObservation, setPresentationObservation] = useState(null);
   const [presentationEmptyReason, setPresentationEmptyReason] = useState(null);
+  const [activeDiscovery, setActiveDiscovery] = useState(null);
 
   const [latestAssessment, setLatestAssessment] = useState(null);
   const [baselineAssessment, setBaselineAssessment] = useState(null);
@@ -132,6 +137,19 @@ export default function Home() {
   // Pass 4B replaces the old unranked observation cards with one shared,
   // receipt-aware presentation selection. Their underlying knowledge remains.
   const showLegacyDerivedCards = false;
+
+  const followInvestigationRoute = (event, route, discovery) => {
+    if (!route?.question || !discovery || !identity?.personal?.profileKey) return;
+    const handoff = createPersonalInvestigationHandoff({
+      profileKey: identity.personal.profileKey,
+      destination: route.destination,
+      discovery,
+      route,
+    });
+    if (!handoff || !savePersonalInvestigationHandoff(handoff)) return;
+    event.preventDefault();
+    window.location.href = route.href;
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -345,6 +363,7 @@ checkUser();
       const projection = result.projections.home;
       const knowledge = projection.knowledge;
       const discovery = projection.discovery?.primary || null;
+      setActiveDiscovery(discovery);
       const loadedName = knowledge.person?.firstName || "";
       const safeBody = projection.recent.bodySignals;
       const safeJournal = projection.recent.journalEntries;
@@ -468,6 +487,7 @@ checkUser();
           why: discovery.worthExploring.statement,
           recommendation: discovery.emerging.statement,
           science:
+            discovery.professionalSupport ||
             "Root is comparing your own check-ins. This is a prompt to explore, not a diagnosis or explanation of cause.",
           action: discovery.worthExploring.routes[0],
           actions: discovery.worthExploring.routes,
@@ -779,7 +799,8 @@ checkUser();
                 {presentationObservation.metadata?.discovery?.worthExploring?.routes?.length > 0 && (
                   <div style={styles.actionRow}>
                     {presentationObservation.metadata.discovery.worthExploring.routes.map((route) => (
-                      <a key={`${route.href}-${route.label}`} href={route.href} style={styles.whiteButton}>
+                      <a key={`${route.href}-${route.label}`} href={route.href} style={styles.whiteButton}
+                        onClick={(event) => followInvestigationRoute(event, route, presentationObservation.metadata.discovery)}>
                         {route.label} →
                       </a>
                     ))}
@@ -904,7 +925,8 @@ checkUser();
                 </div>
 
                 {(rootGuidance.actions || [rootGuidance.action]).map((action) => (
-                  <a key={`${action.href}-${action.label}`} href={action.href} style={styles.whiteButton}>
+                  <a key={`${action.href}-${action.label}`} href={action.href} style={styles.whiteButton}
+                    onClick={(event) => followInvestigationRoute(event, action, activeDiscovery)}>
                     {action.label}
                   </a>
                 ))}
