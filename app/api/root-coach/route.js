@@ -1,4 +1,5 @@
 import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
+import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
 
 export const runtime = "nodejs";
 
@@ -32,9 +33,9 @@ function summariseProfile(profile) {
     "height: " + (profile.height || "unknown"),
     "weight: " + (profile.weight || "unknown"),
     "goal: " + (profile.goal || "unknown"),
-    "conditions: " + (profile.conditions || "unknown — no explicit response recorded"),
-    "medications: " + (profile.medications || "unknown — no explicit response recorded"),
-    "allergies: " + (profile.allergies || "unknown — no explicit response recorded"),
+    "conditions: " + formatHealthContextForPrompt(profile.conditions),
+    "medications: " + formatHealthContextForPrompt(profile.medications),
+    "allergies: " + formatHealthContextForPrompt(profile.allergies),
     "diet style: " + (profile.diet || "unknown"),
   ].join("\n");
 }

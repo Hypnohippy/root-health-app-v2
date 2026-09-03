@@ -1,6 +1,7 @@
 
 import { buildRootMemoryService } from "../../../lib/rootMemoryService";
 import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
+import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -29,9 +30,9 @@ Age: ${profile.age || "unknown"}
 Height: ${profile.height || "unknown"}
 Weight: ${profile.weight || "unknown"}
 Goal: ${profile.goal || "unknown"}
-Medical conditions: ${profile.conditions || "unknown — no explicit response recorded"}
-Medications: ${profile.medications || "unknown — no explicit response recorded"}
-Allergies or intolerances: ${profile.allergies || "unknown — no explicit response recorded"}
+Medical conditions: ${formatHealthContextForPrompt(profile.conditions)}
+Medications: ${formatHealthContextForPrompt(profile.medications)}
+Allergies or intolerances: ${formatHealthContextForPrompt(profile.allergies)}
 Diet style: ${profile.diet || "unknown"}
 `.trim();
 }
