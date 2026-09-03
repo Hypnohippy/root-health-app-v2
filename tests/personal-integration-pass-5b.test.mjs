@@ -100,6 +100,18 @@ test("Coach treats the first investigation answer as evidence and asks a follow-
   assert.match(policy, /Do not repeat generic warnings/i);
 });
 
+test("Coach may educate from authoritative evidence without individual diagnosis or treatment changes", () => {
+  const policy = buildRootCoachInvestigationPolicy({
+    profile: { conditions: "Type 1 diabetes", medications: "Insulin", allergies: "None" },
+    discovery: { primary: { issueKey: "energy" } },
+  });
+  assert.match(policy, /established, mainstream health and lifestyle education/i);
+  assert.match(policy, /General evidence does not prove what is happening to them/i);
+  assert.match(policy, /Do not diagnose/);
+  assert.match(policy, /Do not recommend changing prescribed treatment, medication/i);
+  assert.match(policy, /appropriate healthcare professional/i);
+});
+
 test("persistent high evidence can escalate calmly without diagnosis", () => {
   const result = buildPersonalInvestigationDiscovery({
     knowledge: { assessmentKnowledge: {
