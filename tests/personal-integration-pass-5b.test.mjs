@@ -75,16 +75,30 @@ test("profile safety notices appear only for relevant lifestyle routes", () => {
 });
 
 test("blank is unknown, explicit none is valid, and prefer-not-to-say remains unknown", () => {
-  assert.deepEqual(classifyHealthContextValue(""), { responseProvided: false, knowledge: "unknown", value: "" });
+  assert.deepEqual(classifyHealthContextValue(""), { responseProvided: false, knowledge: "unknown", value: "", valid: false });
   assert.equal(classifyHealthContextValue("None").knowledge, "known_absence");
   assert.equal(classifyHealthContextValue("No known allergies/intolerances").knowledge, "known_absence");
   assert.deepEqual(classifyHealthContextValue("Prefer not to say"), {
     responseProvided: true,
     knowledge: "unknown",
     value: "Prefer not to say",
+    valid: true,
   });
   assert.equal(assessPersonalHealthContext({ conditions: "", medications: "", allergies: "" }).complete, false);
   assert.equal(assessPersonalHealthContext({ conditions: "None", medications: "Not currently taking medication", allergies: "No known allergies/intolerances" }).complete, true);
+});
+
+test("contradictory health input is unknown and cannot complete Profile health context", () => {
+  const contradictory = classifyHealthContextValue("None Prefer not to say");
+  assert.equal(contradictory.knowledge, "unknown");
+  assert.equal(contradictory.responseProvided, false);
+  assert.equal(contradictory.valid, false);
+  assert.equal(contradictory.reason, "contradictory_response");
+  assert.equal(assessPersonalHealthContext({
+    conditions: "None Prefer not to say",
+    medications: "Not currently taking medication",
+    allergies: "No known allergies/intolerances",
+  }).complete, false);
 });
 
 test("Coach treats the first investigation answer as evidence and asks a follow-up before advice", () => {
@@ -110,6 +124,29 @@ test("Coach may educate from authoritative evidence without individual diagnosis
   assert.match(policy, /Do not diagnose/);
   assert.match(policy, /Do not recommend changing prescribed treatment, medication/i);
   assert.match(policy, /appropriate healthcare professional/i);
+});
+
+test("Type 1 diabetes, insulin and weight-loss content remains useful but clinically bounded", () => {
+  const policy = buildRootCoachInvestigationPolicy({
+    profile: { conditions: "Type 1 diabetes", medications: "Insulin", allergies: "None", goal: "Weight loss" },
+  });
+  assert.match(policy, /ordinary meal ideas/i);
+  assert.match(policy, /do not claim a plan is suitable for diabetes/i);
+  assert.match(policy, /Do not prescribe carbohydrate quantities for insulin management/i);
+  assert.match(policy, /insulin doses, insulin adjustments/i);
+  assert.match(policy, /clinician or registered dietitian/i);
+  assert.match(policy, /entire generated Playbook document/i);
+});
+
+test("generated nutrition Playbook review uses authenticated ownership and the shared policy", async () => {
+  const routeSource = await readFile(new URL("../app/api/playbook-review/route.js", import.meta.url), "utf8");
+  const pageSource = await readFile(new URL("../app/playbook/page.js", import.meta.url), "utf8");
+  assert.match(routeSource, /buildRootHealthEducationPolicy/);
+  assert.match(routeSource, /conditions, medications, allergies, diet/);
+  assert.match(routeSource, /\.eq\("user_id", userData\.user\.id\)/);
+  assert.match(routeSource, /generatedContent: true/);
+  assert.match(pageSource, /Authorization: `Bearer/);
+  assert.match(pageSource, /profileKey,/);
 });
 
 test("persistent high evidence can escalate calmly without diagnosis", () => {
