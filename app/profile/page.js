@@ -6,11 +6,37 @@ import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import { resolvePersonalRootContext } from "../../lib/personalRootContext";
+import {
+  assessPersonalHealthContext,
+  HEALTH_CONTEXT_FIELDS,
+} from "../../lib/personalHealthContext";
+
+function HealthContextField({ field, value, onChange }) {
+  return (
+    <div style={styles.healthField}>
+      <label style={styles.healthLabel}>{field.label}</label>
+      <input
+        style={styles.input}
+        placeholder={`Enter ${field.label.toLowerCase()}`}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <div style={styles.healthOptions}>
+        {field.options.map((option) => (
+          <button key={option} type="button" style={styles.healthOption} onClick={() => onChange(option)}>
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [personalContext, setPersonalContext] = useState(null);
+  const [healthContextMessage, setHealthContextMessage] = useState("");
 
   const [profile, setProfile] = useState({
    profile_key: "",
@@ -62,12 +88,25 @@ export default function ProfilePage() {
         allergies: data.allergies || "",
         diet: data.diet || "",
       });
+      if (!assessPersonalHealthContext(data).complete) {
+        setHealthContextMessage(
+          "Please complete the health context below. Blank answers remain unknown; you can choose an explicit none or prefer-not-to-say response."
+        );
+      }
     }
 
     setLoading(false);
   };
 
   const saveProfile = async () => {
+  const healthContext = assessPersonalHealthContext(profile);
+  if (!healthContext.complete) {
+    setHealthContextMessage(
+      "Please give an explicit response for health conditions, medications and allergies/intolerances. Choose a clear none or prefer-not-to-say option where appropriate."
+    );
+    return;
+  }
+  setHealthContextMessage("");
   setSaving(true);
 
   try {
@@ -149,11 +188,18 @@ export default function ProfilePage() {
             <input style={styles.input} placeholder="Height" value={profile.height} onChange={(e) => update("height", e.target.value)} />
             <input style={styles.input} placeholder="Weight" value={profile.weight} onChange={(e) => update("weight", e.target.value)} />
             <input style={styles.input} placeholder="Goal" value={profile.goal} onChange={(e) => update("goal", e.target.value)} />
-            <input style={styles.input} placeholder="Conditions" value={profile.conditions} onChange={(e) => update("conditions", e.target.value)} />
-            <input style={styles.input} placeholder="Medications" value={profile.medications} onChange={(e) => update("medications", e.target.value)} />
-            <input style={styles.input} placeholder="Allergies / intolerances" value={profile.allergies} onChange={(e) => update("allergies", e.target.value)} />
+            {HEALTH_CONTEXT_FIELDS.map((field) => (
+              <HealthContextField
+                key={field.key}
+                field={field}
+                value={profile[field.key]}
+                onChange={(value) => update(field.key, value)}
+              />
+            ))}
             <input style={styles.input} placeholder="Diet style" value={profile.diet} onChange={(e) => update("diet", e.target.value)} />
           </div>
+
+          {healthContextMessage && <p style={styles.healthMessage}>{healthContextMessage}</p>}
 
           <button
   style={{
@@ -214,7 +260,7 @@ const styles = {
     display: "grid",
     gap: "12px",
   },
- input: {
+  input: {
   border: "1px solid rgba(255,255,255,0.30)",
   borderRadius: "22px",
   padding: "16px 18px",
@@ -225,6 +271,38 @@ const styles = {
   color: "#1A1A1A",
   boxShadow: "0 10px 24px rgba(0,0,0,0.04)",
 },
+  healthField: {
+    display: "grid",
+    gap: "8px",
+    textAlign: "left",
+  },
+  healthLabel: {
+    paddingLeft: "8px",
+    color: "rgba(26,26,26,0.76)",
+    fontSize: "13px",
+    fontWeight: 700,
+  },
+  healthOptions: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    paddingLeft: "8px",
+  },
+  healthOption: {
+    border: "1px solid rgba(26,26,26,0.14)",
+    borderRadius: "999px",
+    padding: "7px 11px",
+    background: "rgba(255,255,255,0.34)",
+    color: "#333333",
+    cursor: "pointer",
+    fontSize: "12px",
+  },
+  healthMessage: {
+    margin: "18px 0 0",
+    color: "#6d352f",
+    fontSize: "14px",
+    lineHeight: 1.5,
+  },
   button: {
   marginTop: "28px",
   padding: "15px 24px",

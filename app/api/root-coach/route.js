@@ -1,3 +1,5 @@
+import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
+
 export const runtime = "nodejs";
 
 function normalise(value) {
@@ -30,9 +32,9 @@ function summariseProfile(profile) {
     "height: " + (profile.height || "unknown"),
     "weight: " + (profile.weight || "unknown"),
     "goal: " + (profile.goal || "unknown"),
-    "conditions: " + (profile.conditions || "none recorded"),
-    "medications: " + (profile.medications || "none recorded"),
-    "allergies: " + (profile.allergies || "none recorded"),
+    "conditions: " + (profile.conditions || "unknown — no explicit response recorded"),
+    "medications: " + (profile.medications || "unknown — no explicit response recorded"),
+    "allergies: " + (profile.allergies || "unknown — no explicit response recorded"),
     "diet style: " + (profile.diet || "unknown"),
   ].join("\n");
 }
@@ -324,8 +326,9 @@ const rootContext = buildRootContext({
       });
     }
 
-    const systemPrompt = `
+const systemPrompt = `
 You are Root Coach, one calm unified health guide.
+${buildRootCoachInvestigationPolicy({ profile, discovery: personalKnowledge?.discovery })}
 Evidence-first coaching
 
 Root earns understanding over time.
