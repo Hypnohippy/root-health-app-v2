@@ -9,6 +9,8 @@ import {
   savePersonalInvestigationHandoff,
 } from "../lib/personalInvestigationHandoff.js";
 import { buildPersonalInvestigationDiscovery } from "../lib/personalInvestigationService.js";
+import { assessPersonalHealthContext, classifyHealthContextValue } from "../lib/personalHealthContext.js";
+import { buildRootCoachInvestigationPolicy } from "../lib/rootCoachInvestigationPolicy.js";
 
 function storage() {
   const values = new Map();
@@ -69,7 +71,33 @@ test("profile safety notices appear only for relevant lifestyle routes", () => {
   assert.match(buildLifestyleSafetyNotice({ route: "nutrition", profile: { allergies: "nuts" } }), /allergies or intolerances/i);
   assert.match(buildLifestyleSafetyNotice({ route: "body", profile: { conditions: "heart condition" } }), /before increasing exercise/i);
   assert.equal(buildLifestyleSafetyNotice({ route: "reflection", profile: { allergies: "nuts" } }), "");
-  assert.equal(buildLifestyleSafetyNotice({ route: "nutrition", profile: {} }), "");
+  assert.match(buildLifestyleSafetyNotice({ route: "nutrition", profile: {} }), /complete these fields in You\/Profile/);
+});
+
+test("blank is unknown, explicit none is valid, and prefer-not-to-say remains unknown", () => {
+  assert.deepEqual(classifyHealthContextValue(""), { responseProvided: false, knowledge: "unknown", value: "" });
+  assert.equal(classifyHealthContextValue("None").knowledge, "known_absence");
+  assert.equal(classifyHealthContextValue("No known allergies/intolerances").knowledge, "known_absence");
+  assert.deepEqual(classifyHealthContextValue("Prefer not to say"), {
+    responseProvided: true,
+    knowledge: "unknown",
+    value: "Prefer not to say",
+  });
+  assert.equal(assessPersonalHealthContext({ conditions: "", medications: "", allergies: "" }).complete, false);
+  assert.equal(assessPersonalHealthContext({ conditions: "None", medications: "Not currently taking medication", allergies: "No known allergies/intolerances" }).complete, true);
+});
+
+test("Coach treats the first investigation answer as evidence and asks a follow-up before advice", () => {
+  const policy = buildRootCoachInvestigationPolicy({
+    profile: { conditions: "Type 1 diabetes", medications: "Insulin", allergies: "None" },
+    discovery: { primary: { issueKey: "energy" } },
+  });
+  assert.match(policy, /first answer is new evidence to explore/i);
+  assert.match(policy, /ask ONE short follow-up/i);
+  assert.match(policy, /not.*enough to recommend a lifestyle change/i);
+  assert.match(policy, /do not recommend changing meal timing, carbohydrate intake/i);
+  assert.match(policy, /constraints, not explanations/i);
+  assert.match(policy, /Do not repeat generic warnings/i);
 });
 
 test("persistent high evidence can escalate calmly without diagnosis", () => {

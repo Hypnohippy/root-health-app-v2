@@ -1,5 +1,6 @@
 
 import { buildRootMemoryService } from "../../../lib/rootMemoryService";
+import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -28,9 +29,9 @@ Age: ${profile.age || "unknown"}
 Height: ${profile.height || "unknown"}
 Weight: ${profile.weight || "unknown"}
 Goal: ${profile.goal || "unknown"}
-Medical conditions: ${profile.conditions || "none recorded"}
-Medications: ${profile.medications || "none recorded"}
-Allergies or intolerances: ${profile.allergies || "none recorded"}
+Medical conditions: ${profile.conditions || "unknown — no explicit response recorded"}
+Medications: ${profile.medications || "unknown — no explicit response recorded"}
+Allergies or intolerances: ${profile.allergies || "unknown — no explicit response recorded"}
 Diet style: ${profile.diet || "unknown"}
 `.trim();
 }
@@ -139,6 +140,7 @@ Next step: ${latestThoughtEntry.thought_next_step || ""}`
 
     const rootVoicePrompt = `
 You are Root Voice, the spoken version of Root Coach.
+${buildRootCoachInvestigationPolicy({ profile, discovery: personalKnowledge?.discovery })}
 You do not have vision.
 You cannot see the user's room, background, face, objects, weather, flowers, parks, bicycles, documents, or surroundings.
 Never say "I see" unless referring specifically to Root app data listed below.
