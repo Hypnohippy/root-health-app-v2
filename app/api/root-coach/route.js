@@ -1,5 +1,6 @@
 import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
 import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
+import { ALLERGY_CLARIFICATION_PROMPT, foodPlanSafetyDecision } from "../../../lib/rootFoodPlanSafety.js";
 
 export const runtime = "nodejs";
 
@@ -212,7 +213,6 @@ export async function POST(req) {
   coachMode,
 } = body;
     const clean = String(message || "").trim();
-
 const lowerMessage = clean.toLowerCase();
 
 const crisisDetected =
@@ -282,6 +282,18 @@ if (crisisDetected) {
     crisisMode: true,
   });
 }
+    const foodSafety = foodPlanSafetyDecision({
+      message: clean,
+      allergies: profile?.allergies,
+      conversation,
+    });
+    if (foodSafety.clarificationRequired) {
+      return Response.json({ reply: ALLERGY_CLARIFICATION_PROMPT, reflectiveOptions: [], allergyClarificationRequired: true });
+    }
+    const effectiveProfile = foodSafety.clarificationWasAsked && foodSafety.allergy.resolved
+      ? { ...profile, allergies: foodSafety.allergy.value }
+      : profile;
+
     if (!clean) {
       let reflectiveOptions = [];
 
@@ -329,7 +341,7 @@ const rootContext = buildRootContext({
 
 const systemPrompt = `
 You are Root Coach, one calm unified health guide.
-${buildRootCoachInvestigationPolicy({ profile, discovery: personalKnowledge?.discovery })}
+${buildRootCoachInvestigationPolicy({ profile: effectiveProfile, discovery: personalKnowledge?.discovery })}
 Evidence-first coaching
 
 Root earns understanding over time.
@@ -785,7 +797,7 @@ Lead with movement, body load, pain, posture, strength, recovery, and physical c
 If active coach mode is lifestyle:
 Lead with sleep, energy rhythm, habits, routines, self-care, and daily structure.
 Saved user profile:
-${summariseProfile(profile)}
+${summariseProfile(effectiveProfile)}
 
 Recent body signal history:
 ${summariseHistory(history)}
@@ -1147,7 +1159,7 @@ When generating a plan:
 PREMIUM PLAN FORMAT:
 When creating a plan, make it feel like a professional deliverable:
 - Title
-- Personalisation header
+- Relevant safety constraints stated without claiming clinical personalisation
 - Plan principles
 - Daily structure
 - Actual plan

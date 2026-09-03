@@ -346,7 +346,7 @@ Sound like a calm, emotionally regulated human being.
   threshold: 0.82,
   prefix_padding_ms: 900,
   silence_duration_ms: 3200,
-  create_response: true,
+  create_response: false,
   interrupt_response: false,
 },
   },

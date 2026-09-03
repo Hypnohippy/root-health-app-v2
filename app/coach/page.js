@@ -15,6 +15,11 @@ import {
   isCompleteVoicePlaybookContent,
   persistVoicePlaybookEntry,
 } from "../../lib/voicePlaybookAction";
+import {
+  ALLERGY_CLARIFICATION_PROMPT,
+  classifyAllergyClarificationAnswer,
+  foodPlanSafetyDecision,
+} from "../../lib/rootFoodPlanSafety";
 
 const signalToCoach = {
   "racing thoughts": "mind",
@@ -165,6 +170,7 @@ export default function CoachPage() {
   const analyserRef = useRef(null);
   const animationFrameRef = useRef(null);
   const pendingPlaybookSaveRef = useRef(null);
+  const pendingFoodClarificationRef = useRef(false);
   const latestAssistantTranscriptRef = useRef("");
   useEffect(() => {
   const load = async () => {
@@ -661,6 +667,37 @@ dc.onmessage = async (event) => {
       pendingPlaybookSaveRef.current
     );
   }
+
+  const foodSafety = pendingFoodClarificationRef.current
+    ? {
+        clarificationWasAsked: true,
+        allergy: classifyAllergyClarificationAnswer(transcript),
+      }
+    : foodPlanSafetyDecision({ message: transcript, allergies: profile?.allergies });
+
+  if (foodSafety.clarificationRequired || (foodSafety.clarificationWasAsked && !foodSafety.allergy.resolved)) {
+    pendingFoodClarificationRef.current = true;
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions: `Say exactly: "${ALLERGY_CLARIFICATION_PROMPT}" Do not generate a meal plan, recipe, menu, or specific foods in this response.`,
+      },
+    }));
+    return;
+  }
+
+  if (foodSafety.clarificationWasAsked && foodSafety.allergy.resolved) {
+    pendingFoodClarificationRef.current = false;
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions: `The user has clarified their allergy/intolerance context for this immediate request as: ${foodSafety.allergy.value}. Do not update or imply an update to their persistent Profile. Continue the earlier food request now, treating this answer as a safety constraint and following the Root Health Education Policy.`,
+      },
+    }));
+    return;
+  }
+
+  dc.send(JSON.stringify({ type: "response.create" }));
 }
 
     if (message.type === "input_audio_buffer.speech_started") {
