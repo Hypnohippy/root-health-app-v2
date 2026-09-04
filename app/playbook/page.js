@@ -372,26 +372,23 @@ const stopReviewVoiceInput = async (
 
     setSaving(true);
 
-    const { error } = await supabase.from("playbook_entries").insert([
-      {
-       profile_key: profileKey,
-      
-        title: cleanTitle,
-        category,
-        content: cleanContent,
-        source: "Manual",
-      },
-    ]);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const response = await fetch("/api/personal-playbook", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${sessionData?.session?.access_token || ""}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ profileKey, title: cleanTitle, category, content: cleanContent }),
+    });
+    const result = await response.json();
 
-    if (!error) {
+    if (response.ok && result.ok) {
       setTitle("");
       setCategory("General");
       setContent("");
       setSearchTerm("");
       await loadEntries();
     } else {
-      console.error("PLAYBOOK SAVE ERROR:", error);
-      alert(error.message || "Something went wrong saving this playbook entry.");
+      console.error("PLAYBOOK SAVE ERROR:", result.error);
+      alert(result.error || "Something went wrong saving this playbook entry.");
     }
 
     setSaving(false);
@@ -797,13 +794,16 @@ const stopReviewVoiceInput = async (
         <button
           style={styles.saveButton}
           onClick={async () => {
-            const { error } = await supabase
-              .from("playbook_entries")
-              .update({ content: reviewPreview })
-              .eq("id", reviewEntry.id);
+            const { data: sessionData } = await supabase.auth.getSession();
+            const response = await fetch("/api/personal-playbook", {
+              method: "PATCH",
+              headers: { Authorization: `Bearer ${sessionData?.session?.access_token || ""}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ profileKey, entryId: reviewEntry.id, content: reviewPreview }),
+            });
+            const result = await response.json();
 
-            if (error) {
-              alert(error.message || "Could not save update.");
+            if (!response.ok || !result.ok) {
+              alert(result.error || "Could not save update.");
               return;
             }
 
