@@ -39,6 +39,7 @@ function mockClient({ user, profile, tables = {}, errors = {} }) {
             .filter(
               (row) => !state.profileKey || row.profile_key === state.profileKey
             )
+            .filter((row) => !state.userId || row.user_id === state.userId)
             .filter(
               (row) =>
                 !state.assessmentType ||
@@ -185,6 +186,16 @@ test("Evidence remains source-shaped and retains research provenance", async () 
     undefined
   );
   assert.equal(result.evidence.provenance.interpretationApplied, false);
+});
+
+test("tracker evidence requires authenticated user_id as well as the Personal profile_key", async () => {
+  const profile = { id: "profile-1", user_id: "personal-user", profile_key: "colliding-key" };
+  const own = { id: "own-entry", tracker_id: "tracker-1", user_id: "personal-user", profile_key: "colliding-key", answers: { symptom: "bloating", intensity: 7 }, created_at: "2026-09-04T09:00:00.000Z" };
+  const collision = { id: "other-entry", tracker_id: "tracker-2", user_id: "workplace-user", profile_key: "colliding-key", answers: { symptom: "private workplace observation" }, created_at: "2026-09-04T10:00:00.000Z" };
+  const result = await loadPersonalRootEvidence({ client: mockClient({ user: { id: "personal-user", email: "person@example.com", user_metadata: {} }, profile, tables: { playbook_tracker_entries: [collision, own] } }) });
+  assert.deepEqual(result.evidence.source.trackerSubmissions.records, [own]);
+  assert.equal(result.evidence.identity.userId, "personal-user");
+  assert.equal(result.evidence.identity.profileKey, "colliding-key");
 });
 
 test("Partial failures are reported and are not represented as no evidence", async () => {
