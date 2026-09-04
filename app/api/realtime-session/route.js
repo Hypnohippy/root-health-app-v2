@@ -3,6 +3,7 @@ import { buildRootMemoryService } from "../../../lib/rootMemoryService";
 import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
 import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
 import { summariseStructuredBodyObservation } from "../../../lib/bodySignalModel.js";
+import { buildTrackerCoachContext } from "../../../lib/trackerEvidenceContext.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,7 @@ function summariseSharedKnowledge(knowledge = null) {
     planTitles.length
       ? `Existing Playbook resources: ${planTitles.join("; ")}. Full content is not included.`
       : "No Playbook resource titles are available.",
+    buildTrackerCoachContext(knowledge.trackers),
     knowledge.interventionInsight ||
       "No measured intervention-effectiveness statement is available.",
     activeInvestigation

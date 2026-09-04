@@ -193,6 +193,7 @@ function summariseSharedKnowledge(knowledge = null) {
     plans.length
       ? `Existing Playbook resources: ${plans.join("; ")}. Full plan content has not been supplied.`
       : "No Playbook resource titles are available.",
+    buildTrackerCoachContext(knowledge.trackers),
     knowledge.interventionInsight ||
       "No measured intervention-effectiveness statement is available.",
     activeInvestigation
@@ -1492,3 +1493,4 @@ return Response.json({
     });
   }
 }
+import { buildTrackerCoachContext } from "../../../lib/trackerEvidenceContext.js";
