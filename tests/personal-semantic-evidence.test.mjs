@@ -31,6 +31,21 @@ test("tracker evidence combines with relevant Body evidence for Home without cla
   assert.equal(candidates.some((item) => item.kind === "body_observation" && item.sourceRecordIds.includes("body-1")), false);
 });
 
+test("Home and Insights use the same authoritative chronology regardless of source array order", () => {
+  const earlierBody = { ...body, id: "body-earliest", context: "On waking", created_at: "2026-09-04T08:00:00.000Z" };
+  const laterBody = { ...body, id: "body-later", context: "Constant", created_at: "2026-09-04T09:00:00.000Z" };
+  const laterTracker = { ...submission, created_at: "2026-09-04T10:00:00.000Z" };
+  const source = evidence({ body: [laterBody, earlierBody], trackers: [laterTracker], playbook: [tracker] });
+  const result = buildPersonalRootKnowledgeFromEvidence({ evidence: source, now: () => new Date("2026-09-04T11:00:00.000Z") });
+  const homeClaim = result.projections.home.presentationCandidates.find((item) => item.kind === "body_tracker_observation");
+  const insightsClaim = result.projections.insights.presentationCandidates.find((item) => item.kind === "body_tracker_observation");
+
+  assert.equal(homeClaim.metadata.earliestSourceRecordId, "body-earliest");
+  assert.equal(insightsClaim.metadata.earliestSourceRecordId, "body-earliest");
+  assert.match(homeClaim.message, /first recorded Bloating in the context “On waking”/);
+  assert.equal(insightsClaim.message, homeClaim.message);
+});
+
 test("Insights projection exposes latest tracker title, timestamp and compact fields", () => {
   const result = buildPersonalRootKnowledgeFromEvidence({ evidence: evidence({ body: [body], trackers: [submission], playbook: [tracker] }) });
   const activity = result.projections.insights.evidence.latestTrackerActivity;
