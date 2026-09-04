@@ -1,4 +1,8 @@
 import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
+import {
+  buildActiveInvestigationFocusReply,
+  isBroadFocusQuestion,
+} from "../../../lib/personalInvestigationContinuity.js";
 import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
 import { ALLERGY_CLARIFICATION_PROMPT, foodPlanSafetyDecision } from "../../../lib/rootFoodPlanSafety.js";
 
@@ -179,6 +183,7 @@ function summariseSharedKnowledge(knowledge = null) {
         .slice(0, 12)
         .map((entry) => `${entry.title || "Untitled"} (${entry.category || "General"})`)
     : [];
+  const activeInvestigation = knowledge.activeInvestigation;
 
   return [
     `Check-In baseline scores: ${JSON.stringify(assessment.baseline?.scores || {})}.`,
@@ -192,6 +197,9 @@ function summariseSharedKnowledge(knowledge = null) {
       : "No Playbook resource titles are available.",
     knowledge.interventionInsight ||
       "No measured intervention-effectiveness statement is available.",
+    activeInvestigation
+      ? `Active Personal investigation: ${activeInvestigation.label}. ${activeInvestigation.reconciledSummary} What remains unknown: ${activeInvestigation.whatRemainsUnknown} Next discriminating question: ${activeInvestigation.nextQuestion}`
+      : "No active Personal investigation has been explicitly retained.",
     knowledge.loadStatus?.partial
       ? "Some Personal evidence sources failed to load. Treat missing context as unknown, not absent."
       : "Shared Personal evidence loaded without a reported partial-source failure.",
@@ -232,6 +240,19 @@ const crisisDetected =
   lowerMessage.includes("don’t want to be here") ||
   lowerMessage.includes("dont want to be here") ||
   lowerMessage.includes("better off dead");
+
+    if (
+      !crisisDetected &&
+      personalKnowledge?.activeInvestigation &&
+      isBroadFocusQuestion(clean)
+    ) {
+      return Response.json({
+        reply: buildActiveInvestigationFocusReply(personalKnowledge.activeInvestigation),
+        reflectiveOptions: [],
+        coachEscalation: null,
+        emotionalState: "steady",
+      });
+    }
     let emotionalState = "steady";
 
 if (

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"; 
 import { hasExplicitPlaybookSaveIntent } from "../../../lib/voicePlaybookAction";
+import { buildPersonalInvestigationJournalRow } from "../../../lib/personalInvestigationContinuity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -106,6 +107,47 @@ export async function POST(req) {
         { ok: false, error: "Missing action or content." },
         { status: 400 }
       );
+    }
+
+    if (action === "save_investigation_event") {
+      const profileKey = String(body.profileKey || "").trim();
+      const personalResult = await supabase
+        .from("profiles")
+        .select("profile_key")
+        .eq("user_id", userData.user.id)
+        .eq("profile_key", profileKey)
+        .maybeSingle();
+
+      if (personalResult.error) {
+        return Response.json({ ok: false, error: personalResult.error.message }, { status: 500 });
+      }
+      if (!personalResult.data) {
+        return Response.json(
+          { ok: false, error: "This Personal investigation does not belong to your Root account." },
+          { status: 403 }
+        );
+      }
+
+      const row = buildPersonalInvestigationJournalRow({
+        profileKey,
+        event: body.event,
+      });
+      if (!row) {
+        return Response.json({ ok: false, error: "Invalid investigation event." }, { status: 400 });
+      }
+
+      const { data: saved, error } = await supabase
+        .from("journal_entries")
+        .insert([row])
+        .select("id, created_at")
+        .single();
+      if (error || !saved?.id) {
+        return Response.json(
+          { ok: false, error: error?.message || "Investigation event was not saved." },
+          { status: 500 }
+        );
+      }
+      return Response.json({ ok: true, id: saved.id, createdAt: saved.created_at });
     }
 
     if (action === "save_playbook") {
