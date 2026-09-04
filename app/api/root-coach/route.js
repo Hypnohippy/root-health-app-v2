@@ -1,6 +1,7 @@
 import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
 import {
   buildActiveInvestigationFocusReply,
+  buildBodyEvidenceAcknowledgementEvent,
   isBroadFocusQuestion,
 } from "../../../lib/personalInvestigationContinuity.js";
 import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
@@ -248,6 +249,9 @@ const crisisDetected =
     ) {
       return Response.json({
         reply: buildActiveInvestigationFocusReply(personalKnowledge.activeInvestigation),
+        investigationAcknowledgement: buildBodyEvidenceAcknowledgementEvent(
+          personalKnowledge.activeInvestigation
+        ),
         reflectiveOptions: [],
         coachEscalation: null,
         emotionalState: "steady",

@@ -360,6 +360,24 @@ if (
     return { ok: true, knowledge, event };
   };
 
+  const persistInvestigationAcknowledgement = async (event) => {
+    if (!event || !profileKey) return true;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) return false;
+    const response = await fetch("/api/voice-actions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "save_investigation_event",
+        content: event.userStatement,
+        profileKey,
+        event,
+      }),
+    });
+    return response.ok;
+  };
+
   const sendMessage = async (text) => {
     const clean = String(text || "").trim();
     if (!clean || thinking) return;
@@ -489,6 +507,17 @@ if (!previousUserMessage) {
 
      const json = await res.json();
 
+      const acknowledgementSaved = await persistInvestigationAcknowledgement(
+        json.investigationAcknowledgement
+      );
+      if (json.investigationAcknowledgement && acknowledgementSaved) {
+        const refreshed = await loadPersonalRootKnowledge();
+        if (refreshed.ok) {
+          personalKnowledgeRef.current = refreshed.projections.coach;
+          setPersonalKnowledge(refreshed.projections.coach);
+        }
+      }
+
 const options = Array.isArray(json.reflectiveOptions)
   ? json.reflectiveOptions
   : [];
@@ -500,8 +529,8 @@ const escalation = json.coachEscalation || null;
        {
   role: "coach",
   content:
-    json.reply ||
-    "I’m here with you. Let’s slow this down and look at one thing at a time.",
+    `${json.reply ||
+    "I’m here with you. Let’s slow this down and look at one thing at a time."}${json.investigationAcknowledgement && !acknowledgementSaved ? "\n\nRoot could not retain that acknowledgement safely, so it may need to check this evidence again later." : ""}`,
   reflectiveOptions: options,
          coachEscalation: escalation,
 },

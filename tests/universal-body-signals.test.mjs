@@ -6,6 +6,9 @@ import {
   BODY_SYSTEMS,
   bodySignalDraftToRow,
   bodySignalRowToDraft,
+  bodySignalCorrectionRow,
+  bodySignalTombstoneRow,
+  collapseBodySignalSupersession,
   toggleBodyChoice,
   validateBodySignalDraft,
 } from "../lib/bodySignalModel.js";
@@ -14,7 +17,9 @@ import {
   buildPersonalInvestigationJournalRow,
   deriveActivePersonalInvestigation,
   detectPersonalInvestigationIntent,
+  buildBodyEvidenceAcknowledgementEvent,
 } from "../lib/personalInvestigationContinuity.js";
+import { buildBodySignalFeedback } from "../lib/bodySignalFeedback.js";
 
 function draft(system = BODY_SYSTEMS[0]) {
   return { system, locationDetail: system.locations[0], symptoms: [system.symptoms[0]], customSymptom: "", timingContexts: ["Morning"], customTiming: "", durationPatterns: ["A few days"], customDuration: "", intensity: 7, modifiers: ["Not sure"], customModifier: "", notes: "My own description" };
@@ -87,13 +92,47 @@ test("legacy Body records still load into an editable draft without inventing st
   assert.equal(legacy.depth, "Deep");
 });
 
-test("Body history corrections use authenticated profile-scoped update and delete", () => {
+test("Body history corrections are append-only and remain authenticated/profile scoped", () => {
   const page = fs.readFileSync(new URL("../app/body/page.js", import.meta.url), "utf8");
   assert.match(page, /resolvePersonalRootContext/);
-  assert.match(page, /update\(row\)\.eq\("id", editingId\)\.eq\("profile_key", profileKey\)/);
-  assert.match(page, /delete\(\)\.eq\("id", row\.id\)\.eq\("profile_key", profileKey\)\.select\("id"\)/);
-  assert.match(page, /!deleted\?\.id/);
+  assert.doesNotMatch(page, /from\("body_signals"\)\.update/);
+  assert.doesNotMatch(page, /from\("body_signals"\)\.delete/);
+  assert.match(page, /bodySignalCorrectionRow/);
+  assert.match(page, /bodySignalTombstoneRow/);
   assert.match(page, /window\.confirm/);
+});
+
+test("supersession collapse exposes only the latest active correction while preserving source rows", () => {
+  const rows = [
+    { id: "original", record_state: "active" },
+    { id: "correction", supersedes_id: "original", record_state: "active" },
+    { id: "withdrawal", supersedes_id: "correction", record_state: "deleted" },
+    { id: "legacy" },
+  ];
+  assert.deepEqual(collapseBodySignalSupersession(rows).map((row) => row.id), ["legacy"]);
+  assert.equal(rows.length, 4);
+
+  const corrected = bodySignalCorrectionRow(draft(), "profile-1", "original", { depth: "Deep" });
+  assert.equal(corrected.supersedes_id, "original");
+  assert.equal(corrected.record_state, "active");
+  assert.equal(corrected.depth, "Deep");
+  const tombstone = bodySignalTombstoneRow({ ...corrected, id: "correction" }, "profile-1");
+  assert.equal(tombstone.supersedes_id, "correction");
+  assert.equal(tombstone.record_state, "deleted");
+  assert.equal(tombstone.profile_key, "profile-1");
+});
+
+test("universal feedback retains comparison, remembered help and health-safe practical guidance", () => {
+  const row = { ...bodySignalDraftToRow(draft(BODY_SYSTEMS[7]), "profile-1"), id: "new", created_at: "2026-09-04T12:00:00Z", intensity: 5, symptoms: ["Stiffness"], signal: "Stiffness" };
+  const feedback = buildBodySignalFeedback({
+    row,
+    history: [{ id: "old", created_at: "2026-09-03T12:00:00Z", intensity: 8, symptoms: ["Stiffness"], signal: "Stiffness", modifiers: ["Warmth"] }],
+    profile: { conditions: "Type 1 diabetes", medications: "Insulin", allergies: "none" },
+  });
+  assert.match(feedback, /8\/10 → 5\/10/);
+  assert.match(feedback, /Previously, you recorded Warmth/);
+  assert.match(feedback, /existing clinical activity restrictions/);
+  assert.match(feedback, /not proof/);
 });
 
 test("fresh unrelated Body evidence is acknowledged without replacing or causing the active investigation", () => {
@@ -126,4 +165,27 @@ test("fresh Body ranking is not simply latest-wins", () => {
   ] } } };
   const result = deriveActivePersonalInvestigation({ journalEntries: [event], evidence });
   assert.equal(result.active.freshBodyEvidence[0].id, "older-strong");
+});
+
+test("acknowledged Body evidence is retained as source evidence but is no longer called new", () => {
+  const start = detectPersonalInvestigationIntent("I want to understand why my low mood keeps happening");
+  const started = { ...buildPersonalInvestigationJournalRow({ profileKey: "p", event: start, recordedAt: "2026-09-03T10:00:00Z" }), id: "start", created_at: "2026-09-03T10:00:00Z" };
+  const body = { id: "body-1", created_at: "2026-09-03T11:00:00Z", signal: "Bloating", intensity: 7 };
+  const evidence = { source: { journalEntries: { records: [started] }, assessments: { records: [] }, mindEntries: { records: [] }, bodySignals: { records: [body], currentRecords: [body] } } };
+  const first = deriveActivePersonalInvestigation({ journalEntries: [started], evidence });
+  const acknowledgement = buildBodyEvidenceAcknowledgementEvent(first.active);
+  const acknowledged = { ...buildPersonalInvestigationJournalRow({ profileKey: "p", event: acknowledgement, recordedAt: "2026-09-03T12:00:00Z" }), id: "ack", created_at: "2026-09-03T12:00:00Z" };
+  const later = deriveActivePersonalInvestigation({ journalEntries: [started, acknowledged], evidence });
+  assert.deepEqual(later.active.freshBodyEvidence, []);
+  assert.ok(later.active.relevantEvidence.some((item) => item.id === "body-1") || evidence.source.bodySignals.records.some((item) => item.id === "body-1"));
+  assert.doesNotMatch(buildActiveInvestigationFocusReply(later.active), /new Body signal/i);
+});
+
+test("Coach persists the exact Body acknowledgement before future knowledge reloads", () => {
+  const route = fs.readFileSync(new URL("../app/api/root-coach/route.js", import.meta.url), "utf8");
+  const coach = fs.readFileSync(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  assert.match(route, /investigationAcknowledgement:\s*buildBodyEvidenceAcknowledgementEvent/);
+  assert.match(coach, /persistInvestigationAcknowledgement/);
+  assert.match(coach, /action:\s*"save_investigation_event"/);
+  assert.match(coach, /await loadPersonalRootKnowledge\(\)/);
 });
