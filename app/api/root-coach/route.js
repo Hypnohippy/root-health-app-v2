@@ -6,6 +6,7 @@ import {
 } from "../../../lib/personalInvestigationContinuity.js";
 import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
 import { ALLERGY_CLARIFICATION_PROMPT, foodPlanSafetyDecision } from "../../../lib/rootFoodPlanSafety.js";
+import { summariseStructuredBodyObservation } from "../../../lib/bodySignalModel.js";
 
 export const runtime = "nodejs";
 
@@ -20,11 +21,7 @@ function summariseHistory(history = []) {
     .slice(0, 15)
     .map((entry) =>
       [
-        "signal: " + (entry.signal || "unknown"),
-        "context: " + (entry.context || "unknown"),
-        "intensity: " + (entry.intensity || "unknown") + "/10",
-        "helped: " + (entry.what_helped || "not recorded"),
-        "created: " + (entry.created_at || "unknown"),
+        summariseStructuredBodyObservation(entry),
       ].join(", ")
     )
     .join("\n");
@@ -220,6 +217,7 @@ export async function POST(req) {
   personalKnowledge,
   conversation,
   coachMode,
+  journey,
 } = body;
     const clean = String(message || "").trim();
 const lowerMessage = clean.toLowerCase();
@@ -826,6 +824,8 @@ ${summariseProfile(effectiveProfile)}
 
 Recent body signal history:
 ${summariseHistory(history)}
+
+${journey?.bodyObservation ? `Current saved Body observation (authoritative; do not re-ask fields already answered unless they conflict or are ambiguous):\n${summariseStructuredBodyObservation(journey.bodyObservation)}\nThe user note is their stated exploration context, not evidence of a cause. Ask the next unanswered discriminating question.` : "No explicit current Body handoff was supplied."}
 
 Recent mind work:
 ${summariseMind(mindEntries)}

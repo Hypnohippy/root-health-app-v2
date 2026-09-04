@@ -2,6 +2,7 @@
 import { buildRootMemoryService } from "../../../lib/rootMemoryService";
 import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvestigationPolicy.js";
 import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
+import { summariseStructuredBodyObservation } from "../../../lib/bodySignalModel.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -95,18 +96,24 @@ export async function POST(req) {
 Active mode: ${coachMode || "auto"}
 
 ${
-  journey?.currentStage === "coach" && journey?.selectedSignal
-    ? `Current Body-to-Coach handoff (prioritise this over older body history):\nSignal: ${journey.selectedSignal}\nBody areas: ${Array.isArray(journey.bodyAreas) ? journey.bodyAreas.join(", ") : "not recorded"}\nIntensity: ${journey.intensity || "not recorded"}/10`
+  journey?.currentStage === "coach" && journey?.bodyObservation
+    ? `Current saved Body-to-Coach handoff (prioritise this over older body history):\n${summariseStructuredBodyObservation(journey.bodyObservation)}\nDo not re-ask fields already answered unless they conflict or are ambiguous. Treat the user's note as exploration intent, not evidence of cause, and move to the next unanswered discriminating question.`
     : "Current Body-to-Coach handoff: none."
 }
 
 ${summariseProfile(profile)}
 
 ${summariseList("Recent body signals", history, [
+  "location_detail",
+  "symptoms",
+  "timing_contexts",
+  "duration_patterns",
   "signal",
   "context",
   "intensity",
+  "modifiers",
   "what_helped",
+  "notes",
 ])}
 
 ${summariseList("Recent mind entries", mindEntries, [
@@ -175,6 +182,8 @@ Keep the opening warm, natural, and human.
 Avoid sounding like a report or reading observations aloud.
 
 When the user asks you to create something and save it to their Playbook, create the complete useful content first.
+
+You may offer to create a useful Playbook resource, but the offer must explicitly say that it will be saved to Playbook and must end as a clear question. Do not say that you are creating, adding or saving it merely because you proposed it. Wait for the user's explicit affirmative answer. After acceptance, output the complete document only; the app will perform the authenticated save and separately confirm success or failure.
 
 When the user asks to change, replace, remove, add, swap, update, or modify a Playbook item, do not save the change request itself.
 

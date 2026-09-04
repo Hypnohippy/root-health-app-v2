@@ -7,7 +7,7 @@ import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import BodySignalCard from "../../components/body/BodySignalCard";
-import { BODY_SYSTEMS, bodySignalCorrectionRow, bodySignalDraftToRow, bodySignalRowToDraft, bodySignalTombstoneRow, collapseBodySignalSupersession, createBodySignalDraft } from "../../lib/bodySignalModel";
+import { BODY_SYSTEMS, bodySignalCorrectionRow, bodySignalDraftToRow, bodySignalRowToDraft, bodySignalTombstoneRow, buildBodyCoachHandoff, collapseBodySignalSupersession, createBodySignalDraft } from "../../lib/bodySignalModel";
 import { buildBodySignalFeedback } from "../../lib/bodySignalFeedback";
 import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestigationHandoff";
 import { resolvePersonalRootContext } from "../../lib/personalRootContext";
@@ -43,6 +43,7 @@ export default function BodyPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [response, setResponse] = useState("");
+  const [coachJourney, setCoachJourney] = useState(null);
   const [journeyIntro, setJourneyIntro] = useState("");
   const responseRef = useRef(null);
 
@@ -104,6 +105,9 @@ export default function BodyPage() {
     if (saveError || !data) { setError("Something went wrong saving this Body signal. Nothing was changed—please try again."); setSaving(false); return; }
     await loadHistory(profileKey);
     setResponse(buildBodySignalFeedback({ row: data, history: history.filter((entry) => entry.id !== editingId), profile, isCorrection: Boolean(editingId) }));
+    let existingJourney = null;
+    try { existingJourney = JSON.parse(localStorage.getItem("root_journey_v1") || "null"); } catch { /* use only the saved Body record */ }
+    setCoachJourney(buildBodyCoachHandoff(data, existingJourney));
     setEditingId(null); setDraft(null); setSaving(false);
     setTimeout(() => responseRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   };
@@ -118,11 +122,6 @@ export default function BodyPage() {
     await loadHistory(profileKey);
     setResponse("The Body signal has been removed from your active history. Its source and correction record remain preserved.");
   };
-
-  const coachJourney = useMemo(() => {
-    const latest = history[0];
-    return latest ? { bodyAreas: latest.areas, selectedSignal: latest.signal, intensity: latest.intensity, bodySignalId: latest.id, completedBody: true, currentStage: "coach" } : null;
-  }, [history]);
 
   return <RootAtmosphere type="body"><Nav /><main className="body-page"><style>{`
     .body-page{min-height:100vh;padding:104px 20px 120px;box-sizing:border-box;color:#2a261f;font-family:Inter,sans-serif}.body-page-shell{max-width:1180px;margin:0 auto}.body-page-header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}.body-page-header h1{font:500 clamp(34px,5vw,52px) Georgia,serif;margin:0}.body-page-back{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.75);color:#222;text-decoration:none}.body-journey-banner,.body-response,.body-history{padding:22px;border:1px solid rgba(255,255,255,.7);border-radius:25px;background:rgba(250,244,234,.84);box-shadow:0 20px 60px rgba(40,34,25,.12)}.body-journey-banner{margin-bottom:20px}.body-map-layout{display:grid;grid-template-columns:minmax(320px,1fr) minmax(280px,.7fr);gap:24px;align-items:start}.body-map-card,.body-system-list{padding:24px;border-radius:30px;background:rgba(255,255,255,.43);border:1px solid rgba(255,255,255,.72);backdrop-filter:blur(20px)}.body-map-wrap{position:relative;width:min(520px,100%);margin:auto}.body-map-wrap img{display:block;width:100%}.body-map-hotspot{position:absolute;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:transparent;cursor:pointer}.body-map-hotspot:hover,.body-map-hotspot:focus{background:rgba(194,59,48,.28);outline:2px solid white}.body-system-list h2,.body-history h2{font:500 28px Georgia,serif;margin-top:0}.body-system-buttons{display:grid;gap:9px}.body-system-buttons button{padding:13px 15px;text-align:left;border:1px solid rgba(60,50,38,.14);border-radius:15px;background:rgba(255,255,255,.76);cursor:pointer}.body-response{white-space:pre-line;margin:24px 0;scroll-margin-top:96px}.body-history{margin-top:24px}.body-history-list{display:grid;gap:12px}.body-history-item{padding:15px;border-radius:16px;background:rgba(255,255,255,.7)}.body-history-item p{margin:5px 0;color:#5a5145}.body-history-actions{display:flex;gap:8px;margin-top:10px}.body-history-actions button{border:1px solid rgba(60,50,38,.18);border-radius:999px;padding:8px 13px;background:white;cursor:pointer}.body-history-actions .delete{color:#8a2821}.body-coach-link{display:inline-block;margin-top:18px;padding:13px 18px;border-radius:999px;background:#181818;color:white;text-decoration:none}.body-page-error{padding:12px;border-radius:12px;background:#fff0ed;color:#8a2821;font-weight:700}@media(max-width:800px){.body-page{padding:92px 12px 100px}.body-map-layout{grid-template-columns:1fr}.body-map-card,.body-system-list{padding:18px}.body-page-header{align-items:flex-start}}
