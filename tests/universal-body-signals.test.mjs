@@ -8,8 +8,10 @@ import {
   bodySignalRowToDraft,
   bodySignalCorrectionRow,
   bodySignalTombstoneRow,
+  buildBodyCoachHandoff,
   collapseBodySignalSupersession,
   createBodySignalDraft,
+  summariseStructuredBodyObservation,
   toggleBodyChoice,
   validateBodySignalDraft,
 } from "../lib/bodySignalModel.js";
@@ -114,6 +116,56 @@ test("Head abandoned then lower-abdomen bloating saved uses only digestive guida
   assert.equal(saved.location_detail, "Lower abdomen");
   assert.match(response, /meals, hydration and stress/i);
   assert.doesNotMatch(response, /chest|breathing symptoms|screens|bright light|multitasking/i);
+});
+
+test("Body Coach handoff is built from the complete saved observation without inventing stress", () => {
+  const saved = {
+    id: "saved-digestive",
+    profile_key: "profile-1",
+    areas: ["Stomach / gut"],
+    system: "digestive",
+    location_detail: "Lower abdomen",
+    symptoms: ["Bloating"],
+    timing_contexts: ["On waking", "Early morning"],
+    duration_patterns: ["Constant"],
+    intensity: 9,
+    modifiers: ["Nothing noticed"],
+    notes: "I would like to understand why this may be happening",
+    created_at: "2026-09-04T08:00:00Z",
+  };
+  const handoff = buildBodyCoachHandoff(saved);
+  assert.equal(handoff.bodySignalId, saved.id);
+  assert.equal(handoff.bodyObservation.id, saved.id);
+  assert.deepEqual(handoff.bodyObservation.symptoms, saved.symptoms);
+  assert.deepEqual(handoff.bodyObservation.timing_contexts, saved.timing_contexts);
+  assert.deepEqual(handoff.bodyObservation.duration_patterns, saved.duration_patterns);
+  assert.deepEqual(handoff.bodyObservation.modifiers, saved.modifiers);
+  assert.equal(handoff.bodyObservation.location_detail, saved.location_detail);
+  assert.equal(handoff.bodyObservation.notes, saved.notes);
+  assert.equal(handoff.bodyObservation.intensity, saved.intensity);
+  assert.equal(Object.hasOwn(handoff, "focus"), false);
+
+  const summary = summariseStructuredBodyObservation(handoff.bodyObservation);
+  assert.match(summary, /Stomach \/ gut/);
+  assert.match(summary, /Lower abdomen/);
+  assert.match(summary, /Bloating/);
+  assert.match(summary, /On waking, Early morning/);
+  assert.match(summary, /Constant/);
+  assert.match(summary, /9\/10/);
+  assert.match(summary, /Nothing noticed/);
+  assert.match(summary, /understand why this may be happening/);
+  assert.doesNotMatch(summary, /stress/i);
+});
+
+test("Text and Voice Coach consume the structured Body handoff and avoid repeated questions", () => {
+  const textRoute = fs.readFileSync(new URL("../app/api/root-coach/route.js", import.meta.url), "utf8");
+  const voiceRoute = fs.readFileSync(new URL("../app/api/realtime-session/route.js", import.meta.url), "utf8");
+  for (const route of [textRoute, voiceRoute]) {
+    assert.match(route, /summariseStructuredBodyObservation/);
+    assert.match(route, /do not re-ask fields already answered/i);
+    assert.match(route, /next unanswered discriminating question/i);
+    assert.match(route, /not evidence of (?:a )?cause/i);
+  }
 });
 
 test("suggested and custom symptoms, timing, duration and modifiers remain lossless", () => {

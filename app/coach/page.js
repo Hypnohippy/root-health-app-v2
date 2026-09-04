@@ -11,9 +11,12 @@ import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestiga
 import { detectPersonalInvestigationIntent } from "../../lib/personalInvestigationContinuity";
 import {
   cleanVoicePlaybookContent,
+  buildVoicePlaybookConsentIntent,
+  detectVoicePlaybookOffer,
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
   isCompleteVoicePlaybookContent,
+  isExplicitVoiceAgreement,
   persistVoicePlaybookEntry,
 } from "../../lib/voicePlaybookAction";
 import {
@@ -171,6 +174,7 @@ export default function CoachPage() {
   const analyserRef = useRef(null);
   const animationFrameRef = useRef(null);
   const pendingPlaybookSaveRef = useRef(null);
+  const pendingPlaybookOfferRef = useRef(null);
   const pendingFoodClarificationRef = useRef(false);
   const latestAssistantTranscriptRef = useRef("");
   const personalKnowledgeRef = useRef(null);
@@ -278,15 +282,21 @@ if (
     ? parsedJourney.bodyAreas.join(", ")
     : "your body";
 
-  const focus = parsedJourney.focus || "stress";
-  const selectedSignal = parsedJourney.selectedSignal || "the signal you noticed";
+  const focus = parsedJourney.focus || "";
+  const observation = parsedJourney.bodyObservation || null;
+  const selectedSignal = observation?.symptoms?.join(", ") || parsedJourney.selectedSignal || "the signal you noticed";
+  const location = observation?.location_detail || bodyAreas;
 
   setMessages([
     {
       role: "coach",
       content:
         `We’re continuing your Root journey.\n\n` +
-        `You mentioned ${focus} and noticed ${selectedSignal} around ${bodyAreas}.\n\n` +
+        `${focus ? `Earlier in your Root journey, the focus was ${focus}.\n\n` : ""}` +
+        `In your saved Body observation, you noticed ${selectedSignal} around ${location}.\n\n` +
+        `${observation?.timing_contexts?.length ? `You recorded the timing/context as ${observation.timing_contexts.join(", ")}.\n\n` : ""}` +
+        `${observation?.duration_patterns?.length ? `You recorded the pattern as ${observation.duration_patterns.join(", ")}.\n\n` : ""}` +
+        `${observation?.notes ? `You added: “${observation.notes}”\n\n` : ""}` +
         `Let’s gently explore what may be contributing to that pattern.`,
     },
   ]);
@@ -500,6 +510,7 @@ if (!previousUserMessage) {
   mindEntries,
   journalEntries,
   personalKnowledge: investigationResult.knowledge,
+  journey,
   conversation: nextMessages.slice(-10),
   coachMode,
 }),
@@ -732,7 +743,7 @@ dc.onmessage = async (event) => {
   message.type ===
   "conversation.item.input_audio_transcription.completed"
 ) {
-  const transcript = message.transcript || "";
+ const transcript = message.transcript || "";
   console.log("USER SAID:", transcript);
 
   const investigationResult = await persistInvestigationIntent(transcript);
@@ -741,6 +752,29 @@ dc.onmessage = async (event) => {
       type: "response.create",
       response: {
         instructions: "Tell the user that Root understood they want to keep exploring this concern, but could not safely retain the investigation across Root yet. Ask them to try again. Do not claim it was remembered.",
+      },
+    }));
+    return;
+  }
+
+  const acceptedOffer = pendingPlaybookOfferRef.current && isExplicitVoiceAgreement(transcript)
+    ? pendingPlaybookOfferRef.current
+    : null;
+  const consentIntent = acceptedOffer
+    ? buildVoicePlaybookConsentIntent(acceptedOffer, transcript)
+    : null;
+
+  if (consentIntent) {
+    pendingPlaybookSaveRef.current = {
+      title: acceptedOffer.title,
+      category: acceptedOffer.category,
+      userIntent: consentIntent,
+    };
+    pendingPlaybookOfferRef.current = null;
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions: `The user explicitly accepted your Playbook offer: "${acceptedOffer.offer}". Now produce the complete useful document only. Start with Title:. Do not claim it is saved; the app will persist it and confirm only after success.`,
       },
     }));
     return;
@@ -819,6 +853,10 @@ dc.onmessage = async (event) => {
 
   setVoiceTranscript(assistantTranscript);
   latestAssistantTranscriptRef.current = assistantTranscript;
+  if (!pendingPlaybookSaveRef.current) {
+    const offer = detectVoicePlaybookOffer(assistantTranscript);
+    if (offer) pendingPlaybookOfferRef.current = offer;
+  }
 if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
   console.log("PLAYBOOK SAVE BLOCK ENTERED");
 
@@ -892,6 +930,10 @@ setMessages((prev) => [
 ]);
 
 pendingPlaybookSaveRef.current = null;
+dc.send(JSON.stringify({
+  type: "response.create",
+  response: { instructions: 'Say exactly: "Saved to your Playbook."' },
+}));
   } else {
     console.log(
       "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
@@ -912,15 +954,22 @@ if (message.type === "error") {
   console.error("VOICE OR PLAYBOOK ERROR:", error);
 
   pendingPlaybookSaveRef.current = null;
+  pendingPlaybookOfferRef.current = null;
 
   setMessages((prev) => [
     ...prev,
     {
       role: "coach",
       content:
-        "I created that entry, but I couldn’t save it to your Playbook.",
+        "I couldn’t save that to your Playbook. The database write did not complete.",
     },
   ]);
+  if (dataChannelRef.current?.readyState === "open") {
+    dataChannelRef.current.send(JSON.stringify({
+      type: "response.create",
+      response: { instructions: 'Say exactly: "I couldn’t save that to your Playbook. The database write did not complete."' },
+    }));
+  }
 }
 };
 
