@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { buildOwnedPlaybookInsert, buildOwnedPlaybookUpdate } from "../../../lib/personalPlaybookOwnership.js";
+import { validateTrackerAnswers, validateTrackerDefinition } from "../../../lib/playbookTrackerDefinition.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,6 +39,20 @@ export async function POST(req) {
     const body = await req.json();
     const ownership = await resolveOwnedPersonalProfile(req, body);
     if (ownership.response) return ownership.response;
+    if (body.action === "submit_tracker") {
+      const trackerId = String(body.trackerId || "").trim();
+      const { data: tracker, error: trackerError } = await ownership.client.from("playbook_entries").select("id, tracker_definition").eq("id", trackerId).eq("user_id", ownership.userId).eq("profile_key", ownership.profileKey).eq("item_type", "tracker").maybeSingle();
+      if (trackerError) return Response.json({ ok: false, error: trackerError.message }, { status: 500 });
+      if (!tracker) return Response.json({ ok: false, error: "Root could not find an owned tracker." }, { status: 404 });
+      const checked = validateTrackerAnswers(tracker.tracker_definition, body.answers);
+      if (!checked.ok) return Response.json({ ok: false, error: checked.error }, { status: 400 });
+      const { data, error } = await ownership.client.from("playbook_tracker_entries").insert([{ tracker_id: tracker.id, user_id: ownership.userId, profile_key: ownership.profileKey, answers: checked.answers }]).select("id, created_at").single();
+      if (error || !data?.id) return Response.json({ ok: false, error: error?.message || "Tracker entry was not saved." }, { status: 500 });
+      return Response.json({ ok: true, id: data.id, createdAt: data.created_at });
+    }
+    const itemType = body.itemType === "tracker" ? "tracker" : "static";
+    const trackerCheck = itemType === "tracker" ? validateTrackerDefinition(body.trackerDefinition) : { ok: true, definition: null };
+    if (!trackerCheck.ok) return Response.json({ ok: false, error: trackerCheck.error }, { status: 400 });
     const row = buildOwnedPlaybookInsert({
       authenticatedUserId: ownership.userId,
       profileKey: ownership.profileKey,
@@ -45,8 +60,10 @@ export async function POST(req) {
       category: body.category,
       content: body.content,
       source: "Manual",
+      itemType,
+      trackerDefinition: trackerCheck.definition,
     });
-    if (!row.title || !row.content) return Response.json({ ok: false, error: "Title and content are required." }, { status: 400 });
+    if (!row.title || (itemType === "static" && !row.content)) return Response.json({ ok: false, error: "Title and content are required." }, { status: 400 });
     const { data, error } = await ownership.client.from("playbook_entries").insert([row]).select("id").single();
     if (error || !data?.id) return Response.json({ ok: false, error: error?.message || "Playbook entry was not saved." }, { status: 500 });
     return Response.json({ ok: true, id: data.id });

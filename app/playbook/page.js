@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootEnso from "../../components/RootEnso";
 import RootAtmosphere from "../../components/RootAtmosphere";
+import PlaybookTracker from "../../components/playbook/PlaybookTracker";
 import { useRoot } from "../../context/RootContext";
 import {
   createRootDictation,
@@ -583,6 +584,7 @@ const stopReviewVoiceInput = async (
             {filteredEntries.map((entry) => {
               const isOpen = openEntryId === entry.id;
               const lineCount = countLines(entry.content);
+              const isTracker = entry.item_type === "tracker";
 
               return (
                 <div key={entry.id} className="playbook-list-item" style={styles.listItem}>
@@ -595,10 +597,10 @@ const stopReviewVoiceInput = async (
                     <strong style={styles.listTitle}>{entry.title}</strong>
 
                     {isOpen ? (
-                      <PlaybookContent content={entry.content} />
+                      isTracker ? <PlaybookTracker entry={entry} profileKey={profileKey} /> : <PlaybookContent content={entry.content} />
                     ) : (
                       <p style={styles.listPreview}>
-                        {getPreview(entry.content, 90)}
+                        {isTracker ? "Interactive tracker" : getPreview(entry.content, 90)}
                       </p>
                     )}
                   </div>
@@ -619,7 +621,7 @@ const stopReviewVoiceInput = async (
                       {isOpen ? "Hide" : "View"}
                     </button>
 
-                    <button
+                    {!isTracker && <button
                  style={styles.smallViewButton}
                   onClick={() => {
   setOpenEntryId(entry.id);
@@ -636,7 +638,7 @@ const stopReviewVoiceInput = async (
 }}
 >
                  Review with Root Voice
-            </button>
+            </button>}
 
                     <button
                       style={{
@@ -851,6 +853,7 @@ setReviewStatus("saved");
             {filteredEntries.map((entry) => {
               const isOpen = openEntryId === entry.id;
               const lineCount = countLines(entry.content);
+              const isTracker = entry.item_type === "tracker";
 
               return (
                 <article key={entry.id} style={styles.entryCard}>
@@ -872,9 +875,9 @@ setReviewStatus("saved");
                   </div>
 
                   {isOpen ? (
-                    <PlaybookContent content={entry.content} />
+                    isTracker ? <PlaybookTracker entry={entry} profileKey={profileKey} /> : <PlaybookContent content={entry.content} />
                   ) : (
-                    <p style={styles.entryContent}>{getPreview(entry.content)}</p>
+                    <p style={styles.entryContent}>{isTracker ? "Open this tracker to add a new observation." : getPreview(entry.content)}</p>
                   )}
 
                   <div style={styles.actionRow}>
@@ -885,7 +888,7 @@ setReviewStatus("saved");
                       {isOpen ? "Hide full plan" : "View full plan"}
                     </button>
 
-                    <button
+                    {!isTracker && <button
                      style={styles.viewButton}
                     onClick={() => {
   setOpenEntryId(entry.id);
@@ -902,7 +905,7 @@ setReviewStatus("saved");
 }}
 >
                        Review with Root Voice
-                        </button>
+                        </button>}
 
                     <button
                       style={{
