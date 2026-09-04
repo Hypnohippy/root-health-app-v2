@@ -109,6 +109,65 @@ test("abandonment closes the same investigation and explicit change replaces it"
   assert.equal(changed.history.find((item) => item.id === active.id).status, "changed");
 });
 
+test("curiosity about a second issue does not silently replace the active investigation", () => {
+  const active = {
+    id: "investigation:mood:existing",
+    issueKey: "mood",
+    label: "persistent low mood",
+  };
+  assert.equal(
+    detectPersonalInvestigationIntent(
+      "I also want to understand why my sleep is bad",
+      active
+    ),
+    null
+  );
+
+  const replacement = detectPersonalInvestigationIntent(
+    "Instead I want to understand why my sleep is bad",
+    active
+  );
+  assert.equal(replacement.eventType, "started");
+  assert.equal(replacement.issueKey, "sleep");
+  assert.equal(replacement.replacesInvestigationId, active.id);
+});
+
+test("explicit abandonment and resolution continue to close the retained investigation", () => {
+  const active = {
+    id: "investigation:mood:existing",
+    issueKey: "mood",
+    label: "persistent low mood",
+  };
+  assert.equal(
+    detectPersonalInvestigationIntent("I want to stop exploring this investigation", active)?.eventType,
+    "abandoned"
+  );
+  assert.equal(
+    detectPersonalInvestigationIntent("This is no longer a concern", active)?.eventType,
+    "resolved"
+  );
+});
+
+test("broad focus still returns to mood after non-switching curiosity about sleep", () => {
+  const active = {
+    id: "investigation:mood:existing",
+    issueKey: "mood",
+    label: "persistent low mood",
+    reconciledSummary: "The wider picture improved while low mood remains elevated.",
+    relevantEvidence: [],
+    whatRemainsUnknown: "Root has not established why low mood remains elevated.",
+    nextQuestion: "When is the low mood most noticeable?",
+  };
+  assert.equal(
+    detectPersonalInvestigationIntent("I also want to understand why my sleep is bad", active),
+    null
+  );
+  assert.equal(isBroadFocusQuestion("What should I focus on today?"), true);
+  const reply = buildActiveInvestigationFocusReply(active);
+  assert.match(reply, /persistent low mood/i);
+  assert.doesNotMatch(reply, /sleep is bad/i);
+});
+
 test("competing evidence is explained while the explicit active focus stays primary", () => {
   const active = {
     id: "active-mood",
@@ -163,4 +222,3 @@ test("Coach and Voice receive the derived active investigation and text focus is
   assert.match(voiceRoute, /Active Personal investigation/);
   assert.match(voiceRoute, /Return to this when the user asks broadly what to focus on/);
 });
-
