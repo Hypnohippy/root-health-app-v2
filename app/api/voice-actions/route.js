@@ -215,6 +215,7 @@ export async function POST(req) {
 const { data: existingEntry, error: lookupError } = await supabase
   .from("playbook_entries")
   .select("id")
+  .eq("user_id", userData.user.id)
   .eq("profile_key", profileKey)
   .eq("title", title)
   .maybeSingle();
@@ -230,6 +231,7 @@ const { data: savedEntry, error } = existingEntry?.id
   ? await supabase
       .from("playbook_entries")
       .update({
+        user_id: userData.user.id,
         category,
         content,
         source: "Voice Coach",
@@ -240,6 +242,7 @@ const { data: savedEntry, error } = existingEntry?.id
       .single()
   : await supabase.from("playbook_entries").insert([
       {
+        user_id: userData.user.id,
         profile_key: profileKey,
         title,
         category,
