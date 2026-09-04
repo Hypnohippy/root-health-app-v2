@@ -18,7 +18,9 @@ import {
   isCompleteVoicePlaybookContent,
   isExplicitVoiceAgreement,
   persistVoicePlaybookEntry,
+  persistPersonalPlaybookTracker,
 } from "../../lib/voicePlaybookAction";
+import { isTrackerCreationRequest } from "../../lib/playbookTrackerDefinition";
 import {
   ALLERGY_CLARIFICATION_PROMPT,
   classifyAllergyClarificationAnswer,
@@ -426,6 +428,13 @@ if (
 }
 
     const nextMessages = [...messages, { role: "user", content: clean }];
+    if (isTrackerCreationRequest(clean) && hasExplicitPlaybookSaveIntent(clean)) {
+      setMessages(nextMessages); setInput(""); setThinking(true);
+      const { data } = await supabase.auth.getSession();
+      const result = await persistPersonalPlaybookTracker({ accessToken: data.session?.access_token, profileKey, userIntent: clean });
+      setMessages((current) => [...current, { role: "coach", content: result.ok ? `Your ${result.definition.title} is saved in Playbook and ready to use.` : `I couldn’t save that tracker to Playbook. ${result.error || "Please try again."}` }]);
+      setThinking(false); return;
+    }
     const wantsJournalSave =
   lowerClean.includes("save this to my journal") ||
   lowerClean.includes("save that to my journal") ||
@@ -765,6 +774,13 @@ dc.onmessage = async (event) => {
     : null;
 
   if (consentIntent) {
+    if (isTrackerCreationRequest(consentIntent)) {
+      const { data } = await supabase.auth.getSession();
+      const result = await persistPersonalPlaybookTracker({ accessToken: data.session?.access_token, profileKey, userIntent: consentIntent });
+      pendingPlaybookOfferRef.current = null;
+      dc.send(JSON.stringify({ type: "response.create", response: { instructions: result.ok ? `Say exactly: "Your ${result.definition.title} is saved in Playbook and ready to use."` : "Tell the user the tracker could not be saved. Do not say it was created, added, or saved." } }));
+      return;
+    }
     pendingPlaybookSaveRef.current = {
       title: acceptedOffer.title,
       category: acceptedOffer.category,
@@ -781,6 +797,12 @@ dc.onmessage = async (event) => {
   }
 
   if (hasExplicitPlaybookSaveIntent(transcript)) {
+    if (isTrackerCreationRequest(transcript)) {
+      const { data } = await supabase.auth.getSession();
+      const result = await persistPersonalPlaybookTracker({ accessToken: data.session?.access_token, profileKey, userIntent: transcript });
+      dc.send(JSON.stringify({ type: "response.create", response: { instructions: result.ok ? `Say exactly: "Your ${result.definition.title} is saved in Playbook and ready to use."` : "Tell the user the tracker could not be saved. Do not say it was created, added, or saved." } }));
+      return;
+    }
     pendingPlaybookSaveRef.current = {
       ...inferVoicePlaybookMeta(transcript, coachMode),
       userIntent: transcript,

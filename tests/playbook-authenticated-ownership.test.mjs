@@ -47,7 +47,7 @@ test("manual creation and reviewed updates use the authenticated server route", 
   assert.doesNotMatch(page, /from\("playbook_entries"\)[\s\S]{0,100}\.update/);
 });
 
-test("Text Coach has no Playbook mutation path to retrofit", async () => {
+test("Text Coach still has no direct database mutation path", async () => {
   const route = await readFile(new URL("../app/api/root-coach/route.js", import.meta.url), "utf8");
   assert.doesNotMatch(route, /from\("playbook_entries"\).*?(?:insert|update)/s);
 });
