@@ -9,6 +9,7 @@ import {
   bodySignalCorrectionRow,
   bodySignalTombstoneRow,
   collapseBodySignalSupersession,
+  createBodySignalDraft,
   toggleBodyChoice,
   validateBodySignalDraft,
 } from "../lib/bodySignalModel.js";
@@ -51,6 +52,68 @@ test("a broad hotspot alone is not an authoritative saved location", () => {
   const value = draft(BODY_SYSTEMS[1]);
   value.locationDetail = "";
   assert.equal(validateBodySignalDraft(value), false);
+});
+
+test("changing Body systems replaces every abandoned draft field", () => {
+  BODY_SYSTEMS.forEach((first) => {
+    BODY_SYSTEMS.filter((second) => second.id !== first.id).forEach((second) => {
+      const abandoned = {
+        ...createBodySignalDraft(first, first.locations[0]),
+        symptoms: [first.symptoms[0]],
+        customSymptom: "old symptom",
+        timingContexts: ["Morning"],
+        customTiming: "old timing",
+        durationPatterns: ["Weeks"],
+        customDuration: "old duration",
+        intensity: 9,
+        modifiers: ["Rest"],
+        customModifier: "old modifier",
+        notes: "old notes",
+      };
+      assert.ok(abandoned.symptoms.length);
+      const replacement = createBodySignalDraft(second);
+      assert.equal(replacement.system.id, second.id);
+      assert.equal(replacement.locationDetail, "");
+      assert.deepEqual(replacement.symptoms, []);
+      assert.equal(replacement.customSymptom, "");
+      assert.deepEqual(replacement.timingContexts, []);
+      assert.equal(replacement.customTiming, "");
+      assert.deepEqual(replacement.durationPatterns, []);
+      assert.equal(replacement.customDuration, "");
+      assert.equal(replacement.intensity, null);
+      assert.deepEqual(replacement.modifiers, []);
+      assert.equal(replacement.customModifier, "");
+      assert.equal(replacement.notes, "");
+    });
+  });
+});
+
+test("Head abandoned then lower-abdomen bloating saved uses only digestive guidance", () => {
+  const abandonedHead = {
+    ...createBodySignalDraft(BODY_SYSTEMS[0], "Head / face"),
+    symptoms: ["Racing thoughts", "Pressure"],
+    timingContexts: ["Under stress"],
+    durationPatterns: ["Weeks"],
+    intensity: 8,
+    modifiers: ["Reduced stress"],
+    notes: "Head draft",
+  };
+  assert.equal(abandonedHead.system.id, "stress_nerves");
+
+  const stomach = createBodySignalDraft(BODY_SYSTEMS[3], "Lower abdomen");
+  stomach.symptoms = ["Bloating"];
+  stomach.timingContexts = ["After eating"];
+  stomach.durationPatterns = ["A few days"];
+  stomach.intensity = 6;
+  stomach.modifiers = ["Not sure"];
+  const saved = { ...bodySignalDraftToRow(stomach, "profile-1"), id: "saved-stomach" };
+  const response = buildBodySignalFeedback({ saved, row: saved, history: [], profile: {} });
+
+  assert.equal(saved.system, "digestive");
+  assert.deepEqual(saved.areas, ["Stomach / gut"]);
+  assert.equal(saved.location_detail, "Lower abdomen");
+  assert.match(response, /meals, hydration and stress/i);
+  assert.doesNotMatch(response, /chest|breathing symptoms|screens|bright light|multitasking/i);
 });
 
 test("suggested and custom symptoms, timing, duration and modifiers remain lossless", () => {
