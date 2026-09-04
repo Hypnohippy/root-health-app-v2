@@ -15,6 +15,7 @@ import {
   savePersonalPresentationReceipts,
   selectPersonalPresentation,
 } from "../../lib/personalPresentationService";
+import { buildMeaningfulBodyTopics, buildMeaningfulJournalThemes } from "../../lib/personalSemanticEvidence";
 
 function countBy(items, key) {
   const counts = {};
@@ -47,6 +48,7 @@ export default function InsightsPage() {
   const [journey, setJourney] = useState(null);
   const [measuredIntervention, setMeasuredIntervention] = useState(null);
   const [presentation, setPresentation] = useState({ selected: [], emptyReason: null });
+  const [latestTrackerActivity, setLatestTrackerActivity] = useState(null);
 
  useEffect(() => {
   const stored = localStorage.getItem("root_journey_v1");
@@ -103,6 +105,7 @@ export default function InsightsPage() {
   setMeasuredIntervention(
     selectLatestMeasuredIntervention(projection.evidence.interventionOutcomes)
   );
+  setLatestTrackerActivity(projection.evidence.latestTrackerActivity || null);
     try {
   const measurementHistory = await getRootMeasurementHistory({
     limit: 50,
@@ -260,10 +263,9 @@ const wellbeingProgress = useMemo(() => {
 }, [assessments]);
 
     const insights = useMemo(() => {
-    const commonSignals = countBy(bodySignals, "signal");
+    const commonSignals = buildMeaningfulBodyTopics(bodySignals);
     const commonContexts = countBy(bodySignals, "context");
-    const emotionalThemes = countBy(journalEntries, "emotional_theme")
-      .filter(([, count]) => count >= 2);
+    const emotionalThemes = buildMeaningfulJournalThemes(journalEntries);
     const recommendedModes = countBy(journalEntries, "recommended_coach_mode");
     const toolsUsed = countBy(mindEntries, "tool");
 
@@ -393,7 +395,7 @@ const wellbeingProgress = useMemo(() => {
               rows={insights.commonSignals}
             />
 
-            <InsightCard
+            <SupportingMetadataCard
               title="When they show up"
               empty="No context patterns yet."
               rows={insights.commonContexts}
@@ -433,6 +435,16 @@ const wellbeingProgress = useMemo(() => {
                   insights.recentMind
                     ? `${insights.recentMind.emotion || "saved tool"} · ${formatDate(insights.recentMind.created_at)}`
                     : "Use a Mind & Emotions tool to build memory."
+                }
+              />
+
+              <RecentCard
+                label="Latest Playbook tracker entry"
+                title={latestTrackerActivity ? `${latestTrackerActivity.title} — latest entry` : "None yet"}
+                meta={
+                  latestTrackerActivity
+                    ? `${latestTrackerActivity.fields.map((field) => `${field.label}: ${field.value}`).join(" · ")} · ${formatDate(latestTrackerActivity.createdAt)}`
+                    : "Add an entry to an interactive Playbook tracker."
                 }
               />
 
@@ -596,6 +608,18 @@ function InsightCard({ title, rows, empty }) {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+function SupportingMetadataCard({ title, rows, empty }) {
+  return (
+    <div style={styles.card}>
+      <h2 style={styles.cardTitle}>{title}</h2>
+      {rows.length === 0 ? <p style={styles.emptyText}>{empty}</p> : <>
+        <p style={styles.insightNarrative}>Supporting context recorded with your Body signals:</p>
+        <p style={styles.insightSecondary}>{rows.map(([label, count]) => `${label} (${count})`).join(" · ")}</p>
+      </>}
     </div>
   );
 }
