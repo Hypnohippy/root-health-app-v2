@@ -7,7 +7,7 @@ import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import BodySignalCard from "../../components/body/BodySignalCard";
-import { BODY_SYSTEMS, bodySignalCorrectionRow, bodySignalDraftToRow, bodySignalRowToDraft, bodySignalTombstoneRow, collapseBodySignalSupersession } from "../../lib/bodySignalModel";
+import { BODY_SYSTEMS, bodySignalCorrectionRow, bodySignalDraftToRow, bodySignalRowToDraft, bodySignalTombstoneRow, collapseBodySignalSupersession, createBodySignalDraft } from "../../lib/bodySignalModel";
 import { buildBodySignalFeedback } from "../../lib/bodySignalFeedback";
 import { consumePersonalInvestigationHandoff } from "../../lib/personalInvestigationHandoff";
 import { resolvePersonalRootContext } from "../../lib/personalRootContext";
@@ -27,10 +27,6 @@ const bodyZones = [
   { id: "energy_recovery", top: "73%", left: "33%", width: "34%", height: "17%" },
   { id: "sleep_rhythm", top: "88%", left: "35%", width: "30%", height: "8%" },
 ];
-
-function blankDraft(system, locationDetail = "") {
-  return { system, locationDetail, symptoms: [], customSymptom: "", timingContexts: [], customTiming: "", durationPatterns: [], customDuration: "", intensity: null, modifiers: [], customModifier: "", notes: "" };
-}
 
 function signalSummary(row) {
   const symptom = row?.symptoms?.length ? row.symptoms.join(", ") : row?.signal || "Body signal";
@@ -84,7 +80,7 @@ export default function BodyPage() {
       const handoff = consumePersonalInvestigationHandoff({ profileKey: key, destination: "body" });
       if (!handoff) return;
       const system = BODY_SYSTEMS.find((item) => item.id === (handoff.body?.systemId || "energy_recovery")) || BODY_SYSTEMS[10];
-      const next = blankDraft(system);
+      const next = createBodySignalDraft(system);
       if (handoff.body?.signal) next.symptoms = [handoff.body.signal];
       setDraft(next);
       setJourneyIntro(`${handoff.known} ${handoff.question}${handoff.safetyNotice ? ` ${handoff.safetyNotice}` : ""}`);
@@ -95,7 +91,7 @@ export default function BodyPage() {
   const openSystem = (id) => {
     const system = BODY_SYSTEMS.find((item) => item.id === id);
     if (!system) return;
-    setEditingId(null); setDraft(blankDraft(system)); setError(""); setResponse("");
+    setEditingId(null); setDraft(createBodySignalDraft(system)); setError(""); setResponse("");
   };
 
   const save = async () => {
