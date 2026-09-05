@@ -18,6 +18,16 @@ import {
   buildRootVerificationDecision,
 } from "../../../lib/rootVerificationEngine";
 
+import {
+  hrCoachAccessResponse,
+  loadAuthorisedHRCoachEvidence,
+  requireHRCoachOrganisationAccess,
+} from "../../../lib/hrCoachServerAuth";
+
+import {
+  buildOrganisationContext as buildSharedOrganisationContext,
+} from "../../../lib/rootOrganisationContext";
+
 export const runtime = "nodejs";
 
 function safeArray(value) {
@@ -721,18 +731,36 @@ export async function POST(request) {
     const {
   message,
   conversation,
-  organisation,
-  organisationContext:
-    sharedOrganisationContext,
-  members,
-  assessments,
-  mindEntries,
-  journalEntries,
-  voiceSessions,
-  organisationReviews,
+  organisation_id: requestedOrganisationId,
   intent,
   userName,
 } = body || {};
+
+    let authorised;
+
+    try {
+      authorised = await requireHRCoachOrganisationAccess({
+        request,
+        organisationId: requestedOrganisationId,
+      });
+    } catch (accessError) {
+      return hrCoachAccessResponse(accessError);
+    }
+
+    const {
+      organisation,
+      organisationContext: sharedOrganisationContext,
+      members,
+      assessments,
+      mindEntries,
+      journalEntries,
+      voiceSessions,
+      organisationReviews,
+    } = await loadAuthorisedHRCoachEvidence({
+      supabase: authorised.supabase,
+      organisationId: authorised.organisationId,
+      buildSharedContext: buildSharedOrganisationContext,
+    });
 
     const cleanMessage = String(message || "").trim();
 

@@ -1,8 +1,24 @@
+import {
+  hrCoachAccessResponse,
+  requireHRCoachOrganisationAccess,
+} from "../../../lib/hrCoachServerAuth";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(request) {
   try {
+    const body = await request.json().catch(() => ({}));
+
+    try {
+      await requireHRCoachOrganisationAccess({
+        request,
+        organisationId: body?.organisation_id,
+      });
+    } catch (accessError) {
+      return hrCoachAccessResponse(accessError);
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       return Response.json(
         {
