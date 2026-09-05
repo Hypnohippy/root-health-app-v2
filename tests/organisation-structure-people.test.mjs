@@ -26,7 +26,7 @@ test("the page uses the existing organisation structure tables and ownership fie
   assert.match(source, /created_by: user\.id/);
 });
 
-test("the additive page exposes the approved setup actions and keeps final confirmation disabled", async () => {
+test("the additive page exposes the approved setup actions", async () => {
   const source = await readFile(pagePath, "utf8");
 
   assert.match(source, />Add people</);

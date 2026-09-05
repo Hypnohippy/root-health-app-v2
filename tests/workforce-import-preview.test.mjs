@@ -75,15 +75,16 @@ test("preview reports invalid and duplicate identity, placement, manager and exi
   assert.equal(preview.summary.departments, 1);
 });
 
-test("preview hierarchy remains proposed data and does not write live organisation tables", async () => {
+test("preview requires explicit server-authorised confirmation before applying live changes", async () => {
   const component = await readFile(componentPath, "utf8");
   const page = await readFile(pagePath, "utf8");
 
   assert.match(component, /accept="\.xlsx,\.csv"/);
   assert.match(component, /await import\("xlsx"\)/);
   assert.match(component, /Preview only — no live changes/);
-  assert.match(component, /Confirm structure &amp; prepare invitations · Coming next/);
-  assert.doesNotMatch(component, /supabase|organisation_members"\)\.insert|organisation_units"\)\.insert/);
+  assert.match(component, /Confirm organisation structure/);
+  assert.match(component, /Authorization: `Bearer \$\{token\}`/);
+  assert.doesNotMatch(component, /organisation_members"\)\.insert|organisation_units"\)\.insert/);
   assert.match(page, /activeMembership\.role !== "organisation_admin"/);
 });
 

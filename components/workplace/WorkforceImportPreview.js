@@ -8,6 +8,8 @@ import {
   buildWorkforcePreview,
   proposeWorkforceMappings,
 } from "../../lib/workforceImportPreview";
+import { deriveHierarchyFields } from "../../lib/workforceImportApply";
+import { supabase } from "../../lib/supabase";
 
 const MAX_PREVIEW_ROWS = 5000;
 
@@ -22,7 +24,7 @@ function Stat({ value, label }) {
   return <div className="importStat"><strong>{Number(value || 0).toLocaleString("en-GB")}</strong><span>{label}</span></div>;
 }
 
-export default function WorkforceImportPreview({ existingMembers = [], onClose }) {
+export default function WorkforceImportPreview({ organisationId, existingMembers = [], onApplied, onClose }) {
   const fileRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -32,6 +34,10 @@ export default function WorkforceImportPreview({ existingMembers = [], onClose }
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
   const [mappings, setMappings] = useState({});
+  const [serverPlan, setServerPlan] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [result, setResult] = useState(null);
 
   const preview = useMemo(
     () => buildWorkforcePreview({ rows, columns, mappings, existingMembers }),
@@ -92,6 +98,8 @@ export default function WorkforceImportPreview({ existingMembers = [], onClose }
   }
 
   function updateMapping(columnKey, field) {
+    setServerPlan(null);
+    setConfirmed(false);
     setMappings((current) => ({
       ...current,
       [columnKey]: {
@@ -110,6 +118,39 @@ export default function WorkforceImportPreview({ existingMembers = [], onClose }
   }
 
   const hasFile = columns.length > 0;
+
+  async function submitConfirmation(action) {
+    setError("");
+    setConfirming(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error("Root could not verify your signed-in account.");
+      const response = await fetch("/api/organisation/workforce-import", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          confirmed: action === "apply" && confirmed,
+          organisation_id: organisationId,
+          canonical_rows: preview.canonicalRows,
+          hierarchy_fields: deriveHierarchyFields(columns, mappings),
+          expected_plan_fingerprint: action === "apply" ? serverPlan?.plan_fingerprint : undefined,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Root could not confirm this structure.");
+      if (action === "plan") setServerPlan(payload);
+      else {
+        setResult(payload.result);
+        await onApplied?.();
+      }
+    } catch (submitError) {
+      setError(submitError?.message || "Root could not confirm this structure.");
+    } finally {
+      setConfirming(false);
+    }
+  }
 
   return (
     <section className="importer" aria-label="Adaptive workforce import preview">
@@ -220,13 +261,24 @@ export default function WorkforceImportPreview({ existingMembers = [], onClose }
               <div className="tableScroll"><table><thead><tr><th>Name</th><th>Email</th><th>Division</th><th>Department</th><th>Team</th><th>Location</th><th>Manager</th></tr></thead><tbody>{preview.canonicalRows.slice(0, 12).map((row) => <tr key={row.source_row}><td>{row.name || "—"}</td><td>{row.email || "—"}</td><td>{row.division || "—"}</td><td>{row.department || "—"}</td><td>{row.team || "—"}</td><td>{row.location || "—"}</td><td>{row.manager || "—"}</td></tr>)}</tbody></table></div>
             </details>
 
-            <button type="button" className="futureButton" disabled>Confirm structure &amp; prepare invitations · Coming next</button>
+            {result ? (
+              <div className="confirmationBox"><strong>Organisation structure confirmed.</strong><span>{result.createdUnits} units created · {result.createdPeople} people added · {result.updatedPeople} people updated · {result.excludedRows} excluded.</span></div>
+            ) : serverPlan ? (
+              <div className="confirmationBox">
+                <strong>Confirm exactly what Root will apply</strong>
+                <span>{serverPlan.summary.units} units will be created or reused · {serverPlan.summary.people} people will be created · {serverPlan.summary.existingPeople} existing people will be updated · {serverPlan.summary.excluded} records require resolution and will not be applied.</span>
+                <label className="confirmCheck"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /> I confirm this reviewed structure for my organisation.</label>
+                <button type="button" className="confirmButton" disabled={!confirmed || confirming} onClick={() => submitConfirmation("apply")}>{confirming ? "Confirming…" : "Confirm organisation structure"}</button>
+              </div>
+            ) : (
+              <button type="button" className="confirmButton" disabled={confirming || preview.validation.mappingIssues > 0} onClick={() => submitConfirmation("plan")}>{confirming ? "Checking live organisation…" : "Review final organisation changes"}</button>
+            )}
           </section>
         </>
       ) : null}
 
       <style jsx>{`
-        .importer{margin:18px 0;padding:28px;border-radius:30px;background:rgba(255,255,255,.82);border:1px solid rgba(30,45,34,.08);box-shadow:0 20px 60px rgba(40,47,37,.08);color:#243027}.importHeader,.sectionHeading,.fileSummary{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.importHeader h2,.sectionHeading h3{margin:0;font:500 30px/1.15 Georgia,serif}.importHeader p,.sectionHeading p{max-width:680px;color:#657066;line-height:1.55}.importKicker{margin:0 0 7px!important;text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:900;color:#68745e!important}.closeButton{border:1px solid rgba(37,74,61,.14);border-radius:999px;padding:10px 15px;background:white;color:#29483d;font-weight:800;cursor:pointer}.dropZone{position:relative;display:grid;justify-items:center;gap:9px;margin:24px 0;padding:35px 20px;border:2px dashed rgba(37,74,61,.22);border-radius:22px;background:#f7faf7;text-align:center}.dropZone.dragging{border-color:#315849;background:#edf5ef}.dropZone input{position:absolute;width:1px;height:1px;opacity:0}.dropZone button{border:0;border-radius:999px;padding:12px 20px;background:#254a3d;color:white;font-weight:800;cursor:pointer}.dropZone button:disabled{opacity:.5}.fileIcon{font-size:34px;color:#315849}.dropZone small{color:#6f776f}.importError,.permissionNote{padding:15px 18px;border-radius:16px;background:#fff0ed;color:#813b32}.fileSummary{align-items:center;padding:15px 18px;border-radius:17px;background:#edf3eb}.fileSummary div{display:grid;gap:3px}.fileSummary span{font-size:12px;color:#687168}.safeBadge{padding:8px 12px;border-radius:999px;background:white;color:#315849!important;font-weight:800}.mappingSection,.previewSection{margin-top:24px;padding-top:24px;border-top:1px solid rgba(30,45,34,.09)}.mappingList{display:grid;gap:8px;margin:18px 0}.mappingRow{display:grid;grid-template-columns:minmax(170px,1fr) auto minmax(180px,.7fr) 110px;align-items:center;gap:12px;padding:13px 15px;border-radius:15px;background:rgba(244,247,242,.82)}.mappingRow>div{display:grid;gap:3px;min-width:0}.mappingRow small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#737b73}.mappingRow select{width:100%;padding:10px;border:1px solid rgba(37,74,61,.15);border-radius:11px;background:white}.mappingRow em{font-style:normal;font-size:11px;font-weight:900}.mappingRow em.review{color:#9a641c}.mappingRow em.clear{color:#2f6b4e}.permissionNote{background:#f2f0e7;color:#5e5948}.importStats{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:18px 0}.importStat{display:grid;gap:3px;padding:15px;border-radius:16px;background:#f3f7f2}.importStat strong{font-size:24px;color:#29483d}.importStat span{font-size:11px;color:#687168}.previewGrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:15px}.hierarchyPreview,.attentionPanel{padding:20px;border-radius:20px;background:#f8faf7;border:1px solid rgba(37,74,61,.08)}.hierarchyPreview h4,.attentionPanel h4{margin:0 0 14px;font-size:16px}.divisionNode{padding:12px;border-left:3px solid #315849}.departmentNodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;margin-top:9px}.departmentNode{display:grid;gap:3px;padding:10px;border-radius:11px;background:white}.departmentNode small{color:#737b73}.attentionPanel p{color:#687168;line-height:1.45}.issueList{display:grid;gap:7px;max-height:330px;overflow:auto}.issueList div{padding:9px 10px;border-radius:10px;background:#fff5e8;color:#725329;font-size:12px}.peoplePreview{margin-top:15px;padding:15px;border-radius:16px;background:#f8faf7}.peoplePreview summary{cursor:pointer;font-weight:900}.tableScroll{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:900px}th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(30,45,34,.08);font-size:12px}th{color:#526056}.futureButton{width:100%;margin-top:16px;padding:15px;border:0;border-radius:999px;background:#315849;color:white;font-weight:900;opacity:.55}.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+        .importer{margin:18px 0;padding:28px;border-radius:30px;background:rgba(255,255,255,.82);border:1px solid rgba(30,45,34,.08);box-shadow:0 20px 60px rgba(40,47,37,.08);color:#243027}.importHeader,.sectionHeading,.fileSummary{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.importHeader h2,.sectionHeading h3{margin:0;font:500 30px/1.15 Georgia,serif}.importHeader p,.sectionHeading p{max-width:680px;color:#657066;line-height:1.55}.importKicker{margin:0 0 7px!important;text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:900;color:#68745e!important}.closeButton{border:1px solid rgba(37,74,61,.14);border-radius:999px;padding:10px 15px;background:white;color:#29483d;font-weight:800;cursor:pointer}.dropZone{position:relative;display:grid;justify-items:center;gap:9px;margin:24px 0;padding:35px 20px;border:2px dashed rgba(37,74,61,.22);border-radius:22px;background:#f7faf7;text-align:center}.dropZone.dragging{border-color:#315849;background:#edf5ef}.dropZone input{position:absolute;width:1px;height:1px;opacity:0}.dropZone button{border:0;border-radius:999px;padding:12px 20px;background:#254a3d;color:white;font-weight:800;cursor:pointer}.dropZone button:disabled{opacity:.5}.fileIcon{font-size:34px;color:#315849}.dropZone small{color:#6f776f}.importError,.permissionNote{padding:15px 18px;border-radius:16px;background:#fff0ed;color:#813b32}.fileSummary{align-items:center;padding:15px 18px;border-radius:17px;background:#edf3eb}.fileSummary div{display:grid;gap:3px}.fileSummary span{font-size:12px;color:#687168}.safeBadge{padding:8px 12px;border-radius:999px;background:white;color:#315849!important;font-weight:800}.mappingSection,.previewSection{margin-top:24px;padding-top:24px;border-top:1px solid rgba(30,45,34,.09)}.mappingList{display:grid;gap:8px;margin:18px 0}.mappingRow{display:grid;grid-template-columns:minmax(170px,1fr) auto minmax(180px,.7fr) 110px;align-items:center;gap:12px;padding:13px 15px;border-radius:15px;background:rgba(244,247,242,.82)}.mappingRow>div{display:grid;gap:3px;min-width:0}.mappingRow small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#737b73}.mappingRow select{width:100%;padding:10px;border:1px solid rgba(37,74,61,.15);border-radius:11px;background:white}.mappingRow em{font-style:normal;font-size:11px;font-weight:900}.mappingRow em.review{color:#9a641c}.mappingRow em.clear{color:#2f6b4e}.permissionNote{background:#f2f0e7;color:#5e5948}.importStats{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:18px 0}.importStat{display:grid;gap:3px;padding:15px;border-radius:16px;background:#f3f7f2}.importStat strong{font-size:24px;color:#29483d}.importStat span{font-size:11px;color:#687168}.previewGrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:15px}.hierarchyPreview,.attentionPanel{padding:20px;border-radius:20px;background:#f8faf7;border:1px solid rgba(37,74,61,.08)}.hierarchyPreview h4,.attentionPanel h4{margin:0 0 14px;font-size:16px}.divisionNode{padding:12px;border-left:3px solid #315849}.departmentNodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;margin-top:9px}.departmentNode{display:grid;gap:3px;padding:10px;border-radius:11px;background:white}.departmentNode small{color:#737b73}.attentionPanel p{color:#687168;line-height:1.45}.issueList{display:grid;gap:7px;max-height:330px;overflow:auto}.issueList div{padding:9px 10px;border-radius:10px;background:#fff5e8;color:#725329;font-size:12px}.peoplePreview{margin-top:15px;padding:15px;border-radius:16px;background:#f8faf7}.peoplePreview summary{cursor:pointer;font-weight:900}.tableScroll{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:900px}th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(30,45,34,.08);font-size:12px}th{color:#526056}.confirmButton{width:100%;margin-top:16px;padding:15px;border:0;border-radius:999px;background:#315849;color:white;font-weight:900;cursor:pointer}.confirmButton:disabled{opacity:.5;cursor:not-allowed}.confirmationBox{display:grid;gap:12px;margin-top:16px;padding:18px;border-radius:17px;background:#edf3eb}.confirmationBox span{line-height:1.5;color:#5d685f}.confirmCheck{display:flex;align-items:center;gap:9px;font-weight:700}.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
         @media(max-width:1100px){.importStats{grid-template-columns:repeat(3,1fr)}.previewGrid{grid-template-columns:1fr}.mappingRow{grid-template-columns:minmax(150px,1fr) auto minmax(160px,1fr)}.mappingRow em{grid-column:3}}
         @media(max-width:700px){.importer{padding:19px}.importHeader,.sectionHeading,.fileSummary{flex-direction:column}.mappingRow{grid-template-columns:1fr}.mappingRow>span{display:none}.mappingRow em{grid-column:auto}.importStats{grid-template-columns:repeat(2,1fr)}.safeBadge{align-self:flex-start}}
       `}</style>
