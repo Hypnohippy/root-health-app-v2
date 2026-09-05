@@ -351,6 +351,7 @@ function RootContextCard({ context }) {
   const [message, setMessage] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [hrApiAccess, setHRApiAccess] = useState(null);
 
   const conversationEndRef = useRef(null);
   const peerConnectionRef = useRef(null);
@@ -388,6 +389,18 @@ function RootContextCard({ context }) {
 
     const membership = access.membership;
     const orgId = membership.organisation_id;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token || "";
+
+    if (!accessToken) {
+      window.location.href = "/login";
+      return;
+    }
+
+    setHRApiAccess({
+      accessToken,
+      organisationId: orgId,
+    });
 
     try {
   const context =
@@ -523,6 +536,7 @@ function RootContextCard({ context }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${hrApiAccess?.accessToken || ""}`,
         },
         body: JSON.stringify({
           message: cleanMessage,
@@ -532,14 +546,7 @@ function RootContextCard({ context }) {
   content: entry.content,
 })),
 
-          organisation,
-          organisationContext,
-          members,
-          assessments,
-          mindEntries,
-          journalEntries,
-          voiceSessions,
-          organisationReviews,
+          organisation_id: hrApiAccess?.organisationId,
 
           intent:
   event.starterIntent ||
@@ -628,6 +635,7 @@ async function requestOrganisationReply(spokenMessage) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${hrApiAccess?.accessToken || ""}`,
       },
       body: JSON.stringify({
         message: cleanMessage,
@@ -637,14 +645,7 @@ async function requestOrganisationReply(spokenMessage) {
           content: entry.content,
         })),
 
-        organisation,
-        organisationContext,
-        members,
-        assessments,
-        mindEntries,
-        journalEntries,
-        voiceSessions,
-        organisationReviews,
+        organisation_id: hrApiAccess?.organisationId,
 
         intent: "voice_evidence_discussion",
                }),
@@ -851,6 +852,13 @@ async function startVoiceConversation() {
       "/api/hr-voice-session",
       {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${hrApiAccess?.accessToken || ""}`,
+        },
+        body: JSON.stringify({
+          organisation_id: hrApiAccess?.organisationId,
+        }),
       }
     );
 

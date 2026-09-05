@@ -14,7 +14,8 @@
     "test:voice-playbook": "node --experimental-default-type=module --test tests/voice-playbook-persistence.test.mjs",
     "test:personal-integration-5a": "node --experimental-default-type=module --test tests/personal-integration-pass-5a.test.mjs",
     "test:personal-integration-5b": "node --experimental-default-type=module --test tests/personal-integration-pass-5b.test.mjs",
-    "test:personal-investigations": "node --experimental-default-type=module --test tests/personal-investigation-continuity.test.mjs"
+    "test:personal-investigations": "node --experimental-default-type=module --test tests/personal-investigation-continuity.test.mjs",
+    "test:hr-coach-security": "node --experimental-default-type=module --test tests/hr-coach-security.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
