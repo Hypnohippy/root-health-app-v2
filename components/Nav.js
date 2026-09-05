@@ -7,7 +7,10 @@ import ExperienceSwitcher from "./ExperienceSwitcher";
 export default function Nav() {
   const [open, setOpen] = useState(false);
 
-  const { activeExperience } = useRoot();
+  const { activeExperience, identity } = useRoot();
+
+  const activeWorkplaceMembership =
+    identity?.workplace?.activeOrganisation || null;
 
   const personalLinks = [
     { href: "/", label: "Home" },
@@ -30,6 +33,14 @@ export default function Nav() {
       href: "/organisation-learning",
       label: "Organisation Learning",
     },
+    ...(activeWorkplaceMembership?.role === "organisation_admin"
+      ? [
+          {
+            href: "/organisation-structure",
+            label: "Structure & People",
+          },
+        ]
+      : []),
     {
       href: "/hr-coach",
       label: "Ask Root",
@@ -102,13 +113,13 @@ export default function Nav() {
       )}
 
       <style jsx>{`
-        @media (max-width: 760px) {
+        @media (max-width: 960px) {
           nav div {
             display: none !important;
           }
         }
 
-        @media (min-width: 761px) {
+        @media (min-width: 961px) {
           nav button {
             display: none !important;
           }
