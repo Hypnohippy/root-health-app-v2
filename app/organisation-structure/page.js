@@ -6,6 +6,7 @@ import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import RootModal from "../../components/workplace/RootModal";
+import WorkforceImportPreview from "../../components/workplace/WorkforceImportPreview";
 import { getRootIdentity } from "../../lib/rootIdentity";
 import { supabase } from "../../lib/supabase";
 
@@ -84,6 +85,7 @@ export default function OrganisationStructurePage() {
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showUnitModal, setShowUnitModal] = useState(false);
   const [showPeoplePanel, setShowPeoplePanel] = useState(false);
+  const [showWorkforceImport, setShowWorkforceImport] = useState(false);
   const [newUnitName, setNewUnitName] = useState("");
   const [newUnitType, setNewUnitType] = useState("department");
   const [newUnitParentId, setNewUnitParentId] = useState("");
@@ -275,10 +277,10 @@ export default function OrganisationStructurePage() {
               <strong>Add people</strong>
               <small>Invite employees into this organisation</small>
             </button>
-            <button type="button" className="actionCard coming" disabled>
+            <button type="button" className="actionCard" onClick={() => setShowWorkforceImport(true)}>
               <span className="actionIcon">▦</span>
               <strong>Upload staff spreadsheet</strong>
-              <small>Coming next</small>
+              <small>Map and preview your existing workforce export</small>
             </button>
             <button type="button" className="actionCard primary" onClick={() => openCreateUnit()}>
               <span className="actionIcon">⌘</span>
@@ -286,6 +288,13 @@ export default function OrganisationStructurePage() {
               <small>Add a department, team, site or business unit</small>
             </button>
           </section>
+
+          {showWorkforceImport ? (
+            <WorkforceImportPreview
+              existingMembers={members}
+              onClose={() => setShowWorkforceImport(false)}
+            />
+          ) : null}
 
           {showPeoplePanel ? (
             <section className="inviteCard">
