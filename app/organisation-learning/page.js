@@ -2459,13 +2459,25 @@ window.scrollTo({
 
             <div className="heroActions">
               {!isOnboarding && (
-  <button
-    className="quietButton"
-    type="button"
-    onClick={goBackToOrganisationInsights}
-  >
-    Continue to Organisation Insights
-  </button>
+  <>
+    <button
+      className="quietButton"
+      type="button"
+      onClick={goBackToOrganisationInsights}
+    >
+      Continue to Organisation Insights
+    </button>
+
+    {membership?.role === "organisation_admin" ? (
+      <button
+        className="quietButton"
+        type="button"
+        onClick={() => router.push("/organisation-structure")}
+      >
+        Organisation Structure &amp; People
+      </button>
+    ) : null}
+  </>
 )}
 
               <span className="timePill">Estimated time: 2–3 minutes</span>
