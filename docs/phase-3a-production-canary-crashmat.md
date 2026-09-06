@@ -86,3 +86,19 @@ Use the saved pre-import exports as authority. In one reviewed transaction: rest
 ## 5. Outstanding production gate
 
 The production compatibility queries and snapshot/export must be completed by an authenticated Supabase operator before migration execution. The fictional CSV must also be supplied and reviewed before the first import. No migration, deployment, merge, or production import should proceed while either item is outstanding.
+
+## 6. Final Test Ltd canary outcome — 6 September 2026
+
+The Phase 3A production canary completed successfully using only the reviewed fictional 10-person workforce CSV and the explicitly authorised Final Test Ltd organisation.
+
+- Production compatibility checks passed and the secured pre-import unit and membership snapshots were retained outside the repository.
+- The additive migration was installed successfully. Post-migration verification confirmed the approved columns, generated fields, constraints, indexes, RLS policies, audit trigger and composite organisation-scoped keys.
+- The default PostgreSQL function privilege was corrected so `anon` cannot execute the helper or apply functions. The repository migration contains the same verified revocation/grant boundary as production.
+- The first preview exposed that the source-column order would place Location below Department and Team. The reviewed hierarchy control was added so mapped structural dimensions can be reordered or excluded without altering the uploaded data.
+- The accepted canary hierarchy was `Location → Department → Team`. Head Office, Maidstone and London were each represented once as shared top-level site branches.
+- The initial transactional apply succeeded: 10 units created, 10 workforce people added, 0 people updated and 0 records excluded.
+- Post-import checks confirmed 10 active workforce people, 10 unique employee references, 10 unique business emails, correct placements and manager relationships, spreadsheet-import provenance, no duplicate units, no cross-organisation links, and no membership or invitation creation. The three original units and all five original memberships remained unchanged.
+- Reconfirming the exact same reviewed import proved idempotency: 0 units created, 0 people added, 10 existing people updated/reconfirmed, 0 memberships aligned and 0 records excluded. All 10 workforce-person UUIDs and all 10 canary-unit UUIDs were preserved and duplicate counts remained one.
+- A deliberately invalid two-person import used a unique `Rollback Test Site → Rollback Test Department → Rollback Test Team` hierarchy and a self-manager reference. The final server preview contained only those disposable records. The RPC failed during manager resolution as intended, and rollback verification confirmed no test units or people survived and the accepted canary structure, relationships and memberships remained unchanged.
+
+The migration, compatibility, atomicity, rollback and application preview gates are therefore complete. PR #41 remains draft and unmerged pending an explicit merge/deployment decision. No further canary imports are authorised by this record.
