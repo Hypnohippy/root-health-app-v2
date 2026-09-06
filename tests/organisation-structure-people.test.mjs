@@ -26,13 +26,12 @@ test("the page uses the existing organisation structure tables and ownership fie
   assert.match(source, /created_by: user\.id/);
 });
 
-test("the additive page exposes the approved setup actions without pretending upload is live", async () => {
+test("the additive page exposes the approved setup actions", async () => {
   const source = await readFile(pagePath, "utf8");
 
   assert.match(source, />Add people</);
   assert.match(source, />Upload staff spreadsheet</);
-  assert.match(source, />Coming next</);
-  assert.match(source, /className="actionCard coming" disabled/);
+  assert.match(source, /setShowWorkforceImport\(true\)/);
   assert.match(source, />Build structure</);
   assert.match(source, /This is where you add your people and organise them into the right departments and teams\./);
 });

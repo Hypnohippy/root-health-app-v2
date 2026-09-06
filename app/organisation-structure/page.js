@@ -6,6 +6,7 @@ import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import RootModal from "../../components/workplace/RootModal";
+import WorkforceImportPreview from "../../components/workplace/WorkforceImportPreview";
 import { getRootIdentity } from "../../lib/rootIdentity";
 import { supabase } from "../../lib/supabase";
 
@@ -81,9 +82,11 @@ export default function OrganisationStructurePage() {
   const [membership, setMembership] = useState(null);
   const [units, setUnits] = useState([]);
   const [members, setMembers] = useState([]);
+  const [people, setPeople] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showUnitModal, setShowUnitModal] = useState(false);
   const [showPeoplePanel, setShowPeoplePanel] = useState(false);
+  const [showWorkforceImport, setShowWorkforceImport] = useState(false);
   const [newUnitName, setNewUnitName] = useState("");
   const [newUnitType, setNewUnitType] = useState("department");
   const [newUnitParentId, setNewUnitParentId] = useState("");
@@ -95,8 +98,8 @@ export default function OrganisationStructurePage() {
     loadPage();
   }, []);
 
-  async function loadPage() {
-    setLoading(true);
+  async function loadPage(showPageLoading = true) {
+    if (showPageLoading) setLoading(true);
     setError("");
 
     const identity = await getRootIdentity();
@@ -114,7 +117,7 @@ export default function OrganisationStructurePage() {
     const organisationId = activeMembership.organisation_id;
     setMembership(activeMembership);
 
-    const [organisationResult, unitResult, memberResult] = await Promise.all([
+    const [organisationResult, unitResult, memberResult, peopleResult] = await Promise.all([
       supabase.from("organisations").select("*").eq("id", organisationId).maybeSingle(),
       supabase
         .from("organisation_units")
@@ -126,9 +129,14 @@ export default function OrganisationStructurePage() {
         .select("id, organisation_id, organisation_unit_id, user_id, profile_key, email, name, department, role, activated_at, created_at")
         .eq("organisation_id", organisationId)
         .order("created_at", { ascending: true }),
+      supabase
+        .from("organisation_people")
+        .select("id, organisation_id, organisation_member_id, organisation_unit_id, manager_person_id, employee_reference_id, name, business_email, job_title, location, workforce_status, source, last_confirmed_at")
+        .eq("organisation_id", organisationId)
+        .order("name", { ascending: true }),
     ]);
 
-    const loadError = organisationResult.error || unitResult.error || memberResult.error;
+    const loadError = organisationResult.error || unitResult.error || memberResult.error || peopleResult.error;
     if (loadError || !organisationResult.data) {
       setError(loadError?.message || "Root could not load this organisation structure.");
       setLoading(false);
@@ -138,6 +146,7 @@ export default function OrganisationStructurePage() {
     setOrganisation(organisationResult.data);
     setUnits(Array.isArray(unitResult.data) ? unitResult.data : []);
     setMembers(Array.isArray(memberResult.data) ? memberResult.data : []);
+    setPeople(Array.isArray(peopleResult.data) ? peopleResult.data : []);
     setLoading(false);
   }
 
@@ -147,6 +156,10 @@ export default function OrganisationStructurePage() {
   );
 
   const assignedMemberCount = members.filter((member) => member.organisation_unit_id).length;
+  const activePeople = people.filter((person) => person.workforce_status === "active");
+  const linkedMemberIds = new Set(activePeople.map((person) => person.organisation_member_id).filter(Boolean));
+  const displayedPeople = [...activePeople, ...members.filter((member) => !linkedMemberIds.has(member.id))];
+  const assignedPeopleCount = displayedPeople.filter((person) => person.organisation_unit_id).length;
   const departmentCount = units.filter((unit) => unit.unit_type === "department").length;
   const teamCount = units.filter((unit) => unit.unit_type === "team").length;
   const siteCount = units.filter((unit) => ["site", "region", "country"].includes(unit.unit_type)).length;
@@ -233,7 +246,7 @@ export default function OrganisationStructurePage() {
   }
 
   const selectedMembers = selectedUnit
-    ? members.filter((member) => member.organisation_unit_id === selectedUnit.id)
+    ? displayedPeople.filter((person) => person.organisation_unit_id === selectedUnit.id)
     : [];
 
   if (loading) {
@@ -275,10 +288,10 @@ export default function OrganisationStructurePage() {
               <strong>Add people</strong>
               <small>Invite employees into this organisation</small>
             </button>
-            <button type="button" className="actionCard coming" disabled>
+            <button type="button" className="actionCard" onClick={() => setShowWorkforceImport(true)}>
               <span className="actionIcon">▦</span>
               <strong>Upload staff spreadsheet</strong>
-              <small>Coming next</small>
+              <small>Map and preview your existing workforce export</small>
             </button>
             <button type="button" className="actionCard primary" onClick={() => openCreateUnit()}>
               <span className="actionIcon">⌘</span>
@@ -286,6 +299,15 @@ export default function OrganisationStructurePage() {
               <small>Add a department, team, site or business unit</small>
             </button>
           </section>
+
+          {showWorkforceImport ? (
+            <WorkforceImportPreview
+              organisationId={organisation?.id}
+              existingMembers={members}
+              onApplied={() => loadPage(false)}
+              onClose={() => setShowWorkforceImport(false)}
+            />
+          ) : null}
 
           {showPeoplePanel ? (
             <section className="inviteCard">
@@ -307,9 +329,9 @@ export default function OrganisationStructurePage() {
           <section className="stats" aria-label="Organisation statistics">
             <div><strong>{departmentCount}</strong><span>Departments</span></div>
             <div><strong>{teamCount}</strong><span>Teams</span></div>
-            <div><strong>{members.length}</strong><span>People</span></div>
+            <div><strong>{displayedPeople.length}</strong><span>People</span></div>
             <div><strong>{siteCount}</strong><span>Sites / locations</span></div>
-            <div><strong>{assignedMemberCount}</strong><span>Placed in structure</span></div>
+            <div><strong>{activePeople.length ? assignedPeopleCount : assignedMemberCount}</strong><span>Placed in structure</span></div>
           </section>
 
           <div className="workspace">
@@ -324,7 +346,7 @@ export default function OrganisationStructurePage() {
 
               <div className="rootNode">
                 <span>🏢</span>
-                <div><strong>{organisation?.name}</strong><small>Whole organisation · {members.length} people</small></div>
+                <div><strong>{organisation?.name}</strong><small>Whole organisation · {displayedPeople.length} people</small></div>
               </div>
 
               {rootUnits.length === 0 ? (
@@ -336,7 +358,7 @@ export default function OrganisationStructurePage() {
               ) : (
                 <div className="tree">
                   {rootUnits.map((unit) => (
-                    <StructureBranch key={unit.id} unit={unit} units={units} members={members} onOpen={setSelectedUnit} />
+                    <StructureBranch key={unit.id} unit={unit} units={units} members={displayedPeople} onOpen={setSelectedUnit} />
                   ))}
                 </div>
               )}
@@ -347,18 +369,19 @@ export default function OrganisationStructurePage() {
               <h2>Current organisation</h2>
               <p className="muted">Department describes where someone belongs. Role controls what they are allowed to do.</p>
               <div className="peopleList">
-                {members.slice(0, 8).map((person) => {
+                {displayedPeople.slice(0, 8).map((person) => {
                   const unit = units.find((item) => item.id === person.organisation_unit_id);
+                  const linkedMember = person.organisation_member_id ? members.find((item) => item.id === person.organisation_member_id) : person;
                   return (
                     <div className="person" key={person.id}>
-                      <span className="avatar">{String(person.name || person.email || "R").slice(0, 1).toUpperCase()}</span>
-                      <div><strong>{person.name || person.email || "Root member"}</strong><small>{unit?.name || person.department || "Not placed in structure"}</small></div>
-                      <em>{memberRoleLabel(person.role)}</em>
+                      <span className="avatar">{String(person.name || person.business_email || person.email || "R").slice(0, 1).toUpperCase()}</span>
+                      <div><strong>{person.name || person.business_email || person.email || "Workforce person"}</strong><small>{unit?.name || person.department || "Not placed in structure"}{person.job_title ? ` · ${person.job_title}` : ""}</small></div>
+                      <em>{linkedMember?.role ? memberRoleLabel(linkedMember.role) : "Not invited"}</em>
                     </div>
                   );
                 })}
               </div>
-              {members.length > 8 ? <p className="muted">And {members.length - 8} more people in this organisation.</p> : null}
+              {displayedPeople.length > 8 ? <p className="muted">And {displayedPeople.length - 8} more people in this organisation.</p> : null}
               <button type="button" className="wideButton" onClick={() => setShowPeoplePanel(true)}>Add people</button>
             </aside>
           </div>
@@ -394,7 +417,7 @@ export default function OrganisationStructurePage() {
         {selectedUnit ? (
           <div className="unitDetail">
             <div className="detailStats"><div><strong>{selectedMembers.length}</strong><span>People</span></div><div><strong>{units.filter((unit) => unit.parent_unit_id === selectedUnit.id).length}</strong><span>Units beneath</span></div><div><strong>{selectedUnit.active ? "Active" : "Inactive"}</strong><span>Status</span></div></div>
-            <div><p className="sectionLabel">People in this unit</p>{selectedMembers.length ? selectedMembers.map((person) => <div className="detailPerson" key={person.id}><strong>{person.name || person.email || "Root member"}</strong><span>{memberRoleLabel(person.role)}</span></div>) : <p className="muted">No people are currently assigned directly to this unit.</p>}</div>
+            <div><p className="sectionLabel">People in this unit</p>{selectedMembers.length ? selectedMembers.map((person) => { const linked = person.organisation_member_id ? members.find((member) => member.id === person.organisation_member_id) : person; return <div className="detailPerson" key={person.id}><strong>{person.name || person.business_email || person.email || "Workforce person"}</strong><span>{linked?.role ? memberRoleLabel(linked.role) : "Not invited"}</span></div>; }) : <p className="muted">No people are currently assigned directly to this unit.</p>}</div>
           </div>
         ) : null}
       </RootModal>
