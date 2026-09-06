@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   WORKFORCE_FIELDS,
@@ -12,6 +12,7 @@ import { deriveHierarchyFields } from "../../lib/workforceImportApply";
 import { supabase } from "../../lib/supabase";
 
 const MAX_PREVIEW_ROWS = 5000;
+const HIERARCHY_LABELS = { division: "Division / business unit", department: "Department", team: "Team", location: "Site / location" };
 
 function confidenceLabel(mapping) {
   if (mapping.reviewed) return "Reviewed";
@@ -24,6 +25,15 @@ function Stat({ value, label }) {
   return <div className="importStat"><strong>{Number(value || 0).toLocaleString("en-GB")}</strong><span>{label}</span></div>;
 }
 
+function HierarchyNode({ node }) {
+  return (
+    <div className="hierarchyNode">
+      <strong>{node.name}</strong><small>{HIERARCHY_LABELS[node.type === "site" ? "location" : node.type] || node.type}</small>
+      {node.children?.length ? <div className="hierarchyChildren">{node.children.map((child) => <HierarchyNode node={child} key={`${child.type}-${child.name}`} />)}</div> : null}
+    </div>
+  );
+}
+
 export default function WorkforceImportPreview({ organisationId, existingMembers = [], onApplied, onClose }) {
   const fileRef = useRef(null);
   const [loading, setLoading] = useState(false);
@@ -34,15 +44,31 @@ export default function WorkforceImportPreview({ organisationId, existingMembers
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
   const [mappings, setMappings] = useState({});
+  const [hierarchyFields, setHierarchyFields] = useState([]);
+  const [excludedHierarchyFields, setExcludedHierarchyFields] = useState([]);
   const [serverPlan, setServerPlan] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [result, setResult] = useState(null);
 
+  const mappedHierarchyFields = useMemo(() => deriveHierarchyFields(columns, mappings), [columns, mappings]);
   const preview = useMemo(
-    () => buildWorkforcePreview({ rows, columns, mappings, existingMembers }),
-    [rows, columns, mappings, existingMembers]
+    () => buildWorkforcePreview({ rows, columns, mappings, existingMembers, hierarchyFields }),
+    [rows, columns, mappings, existingMembers, hierarchyFields]
   );
+
+  useEffect(() => {
+    setExcludedHierarchyFields((current) => {
+      const next = current.filter((field) => mappedHierarchyFields.includes(field));
+      return next.length === current.length && next.every((field, index) => field === current[index]) ? current : next;
+    });
+    setHierarchyFields((current) => {
+      const retained = current.filter((field) => mappedHierarchyFields.includes(field));
+      const additions = mappedHierarchyFields.filter((field) => !retained.includes(field) && !excludedHierarchyFields.includes(field));
+      const next = [...retained, ...additions];
+      return next.length === current.length && next.every((field, index) => field === current[index]) ? current : next;
+    });
+  }, [mappedHierarchyFields, excludedHierarchyFields]);
 
   async function analyseFile(file) {
     setError("");
@@ -85,12 +111,16 @@ export default function WorkforceImportPreview({ organisationId, existingMembers
       setColumns(nextColumns);
       setRows(dataRows);
       setMappings(proposeWorkforceMappings(nextColumns));
+      setHierarchyFields([]);
+      setExcludedHierarchyFields([]);
     } catch (fileError) {
       setFileName("");
       setSheetName("");
       setColumns([]);
       setRows([]);
       setMappings({});
+      setHierarchyFields([]);
+      setExcludedHierarchyFields([]);
       setError(fileError?.message || "Root could not analyse this workforce file.");
     } finally {
       setLoading(false);
@@ -109,6 +139,40 @@ export default function WorkforceImportPreview({ organisationId, existingMembers
         confidence: "high",
       },
     }));
+  }
+
+  function setReviewedHierarchy(nextFields) {
+    setServerPlan(null);
+    setConfirmed(false);
+    setHierarchyFields(nextFields);
+  }
+
+  function moveHierarchyField(field, direction) {
+    const index = hierarchyFields.indexOf(field);
+    const nextIndex = index + direction;
+    if (index < 0 || nextIndex < 0 || nextIndex >= hierarchyFields.length) return;
+    const next = [...hierarchyFields];
+    [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+    setReviewedHierarchy(next);
+  }
+
+  function excludeHierarchyField(field) {
+    setExcludedHierarchyFields((current) => [...new Set([...current, field])]);
+    setReviewedHierarchy(hierarchyFields.filter((item) => item !== field));
+  }
+
+  function includeHierarchyField(field) {
+    setExcludedHierarchyFields((current) => current.filter((item) => item !== field));
+    setReviewedHierarchy([...hierarchyFields, field]);
+  }
+
+  function dropHierarchyField(event, targetField) {
+    event.preventDefault();
+    const sourceField = event.dataTransfer.getData("text/plain");
+    if (!hierarchyFields.includes(sourceField) || sourceField === targetField) return;
+    const next = hierarchyFields.filter((field) => field !== sourceField);
+    next.splice(next.indexOf(targetField), 0, sourceField);
+    setReviewedHierarchy(next);
   }
 
   function handleDrop(event) {
@@ -134,7 +198,8 @@ export default function WorkforceImportPreview({ organisationId, existingMembers
           confirmed: action === "apply" && confirmed,
           organisation_id: organisationId,
           canonical_rows: preview.canonicalRows,
-          hierarchy_fields: deriveHierarchyFields(columns, mappings),
+          mapped_hierarchy_fields: mappedHierarchyFields,
+          hierarchy_fields: hierarchyFields,
           expected_plan_fingerprint: action === "apply" ? serverPlan?.plan_fingerprint : undefined,
         }),
       });
@@ -214,6 +279,33 @@ export default function WorkforceImportPreview({ organisationId, existingMembers
                 );
               })}
             </div>
+            <div className="hierarchyOrder" aria-label="Organisation hierarchy">
+              <div className="hierarchyOrderHeading">
+                <div><strong>Organisation hierarchy</strong><p>Arrange how Root should build your organisation map. This does not alter your spreadsheet.</p></div>
+                <small>Top level → most specific</small>
+              </div>
+              <div className="hierarchyOrderList">
+                {hierarchyFields.map((field, index) => (
+                  <div
+                    className="hierarchyOrderItem"
+                    draggable
+                    key={field}
+                    onDragStart={(event) => event.dataTransfer.setData("text/plain", field)}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => dropHierarchyField(event, field)}
+                  >
+                    <span aria-hidden="true">⠿</span><strong>{HIERARCHY_LABELS[field]}</strong>
+                    <div className="hierarchyActions">
+                      <button type="button" disabled={index === 0} onClick={() => moveHierarchyField(field, -1)} aria-label={`Move ${HIERARCHY_LABELS[field]} up`}>↑</button>
+                      <button type="button" disabled={index === hierarchyFields.length - 1} onClick={() => moveHierarchyField(field, 1)} aria-label={`Move ${HIERARCHY_LABELS[field]} down`}>↓</button>
+                      <button type="button" onClick={() => excludeHierarchyField(field)}>Exclude</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {excludedHierarchyFields.length ? <div className="excludedHierarchy"><span>Available but excluded:</span>{excludedHierarchyFields.map((field) => <button type="button" key={field} onClick={() => includeHierarchyField(field)}>＋ {HIERARCHY_LABELS[field]}</button>)}</div> : null}
+              {!hierarchyFields.length ? <p className="hierarchyWarning">Include at least one mapped structural field to build the organisation map.</p> : null}
+            </div>
             <p className="permissionNote"><strong>Permissions are not imported.</strong> Job titles, departments and words such as HR, Director, Manager or Administrator never grant Root administrative access.</p>
           </section>
 
@@ -231,19 +323,7 @@ export default function WorkforceImportPreview({ organisationId, existingMembers
             <div className="previewGrid">
               <div className="hierarchyPreview">
                 <h4>Proposed structure</h4>
-                {preview.hierarchy.slice(0, 12).map((division) => (
-                  <div className="divisionNode" key={division.name}>
-                    <strong>{division.name}</strong>
-                    <div className="departmentNodes">
-                      {division.departments.slice(0, 12).map((department) => (
-                        <div className="departmentNode" key={department.name}>
-                          <span>{department.name}</span>
-                          {department.teams.length ? <small>{department.teams.map((team) => team.name).join(" · ")}</small> : null}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                <div className="hierarchyRoot"><strong>Whole organisation</strong>{preview.hierarchy.slice(0, 20).map((node) => <HierarchyNode node={node} key={`${node.type}-${node.name}`} />)}</div>
               </div>
 
               <aside className="attentionPanel">
@@ -271,16 +351,16 @@ export default function WorkforceImportPreview({ organisationId, existingMembers
                 <button type="button" className="confirmButton" disabled={!confirmed || confirming} onClick={() => submitConfirmation("apply")}>{confirming ? "Confirming…" : "Confirm organisation structure"}</button>
               </div>
             ) : (
-              <button type="button" className="confirmButton" disabled={confirming || preview.validation.mappingIssues > 0} onClick={() => submitConfirmation("plan")}>{confirming ? "Checking live organisation…" : "Review final organisation changes"}</button>
+              <button type="button" className="confirmButton" disabled={confirming || preview.validation.mappingIssues > 0 || !hierarchyFields.length} onClick={() => submitConfirmation("plan")}>{confirming ? "Checking live organisation…" : "Review final organisation changes"}</button>
             )}
           </section>
         </>
       ) : null}
 
       <style jsx>{`
-        .importer{margin:18px 0;padding:28px;border-radius:30px;background:rgba(255,255,255,.82);border:1px solid rgba(30,45,34,.08);box-shadow:0 20px 60px rgba(40,47,37,.08);color:#243027}.importHeader,.sectionHeading,.fileSummary{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.importHeader h2,.sectionHeading h3{margin:0;font:500 30px/1.15 Georgia,serif}.importHeader p,.sectionHeading p{max-width:680px;color:#657066;line-height:1.55}.importKicker{margin:0 0 7px!important;text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:900;color:#68745e!important}.closeButton{border:1px solid rgba(37,74,61,.14);border-radius:999px;padding:10px 15px;background:white;color:#29483d;font-weight:800;cursor:pointer}.dropZone{position:relative;display:grid;justify-items:center;gap:9px;margin:24px 0;padding:35px 20px;border:2px dashed rgba(37,74,61,.22);border-radius:22px;background:#f7faf7;text-align:center}.dropZone.dragging{border-color:#315849;background:#edf5ef}.dropZone input{position:absolute;width:1px;height:1px;opacity:0}.dropZone button{border:0;border-radius:999px;padding:12px 20px;background:#254a3d;color:white;font-weight:800;cursor:pointer}.dropZone button:disabled{opacity:.5}.fileIcon{font-size:34px;color:#315849}.dropZone small{color:#6f776f}.importError,.permissionNote{padding:15px 18px;border-radius:16px;background:#fff0ed;color:#813b32}.fileSummary{align-items:center;padding:15px 18px;border-radius:17px;background:#edf3eb}.fileSummary div{display:grid;gap:3px}.fileSummary span{font-size:12px;color:#687168}.safeBadge{padding:8px 12px;border-radius:999px;background:white;color:#315849!important;font-weight:800}.mappingSection,.previewSection{margin-top:24px;padding-top:24px;border-top:1px solid rgba(30,45,34,.09)}.mappingList{display:grid;gap:8px;margin:18px 0}.mappingRow{display:grid;grid-template-columns:minmax(170px,1fr) auto minmax(180px,.7fr) 110px;align-items:center;gap:12px;padding:13px 15px;border-radius:15px;background:rgba(244,247,242,.82)}.mappingRow>div{display:grid;gap:3px;min-width:0}.mappingRow small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#737b73}.mappingRow select{width:100%;padding:10px;border:1px solid rgba(37,74,61,.15);border-radius:11px;background:white}.mappingRow em{font-style:normal;font-size:11px;font-weight:900}.mappingRow em.review{color:#9a641c}.mappingRow em.clear{color:#2f6b4e}.permissionNote{background:#f2f0e7;color:#5e5948}.importStats{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:18px 0}.importStat{display:grid;gap:3px;padding:15px;border-radius:16px;background:#f3f7f2}.importStat strong{font-size:24px;color:#29483d}.importStat span{font-size:11px;color:#687168}.previewGrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:15px}.hierarchyPreview,.attentionPanel{padding:20px;border-radius:20px;background:#f8faf7;border:1px solid rgba(37,74,61,.08)}.hierarchyPreview h4,.attentionPanel h4{margin:0 0 14px;font-size:16px}.divisionNode{padding:12px;border-left:3px solid #315849}.departmentNodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;margin-top:9px}.departmentNode{display:grid;gap:3px;padding:10px;border-radius:11px;background:white}.departmentNode small{color:#737b73}.attentionPanel p{color:#687168;line-height:1.45}.issueList{display:grid;gap:7px;max-height:330px;overflow:auto}.issueList div{padding:9px 10px;border-radius:10px;background:#fff5e8;color:#725329;font-size:12px}.peoplePreview{margin-top:15px;padding:15px;border-radius:16px;background:#f8faf7}.peoplePreview summary{cursor:pointer;font-weight:900}.tableScroll{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:900px}th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(30,45,34,.08);font-size:12px}th{color:#526056}.confirmButton{width:100%;margin-top:16px;padding:15px;border:0;border-radius:999px;background:#315849;color:white;font-weight:900;cursor:pointer}.confirmButton:disabled{opacity:.5;cursor:not-allowed}.confirmationBox{display:grid;gap:12px;margin-top:16px;padding:18px;border-radius:17px;background:#edf3eb}.confirmationBox span{line-height:1.5;color:#5d685f}.confirmCheck{display:flex;align-items:center;gap:9px;font-weight:700}.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+        .hierarchyOrder{margin:18px 0;padding:18px;border-radius:18px;background:#edf3eb}.hierarchyOrderHeading{display:flex;justify-content:space-between;gap:18px}.hierarchyOrderHeading p{margin:4px 0;color:#657066}.hierarchyOrderHeading small{white-space:nowrap;color:#687168}.hierarchyOrderList{display:grid;gap:8px;margin-top:14px}.hierarchyOrderItem{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:white;cursor:grab}.hierarchyOrderItem>strong{flex:1}.hierarchyActions{display:flex;gap:5px}.hierarchyActions button,.excludedHierarchy button{border:1px solid rgba(37,74,61,.14);border-radius:999px;padding:7px 10px;background:#f8faf7;color:#29483d;font-weight:800;cursor:pointer}.hierarchyActions button:disabled{opacity:.35;cursor:not-allowed}.excludedHierarchy{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:12px;color:#657066}.hierarchyWarning{color:#813b32}.hierarchyRoot{display:grid;gap:8px;padding-left:12px;border-left:3px solid #315849}.hierarchyNode{display:grid;gap:2px;padding:9px 10px;border-radius:11px;background:white}.hierarchyNode small{color:#737b73}.hierarchyChildren{display:grid;gap:6px;margin-top:6px;padding-left:12px;border-left:1px solid rgba(37,74,61,.2)}
         @media(max-width:1100px){.importStats{grid-template-columns:repeat(3,1fr)}.previewGrid{grid-template-columns:1fr}.mappingRow{grid-template-columns:minmax(150px,1fr) auto minmax(160px,1fr)}.mappingRow em{grid-column:3}}
-        @media(max-width:700px){.importer{padding:19px}.importHeader,.sectionHeading,.fileSummary{flex-direction:column}.mappingRow{grid-template-columns:1fr}.mappingRow>span{display:none}.mappingRow em{grid-column:auto}.importStats{grid-template-columns:repeat(2,1fr)}.safeBadge{align-self:flex-start}}
+        @media(max-width:700px){.importer{padding:19px}.importHeader,.sectionHeading,.fileSummary,.hierarchyOrderHeading{flex-direction:column}.mappingRow{grid-template-columns:1fr}.mappingRow>span{display:none}.mappingRow em{grid-column:auto}.importStats{grid-template-columns:repeat(2,1fr)}.safeBadge{align-self:flex-start}.hierarchyOrderItem{align-items:flex-start;flex-wrap:wrap}.hierarchyActions{width:100%;justify-content:flex-end}}
       `}</style>
     </section>
   );

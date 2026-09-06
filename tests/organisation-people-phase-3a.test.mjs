@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { buildConfirmedWorkforcePlan, buildWorkforceRpcPayload, deriveHierarchyFields } from "../lib/workforceImportApply.js";
+import { buildConfirmedWorkforcePlan, buildWorkforceRpcPayload, deriveHierarchyFields, validateHierarchyFields } from "../lib/workforceImportApply.js";
 import { requireOrganisationAdmin } from "../lib/organisationAdminServerAuth.js";
 
 const migrationPath = new URL("../supabase/migrations/20260905_create_organisation_people.sql", import.meta.url);
@@ -78,6 +78,37 @@ test("hierarchy follows the employer-reviewed spreadsheet order, not a fixed Roo
   assert.deepEqual(fields, ["location", "division", "team"]);
   assert.deepEqual(plan.units.map((unit) => unit.unitType), ["site", "division", "team"]);
   assert.equal(plan.units[1].parentKey, plan.units[0].key);
+});
+
+test("reviewed hierarchy can place shared locations above departments and teams", () => {
+  const rows = [
+    { source_row: 2, name: "A", email: "a@example.test", location: "London", department: "Sales", team: "Corporate" },
+    { source_row: 3, name: "B", email: "b@example.test", location: "London", department: "People", team: "Operations" },
+  ];
+  const plan = buildConfirmedWorkforcePlan({ canonicalRows: rows, validation: { issues: [] }, hierarchyFields: ["location", "department", "team"] });
+  assert.equal(plan.units.filter((unit) => unit.unitType === "site" && unit.name === "London").length, 1);
+  assert.deepEqual(plan.units.slice(0, 3).map((unit) => unit.unitType), ["site", "department", "team"]);
+});
+
+test("excluded hierarchy dimensions remain workforce information but do not create units", () => {
+  const row = { source_row: 2, name: "A", email: "a@example.test", department: "Sales", team: "Corporate", location: "London" };
+  const plan = buildConfirmedWorkforcePlan({ canonicalRows: [row], validation: { issues: [] }, hierarchyFields: ["department", "team"] });
+  const payload = buildWorkforceRpcPayload(plan);
+  assert.deepEqual(payload.hierarchyFields, ["department", "team"]);
+  assert.deepEqual(payload.units.map((unit) => unit.unitType), ["department", "team"]);
+  assert.equal(payload.people[0].row.location, "London");
+});
+
+test("server hierarchy validation rejects unknown, duplicate and unpopulated dimensions", () => {
+  const rows = [{ department: "Sales", location: "London", team: "" }];
+  assert.equal(validateHierarchyFields(["location", "department"], rows, ["department", "location", "team"]), true);
+  assert.equal(validateHierarchyFields(["location", "department"], rows, ["department"]), false);
+  assert.equal(validateHierarchyFields(["department"], rows, ["department", "department"]), false);
+  assert.equal(validateHierarchyFields(["department"], rows, ["department", "role"]), false);
+  assert.equal(validateHierarchyFields(["department", "department"], rows), false);
+  assert.equal(validateHierarchyFields(["department", "role"], rows), false);
+  assert.equal(validateHierarchyFields(["team"], rows), false);
+  assert.equal(validateHierarchyFields([], rows), false);
 });
 
 test("an identical retry reuses existing units and people", () => {
@@ -157,9 +188,18 @@ test("only the exact server-rebuilt plan reaches the RPC", async () => {
   assert.equal(Object.hasOwn(payload.people[0], "existing"), false);
   assert.equal(Object.hasOwn(payload.people[0], "member"), false);
   assert.equal(payload.people[0].expectedExistingPersonId, "not-authority");
+  assert.deepEqual(payload.hierarchyFields, []);
   assert.match(route, /buildConfirmedWorkforcePlan/);
+  assert.match(route, /validateHierarchyFields\(hierarchyFields, canonicalRows, mappedHierarchyFields\)/);
   assert.match(route, /planFingerprint\(plan\)/);
   assert.match(route, /applyConfirmedWorkforcePlan\(\{ supabase: access\.supabase, organisationId, plan \}\)/);
+});
+
+test("hierarchy order is part of the exact plan fingerprint payload", () => {
+  const base = { units: [], people: [] };
+  const first = JSON.stringify(buildWorkforceRpcPayload({ ...base, hierarchyFields: ["location", "department"] }));
+  const second = JSON.stringify(buildWorkforceRpcPayload({ ...base, hierarchyFields: ["department", "location"] }));
+  assert.notEqual(first, second);
 });
 
 test("live Structure & People reads organisation_people while retaining membership data", async () => {

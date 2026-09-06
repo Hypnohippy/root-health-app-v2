@@ -84,8 +84,26 @@ test("preview requires explicit server-authorised confirmation before applying l
   assert.match(component, /Preview only — no live changes/);
   assert.match(component, /Confirm organisation structure/);
   assert.match(component, /Authorization: `Bearer \$\{token\}`/);
+  assert.match(component, /Organisation hierarchy/);
+  assert.match(component, /draggable/);
+  assert.match(component, /excludeHierarchyField/);
+  assert.match(component, /mapped_hierarchy_fields: mappedHierarchyFields/);
+  assert.match(component, /hierarchy_fields: hierarchyFields/);
   assert.doesNotMatch(component, /organisation_members"\)\.insert|organisation_units"\)\.insert/);
   assert.match(page, /activeMembership\.role !== "organisation_admin"/);
+});
+
+test("preview hierarchy follows reviewed order while excluded fields remain canonical", () => {
+  const headings = ["Name", "Email", "Department", "Team", "Location"];
+  const sourceRows = [["Asha", "asha@example.test", "Sales", "Corporate", "London"]];
+  const columns = buildSourceColumns(headings, sourceRows);
+  const mappings = proposeWorkforceMappings(columns);
+  const preview = buildWorkforcePreview({ rows: sourceRows, columns, mappings, hierarchyFields: ["location", "department"] });
+
+  assert.deepEqual(preview.hierarchyFields, ["location", "department"]);
+  assert.equal(preview.hierarchy[0].name, "London");
+  assert.equal(preview.hierarchy[0].children[0].name, "Sales");
+  assert.equal(preview.canonicalRows[0].team, "Corporate");
 });
 
 test("spreadsheet labels never become Root authorisation roles", () => {

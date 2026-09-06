@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { organisationAdminErrorResponse, requireOrganisationAdmin } from "../../../../lib/organisationAdminServerAuth";
-import { applyConfirmedWorkforcePlan, buildConfirmedWorkforcePlan, buildWorkforceRpcPayload } from "../../../../lib/workforceImportApply";
+import { applyConfirmedWorkforcePlan, buildConfirmedWorkforcePlan, buildWorkforceRpcPayload, validateHierarchyFields } from "../../../../lib/workforceImportApply";
 import { validateWorkforcePreview } from "../../../../lib/workforceImportPreview";
 
 export const runtime = "nodejs";
@@ -19,8 +19,11 @@ export async function POST(request) {
     const organisationId = String(body?.organisation_id || "").trim();
     const access = await requireOrganisationAdmin({ request, organisationId });
     const canonicalRows = safeArray(body?.canonical_rows, 5000);
-    const hierarchyFields = safeArray(body?.hierarchy_fields, 8).filter((field) => ["division", "department", "team", "location"].includes(field));
-    if (!canonicalRows.length || !hierarchyFields.length) return Response.json({ error: "A reviewed workforce structure is required." }, { status: 400 });
+    const hierarchyFields = Array.isArray(body?.hierarchy_fields) ? body.hierarchy_fields : [];
+    const mappedHierarchyFields = Array.isArray(body?.mapped_hierarchy_fields) ? body.mapped_hierarchy_fields : [];
+    if (!canonicalRows.length || hierarchyFields.length > 4 || mappedHierarchyFields.length > 4 || !validateHierarchyFields(hierarchyFields, canonicalRows, mappedHierarchyFields)) {
+      return Response.json({ error: "A valid reviewed organisation hierarchy is required." }, { status: 400 });
+    }
 
     const [unitsResult, peopleResult, membersResult] = await Promise.all([
       access.supabase.from("organisation_units").select("id, organisation_id, parent_unit_id, name, unit_type").eq("organisation_id", organisationId),
