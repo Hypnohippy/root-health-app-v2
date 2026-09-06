@@ -87,7 +87,8 @@ as $$
   );
 $$;
 
-revoke all on function public.is_explicit_organisation_admin(uuid) from public;
+revoke all on function public.is_explicit_organisation_admin(uuid)
+from public, anon, authenticated;
 grant execute on function public.is_explicit_organisation_admin(uuid) to authenticated;
 
 create or replace function public.audit_organisation_people_write()
@@ -117,6 +118,9 @@ begin
   return new;
 end;
 $$;
+
+revoke all on function public.audit_organisation_people_write()
+from public, anon, authenticated;
 
 create trigger organisation_people_audit_write
 before insert or update on public.organisation_people
@@ -396,7 +400,8 @@ begin
 end;
 $$;
 
-revoke all on function public.apply_confirmed_workforce_import(uuid, jsonb, jsonb) from public;
+revoke all on function public.apply_confirmed_workforce_import(uuid, jsonb, jsonb)
+from public, anon, authenticated;
 grant execute on function public.apply_confirmed_workforce_import(uuid, jsonb, jsonb) to authenticated;
 
 commit;
