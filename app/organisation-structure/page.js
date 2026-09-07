@@ -93,6 +93,12 @@ export default function OrganisationStructurePage() {
   const [creatingUnit, setCreatingUnit] = useState(false);
   const [unitError, setUnitError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [workforceRows, setWorkforceRows] = useState([]);
+  const [workforceSearch, setWorkforceSearch] = useState("");
+  const [selectedPeople, setSelectedPeople] = useState(new Set());
+  const [invitationCounts, setInvitationCounts] = useState({});
+  const [sendingInvitations, setSendingInvitations] = useState(false);
+  const [invitationMessage, setInvitationMessage] = useState("");
 
   useEffect(() => {
     loadPage();
@@ -147,7 +153,28 @@ export default function OrganisationStructurePage() {
     setUnits(Array.isArray(unitResult.data) ? unitResult.data : []);
     setMembers(Array.isArray(memberResult.data) ? memberResult.data : []);
     setPeople(Array.isArray(peopleResult.data) ? peopleResult.data : []);
+    if (activeMembership.role === "organisation_admin") {
+      const invitationResult = await supabase.rpc("list_workforce_invitations", { p_org: organisationId, p_search: "", p_status: "all", p_after: null, p_limit: 100, p_cutoff: new Date().toISOString(), p_eligible_only: false });
+      if (!invitationResult.error) { setWorkforceRows(invitationResult.data?.rows || []); setInvitationCounts(invitationResult.data?.counts || {}); }
+    }
     setLoading(false);
+  }
+
+  async function refreshInvitations(search = workforceSearch) {
+    if (!organisation?.id) return;
+    const result = await supabase.rpc("list_workforce_invitations", { p_org: organisation.id, p_search: search, p_status: "all", p_after: null, p_limit: 100, p_cutoff: new Date().toISOString(), p_eligible_only: false });
+    if (!result.error) { setWorkforceRows(result.data?.rows || []); setInvitationCounts(result.data?.counts || {}); }
+  }
+
+  async function sendInvitations() {
+    const ids = [...selectedPeople];
+    if (!ids.length || !organisation?.id) return;
+    setSendingInvitations(true); setInvitationMessage("");
+    const { data: { session } } = await supabase.auth.getSession();
+    const response = await fetch("/api/organisation/workforce-invitations", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token || ""}` }, body: JSON.stringify({ organisation_id: organisation.id, person_ids: ids }) });
+    const result = await response.json();
+    setInvitationMessage(response.ok ? `${(result.results || []).filter((item) => item.status === "sent").length} invitation(s) sent.` : (result.error || "Root could not send invitations."));
+    setSelectedPeople(new Set()); setSendingInvitations(false); refreshInvitations();
   }
 
   const rootUnits = useMemo(
@@ -312,9 +339,15 @@ export default function OrganisationStructurePage() {
           {showPeoplePanel ? (
             <section className="inviteCard">
               <div>
-                <p className="sectionLabel">Add people</p>
-                <h2>Invite your people to Root</h2>
-                <p>Share this private joining route and organisation code. Each person keeps their own private Root identity and history.</p>
+                <p className="sectionLabel">Workforce invitations</p>
+                <h2>Invite workforce</h2>
+                <p>Send secure, personalised invitations to approved business email addresses. Employee invitations always create employee access.</p>
+                <input aria-label="Search workforce" placeholder="Search name, email or placement" value={workforceSearch} onChange={(event) => { setWorkforceSearch(event.target.value); refreshInvitations(event.target.value); }} />
+                <p className="muted">{invitationCounts.not_invited || 0} not invited · {invitationCounts.sent || 0} sent · {invitationCounts.joined || 0} joined</p>
+                <div className="workforceInviteList">{workforceRows.map((person) => <label key={person.id}><input type="checkbox" disabled={!person.eligible} checked={selectedPeople.has(person.id)} onChange={() => setSelectedPeople((current) => { const next = new Set(current); next.has(person.id) ? next.delete(person.id) : next.add(person.id); return next; })} /><span><strong>{person.name}</strong><small>{person.business_email || "No approved business email"} · {person.structural_placement}</small></span><em>{person.root_status === "not_invited" ? "Not invited" : person.root_status === "sent" ? "Invitation sent" : "Joined"}</em></label>)}</div>
+                <button type="button" onClick={() => setSelectedPeople(new Set(workforceRows.filter((person) => person.eligible).map((person) => person.id)))}>Select all not invited</button>
+                <button type="button" onClick={sendInvitations} disabled={sendingInvitations || selectedPeople.size === 0}>{sendingInvitations ? "Sending…" : `Send invitations${selectedPeople.size ? ` (${selectedPeople.size})` : ""}`}</button>
+                {invitationMessage ? <p role="status">{invitationMessage}</p> : null}
               </div>
               <div className="inviteDetails">
                 <span>Organisation code</span>

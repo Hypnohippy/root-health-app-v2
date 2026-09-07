@@ -323,6 +323,29 @@ export default function OrganisationJoinPage() {
     setLoading(true);
     setError("");
 
+    const params = new URLSearchParams(window.location.search);
+    const invitationToken = params.get("token");
+    if (invitationToken) {
+      const { data: joined, error: joinError } = await supabase.rpc("accept_workforce_invitation", {
+        p_code: organisationData.organisation_code,
+        p_org: organisationData.id,
+        p_token_hash: await crypto.subtle.digest("SHA-256", new TextEncoder().encode(invitationToken)).then((bytes) => Array.from(new Uint8Array(bytes)).map((byte) => byte.toString(16).padStart(2, "0")).join("")),
+      });
+      if (joinError || !joined?.membership) {
+        setError(joinError?.message || "This employee invitation is unavailable or no longer valid.");
+        setLoading(false);
+        return;
+      }
+      const membership = joined.membership;
+      localStorage.setItem("root_profile_key_v1", membership.profile_key);
+      localStorage.setItem("root_active_organisation_v1", organisationData.id);
+      localStorage.removeItem(PENDING_JOIN_KEY);
+      setJoinedOrganisation(organisationData);
+      setVerifiedOrganisation(organisationData);
+      setLoading(false);
+      return;
+    }
+
     /*
      * MULTI-ORGANISATION RULE
      *
