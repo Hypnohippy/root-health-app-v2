@@ -1,6 +1,5 @@
-import {
-  buildOrganisationWellbeingReview,
-} from "../../../lib/rootOrganisationWellbeing";
+import { chronologicalReviews } from "../../../lib/organisationLearningHistory.js";
+import { buildOrganisationModelEvidence } from "../../../lib/organisationModelEvidence.js";
 
 import {
   buildOrganisationBusinessEvidenceReview,
@@ -166,193 +165,6 @@ function summariseMembers(members = []) {
   ].join("\n");
 }
 
-function summariseAssessments(assessments = []) {
-  const records = safeArray(assessments);
-
-  if (records.length === 0) {
-    return "No wellbeing assessments were supplied.";
-  }
-
-  const dimensions = [
-    {
-      label: "Stress",
-      keys: ["stress", "stress_score", "stress_level"],
-    },
-    {
-      label: "Sleep difficulties",
-      keys: ["sleep", "sleep_score", "sleep_difficulties"],
-    },
-    {
-      label: "Recovery difficulty",
-      keys: ["recovery", "recovery_score", "recovery_difficulty"],
-    },
-    {
-      label: "Energy difficulty",
-      keys: ["energy", "energy_score", "energy_difficulty"],
-    },
-    {
-      label: "Mood difficulty",
-      keys: ["mood", "mood_score", "mood_difficulty"],
-    },
-    {
-      label: "Focus difficulty",
-      keys: ["focus", "focus_score", "focus_difficulty"],
-    },
-    {
-      label: "Burnout",
-      keys: ["burnout", "burnout_score", "burnout_level"],
-    },
-  ];
-
-  const lines = [`Total assessments: ${records.length}`];
-
-  for (const dimension of dimensions) {
-    const values = records
-      .map((assessment) =>
-        getAssessmentValue(assessment, dimension.keys)
-      )
-      .filter((value) => value !== null);
-
-    if (values.length === 0) continue;
-
-    const dimensionAverage = average(values);
-    const highScores = values.filter((value) => value >= 7).length;
-
-    lines.push(
-      `${dimension.label}: average ${formatAverage(
-        dimensionAverage
-      )}/10 across ${values.length} responses; ${highScores} scores were 7 or above.`
-    );
-  }
-
-  const dates = records
-    .map(
-      (assessment) =>
-        assessment?.created_at ||
-        assessment?.completed_at ||
-        assessment?.assessment_date
-    )
-    .filter(Boolean)
-    .map((value) => new Date(value))
-    .filter((date) => !Number.isNaN(date.getTime()))
-    .sort((a, b) => a.getTime() - b.getTime());
-
-  if (dates.length > 0) {
-    lines.push(
-      `Assessment period: ${dates[0].toISOString()} to ${
-        dates[dates.length - 1].toISOString()
-      }.`
-    );
-  }
-
-  return lines.join("\n");
-}
-
-function summariseMindEntries(entries = []) {
-  const records = safeArray(entries);
-
-  if (records.length === 0) {
-    return "No Mind & Emotions activity was supplied.";
-  }
-
-  const tools = uniqueValues(records.map((entry) => entry?.tool));
-
-  const emotions = uniqueValues(
-    records.map(
-      (entry) =>
-        entry?.emotion ||
-        entry?.emotional_theme ||
-        entry?.feeling
-    )
-  );
-
-  const themes = uniqueValues(
-    records.map(
-      (entry) =>
-        entry?.thought_theme ||
-        entry?.theme ||
-        entry?.automatic_thought
-    )
-  );
-
-  return [
-    `Mind & Emotions interactions: ${records.length}`,
-    `Tools used: ${tools.length > 0 ? tools.join(", ") : "not recorded"}`,
-    `Recorded emotions: ${
-      emotions.length > 0 ? emotions.join(", ") : "not recorded"
-    }`,
-    `Recorded thought themes: ${
-      themes.length > 0 ? themes.join(", ") : "not recorded"
-    }`,
-  ].join("\n");
-}
-
-function summariseJournalEntries(entries = []) {
-  const records = safeArray(entries);
-
-  if (records.length === 0) {
-    return "No journal activity was supplied.";
-  }
-
-  const emotionalThemes = uniqueValues(
-    records.map((entry) => entry?.emotional_theme)
-  );
-
-  const coachModes = uniqueValues(
-    records.map((entry) => entry?.recommended_coach_mode)
-  );
-
-  return [
-    `Journal reflections: ${records.length}`,
-    `Recorded emotional themes: ${
-      emotionalThemes.length > 0
-        ? emotionalThemes.join(", ")
-        : "not recorded"
-    }`,
-    `Recommended coach modes appearing in the evidence: ${
-      coachModes.length > 0 ? coachModes.join(", ") : "not recorded"
-    }`,
-  ].join("\n");
-}
-
-function summariseVoiceSessions(entries = []) {
-  const records = safeArray(entries);
-
-  if (records.length === 0) {
-    return "No Voice Coach sessions were supplied.";
-  }
-
-  const topics = uniqueValues(
-    records.map(
-      (entry) =>
-        entry?.topic ||
-        entry?.category ||
-        entry?.coach_mode ||
-        entry?.mode
-    )
-  );
-
-  const completedSessions = records.filter((entry) => {
-    const status = String(entry?.status || "").toLowerCase();
-
-    if (!status) return true;
-
-    return (
-      status === "completed" ||
-      status === "saved" ||
-      status === "finished"
-    );
-  });
-
-  return [
-    `Voice Coach sessions: ${records.length}`,
-    `Completed or saved sessions: ${completedSessions.length}`,
-    `Topics or modes recorded: ${
-      topics.length > 0 ? topics.join(", ") : "not recorded"
-    }`,
-  ].join("\n");
-}
-
 function summariseOrganisationReviews(entries = []) {
   const records = safeArray(entries);
 
@@ -360,21 +172,7 @@ function summariseOrganisationReviews(entries = []) {
     return "No Organisation Learning Reviews were supplied.";
   }
 
-  const ordered = [...records].sort((first, second) => {
-    const firstTime = new Date(
-      first?.review_date ||
-        first?.created_at ||
-        0
-    ).getTime();
-
-    const secondTime = new Date(
-      second?.review_date ||
-        second?.created_at ||
-        0
-    ).getTime();
-
-    return firstTime - secondTime;
-  });
+  const ordered = chronologicalReviews(records);
 
   const latest = ordered[ordered.length - 1];
 
@@ -444,6 +242,8 @@ function summariseOrganisationReviews(entries = []) {
         ? initiatives.join(", ")
         : "none"
     }`,
+    `Business event notes: ${latest.business_event_notes || "none"}`,
+    `Initiative notes: ${latest.initiative_notes || "none"}`,
     `Observation priorities in latest review: ${
       watchItems.length > 0
         ? watchItems.join(", ")
@@ -790,21 +590,21 @@ export async function POST(request) {
       detectSafeguardingLanguage(cleanMessage);
 
     const organisationSummary =
-      summariseOrganisation(organisation);
+      JSON.stringify({ name: organisation.name, workforce: organisation.workforceContext });
 
-    const memberSummary = summariseMembers(members);
+    const memberSummary = JSON.stringify({ rootMembershipCount: organisation.workforceContext?.rootMembershipCount, linkedMembershipCount: organisation.workforceContext?.linkedMembershipCount });
 
     const assessmentSummary =
-      summariseAssessments(assessments);
+      "See the privacy-protected aggregate wellbeing evidence below.";
 
     const mindSummary =
-      summariseMindEntries(mindEntries);
+      "Private Mind narrative is excluded from organisational model inputs.";
 
     const journalSummary =
-      summariseJournalEntries(journalEntries);
+      "Private journal narrative is excluded from organisational model inputs.";
 
     const voiceSummary =
-  summariseVoiceSessions(voiceSessions);
+  "Private voice narrative is excluded from organisational model inputs.";
 
    const organisationLearningSummary =
   summariseOrganisationReviews(
@@ -821,25 +621,16 @@ export async function POST(request) {
       ),
 
     organisationContext:
-      sharedOrganisationContext,
+      { workforce: sharedOrganisationContext.workforce },
   });
 
   const sharedOrganisationStructure =
-  summariseSharedOrganisationContext(
-    sharedOrganisationContext
-  );
+  JSON.stringify({ workforce: sharedOrganisationContext.workforce, units: sharedOrganisationContext.structure.units.map(({ id, name, parent_unit_id, unit_type }) => ({ id, name, parent_unit_id, unit_type })) });
 
-const organisationContext = buildOrganisationContext({
-      organisation,
-      members,
-      assessments,
-      mindEntries,
-      journalEntries,
-      voiceSessions,
-    });
+const organisationContext = JSON.stringify({ workforce: organisation.workforceContext, membershipCount: members.length });
 
         const wellbeingReview =
-      buildOrganisationWellbeingReview({
+      buildOrganisationModelEvidence({
         organisation,
         members,
         assessments,
@@ -1922,7 +1713,7 @@ Help the leader understand what the evidence supports and what it does not.
       ),
 
     organisationContext:
-      sharedOrganisationContext,
+      { workforce: sharedOrganisationContext.workforce },
   });
 
   const verificationDecision =

@@ -1,4 +1,8 @@
 "use client";
+import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
+
+import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
+
 
 import { requireHRMembership } from "../../lib/authGuard";
 import { useEffect, useRef, useState } from "react";
@@ -441,7 +445,7 @@ function RootContextCard({ context }) {
       return;
     }
 
-    setOrganisation(org);
+    setOrganisation(await withWorkforceContext(supabase, org));
 
     const { data: memberData } = await supabase
       .from("organisation_members")
@@ -450,34 +454,29 @@ function RootContextCard({ context }) {
 
     const { data: assessmentData } = await supabase
       .from("wellbeing_assessments")
-      .select("*")
+      .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
       .eq("organisation_id", orgId)
       .order("created_at", { ascending: true });
 
     const { data: mindData } = await supabase
       .from("mind_entries")
-      .select("*")
+      .select("id, organisation_id, profile_key, created_at")
       .eq("organisation_id", orgId)
       .limit(200);
 
     const { data: journalData } = await supabase
       .from("journal_entries")
-      .select("*")
+      .select("id, organisation_id, profile_key, created_at")
       .eq("organisation_id", orgId)
       .limit(200);
 
     const { data: voiceData } = await supabase
       .from("voice_sessions")
-      .select("*")
+      .select("id, organisation_id, profile_key, created_at")
       .eq("organisation_id", orgId)
       .limit(200);
       
-      const { data: organisationReviewData } = await supabase
-  .from("organisation_learning_reviews")
-  .select("*")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: true })
-  .limit(24);
+      const { data: organisationReviewData } = await latestOrganisationReviews(supabase, orgId);
 
     setMembers(Array.isArray(memberData) ? memberData : []);
     setAssessments(Array.isArray(assessmentData) ? assessmentData : []);

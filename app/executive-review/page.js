@@ -1,4 +1,6 @@
 "use client";
+import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
+import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
 
 import { getRootIdentity } from "../../lib/rootIdentity";
 import { useEffect, useState } from "react";
@@ -655,6 +657,7 @@ function MiniMetric({ label, value, detail }) {
 export default function ExecutiveReviewPage() {
   const [loading, setLoading] = useState(true);
   const [organisation, setOrganisation] = useState(null);
+  const [organisationReviews, setOrganisationReviews] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [mindEntries, setMindEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
@@ -754,27 +757,27 @@ const { data: org } = await supabase
 
    const { data: assessmentData } = await supabase
   .from("wellbeing_assessments")
-  .select("*")
+  .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
   .eq("organisation_id", orgId)
   .order("created_at", { ascending: true });
 
 const { data: mindData } = await supabase
   .from("mind_entries")
-  .select("*")
+  .select("id, organisation_id, profile_key, created_at")
   .eq("organisation_id", orgId)
   .order("created_at", { ascending: false })
   .limit(200);
 
 const { data: journalData } = await supabase
   .from("journal_entries")
-  .select("*")
+  .select("id, organisation_id, profile_key, created_at")
   .eq("organisation_id", orgId)
   .order("created_at", { ascending: false })
   .limit(200);
 
 const { data: voiceData } = await supabase
   .from("voice_sessions")
-  .select("*")
+  .select("id, organisation_id, profile_key, created_at")
   .eq("organisation_id", orgId)
   .order("created_at", { ascending: false })
   .limit(200);
@@ -786,7 +789,10 @@ const { data: memberData } = await supabase
   .order("created_at", { ascending: false });
 
   
-    setOrganisation(org || null);
+    setOrganisation(await withWorkforceContext(supabase, org));
+    const { data: reviews, error: reviewError } = await latestOrganisationReviews(supabase, orgId);
+    if (reviewError) throw reviewError;
+    setOrganisationReviews(reviews || []);
     setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
     setMindEntries(Array.isArray(mindData) ? mindData : []);
     setJournalEntries(Array.isArray(journalData) ? journalData : []);
@@ -801,6 +807,7 @@ const { data: memberData } = await supabase
 }
 
 const snapshot = buildOrganisationSnapshot({
+  organisationReviews,
   organisation,
   members,
   assessments,

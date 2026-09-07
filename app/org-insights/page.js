@@ -1,4 +1,8 @@
-"use client"; 
+"use client";
+import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
+
+import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
+
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
@@ -1124,7 +1128,7 @@ setOrganisationUnits(
     : []
 );
 
-setOrganisation(org || null);
+setOrganisation(await withWorkforceContext(supabase, org));
 if (membership.role === "organisation_admin") {
   const {
     data: activityData,
@@ -1164,34 +1168,28 @@ if (membership.role === "organisation_admin") {
 
     const { data: assessmentData, error: assessmentError } = await supabase
   .from("wellbeing_assessments")
-  .select("*")
+  .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
   .eq("organisation_id", orgId)
   .order("created_at", { ascending: true });
 
-console.log("Assessment Error:", assessmentError);
-console.log("Assessment Data:", assessmentData);
+
 
     const { data: mindData } = await supabase
       .from("mind_entries")
-      .select("*")
+      .select("id, organisation_id, profile_key, created_at")
       .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data: journalData } = await supabase
       .from("journal_entries")
-      .select("*")
+      .select("id, organisation_id, profile_key, created_at")
       .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
       const { data: organisationReviewData, error: organisationReviewError } =
-  await supabase
-    .from("organisation_learning_reviews")
-    .select("*")
-    .eq("organisation_id", orgId)
-    .order("created_at", { ascending: true })
-    .limit(24);
+  await latestOrganisationReviews(supabase, orgId);
 
 if (organisationReviewError) {
   console.error(
@@ -1202,16 +1200,16 @@ if (organisationReviewError) {
 
     const { data: voiceData } = await supabase
       .from("voice_sessions")
-      .select("*")
+      .select("id, organisation_id, profile_key, created_at")
       .eq("organisation_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200);
 
     setMembers(Array.isArray(memberData) ? memberData : []);
     setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
-    console.log("Organisation ID:", orgId);
-    console.log("Assessments returned:", assessmentData);
-    console.log("Assessments state:", assessments);
+
+
+
     setMindEntries(Array.isArray(mindData) ? mindData : []);
     setJournalEntries(Array.isArray(journalData) ? journalData : []);
     setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
@@ -1384,6 +1382,13 @@ function closeOrganisationUnitDetails() {
   setSelectedOrganisationUnit(null);
 }
 
+function organisationUnitWorkforceCount(unitId) {
+  const context = organisation?.workforceContext;
+  return context?.hasRecordedRoster
+    ? context.units.find(unit => unit.unitId === unitId)?.activeWorkforceCount ?? 0
+    : null;
+}
+
 function organisationUnitEmployees(unitId) {
   return members.filter(
     (member) =>
@@ -1439,9 +1444,7 @@ function organisationUnitFirstImpression(unit) {
   }
 
   const employeeCount =
-    organisationUnitEmployees(
-      unit.id
-    ).length;
+    organisationUnitWorkforceCount(unit.id);
 
   const hrCount =
     organisationUnitHR(
@@ -1603,7 +1606,7 @@ const latest =
     "challenge"
   );
 
- 
+
   const trialStatus =
   buildRootTrialStatus({
     organisation,
@@ -1616,7 +1619,7 @@ const {
   progress: trialProgress,
   isTrial,
 } = trialStatus;
- 
+
 
   const executiveInsight =
     assessments.length === 0
@@ -3366,9 +3369,7 @@ return (
 
           <strong>
             {
-              organisationUnitEmployees(
-                selectedOrganisationUnit.id
-              ).length
+              organisationUnitWorkforceCount(selectedOrganisationUnit.id)
             }
           </strong>
         </div>
@@ -4428,18 +4429,7 @@ We look forward to welcoming you.
       </p>
 
       <h2 style={styles.panelTitle}>
-        {workforceParticipation?.workforceSize
-          ? `${workforceParticipation.joined} of ${
-              String(
-                organisation?.employee_count || ""
-              ).includes("-") ||
-              String(
-                organisation?.employee_count || ""
-              ).includes("+")
-                ? "up to "
-                : ""
-            }${workforceParticipation.workforceSize} employees have joined Root`
-          : `${workforceParticipation?.joined || 0} employees have joined Root`}
+        {`${workforceParticipation?.joined || 0} joined Root; ${workforceParticipation?.workforceSize ?? "unknown"} ${workforceParticipation?.denominatorSource || "workforce"}`}
       </h2>
 
       <p style={styles.panelDescription}>
@@ -4455,7 +4445,7 @@ We look forward to welcoming you.
       <div style={styles.pilotProgressItem}>
         <span>Workforce</span>
         <strong>
-          {workforceParticipation?.workforceSize || "—"}
+          {workforceParticipation?.workforceSize ?? "—"}
         </strong>
       </div>
 
@@ -4715,31 +4705,29 @@ We look forward to welcoming you.
       <div style={styles.participationGrid}>
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Employees invited
+            Invitations sent
           </div>
 
           <strong style={styles.participantValue}>
-            {snapshot.participation.invited}
+            {snapshot.participation.invitationSentCount ?? "—"}
           </strong>
 
           <div style={styles.participantDescription}>
-            Employees invited to participate in Root
+            Invitations sent to recorded active workforce
           </div>
         </div>
 
         <div style={styles.participantRow}>
           <div style={styles.participantTitle}>
-            Employees joined
+            Joined workforce
           </div>
 
           <strong style={styles.participantValue}>
-            {snapshot.participation.joined}
+            {snapshot.participation.linkedJoinedCount ?? "—"}
           </strong>
 
           <div style={styles.participantDescription}>
-            {snapshot.participation.participationRate !== null
-              ? `${snapshot.participation.participationRate}% activated their Root account`
-              : "Awaiting employee activation"}
+            Recorded workforce linked to an authenticated Root membership
           </div>
         </div>
 
@@ -4754,7 +4742,7 @@ We look forward to welcoming you.
 
           <div style={styles.participantDescription}>
             {snapshot.participation.baselineCompletionRate !== null
-              ? `${snapshot.participation.baselineCompletionRate}% established a starting position`
+              ? `${snapshot.participation.baselineCompletionRate}% of Root memberships established a starting position`
               : "Awaiting completed baseline assessments"}
           </div>
         </div>
@@ -4770,7 +4758,7 @@ We look forward to welcoming you.
 
           <div style={styles.participantDescription}>
             {snapshot.participation.followUpRate !== null
-              ? `${snapshot.participation.followUpRate}% completed at least one later check-in`
+              ? `${snapshot.participation.followUpRate}% of baseline participants completed at least one later check-in`
               : "No employees have returned yet"}
           </div>
         </div>
@@ -5958,7 +5946,7 @@ snapshotValue: {
   border: "none",
 },
 
- 
+
   chartInsight: {
     marginTop: "22px",
     padding: "18px",
