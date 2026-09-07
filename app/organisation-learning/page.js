@@ -1,4 +1,5 @@
 "use client";
+import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -1108,22 +1109,7 @@ localStorage.setItem(
   const {
     data: reviews,
     error: reviewError,
-  } = await supabase
-    .from(
-      "organisation_learning_reviews"
-    )
-    .select("*")
-    .eq(
-      "organisation_id",
-      member.organisation_id
-    )
-    .order(
-      "created_at",
-      {
-        ascending: false,
-      }
-    )
-    .limit(12);
+  } = await latestOrganisationReviews(supabase, member.organisation_id);
 
   if (reviewError) {
     console.error(

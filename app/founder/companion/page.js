@@ -1,4 +1,8 @@
 "use client";
+import { withWorkforceContext } from "../../../lib/organisationWorkforceContext.js";
+
+import { latestOrganisationReviews } from "../../../lib/organisationLearningHistory.js";
+
 
 import {
   useEffect,
@@ -301,7 +305,7 @@ export default function FounderCompanionPage() {
             .from(
               "wellbeing_assessments"
             )
-            .select("*")
+            .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
             .eq(
               "organisation_id",
               orgId
@@ -318,7 +322,7 @@ export default function FounderCompanionPage() {
             .from(
               "mind_entries"
             )
-            .select("*")
+            .select("id, organisation_id, profile_key, created_at")
             .eq(
               "organisation_id",
               orgId
@@ -336,7 +340,7 @@ export default function FounderCompanionPage() {
             .from(
               "journal_entries"
             )
-            .select("*")
+            .select("id, organisation_id, profile_key, created_at")
             .eq(
               "organisation_id",
               orgId
@@ -354,7 +358,7 @@ export default function FounderCompanionPage() {
             .from(
               "voice_sessions"
             )
-            .select("*")
+            .select("id, organisation_id, profile_key, created_at")
             .eq(
               "organisation_id",
               orgId
@@ -368,23 +372,7 @@ export default function FounderCompanionPage() {
             )
             .limit(200),
 
-          supabase
-            .from(
-              "organisation_learning_reviews"
-            )
-            .select("*")
-            .eq(
-              "organisation_id",
-              orgId
-            )
-            .order(
-              "created_at",
-              {
-                ascending:
-                  true,
-              }
-            )
-            .limit(24),
+          latestOrganisationReviews(supabase, orgId),
         ]);
 
       if (
@@ -414,11 +402,7 @@ export default function FounderCompanionPage() {
         );
       }
 
-      setOrganisation(
-        organisationResult
-          .data ||
-          null
-      );
+      setOrganisation(await withWorkforceContext(supabase, organisationResult.data));
 
       setMembers(
         Array.isArray(

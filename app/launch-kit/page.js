@@ -1,4 +1,6 @@
 "use client";
+import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
+import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
@@ -121,27 +123,27 @@ export default function LaunchKitPage() {
 
         supabase
           .from("wellbeing_assessments")
-          .select("*")
+          .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
           .eq("organisation_id", organisationId)
           .order("created_at", { ascending: true }),
 
         supabase
           .from("mind_entries")
-          .select("*")
+          .select("id, organisation_id, profile_key, created_at")
           .eq("organisation_id", organisationId)
           .order("created_at", { ascending: false })
           .limit(200),
 
         supabase
           .from("journal_entries")
-          .select("*")
+          .select("id, organisation_id, profile_key, created_at")
           .eq("organisation_id", organisationId)
           .order("created_at", { ascending: false })
           .limit(200),
 
         supabase
           .from("voice_sessions")
-          .select("*")
+          .select("id, organisation_id, profile_key, created_at")
           .eq("organisation_id", organisationId)
           .order("created_at", { ascending: false })
           .limit(200),
@@ -152,10 +154,13 @@ export default function LaunchKitPage() {
       }
 
       const loadedOrganisation =
-        organisationResult.data || null;
+        await withWorkforceContext(supabase, organisationResult.data);
+      const { data: organisationReviews, error: reviewError } = await latestOrganisationReviews(supabase, organisationId);
+      if (reviewError) throw reviewError;
 
       const organisationSnapshot =
         buildOrganisationSnapshot({
+          organisationReviews: organisationReviews || [],
           organisation: loadedOrganisation,
 
           members: Array.isArray(membersResult.data)
