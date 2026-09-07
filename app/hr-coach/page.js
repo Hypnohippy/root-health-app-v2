@@ -1,4 +1,5 @@
 "use client";
+import { createHRRealtimeTranscript, realtimeTextTurn, realtimeHistory } from "../../lib/hrRealtimeTranscript.js";
 import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
 
 import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
@@ -362,7 +363,7 @@ function RootContextCard({ context }) {
   const dataChannelRef = useRef(null);
   const microphoneStreamRef = useRef(null);
   const remoteAudioRef = useRef(null);
-  const voiceReplyInProgressRef = useRef(false);
+  const voiceSessionRef = useRef(null);
 
   useEffect(() => {
     loadContext();
@@ -511,6 +512,28 @@ function RootContextCard({ context }) {
 
   if (!cleanMessage) return;
 
+  const voice = voiceSessionRef.current;
+  if (voice) {
+    const channel = dataChannelRef.current;
+    if (!voice.ready || channel?.readyState !== "open" || voice.busy || voice.speaking) {
+      setVoiceError("Wait for Root to finish, or interrupt by speaking.");
+      return;
+    }
+    const events = realtimeTextTurn(cleanMessage, `typed_${crypto.randomUUID()}`);
+    voice.busy = true;
+    setVoiceError("");
+    setIsThinking(true);
+    setMessage("");
+    try {
+      events.forEach(item => channel.send(JSON.stringify(item)));
+      handleRealtimeEvent({ type: "conversation.item.added", item: events[0].item }, voice);
+    } catch {
+      stopVoiceConversation();
+      setVoiceError("The live connection closed. Please reconnect and try again.");
+    }
+    return;
+  }
+
   setConversationStarted(true);
   setIsThinking(true);
 
@@ -589,249 +612,65 @@ function RootContextCard({ context }) {
   }
 }
 
-  function addConversationEntry(role, content, suffix = "") {
-  const cleanContent = String(content || "").trim();
-
-  if (!cleanContent) return;
-
-  setConversationStarted(true);
-
-  setConversation((current) => [
-    ...current,
-    {
-      id: `${Date.now()}-${role}-${suffix || Math.random()}`,
-      role,
-      content: cleanContent,
-    },
+function handleRealtimeEvent(event, session) {
+  if (!event?.type || voiceSessionRef.current !== session) return;
+  const entries = session.transcript.consume(event);
+  setConversation(current => [
+    ...current.filter(entry => entry.voiceSessionId !== session.id), ...entries,
   ]);
-}
-
-async function requestOrganisationReply(spokenMessage) {
-  const cleanMessage = String(spokenMessage || "").trim();
-
-  if (!cleanMessage || voiceReplyInProgressRef.current) return;
-
-  voiceReplyInProgressRef.current = true;
-  setIsThinking(true);
-  setVoiceStatus("thinking");
-
-  const userEntry = {
-    id: `${Date.now()}-voice-user`,
-    role: "user",
-    content: cleanMessage,
-  };
-
-  const conversationForApi = [
-    ...conversation,
-    userEntry,
-  ];
-
-  setConversationStarted(true);
-  setConversation(conversationForApi);
-
-  try {
-    const response = await fetch("/api/organisation-coach", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${hrApiAccess?.accessToken || ""}`,
-      },
-      body: JSON.stringify({
-        message: cleanMessage,
-
-        conversation: conversationForApi.map((entry) => ({
-          role: entry.role,
-          content: entry.content,
-        })),
-
-        organisation_id: hrApiAccess?.organisationId,
-
-        intent: "voice_evidence_discussion",
-               }),
-            });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-          data?.reply ||
-          "Root could not produce a voice response."
-      );
-    }
-
-    if (data.evidenceStatus) {
-      setEvidenceStatus(data.evidenceStatus);
-    }
-
-    const rootReply =
-      data.reply ||
-      "Root could not produce a response.";
-
-    setConversation((current) => [
-  ...current,
-  {
-    id: `${Date.now()}-voice-root`,
-    role: "assistant",
-    content: rootReply,
-
-    rootContext:
-      data?.rootContext || null,
-  },
-]);
-
-    speakRootReply(rootReply);
-  } catch (error) {
-    console.error("ROOT VOICE REASONING ERROR:", error);
-
-    const errorMessage =
-      "Root couldn't reach the organisation reasoning engine. Please try again.";
-
-    setConversation((current) => [
-      ...current,
-      {
-        id: `${Date.now()}-voice-error`,
-        role: "assistant",
-        content: errorMessage,
-      },
-    ]);
-
-    setVoiceError(error.message || errorMessage);
-    setVoiceStatus("connected");
-  } finally {
-    setIsThinking(false);
-    voiceReplyInProgressRef.current = false;
-  }
-}
-
-function speakRootReply(reply) {
-  const channel = dataChannelRef.current;
-
-  if (!channel || channel.readyState !== "open") {
-    setVoiceStatus("connected");
-    return;
-  }
-
-  setIsRootSpeaking(true);
-  setVoiceStatus("speaking");
-
-  channel.send(
-    JSON.stringify({
-      type: "response.create",
-      response: {
-        conversation: "none",
-        output_modalities: ["audio"],
-        input: [],
-        instructions:
-          "Read the following response aloud exactly as written. " +
-          "Do not add, remove, explain, paraphrase or introduce it. " +
-          "Use a calm, natural, professional British conversational tone.\n\n" +
-          reply,
-        metadata: {
-          source: "root_organisation_coach",
-        },
-      },
-    })
-  );
-}
-
-function handleRealtimeEvent(event) {
-  if (!event || !event.type) return;
-
- if (event.type === "input_audio_buffer.speech_started") {
-  setVoiceStatus(
-    isRootSpeaking ? "speaking" : "listening"
-  );
-
-  return;
-}
-
-  if (event.type === "input_audio_buffer.speech_stopped") {
-    setVoiceStatus("transcribing");
-    return;
-  }
-
- if (
-  event.type ===
-  "conversation.item.input_audio_transcription.completed"
-) {
-  const transcript = String(
-    event.transcript || ""
-  ).trim();
-
-  if (!transcript) {
-    return;
-  }
-
-  const meaningfulSpeech =
-    transcript
-      .replace(/[^\p{L}\p{N}]/gu, "")
-      .trim();
-
-  if (!meaningfulSpeech) {
-    return;
-  }
-
-  if (isRootSpeaking) {
-    const channel = dataChannelRef.current;
-
-    if (
-      channel &&
-      channel.readyState === "open"
-    ) {
-      channel.send(
-        JSON.stringify({
-          type: "response.cancel",
-        })
-      );
-    }
-
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.pause();
-
-      remoteAudioRef.current
-        .play()
-        .catch(() => {});
-    }
-
-    setIsRootSpeaking(false);
-  }
-
-  requestOrganisationReply(transcript);
-
-  return;
-}
-
-  if (event.type === "response.created") {
-    setIsRootSpeaking(true);
-    setVoiceStatus("speaking");
-    return;
-  }
-
-  if (
-    event.type === "response.output_audio.done" ||
-    event.type === "response.done"
-  ) {
+  if (entries.length) setConversationStarted(true);
+  if (event.type === "input_audio_buffer.speech_started") {
+    session.userSpeaking = true;
+    session.busy = true;
+    session.speaking = false;
     setIsRootSpeaking(false);
     setVoiceStatus("listening");
-    return;
-  }
-
-  if (event.type === "error") {
-    console.error("OPENAI REALTIME ERROR:", event);
-
-    setVoiceError(
-      event?.error?.message ||
-        event?.message ||
-        "The voice connection reported an error."
-    );
-
+  } else if (event.type === "input_audio_buffer.speech_stopped") {
+    session.userSpeaking = false;
+    session.awaitingResponse = true;
+    session.busy = true;
+    setVoiceStatus("thinking");
+    setIsThinking(true);
+  } else if (event.type === "response.created") {
+    session.awaitingResponse = false;
+    session.responseId = event.response?.id;
+    session.busy = true;
+    setIsThinking(true);
+    setVoiceStatus("thinking");
+  } else if (event.type === "output_audio_buffer.started") {
+    session.playbackResponseId = event.response_id;
+    session.speaking = true;
+    setIsThinking(false);
+    setIsRootSpeaking(true);
+    setVoiceStatus("speaking");
+  } else if (["output_audio_buffer.stopped", "output_audio_buffer.cleared"].includes(event.type)) {
+    if (event.response_id && session.playbackResponseId && event.response_id !== session.playbackResponseId) return;
+    session.speaking = false;
+    setIsRootSpeaking(false);
+    setVoiceStatus(session.busy ? "thinking" : "listening");
+  } else if (event.type === "response.done" && event.response?.id === session.responseId) {
+    session.responseId = null;
+    session.busy = Boolean(session.userSpeaking || session.awaitingResponse);
+    setIsThinking(false);
+    // Generation can finish before the WebRTC audio buffer has finished playing.
+    if (!session.speaking) setVoiceStatus("listening");
+    if (event.response?.status === "failed") setVoiceError("Root could not finish that voice response. Please try again.");
+  } else if (event.type === "conversation.item.input_audio_transcription.failed") {
+    setVoiceError("Your audio transcript was unavailable. Please repeat anything Root missed.");
+  } else if (event.type === "error") {
+    setVoiceError("The live conversation reported an error. Please reconnect if it cannot continue.");
+    session.busy = false;
+    setIsThinking(false);
     setVoiceStatus("error");
   }
 }
 
 async function startVoiceConversation() {
-  if (isVoiceActive) return;
+  if (voiceSessionRef.current) return;
+  const session = { id: crypto.randomUUID(), ready: false, busy: false, speaking: false,
+    transcript: null, history: realtimeHistory(conversation) };
+  session.transcript = createHRRealtimeTranscript(session.id);
+  voiceSessionRef.current = session;
 
   setVoiceError("");
   setVoiceStatus("connecting");
@@ -862,6 +701,7 @@ async function startVoiceConversation() {
     );
 
     const tokenData = await tokenResponse.json();
+    if (voiceSessionRef.current !== session) return;
 
     if (!tokenResponse.ok || !tokenData.clientSecret) {
       throw new Error(
@@ -879,6 +719,7 @@ async function startVoiceConversation() {
     remoteAudioRef.current = remoteAudio;
 
     peerConnection.ontrack = (event) => {
+      if (voiceSessionRef.current !== session) return;
       remoteAudio.srcObject = event.streams[0];
 
       remoteAudio.play().catch((error) => {
@@ -890,9 +731,10 @@ async function startVoiceConversation() {
     };
 
     peerConnection.onconnectionstatechange = () => {
+      if (voiceSessionRef.current !== session) return;
       const state = peerConnection.connectionState;
 
-      if (state === "connected") {
+      if (state === "connected" && session.ready) {
         setIsVoiceActive(true);
         setVoiceStatus("listening");
       }
@@ -921,6 +763,11 @@ async function startVoiceConversation() {
         },
       });
 
+    if (voiceSessionRef.current !== session) {
+      microphoneStream.getTracks().forEach(track => track.stop());
+      return;
+    }
+    microphoneStream.getAudioTracks().forEach(track => { track.enabled = false; });
     microphoneStreamRef.current = microphoneStream;
 
     microphoneStream.getTracks().forEach((track) => {
@@ -936,40 +783,14 @@ async function startVoiceConversation() {
     dataChannelRef.current = dataChannel;
 
     dataChannel.addEventListener("open", () => {
-      dataChannel.send(
-        JSON.stringify({
-          type: "session.update",
-          session: {
-            type: "realtime",
-            model: "gpt-realtime-2.1",
-            output_modalities: ["audio"],
-            audio: {
-              input: {
-                transcription: {
-                  model: "gpt-live-transcribe",
-                  language: "en",
-                },
-              turn_detection: {
-  type: "server_vad",
-  threshold: 0.9, 
-  prefix_padding_ms: 300,
-  silence_duration_ms: 650,
-  create_response: false,
-  interrupt_response: false,
-},
-              },
-              output: {
-                voice: "marin",
-              },
-            },
-            instructions:
-              "You are only the live audio interface for Root. " +
-              "Do not independently answer the user. " +
-              "User speech is handled by Root's organisation reasoning engine. " +
-              "Only speak when the application explicitly sends a response.create instruction.",
-          },
-        })
-      );
+      if (voiceSessionRef.current !== session) return;
+      // The server already bound authorised evidence and guardrails to the session.
+      // Seed prior visible dialogue without overwriting its instructions or model.
+      session.history.forEach(event => dataChannel.send(JSON.stringify(event)));
+      session.ready = true;
+      microphoneStream.getAudioTracks().forEach(track => { track.enabled = true; });
+      setIsVoiceActive(true);
+      setVoiceStatus("listening");
     });
 
     dataChannel.addEventListener(
@@ -980,7 +801,7 @@ async function startVoiceConversation() {
             messageEvent.data
           );
 
-          handleRealtimeEvent(realtimeEvent);
+          handleRealtimeEvent(realtimeEvent, session);
         } catch (error) {
           console.error(
             "ROOT REALTIME EVENT PARSE ERROR:",
@@ -991,8 +812,7 @@ async function startVoiceConversation() {
     );
 
     dataChannel.addEventListener("close", () => {
-      setIsVoiceActive(false);
-      setVoiceStatus("idle");
+      if (voiceSessionRef.current === session) stopVoiceConversation();
     });
 
     const offer =
@@ -1016,6 +836,7 @@ async function startVoiceConversation() {
     );
 
     const answerSdp = await sdpResponse.text();
+    if (voiceSessionRef.current !== session) return;
 
     if (!sdpResponse.ok) {
       throw new Error(
@@ -1031,6 +852,7 @@ async function startVoiceConversation() {
 
     setConversationStarted(true);
   } catch (error) {
+    if (voiceSessionRef.current !== session) return;
     console.error(
       "ROOT LIVE VOICE START ERROR:",
       error
@@ -1047,6 +869,7 @@ async function startVoiceConversation() {
 }
 
 function stopVoiceConversation() {
+  voiceSessionRef.current = null;
   const channel = dataChannelRef.current;
   const peerConnection =
     peerConnectionRef.current;
@@ -1092,7 +915,7 @@ function stopVoiceConversation() {
   peerConnectionRef.current = null;
   microphoneStreamRef.current = null;
   remoteAudioRef.current = null;
-  voiceReplyInProgressRef.current = false;
+  setIsThinking(false);
 
   setIsVoiceActive(false);
   setIsRootSpeaking(false);
@@ -1426,7 +1249,7 @@ function stopVoiceConversation() {
                   <button
   type="button"
   onClick={
-    isVoiceActive
+    isVoiceActive || voiceStatus === "connecting"
       ? stopVoiceConversation
       : startVoiceConversation
   }
@@ -1569,6 +1392,9 @@ function stopVoiceConversation() {
               : "Root"}
           </span>
 
+          {entry.interrupted && <small>Interrupted — unplayed transcript removed.</small>}
+          {entry.transcriptionFailed && <small>Audio transcript unavailable.</small>}
+          {entry.voiceSessionId && !entry.content && !entry.final && <small>{isUser ? "Transcribing…" : "Responding…"}</small>}
           {isUser ? (
             <p
               style={
