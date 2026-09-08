@@ -17,7 +17,7 @@ export default function ActionReviewCard({ entry, access, onCancel, onSaved }) {
   const provenance = key => draft[key] !== initial[key] ? 'Edited by you' : initial[key] ? 'Prepared by Root' : 'Optional — add if known';
   function field(key, title, help, kind = 'text') {
     return <label className={kind === 'textarea' ? 'wide' : ''} key={key}><span>{title}</span><small>{help}</small>
-      {kind === 'textarea' ? <textarea value={draft[key] || ''} maxLength={4000} onChange={e => change(key, e.target.value)} /> : <input type={kind} required={key === 'title' || key === 'completed_date'} maxLength={200} value={draft[key] || ''} onChange={e => change(key, kind === 'date' ? e.target.value || null : e.target.value)} />}
+      {kind === 'textarea' ? <textarea rows={7} ref={element => { if (element) { element.style.height = 'auto'; element.style.height = Math.max(168, element.scrollHeight + 2) + 'px'; } }} value={draft[key] || ''} maxLength={4000} onChange={e => change(key, e.target.value)} /> : <input type={kind} required={key === 'title' || key === 'completed_date'} maxLength={200} value={draft[key] || ''} onChange={e => change(key, kind === 'date' ? e.target.value || null : e.target.value)} />}
       <small className="origin">{provenance(key)}</small></label>;
   }
   return <section className="action-review" aria-labelledby="action-review-heading">
@@ -41,11 +41,27 @@ export default function ActionReviewCard({ entry, access, onCancel, onSaved }) {
       <div className="actions"><button type="button" onClick={onCancel}>Cancel</button><button className="save" type="submit">{busy ? 'Saving…' : 'I’ve reviewed this and want to save it'}</button></div>
       </fieldset>
     </form>
-    <style jsx>{`
+    <style jsx global>{`
       .action-review{box-sizing:border-box;width:100%;min-width:0;margin:28px 0;padding:clamp(18px,4vw,32px);border:1px solid #cbd8cb;border-radius:24px;background:#faf9f5;text-align:left;color:#29382e}
-      h2{margin:6px 0 12px;font-size:24px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6f675b}p{line-height:1.6}fieldset{border:0;padding:0;margin:0;min-width:0}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.wide{grid-column:1/-1}
-      label{display:flex;flex-direction:column;gap:8px;min-width:0}label span{font-weight:700}small{font-size:13px;line-height:1.5;color:#6f675b}.origin{font-size:12px;color:#526956}input,select,textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;font:inherit;padding:12px;border:1px solid #bdcdbd;border-radius:10px;background:white;color:#29382e}textarea{min-height:110px;resize:vertical}.actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:24px}button{font:inherit;border:1px solid #b9cabb;border-radius:999px;padding:12px 20px;white-space:normal;cursor:pointer}.save{background:#29533a;color:white}button:disabled{opacity:.5}
-      @media(max-width:600px){.fields{grid-template-columns:minmax(0,1fr)}.actions{flex-direction:column}.actions button{width:100%}}
+
+      .action-review h2{margin:6px 0 12px;font-size:24px}
+      .action-review .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6f675b}
+      .action-review p{line-height:1.6}
+      .action-review fieldset{border:0;padding:0;margin:0;min-width:0}
+      .action-review .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 24px;margin-top:28px}
+      .action-review .wide{grid-column:1/-1}
+      .action-review label{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;overflow-wrap:anywhere}
+      .action-review label span{display:block;font-weight:700;font-size:16px;line-height:1.5}
+      .action-review small{display:block;font-size:13px;line-height:1.5;color:#6f675b}
+      .action-review .origin{font-size:12px;color:#526956}
+      .action-review input,.action-review select,.action-review textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;font:inherit;font-size:16px;line-height:1.5;padding:12px 14px;border:1px solid #bdcdbd;border-radius:12px;background:white;color:#29382e}
+      .action-review textarea{min-height:168px;resize:vertical;overflow-y:auto}
+      .action-review input:focus-visible,.action-review select:focus-visible,.action-review textarea:focus-visible{outline:2px solid #526956;outline-offset:2px}
+      .action-review .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:24px}
+      .action-review button{font:inherit;border:1px solid #b9cabb;border-radius:999px;padding:12px 20px;white-space:normal;cursor:pointer;background:#edf2eb;color:#29533a}
+      .action-review .save{background:#29533a;color:white;font-weight:700}
+      .action-review button:disabled{opacity:.5}
+      @media(max-width:600px){.action-review .fields{grid-template-columns:minmax(0,1fr)}.action-review .actions{flex-direction:column}.action-review .actions button{width:100%}}
     `}</style>
   </section>;
 }
