@@ -1,4 +1,5 @@
 "use client";
+import OrganisationActionPanel from '../../components/OrganisationActionPanel.js';
 import { createHRRealtimeTranscript, realtimeTextTurn, realtimeHistory } from "../../lib/hrRealtimeTranscript.js";
 import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
 
@@ -1498,6 +1499,7 @@ function stopVoiceConversation() {
             </>
           )}
         </section>
+        <OrganisationActionPanel access={hrApiAccess} />
       </main>
     </RootAtmosphere>
   );
