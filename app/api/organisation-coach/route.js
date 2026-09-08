@@ -1,4 +1,6 @@
 import { buildHROrganisationPrompt } from "../../../lib/hrOrganisationPrompt.js";
+import { createDraftOrigin } from '../../../lib/corporateDocumentDraft.js';
+import { createCorporateDocumentHandoff } from '../../../lib/corporateDocumentServer.js';
 import { chronologicalReviews } from "../../../lib/organisationLearningHistory.js";
 import { buildOrganisationModelEvidence } from "../../../lib/organisationModelEvidence.js";
 
@@ -751,6 +753,8 @@ const verifiedRootContext =
        return Response.json(
       {
         reply,
+        documentHandoff: createCorporateDocumentHandoff({ evidence: { organisation, members, assessments }, userId: authorised.user.id }),
+        draftOrigin: createDraftOrigin(reply, authorised),
 
         rootContext:
           verifiedRootContext,

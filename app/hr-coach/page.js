@@ -1,5 +1,6 @@
 "use client";
 import OrganisationActionPanel from '../../components/OrganisationActionPanel.js';
+import CorporateOutputActions from '../../components/CorporateOutputActions.js';
 import { createHRRealtimeTranscript, realtimeTextTurn, realtimeHistory } from "../../lib/hrRealtimeTranscript.js";
 import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
 
@@ -354,6 +355,7 @@ function RootContextCard({ context }) {
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [isRootSpeaking, setIsRootSpeaking] = useState(false);
   const [conversation, setConversation] = useState([]);
+  const [actionRevision, setActionRevision] = useState(0);
   const [message, setMessage] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -588,6 +590,8 @@ function RootContextCard({ context }) {
   {
     id: `${Date.now()}-root`,
     role: "assistant",
+    documentHandoff: data.documentHandoff || null,
+    draftOrigin: data.draftOrigin || null,
     content:
       data.reply ||
       "Root could not produce a response.",
@@ -1417,6 +1421,7 @@ function stopVoiceConversation() {
           )}
         </div>
 
+        {!isUser && <CorporateOutputActions key={`${hrApiAccess?.organisationId}:${entry.id}`} entry={entry} access={hrApiAccess} onSaved={() => setActionRevision(value => value + 1)} />}
         {!isUser &&
           entry?.rootContext
             ?.show === true && (
@@ -1496,10 +1501,10 @@ function stopVoiceConversation() {
   conversation. Its conclusions will develop as the evidence develops.
 </p>
               </section>
+              <OrganisationActionPanel access={hrApiAccess} revision={actionRevision} />
             </>
           )}
         </section>
-        <OrganisationActionPanel access={hrApiAccess} />
       </main>
     </RootAtmosphere>
   );
