@@ -152,8 +152,11 @@ test("the reasoning route ignores browser evidence and loads authorised evidence
 });
 
 test("Voice authorisation occurs before requesting an OpenAI client secret", async () => {
-  const source = await readFile(new URL("../app/api/hr-voice-session/route.js", import.meta.url), "utf8");
-  const accessIndex = source.indexOf("await requireHRCoachOrganisationAccess");
+  const route = await readFile(new URL("../app/api/hr-voice-session/route.js", import.meta.url), "utf8");
+  assert.match(route, /createHRVoiceSessionHandler/);
+  const source = await readFile(new URL("../lib/hrVoiceSessionServer.js", import.meta.url), "utf8");
+  assert.match(source, /authorise = requireHRCoachOrganisationAccess/);
+  const accessIndex = source.indexOf("await authorise");
   const openAIIndex = source.indexOf("https://api.openai.com/v1/realtime/client_secrets");
   assert.ok(accessIndex >= 0);
   assert.ok(openAIIndex > accessIndex);
