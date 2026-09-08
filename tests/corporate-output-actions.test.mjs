@@ -136,7 +136,7 @@ test('panel is inside main content below conversation; save/export only have exp
   const read = path => readFile(new URL('../' + path, import.meta.url), 'utf8');
   const page = await read('app/hr-coach/page.js');
   assert.equal((page.match(/<OrganisationActionPanel /g) || []).length, 1);
-  assert.match(page, /<\/section>\s*<OrganisationActionPanel[^\n]+\s*<\/>/);
+  assert.match(page, /<OrganisationActionPanel[^\n]+\s*<\/>/);
   assert.ok(page.indexOf('<OrganisationActionPanel') > page.indexOf('<form onSubmit={handleSend}'));
   const controls = await read('components/CorporateOutputActions.js');
   assert.match(controls, /onSubmit={submit}/); assert.match(controls, /if \(lock.current \|\| !confirmed\) return/);

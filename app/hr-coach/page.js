@@ -1,6 +1,7 @@
 "use client";
 import OrganisationActionPanel from '../../components/OrganisationActionPanel.js';
 import CorporateOutputActions from '../../components/CorporateOutputActions.js';
+import ActionReviewCard from '../../components/ActionReviewCard.js';
 import { createHRRealtimeTranscript, realtimeTextTurn, realtimeHistory } from "../../lib/hrRealtimeTranscript.js";
 import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
 
@@ -356,6 +357,8 @@ function RootContextCard({ context }) {
   const [isRootSpeaking, setIsRootSpeaking] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [actionRevision, setActionRevision] = useState(0);
+  const [actionReview, setActionReview] = useState(null);
+  const [savedResponseActions, setSavedResponseActions] = useState([]);
   const [message, setMessage] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -1421,7 +1424,9 @@ function stopVoiceConversation() {
           )}
         </div>
 
-        {!isUser && <CorporateOutputActions key={`${hrApiAccess?.organisationId}:${entry.id}`} entry={entry} access={hrApiAccess} onSaved={() => setActionRevision(value => value + 1)} />}
+        {!isUser && <CorporateOutputActions key={`${hrApiAccess?.organisationId}:${entry.id}`} entry={entry} access={hrApiAccess}
+          actionSaved={savedResponseActions.includes(`${hrApiAccess?.organisationId}:${entry.id}`)}
+          onReviewAction={response => setActionReview({ entry: response, organisationId: hrApiAccess.organisationId })} />}
         {!isUser &&
           entry?.rootContext
             ?.show === true && (
@@ -1501,6 +1506,12 @@ function stopVoiceConversation() {
   conversation. Its conclusions will develop as the evidence develops.
 </p>
               </section>
+              {actionReview && actionReview.organisationId === hrApiAccess?.organisationId && <ActionReviewCard
+                key={`${actionReview.organisationId}:${actionReview.entry.id}`} entry={actionReview.entry} access={hrApiAccess}
+                onCancel={() => setActionReview(null)} onSaved={() => {
+                  setSavedResponseActions(current => [...current, `${actionReview.organisationId}:${actionReview.entry.id}`]);
+                  setActionReview(null); setActionRevision(value => value + 1);
+                }} />}
               <OrganisationActionPanel access={hrApiAccess} revision={actionRevision} />
             </>
           )}
