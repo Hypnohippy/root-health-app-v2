@@ -1,4 +1,5 @@
 "use client";
+import { withOrganisationActionContext } from "../../lib/organisationActions.js";
 import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1103,7 +1104,7 @@ localStorage.setItem(
   }
 
   setOrganisation(
-    org || null
+    await withOrganisationActionContext(supabase, org || null)
   );
 
   const {

@@ -591,7 +591,7 @@ export async function POST(request) {
       detectSafeguardingLanguage(cleanMessage);
 
     const organisationSummary =
-      JSON.stringify({ name: organisation.name, workforce: organisation.workforceContext });
+      JSON.stringify({ name: organisation.name, workforce: organisation.workforceContext, organisationActions: organisation.actionContext });
 
     const memberSummary = JSON.stringify({ rootMembershipCount: organisation.workforceContext?.rootMembershipCount, linkedMembershipCount: organisation.workforceContext?.linkedMembershipCount });
 
