@@ -13,6 +13,45 @@ const workforce = { organisationId: "org", hasRecordedRoster: true, completeness
   deliveryCounts: { sent: 7, sending: 1, failed: 1, unknown: 1 } };
 const examples = buildCorporateEvidenceContract(workforce).questionExamples;
 
+test("protected wellbeing is presented as unavailable for interpretation, not evidence scarcity", () => {
+  const input = evidence(3);
+  const review = buildOrganisationModelEvidence(input);
+  for (const prompt of [buildHRRealtimeSession(input).instructions,
+    buildHROrganisationPrompt({ workforceContext: workforce, wellbeingReview: review })]) {
+    assert.match(prompt, /unavailable for organisational interpretation because of privacy protection/);
+    assert.match(prompt, /Do not describe suppression as little evidence, no evidence collected or low participation/);
+    assert.match(prompt, /independently supported coverage limitation separate/);
+    assert.ok(prompt.includes(JSON.stringify(buildCorporateEvidenceContract(workforce, review), null, 2)));
+  }
+  assert.equal(review.observedEvidence[0].mean, null);
+  assert.equal(review.evidenceReviewed.baselineCohort, "fewer than 5");
+});
+
+test("direct answers avoid repetitive thinking preambles without prohibiting natural conversation", () => {
+  const prompt = buildHRRealtimeSession(evidence(5)).instructions;
+  assert.match(prompt, /For direct factual answers, start with the answer rather than a "let me think" or "let me look" preamble/);
+  assert.match(prompt, /Avoid repeating these preambles across turns/);
+  assert.match(prompt, /Natural conversational transitions remain welcome when useful/);
+  assert.match(prompt, /do not imply a lookup or refresh that has not occurred/);
+});
+
+test("invitation-first action is conditional on demonstrated invitation coverage, not suppression", () => {
+  for (const counts of [
+    { invitationSentCount: 0, awaitingJoinCount: 0, notInvitedCount: 10 },
+    { invitationSentCount: 15, awaitingJoinCount: 10, notInvitedCount: 0 },
+  ]) {
+    const input = evidence(3);
+    input.organisationContext.workforce = { ...workforce, ...counts };
+    const prompt = buildHRRealtimeSession(input).instructions;
+    assert.match(prompt, /current authorised invitation and join evidence demonstrates that invitation coverage is the upstream constraint/);
+    assert.match(prompt, /improving invitation coverage before encouraging participation among invitees/);
+    assert.match(prompt, /Do not assume invitation coverage is the constraint from suppressed wellbeing evidence or low participation alone/);
+    assert.match(prompt, /rather than automatically recommending more invitations/);
+    assert.match(prompt, /do not claim invitations will cause wellbeing improvement/);
+    assert.ok(prompt.includes(JSON.stringify(buildCorporateEvidenceContract(input.organisationContext.workforce, buildOrganisationModelEvidence(input)), null, 2)));
+  }
+});
+
 test("current evidence overrides stale assistant claims while retaining conversational memory", () => {
   const input = evidence(3);
   input.organisation.workforce_size = 100;
