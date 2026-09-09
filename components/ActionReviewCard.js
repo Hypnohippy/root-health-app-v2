@@ -25,14 +25,18 @@ export default function ActionReviewCard({ entry, access, onCancel, onSaved }) {
     <p>Draft prepared by Root — please review before saving. Nothing has been saved or approved yet.</p>
     <form onSubmit={confirm}>
       <fieldset disabled={busy}><div className="fields">
+        <h3 className="wide">Action</h3>
         {field('title', 'Action title', 'A short name for the action or initiative.')}
         <label><span>Type</span><small>Choose the kind of record you want to keep.</small><select value={draft.type} onChange={e => change('type', e.target.value)}><option value="action_plan">Action plan</option><option value="intervention">Intervention</option><option value="decision">Decision</option></select><small className="origin">{provenance('type')}</small></label>
+        <h3 className="wide">Reason</h3>
         {field('rationale', 'Why are we doing this?', 'The problem or opportunity this action is intended to address.', 'textarea')}
         {field('evidence_summary', 'What evidence supports this?', 'The facts or observations supporting this action. Keep private or protected information out.', 'textarea')}
-        {field('owner', 'Owner', 'Who will be responsible for taking this forward?')}
-        <label><span>Status</span><small>Where is this action now?</small><select value={draft.status} onChange={e => change('status', e.target.value)}>{[['planned','Planned'],['in_progress','In progress'],['in_review','In review'],['completed','Completed'],['cancelled','Cancelled']].map(([value,title]) => <option key={value} value={value}>{title}</option>)}</select><small className="origin">{draft.status === initial.status ? 'Default: Planned' : 'Edited by you'}</small></label>
+        <h3 className="wide">Intended result and measure</h3>
         {field('expected_outcome', 'Expected outcome', 'What should be different if this action achieves its intended purpose?', 'textarea')}
         {field('success_measure', 'How will we know it worked?', 'The measurable sign or observation that would indicate success.', 'textarea')}
+        <h3 className="wide">Owner, timing and status</h3>
+        {field('owner', 'Owner', 'Who will be responsible for taking this forward?')}
+        <label><span>Status</span><small>Where is this action now?</small><select value={draft.status} onChange={e => change('status', e.target.value)}>{[['planned','Planned'],['in_progress','In progress'],['in_review','In review'],['completed','Completed'],['cancelled','Cancelled']].map(([value,title]) => <option key={value} value={value}>{title}</option>)}</select><small className="origin">{draft.status === initial.status ? 'Default: Planned' : 'Edited by you'}</small></label>
         {field('start_date', 'Start date', 'When do you expect this action to begin?', 'date')}
         {field('review_date', 'Review date', 'When should the organisation review progress or outcome?', 'date')}
         {draft.status === 'completed' && field('completed_date', 'Completed date', 'When was this action completed?', 'date')}
@@ -44,6 +48,7 @@ export default function ActionReviewCard({ entry, access, onCancel, onSaved }) {
     <style jsx global>{`
       .action-review{box-sizing:border-box;width:100%;min-width:0;margin:28px 0;padding:clamp(18px,4vw,32px);border:1px solid #cbd8cb;border-radius:24px;background:#faf9f5;text-align:left;color:#29382e}
 
+      .action-review h3{margin:8px 0 0;font-size:18px;border-bottom:1px solid #d7dfd4;padding-bottom:12px}
       .action-review h2{margin:6px 0 12px;font-size:24px}
       .action-review .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6f675b}
       .action-review p{line-height:1.6}

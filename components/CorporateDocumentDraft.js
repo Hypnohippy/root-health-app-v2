@@ -1,9 +1,12 @@
 "use client";
 import { useState, useRef } from 'react';
+import CorporateDocumentPreview from './CorporateDocumentPreview.js';
+import { documentBlocks, editDocumentBlock } from '../lib/corporateOutputPresentation.js';
 export default function CorporateDocumentDraft({ entry, access }) {
   const [open, setOpen] = useState(false), [title, setTitle] = useState('Organisation document draft');
   const [content, setContent] = useState(entry.content), [review, setReview] = useState(null);
   const [confirmed, setConfirmed] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [view, setView] = useState('preview');
   const lock = useRef(false);
   if (entry.voiceSessionId || !entry.draftOrigin || !entry.documentHandoff?.reference) return null;
   const edited = content !== entry.content;
@@ -25,19 +28,20 @@ export default function CorporateDocumentDraft({ entry, access }) {
     } catch (failure) { setError(failure.message || 'Draft unavailable.'); }
     finally { lock.current = false; setBusy(false); }
   }
-  return <div style={{ marginTop: 12, textAlign: 'left' }}>
-    <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}>Document Draft</button>
-    {open && <fieldset disabled={busy} style={{ border: '1px solid #b9cabb', borderRadius: 16, padding: 16 }}>
-      <legend>{edited ? 'User-edited content' : 'Root-generated content'}</legend>
+  return <div className="document-draft">
+    <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}>Create Document Draft</button>
+    {open && <fieldset className="output-panel" disabled={busy}>
+      <legend className="provenance">{edited ? 'User-edited content' : 'Root-generated content'}</legend>
       <p>This editable narrative is not verified evidence. The protected evidence appendix stays unchanged. Review personal information and unsupported claims before sharing.</p>
       <label>Draft title<input value={title} maxLength={200} onChange={e => { setTitle(e.target.value); setConfirmed(false); }} style={{ display: 'block', width: '100%' }} /></label>
-      <label>Draft body<textarea value={content} maxLength={30000} onChange={e => { setContent(e.target.value); setReview(null); setConfirmed(false); }} style={{ display: 'block', boxSizing: 'border-box', width: '100%', minHeight: 240 }} /></label>
+      <div className="buttons" aria-label="Document view"><button type="button" aria-pressed={view === 'edit'} onClick={() => setView('edit')}>Edit</button><button type="button" aria-pressed={view === 'preview'} onClick={() => setView('preview')}>Preview</button></div>
+      {view === 'preview' ? <article aria-label="Document preview"><h2>{title}</h2><CorporateDocumentPreview content={content} /></article> : <div aria-label="Edit document wording">{documentBlocks(content).map((block,index) => <label key={block.index}>{block.kind === 'heading' ? 'Section heading' : block.kind === 'numbered' ? 'Recommendation ' + block.number : 'Paragraph ' + (index + 1)}<textarea value={block.text} ref={element => { if(element) { element.style.height='auto';element.style.height=Math.max(100,element.scrollHeight+2)+'px'; } }} onChange={e => { const next=editDocumentBlock(content,block,e.target.value); if(next.length<=30000) { setContent(next); setReview(null); setConfirmed(false); } }} /></label>)}</div>}
       <button type="button" onClick={() => perform('recheck')}>Recheck against evidence</button>
       <p>Checks exact statements such as “stress_score baseline mean: 6” or “stress_score matched change: 1”. Other narrative remains unchecked.</p>
       {review && <div role="status"><p>{review.scope}</p><ul>{review.claims.map((claim, index) => <li key={index}>Statement {index + 1}: {claim.status.replaceAll('_', ' ')}</li>)}</ul></div>}
-      <details><summary>Immutable protected evidence</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{entry.documentHandoff.content}</pre></details>
-      <label><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />I reviewed this draft and confirm export with its provenance and unvalidated-content labels.</label>
-      <button type="button" disabled={!confirmed} onClick={() => perform('export')}>Download Draft PDF</button>
+      <details><summary>Immutable protected evidence</summary><CorporateDocumentPreview content={entry.documentHandoff.content} evidence /></details>
+      <label className="confirmation"><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />I reviewed this draft and confirm export with its provenance and unvalidated-content labels.</label>
+      <button className="primary" type="button" disabled={!confirmed} onClick={() => perform('export')}>Download PDF</button>
     </fieldset>}
     {error && <p role="alert">{error}</p>}
   </div>;

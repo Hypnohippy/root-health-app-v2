@@ -1013,9 +1013,15 @@ function stopVoiceConversation() {
     <RootAtmosphere type="coach">
       <Nav />
 
-      <main style={styles.page}>
+      <main className="hr-coach-page" style={styles.page}>
         <style>{`
-  @keyframes rootContextReveal {
+  @media(max-width:600px){
+ .hr-coach-page{padding:12px!important}
+ .hr-coach-page>.hr-coach-card{padding:14px!important}
+ .hr-coach-conversation{padding:12px!important}
+ .hr-coach-transcript{padding:8px!important}
+}
+@keyframes rootContextReveal {
     from {
       opacity: 0;
       transform: translateY(7px);
@@ -1027,7 +1033,7 @@ function stopVoiceConversation() {
     }
   }
 `}</style>
-        <section style={styles.card}> 
+        <section className="hr-coach-card" style={styles.card}>
           <div style={styles.topButtons}>
             <button
               type="button"
@@ -1304,7 +1310,7 @@ function stopVoiceConversation() {
     ) : null}
   </div>
 ) : null}
-              <section style={styles.conversationSection}>
+              <section className="hr-coach-conversation" style={styles.conversationSection}>
                 <div style={styles.conversationHeader}>
                   <div>
                     <p style={styles.conversationKicker}>
@@ -1345,7 +1351,7 @@ function stopVoiceConversation() {
 
 
 
-                <div style={styles.conversationWindow}>
+                <div className="hr-coach-transcript" style={styles.conversationWindow}>
                   {!conversationStarted || conversation.length === 0 ? (
                     <div style={styles.emptyConversation}>
                       <RootEnso size={58} />
@@ -1770,8 +1776,7 @@ const styles = {
   conversationWindow: {
     marginTop: "22px",
     minHeight: "320px",
-    maxHeight: "560px",
-    overflowY: "auto",
+    overflowWrap: "anywhere",
     padding: "20px",
     borderRadius: "22px",
     background: "rgba(255,255,255,0.48)",
