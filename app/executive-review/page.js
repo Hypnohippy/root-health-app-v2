@@ -1,4 +1,5 @@
 "use client";
+import { withOrganisationActionContext } from "../../lib/organisationActions.js";
 import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
 import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
 
@@ -789,7 +790,7 @@ const { data: memberData } = await supabase
   .order("created_at", { ascending: false });
 
   
-    setOrganisation(await withWorkforceContext(supabase, org));
+    setOrganisation(await withOrganisationActionContext(supabase, await withWorkforceContext(supabase, org)));
     const { data: reviews, error: reviewError } = await latestOrganisationReviews(supabase, orgId);
     if (reviewError) throw reviewError;
     setOrganisationReviews(reviews || []);

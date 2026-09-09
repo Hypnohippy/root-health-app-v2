@@ -1,4 +1,7 @@
 "use client";
+import OrganisationActionPanel from '../../components/OrganisationActionPanel.js';
+import CorporateOutputActions from '../../components/CorporateOutputActions.js';
+import ActionReviewCard from '../../components/ActionReviewCard.js';
 import { createHRRealtimeTranscript, realtimeTextTurn, realtimeHistory } from "../../lib/hrRealtimeTranscript.js";
 import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
 
@@ -353,6 +356,9 @@ function RootContextCard({ context }) {
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [isRootSpeaking, setIsRootSpeaking] = useState(false);
   const [conversation, setConversation] = useState([]);
+  const [actionRevision, setActionRevision] = useState(0);
+  const [actionReview, setActionReview] = useState(null);
+  const [savedResponseActions, setSavedResponseActions] = useState([]);
   const [message, setMessage] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -587,6 +593,8 @@ function RootContextCard({ context }) {
   {
     id: `${Date.now()}-root`,
     role: "assistant",
+    documentHandoff: data.documentHandoff || null,
+    draftOrigin: data.draftOrigin || null,
     content:
       data.reply ||
       "Root could not produce a response.",
@@ -1005,9 +1013,15 @@ function stopVoiceConversation() {
     <RootAtmosphere type="coach">
       <Nav />
 
-      <main style={styles.page}>
+      <main className="hr-coach-page" style={styles.page}>
         <style>{`
-  @keyframes rootContextReveal {
+  @media(max-width:600px){
+ .hr-coach-page{padding:12px!important}
+ .hr-coach-page>.hr-coach-card{padding:14px!important}
+ .hr-coach-conversation{padding:12px!important}
+ .hr-coach-transcript{padding:8px!important}
+}
+@keyframes rootContextReveal {
     from {
       opacity: 0;
       transform: translateY(7px);
@@ -1019,7 +1033,7 @@ function stopVoiceConversation() {
     }
   }
 `}</style>
-        <section style={styles.card}> 
+        <section className="hr-coach-card" style={styles.card}>
           <div style={styles.topButtons}>
             <button
               type="button"
@@ -1296,7 +1310,7 @@ function stopVoiceConversation() {
     ) : null}
   </div>
 ) : null}
-              <section style={styles.conversationSection}>
+              <section className="hr-coach-conversation" style={styles.conversationSection}>
                 <div style={styles.conversationHeader}>
                   <div>
                     <p style={styles.conversationKicker}>
@@ -1337,7 +1351,7 @@ function stopVoiceConversation() {
 
 
 
-                <div style={styles.conversationWindow}>
+                <div className="hr-coach-transcript" style={styles.conversationWindow}>
                   {!conversationStarted || conversation.length === 0 ? (
                     <div style={styles.emptyConversation}>
                       <RootEnso size={58} />
@@ -1416,6 +1430,9 @@ function stopVoiceConversation() {
           )}
         </div>
 
+        {!isUser && <CorporateOutputActions key={`${hrApiAccess?.organisationId}:${entry.id}`} entry={entry} access={hrApiAccess}
+          actionSaved={savedResponseActions.includes(`${hrApiAccess?.organisationId}:${entry.id}`)}
+          onReviewAction={response => setActionReview({ entry: response, organisationId: hrApiAccess.organisationId })} />}
         {!isUser &&
           entry?.rootContext
             ?.show === true && (
@@ -1495,6 +1512,13 @@ function stopVoiceConversation() {
   conversation. Its conclusions will develop as the evidence develops.
 </p>
               </section>
+              {actionReview && actionReview.organisationId === hrApiAccess?.organisationId && <ActionReviewCard
+                key={`${actionReview.organisationId}:${actionReview.entry.id}`} entry={actionReview.entry} access={hrApiAccess}
+                onCancel={() => setActionReview(null)} onSaved={() => {
+                  setSavedResponseActions(current => [...current, `${actionReview.organisationId}:${actionReview.entry.id}`]);
+                  setActionReview(null); setActionRevision(value => value + 1);
+                }} />}
+              <OrganisationActionPanel access={hrApiAccess} revision={actionRevision} />
             </>
           )}
         </section>
@@ -1752,8 +1776,7 @@ const styles = {
   conversationWindow: {
     marginTop: "22px",
     minHeight: "320px",
-    maxHeight: "560px",
-    overflowY: "auto",
+    overflowWrap: "anywhere",
     padding: "20px",
     borderRadius: "22px",
     background: "rgba(255,255,255,0.48)",

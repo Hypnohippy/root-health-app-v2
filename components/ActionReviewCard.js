@@ -1,0 +1,72 @@
+"use client";
+import { useRef, useState } from 'react';
+import { prepareActionReview } from '../lib/actionReviewDraft.js';
+import { saveReviewedAction } from '../lib/corporateOutput.js';
+export default function ActionReviewCard({ entry, access, onCancel, onSaved }) {
+  const [initial] = useState(() => prepareActionReview(entry));
+  const [draft, setDraft] = useState(initial), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const lock = useRef(false);
+  function change(key, value) { setDraft(current => ({ ...current, [key]: value })); }
+  async function confirm(event) {
+    event.preventDefault(); if (lock.current) return;
+    lock.current = true; setBusy(true); setError('');
+    try { await saveReviewedAction({ access, draft, confirmed: true }); onSaved(); }
+    catch { setError('Your action could not be saved. Your edits are still here. Please check the fields and try again.'); }
+    finally { lock.current = false; setBusy(false); }
+  }
+  const provenance = key => draft[key] !== initial[key] ? 'Edited by you' : initial[key] ? 'Prepared by Root' : 'Optional — add if known';
+  function field(key, title, help, kind = 'text') {
+    return <label className={kind === 'textarea' ? 'wide' : ''} key={key}><span>{title}</span><small>{help}</small>
+      {kind === 'textarea' || key === 'title' ? <textarea required={key === 'title'} rows={key === 'title' ? 1 : 3} ref={element => { if (element) { element.style.height = 'auto'; element.style.height = Math.max(key === 'title' ? 50 : 100, element.scrollHeight + 2) + 'px'; } }} value={draft[key] || ''} maxLength={key === 'title' ? 200 : 4000} onChange={e => change(key, e.target.value)} /> : <input type={kind} required={key === 'title' || key === 'completed_date'} maxLength={200} value={draft[key] || ''} onChange={e => change(key, kind === 'date' ? e.target.value || null : e.target.value)} />}
+      <small className="origin">{provenance(key)}</small></label>;
+  }
+  return <section className="action-review" aria-labelledby="action-review-heading">
+    <p className="eyebrow">Organisation action draft</p><h2 id="action-review-heading">Review your action or initiative</h2>
+    <p>Draft prepared by Root — please review before saving. Nothing has been saved or approved yet.</p>
+    <form onSubmit={confirm}>
+      <fieldset disabled={busy}><div className="fields">
+        <h3 className="wide">Action</h3>
+        {field('title', 'Action title', 'A short name for the action or initiative.')}
+        <label><span>Type</span><small>Choose the kind of record you want to keep.</small><select value={draft.type} onChange={e => change('type', e.target.value)}><option value="action_plan">Action plan</option><option value="intervention">Intervention</option><option value="decision">Decision</option></select><small className="origin">{provenance('type')}</small></label>
+        <h3 className="wide">Reason</h3>
+        {field('rationale', 'Why are we doing this?', 'The problem or opportunity this action is intended to address.', 'textarea')}
+        {field('evidence_summary', 'What evidence supports this?', 'The facts or observations supporting this action. Keep private or protected information out.', 'textarea')}
+        <h3 className="wide">Intended result and measure</h3>
+        {field('expected_outcome', 'Expected outcome', 'What should be different if this action achieves its intended purpose?', 'textarea')}
+        {field('success_measure', 'How will we know it worked?', 'The measurable sign or observation that would indicate success.', 'textarea')}
+        <h3 className="wide">Owner, timing and status</h3>
+        {field('owner', 'Owner', 'Who will be responsible for taking this forward?')}
+        <label><span>Status</span><small>Where is this action now?</small><select value={draft.status} onChange={e => change('status', e.target.value)}>{[['planned','Planned'],['in_progress','In progress'],['in_review','In review'],['completed','Completed'],['cancelled','Cancelled']].map(([value,title]) => <option key={value} value={value}>{title}</option>)}</select><small className="origin">{draft.status === initial.status ? 'Default: Planned' : 'Edited by you'}</small></label>
+        {field('start_date', 'Start date', 'When do you expect this action to begin?', 'date')}
+        {field('review_date', 'Review date', 'When should the organisation review progress or outcome?', 'date')}
+        {draft.status === 'completed' && field('completed_date', 'Completed date', 'When was this action completed?', 'date')}
+      </div><p>Saving records your reviewed plan; it does not carry out the action.</p>
+      {error && <p role="alert">{error}</p>}
+      <div className="actions"><button type="button" onClick={onCancel}>Cancel</button><button className="save" type="submit">{busy ? 'Saving…' : 'I’ve reviewed this and want to save it'}</button></div>
+      </fieldset>
+    </form>
+    <style jsx global>{`
+      .action-review{box-sizing:border-box;width:100%;min-width:0;margin:28px 0;padding:clamp(18px,4vw,32px);border:1px solid #cbd8cb;border-radius:24px;background:#faf9f5;text-align:left;color:#29382e}
+
+      .action-review h3{margin:8px 0 0;font-size:18px;border-bottom:1px solid #d7dfd4;padding-bottom:12px}
+      .action-review h2{margin:6px 0 12px;font-size:24px}
+      .action-review .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6f675b}
+      .action-review p{line-height:1.6}
+      .action-review fieldset{border:0;padding:0;margin:0;min-width:0}
+      .action-review .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 24px;margin-top:28px}
+      .action-review .wide{grid-column:1/-1}
+      .action-review label{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;overflow-wrap:anywhere}
+      .action-review label span{display:block;font-weight:700;font-size:16px;line-height:1.5}
+      .action-review small{display:block;font-size:13px;line-height:1.5;color:#6f675b}
+      .action-review .origin{font-size:12px;color:#526956}
+      .action-review input,.action-review select,.action-review textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;font:inherit;font-size:16px;line-height:1.5;padding:12px 14px;border:1px solid #bdcdbd;border-radius:12px;background:white;color:#29382e}
+      .action-review textarea{min-height:50px;resize:vertical;overflow-y:auto}
+      .action-review input:focus-visible,.action-review select:focus-visible,.action-review textarea:focus-visible{outline:2px solid #526956;outline-offset:2px}
+      .action-review .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:24px}
+      .action-review button{font:inherit;border:1px solid #b9cabb;border-radius:999px;padding:12px 20px;white-space:normal;cursor:pointer;background:#edf2eb;color:#29533a}
+      .action-review .save{background:#29533a;color:white;font-weight:700}
+      .action-review button:disabled{opacity:.5}
+      @media(max-width:600px){.action-review .fields{grid-template-columns:minmax(0,1fr)}.action-review .actions{flex-direction:column}.action-review .actions button{width:100%}}
+    `}</style>
+  </section>;
+}
