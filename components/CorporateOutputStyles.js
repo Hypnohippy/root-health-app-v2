@@ -11,6 +11,7 @@ export default function CorporateOutputStyles() {
  .root-output input:not([type=checkbox]),.root-output textarea{box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;padding:12px 14px;border:1px solid #bdcdbd;border-radius:12px;font:inherit;line-height:1.6;background:white;color:#29382e}
  .root-output input[type=checkbox]{flex:0 0 auto;margin:5px 3px 0 0}.root-output textarea{min-height:100px;resize:vertical}
  .root-output .provenance{font-size:13px;color:#526956}.root-output .root-document-preview{padding:8px 0;line-height:1.7}.root-output details{border-top:1px solid #d7dfd4;margin-top:22px;padding-top:18px}.root-output summary{cursor:pointer;font-weight:600}
+ .root-output .evidence-check{margin:20px 0;padding:18px 20px;border:1px solid #b9cabb;border-radius:16px;background:#edf2eb}.root-output .evidence-check h3{margin:0 0 10px}.root-output .evidence-check.attention{border-color:#ae783f;background:#faf1e3}
  .root-output button:focus-visible,.root-output input:focus-visible,.root-output textarea:focus-visible{outline:2px solid #526956;outline-offset:2px}
  @media(max-width:600px){.root-output .output-toolbar,.root-output .buttons{flex-direction:column}.root-output button{width:100%}}
  `}</style>;

@@ -47,12 +47,12 @@ test('opening and cancelling do not write; labels are human-readable and unconfi
 });
 test('final confirmation alone writes reviewed values; failure retains edits and success notifies parent', async () => {
   const h = harness({ fail: true });
-  find(h.render(), 'input').props.onChange({ target: { value: 'My reviewed title' } });
+  find(h.render(), 'textarea').props.onChange({ target: { value: 'My reviewed title' } });
   assert.equal(h.writes.length, 0);
   await find(h.render(), 'form').props.onSubmit({ preventDefault() {} });
   assert.equal(h.writes[0].confirmed, true); assert.equal(h.writes[0].action.title, 'My reviewed title');
   assert.equal(h.saved, 0);
-  assert.equal(find(h.render(), 'input').props.value, 'My reviewed title');
+  assert.equal(find(h.render(), 'textarea').props.value, 'My reviewed title');
   assert.match(text(h.render()), /Your edits are still here/);
   h.fail = false;
   await find(h.render(), 'form').props.onSubmit({ preventDefault() {} });

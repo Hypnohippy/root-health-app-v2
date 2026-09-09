@@ -17,7 +17,7 @@ export default function ActionReviewCard({ entry, access, onCancel, onSaved }) {
   const provenance = key => draft[key] !== initial[key] ? 'Edited by you' : initial[key] ? 'Prepared by Root' : 'Optional — add if known';
   function field(key, title, help, kind = 'text') {
     return <label className={kind === 'textarea' ? 'wide' : ''} key={key}><span>{title}</span><small>{help}</small>
-      {kind === 'textarea' ? <textarea rows={7} ref={element => { if (element) { element.style.height = 'auto'; element.style.height = Math.max(168, element.scrollHeight + 2) + 'px'; } }} value={draft[key] || ''} maxLength={4000} onChange={e => change(key, e.target.value)} /> : <input type={kind} required={key === 'title' || key === 'completed_date'} maxLength={200} value={draft[key] || ''} onChange={e => change(key, kind === 'date' ? e.target.value || null : e.target.value)} />}
+      {kind === 'textarea' || key === 'title' ? <textarea required={key === 'title'} rows={key === 'title' ? 1 : 3} ref={element => { if (element) { element.style.height = 'auto'; element.style.height = Math.max(key === 'title' ? 50 : 100, element.scrollHeight + 2) + 'px'; } }} value={draft[key] || ''} maxLength={key === 'title' ? 200 : 4000} onChange={e => change(key, e.target.value)} /> : <input type={kind} required={key === 'title' || key === 'completed_date'} maxLength={200} value={draft[key] || ''} onChange={e => change(key, kind === 'date' ? e.target.value || null : e.target.value)} />}
       <small className="origin">{provenance(key)}</small></label>;
   }
   return <section className="action-review" aria-labelledby="action-review-heading">
@@ -60,7 +60,7 @@ export default function ActionReviewCard({ entry, access, onCancel, onSaved }) {
       .action-review small{display:block;font-size:13px;line-height:1.5;color:#6f675b}
       .action-review .origin{font-size:12px;color:#526956}
       .action-review input,.action-review select,.action-review textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;font:inherit;font-size:16px;line-height:1.5;padding:12px 14px;border:1px solid #bdcdbd;border-radius:12px;background:white;color:#29382e}
-      .action-review textarea{min-height:168px;resize:vertical;overflow-y:auto}
+      .action-review textarea{min-height:50px;resize:vertical;overflow-y:auto}
       .action-review input:focus-visible,.action-review select:focus-visible,.action-review textarea:focus-visible{outline:2px solid #526956;outline-offset:2px}
       .action-review .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:24px}
       .action-review button{font:inherit;border:1px solid #b9cabb;border-radius:999px;padding:12px 20px;white-space:normal;cursor:pointer;background:#edf2eb;color:#29533a}
