@@ -651,6 +651,64 @@ if (journey && journey.currentStage === "coach") {
     setBreathPhase("inhale");
   }, 8000);
 };
+const createAndSaveVoicePlaybookDocument = async ({ userIntent, title, category, offer = "" }) => {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+
+  if (!accessToken) {
+    throw new Error("Root could not verify your signed-in account.");
+  }
+
+  const draftResponse = await fetch("/api/voice-playbook-draft", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      profileKey,
+      profile,
+      userIntent,
+      title,
+      category,
+      offer,
+      sourceContext: latestAssistantTranscriptRef.current || "",
+    }),
+  });
+
+  const draftResult = await draftResponse.json().catch(() => ({}));
+  if (!draftResponse.ok || !draftResult.ok || !draftResult.content) {
+    throw new Error(draftResult.error || "Root could not create the Playbook document.");
+  }
+
+  const saveResult = await persistVoicePlaybookEntry({
+    accessToken,
+    profileKey,
+    userIntent,
+    title,
+    category,
+    content: draftResult.content,
+  });
+
+  if (!saveResult.ok) {
+    throw new Error(saveResult.error || "Playbook save failed.");
+  }
+
+  setMessages((prev) => [
+    ...prev,
+    {
+      role: "coach",
+      content: draftResult.content,
+    },
+    {
+      role: "coach",
+      content: "Saved to your Playbook.",
+    },
+  ]);
+
+  return { ok: true, id: saveResult.id, content: draftResult.content };
+};
+
 const startVoiceSession = async () => {
   try {
     setVoiceState("connecting");
@@ -781,18 +839,33 @@ dc.onmessage = async (event) => {
       dc.send(JSON.stringify({ type: "response.create", response: { instructions: result.ok ? `Say exactly: "Your ${result.definition.title} is saved in Playbook and ready to use."` : "Tell the user the tracker could not be saved. Do not say it was created, added, or saved." } }));
       return;
     }
-    pendingPlaybookSaveRef.current = {
-      title: acceptedOffer.title,
-      category: acceptedOffer.category,
-      userIntent: consentIntent,
-    };
+
     pendingPlaybookOfferRef.current = null;
-    dc.send(JSON.stringify({
-      type: "response.create",
-      response: {
-        instructions: `The user explicitly accepted your Playbook offer: "${acceptedOffer.offer}". Now produce the complete useful document only. Start with Title:. Do not claim it is saved; the app will persist it and confirm only after success.`,
-      },
-    }));
+    pendingPlaybookSaveRef.current = null;
+
+    try {
+      await createAndSaveVoicePlaybookDocument({
+        userIntent: consentIntent,
+        title: acceptedOffer.title,
+        category: acceptedOffer.category,
+        offer: acceptedOffer.offer,
+      });
+
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions: 'Say exactly: "Done. I’ve saved the full plan to your Playbook. I won’t read the recipes out unless you ask me to."',
+        },
+      }));
+    } catch (error) {
+      console.error("VOICE PLAYBOOK SILENT SAVE ERROR:", error);
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions: 'Say exactly: "I couldn’t save that to your Playbook. The database write did not complete."',
+        },
+      }));
+    }
     return;
   }
 
@@ -803,14 +876,34 @@ dc.onmessage = async (event) => {
       dc.send(JSON.stringify({ type: "response.create", response: { instructions: result.ok ? `Say exactly: "Your ${result.definition.title} is saved in Playbook and ready to use."` : "Tell the user the tracker could not be saved. Do not say it was created, added, or saved." } }));
       return;
     }
-    pendingPlaybookSaveRef.current = {
-      ...inferVoicePlaybookMeta(transcript, coachMode),
-      userIntent: transcript,
-    };
-    console.log(
-      "PLAYBOOK SAVE PENDING:",
-      pendingPlaybookSaveRef.current
-    );
+
+    const meta = inferVoicePlaybookMeta(transcript, coachMode);
+    pendingPlaybookSaveRef.current = null;
+
+    try {
+      await createAndSaveVoicePlaybookDocument({
+        userIntent: transcript,
+        title: meta.title,
+        category: meta.category,
+        offer: latestAssistantTranscriptRef.current || "",
+      });
+
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions: 'Say exactly: "Done. I’ve saved the full document to your Playbook. I’ll keep the detailed recipe or plan on screen rather than reading it all aloud unless you ask."',
+        },
+      }));
+    } catch (error) {
+      console.error("VOICE PLAYBOOK DIRECT SAVE ERROR:", error);
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions: 'Say exactly: "I couldn’t save that to your Playbook. The database write did not complete."',
+        },
+      }));
+    }
+    return;
   }
 
   const foodSafety = pendingFoodClarificationRef.current
