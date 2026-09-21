@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
+import RootInUseFilm from "../../components/RootInUseFilm";
 
 const questions = [
   ["stress_score", "Stress", "0 = calm, 10 = overwhelmed"],
@@ -215,6 +216,8 @@ export default function CapacityCheckPage() {
                     drain stops being ignored.
                   </p>
                 </div>
+
+                <RootInUseFilm />
 
                 {stage === "result" && (
                   <div style={styles.capturePanel}>
