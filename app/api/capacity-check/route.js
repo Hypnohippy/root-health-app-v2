@@ -52,6 +52,77 @@ function cleanScores(scores) {
   return out;
 }
 
+async function sendCapacityResultEmail({ email, snapshot, average }) {
+  const smtpUser = String(process.env.ROOT_SMTP_USER || "").trim();
+  const smtpPassword = String(process.env.ROOT_SMTP_PASSWORD || "").trim();
+  const smtpFrom = String(process.env.ROOT_SMTP_FROM || smtpUser).trim();
+
+  if (!smtpUser || !smtpPassword || !smtpFrom) {
+    throw new Error("Root email service is not configured.");
+  }
+
+  const nodemailerModule = await import("nodemailer");
+  const nodemailer = nodemailerModule.default || nodemailerModule;
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: smtpUser,
+      pass: smtpPassword,
+    },
+  });
+
+  const headline =
+    cleanText(snapshot?.headline, 300) ||
+    "Your Root capacity snapshot";
+
+  const guidance =
+    cleanText(snapshot?.guidance, 900) ||
+    "Your snapshot is one moment. Root can help you notice what changes over time.";
+
+  const strongestSignal =
+    cleanText(snapshot?.top?.label, 120) ||
+    "Not available";
+
+  const strongestScore =
+    Number.isFinite(Number(snapshot?.top?.value))
+      ? Number(snapshot.top.value)
+      : 0;
+
+  const overallLoad =
+    Number.isFinite(Number(snapshot?.average))
+      ? Number(snapshot.average)
+      : Number(average.toFixed(1));
+
+  await transporter.sendMail({
+    from: `"Root Health" <${smtpFrom}>`,
+    to: email,
+    subject: "Your Root capacity snapshot",
+    text: `Your Root capacity snapshot
+
+${headline}
+
+Overall load: ${overallLoad}/10
+Strongest signal: ${strongestSignal} — ${strongestScore}/10
+
+${guidance}
+
+What Root would start with
+
+Give the strongest signal a little more attention before trying to optimise everything else. Capacity usually improves when the biggest drain stops being ignored.
+
+Explore Root:
+https://www.roothealth.app/personal
+
+Your snapshot is a wellbeing reflection, not a medical assessment or diagnosis.
+
+You asked Root to email this result and occasional useful follow-up support. You can unsubscribe at any time.
+
+Root Health
+https://www.roothealth.app`,
+  });
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -108,7 +179,25 @@ export async function POST(request) {
       );
     }
 
-    return NextResponse.json({ ok: true });
+    try {
+      await sendCapacityResultEmail({
+        email,
+        snapshot: body?.snapshot || {},
+        average,
+      });
+    } catch (emailError) {
+      console.error("CAPACITY CHECK EMAIL ERROR", emailError);
+      return NextResponse.json(
+        {
+          error:
+            "Your Root result was saved, but the email could not be sent just now.",
+          saved: true,
+        },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({ ok: true, emailSent: true });
   } catch (error) {
     console.error("CAPACITY CHECK ERROR", error);
     return NextResponse.json(
