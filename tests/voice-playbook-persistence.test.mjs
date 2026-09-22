@@ -9,6 +9,7 @@ import {
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
   isCompleteVoicePlaybookContent,
+  isReusablePlaybookRequest,
   persistVoicePlaybookEntry,
   isExplicitVoiceAgreement,
 } from "../lib/voicePlaybookAction.js";
@@ -96,6 +97,25 @@ test("detailed Playbook generation remains in the isolated background builder", 
   assert.match(coach, /fetch\("\/api\/voice-playbook-build"/);
   assert.match(coach, /pendingPlaybookSavingRef/);
   assert.match(coach, /persistVoicePlaybookEntry/);
+});
+
+
+
+test("reusable resource requests are remembered without requiring save wording", () => {
+  assert.equal(isReusablePlaybookRequest("Can you make me a two day vegetarian meal plan?"), true);
+  assert.equal(isReusablePlaybookRequest("Tell me how my week is going."), false);
+});
+
+test("natural Playbook offers are accepted even without a rigid save verb", () => {
+  assert.ok(detectVoicePlaybookOffer("Would you like that in your Playbook?"));
+  assert.ok(detectVoicePlaybookOffer("I can put the written version in your Playbook if you like."));
+});
+
+test("Coach preserves the substantive reusable request across later clarifications", async () => {
+  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  assert.match(coach, /latestReusablePlaybookRequestRef/);
+  assert.match(coach, /rememberedRequest\?\.transcript/);
+  assert.match(coach, /sourceRequest/);
 });
 
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {
