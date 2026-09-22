@@ -65,6 +65,21 @@ test("accepted voice Playbook plans are generated as text-only output, not spoke
   assert.match(coach, /only read the recipe details aloud if you ask me to/);
 });
 
+
+test("direct explicit Playbook requests queue the same written out-of-band document path", async () => {
+  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  assert.match(coach, /explicitPlaybookSaveRequested/);
+  assert.match(coach, /queueWrittenPlaybookDocument\(pendingPlaybookRequestRef\.current\)/);
+  assert.match(coach, /metadata:\s*\{ response_purpose: "root_playbook_document" \}/);
+});
+
+test("out-of-band Playbook completion is handled from response.done metadata as well as text.done", async () => {
+  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  assert.match(coach, /message\.type === "response\.done"/);
+  assert.match(coach, /message\.response\?\.metadata\?\.response_purpose === "root_playbook_document"/);
+  assert.match(coach, /message\.response\?\.output/);
+});
+
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {
   const offer = detectVoicePlaybookOffer("Would you like me to create an Evening Meal and Morning Bloating Log and save it to your Playbook?");
   const userIntent = buildVoicePlaybookConsentIntent(offer, "Yes please");
