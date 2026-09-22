@@ -212,13 +212,17 @@ export async function POST(req) {
         );
       }
 
-const { data: existingEntry, error: lookupError } = await supabase
+const conflictResolution = String(body.conflictResolution || "").trim().toLowerCase();
+
+const { data: existingRows, error: lookupError } = await supabase
   .from("playbook_entries")
-  .select("id")
+  .select("id, title, category, content, source, created_at, updated_at")
   .eq("user_id", userData.user.id)
   .eq("profile_key", profileKey)
   .eq("title", title)
-  .maybeSingle();
+  .order("updated_at", { ascending: false, nullsFirst: false })
+  .order("created_at", { ascending: false })
+  .limit(1);
 
 if (lookupError) {
   return Response.json(
@@ -226,21 +230,74 @@ if (lookupError) {
     { status: 500 }
   );
 }
-  
-const { data: savedEntry, error } = existingEntry?.id
-  ? await supabase
-      .from("playbook_entries")
-      .update({
+
+const existingEntry = Array.isArray(existingRows) ? existingRows[0] || null : null;
+
+if (existingEntry?.id && !["new", "overwrite"].includes(conflictResolution)) {
+  return Response.json(
+    {
+      ok: false,
+      conflict: true,
+      error: "A Playbook entry with this title already exists.",
+      existingEntry: {
+        id: existingEntry.id,
+        title: existingEntry.title,
+        category: existingEntry.category,
+        createdAt: existingEntry.created_at,
+        updatedAt: existingEntry.updated_at,
+      },
+    },
+    { status: 409 }
+  );
+}
+
+let savedEntry = null;
+let error = null;
+
+if (existingEntry?.id && conflictResolution === "overwrite") {
+  const { error: versionError } = await supabase
+    .from("playbook_entry_versions")
+    .insert([
+      {
+        playbook_entry_id: existingEntry.id,
         user_id: userData.user.id,
-        category,
-        content,
-        source: "Voice Coach",
-      })
-      .eq("id", existingEntry.id)
-      .eq("profile_key", profileKey)
-      .select("id")
-      .single()
-  : await supabase.from("playbook_entries").insert([
+        profile_key: profileKey,
+        title: existingEntry.title,
+        category: existingEntry.category,
+        content: existingEntry.content,
+        source: existingEntry.source,
+        original_created_at: existingEntry.created_at,
+        original_updated_at: existingEntry.updated_at,
+      },
+    ]);
+
+  if (versionError) {
+    return Response.json(
+      { ok: false, error: versionError.message || "Root could not preserve the previous Playbook version." },
+      { status: 500 }
+    );
+  }
+
+  const updateResult = await supabase
+    .from("playbook_entries")
+    .update({
+      user_id: userData.user.id,
+      category,
+      content,
+      source: "Voice Coach",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", existingEntry.id)
+    .eq("profile_key", profileKey)
+    .select("id, updated_at")
+    .single();
+
+  savedEntry = updateResult.data;
+  error = updateResult.error;
+} else {
+  const insertResult = await supabase
+    .from("playbook_entries")
+    .insert([
       {
         user_id: userData.user.id,
         profile_key: profileKey,
@@ -250,21 +307,30 @@ const { data: savedEntry, error } = existingEntry?.id
         source: "Voice Coach",
       },
     ])
-      .select("id")
-      .single();
+    .select("id, created_at, updated_at")
+    .single();
 
-      if (error || !savedEntry?.id) {
-        return Response.json(
-          { ok: false, error: error?.message || "Playbook entry was not saved." },
-          { status: 500 }
-        );
-      }
+  savedEntry = insertResult.data;
+  error = insertResult.error;
+}
 
-      return Response.json({
-        ok: true,
-        message: "Playbook entry saved.",
-        id: savedEntry.id,
-      });
+if (error || !savedEntry?.id) {
+  return Response.json(
+    { ok: false, error: error?.message || "Playbook entry was not saved." },
+    { status: 500 }
+  );
+}
+
+return Response.json({
+  ok: true,
+  message:
+    existingEntry?.id && conflictResolution === "overwrite"
+      ? "Playbook entry updated. Previous version preserved."
+      : "Playbook entry saved.",
+  id: savedEntry.id,
+  mode: existingEntry?.id && conflictResolution === "overwrite" ? "overwrite" : "new",
+  updatedAt: savedEntry.updated_at || savedEntry.created_at || null,
+});
     }
 
     if (action === "save_journal") {
