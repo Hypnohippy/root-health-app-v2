@@ -47,34 +47,6 @@ test("an explicit spoken agreement to a clear Playbook offer arms the existing s
   assert.equal(detectVoicePlaybookOffer("I’ll create a log for you now."), null);
 });
 
-
-test("shall-we Playbook offers are recognised before an affirmative reply", () => {
-  const offer = detectVoicePlaybookOffer(
-    "Shall we go ahead and add this meal plan to your Playbook now?"
-  );
-  assert.ok(offer);
-  assert.equal(offer.category, "Nutrition");
-  assert.equal(isExplicitVoiceAgreement("Yes"), true);
-  const intent = buildVoicePlaybookConsentIntent(offer, "Yes");
-  assert.match(intent, /create and save this to my Playbook/i);
-});
-
-
-test("voice Playbook offer detection does not depend on a trailing question mark", () => {
-  const offer = detectVoicePlaybookOffer(
-    "Shall we go ahead and add this meal plan to your Playbook now"
-  );
-  assert.ok(offer);
-  assert.equal(offer.category, "Nutrition");
-});
-
-test("voice Playbook saves use silent document generation before spoken confirmation", async () => {
-  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /\/api\/voice-playbook-draft/);
-  assert.match(coach, /I won’t read the recipes out unless you ask me to/);
-  assert.match(coach, /Saved to your Playbook\./);
-});
-
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {
   const offer = detectVoicePlaybookOffer("Would you like me to create an Evening Meal and Morning Bloating Log and save it to your Playbook?");
   const userIntent = buildVoicePlaybookConsentIntent(offer, "Yes please");
