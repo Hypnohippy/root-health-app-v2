@@ -33,3 +33,14 @@ test("comparison tables name the actual supermarkets or providers", async () => 
   assert.match(review, /NEVER use placeholder comparison headings/);
   assert.match(review, /preserve those exact names in the table headings/);
 });
+
+
+test("Voice Playbook comparisons are opt-in to the current request only", async () => {
+  const builder = await readFile(new URL("../app/api/voice-playbook-build/route.js", import.meta.url), "utf8");
+  const realtime = await readFile(new URL("../app/api/realtime-session/route.js", import.meta.url), "utf8");
+
+  assert.match(builder, /do NOT add a price comparison/);
+  assert.match(builder, /CURRENT user's request explicitly asks/);
+  assert.match(builder, /If no comparison was requested in the current user intent, omit comparison pricing entirely/);
+  assert.match(realtime, /Do not introduce supermarket prices, price comparisons/);
+});
