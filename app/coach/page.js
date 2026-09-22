@@ -17,6 +17,7 @@ import {
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
   isCompleteVoicePlaybookContent,
+  isReusablePlaybookRequest,
   isExplicitVoiceAgreement,
   persistVoicePlaybookEntry,
   persistPersonalPlaybookTracker,
@@ -179,6 +180,7 @@ export default function CoachPage() {
   const pendingPlaybookSaveRef = useRef(null);
   const pendingPlaybookOfferRef = useRef(null);
   const pendingPlaybookRequestRef = useRef(null);
+  const latestReusablePlaybookRequestRef = useRef(null);
   const pendingPlaybookSavingRef = useRef(false);
   const pendingFoodClarificationRef = useRef(false);
   const latestUserTranscriptRef = useRef("");
@@ -912,6 +914,14 @@ dc.onmessage = async (event) => {
 ) {
  const transcript = message.transcript || "";
   latestUserTranscriptRef.current = transcript;
+
+  if (isReusablePlaybookRequest(transcript)) {
+    latestReusablePlaybookRequestRef.current = {
+      transcript,
+      ...inferVoicePlaybookMeta(transcript, coachMode),
+    };
+  }
+
   console.log("USER SAID:", transcript);
 
   const investigationResult = await persistInvestigationIntent(transcript);
@@ -1051,11 +1061,16 @@ dc.onmessage = async (event) => {
   if (!pendingPlaybookSavingRef.current) {
     const offer = detectVoicePlaybookOffer(assistantTranscript);
     if (offer) {
-      const sourceRequest = String(latestUserTranscriptRef.current || "").trim();
-      const contextualMeta = inferVoicePlaybookMeta(
+      const rememberedRequest = latestReusablePlaybookRequestRef.current;
+      const fallbackRequest = String(latestUserTranscriptRef.current || "").trim();
+      const sourceRequest = String(
+        rememberedRequest?.transcript || fallbackRequest
+      ).trim();
+      const contextualMeta = rememberedRequest || inferVoicePlaybookMeta(
         `${sourceRequest}\n${assistantTranscript}`,
         coachMode
       );
+
       pendingPlaybookOfferRef.current = {
         ...offer,
         ...contextualMeta,
