@@ -781,16 +781,29 @@ dc.onmessage = async (event) => {
       dc.send(JSON.stringify({ type: "response.create", response: { instructions: result.ok ? `Say exactly: "Your ${result.definition.title} is saved in Playbook and ready to use."` : "Tell the user the tracker could not be saved. Do not say it was created, added, or saved." } }));
       return;
     }
+
     pendingPlaybookSaveRef.current = {
       title: acceptedOffer.title,
       category: acceptedOffer.category,
       userIntent: consentIntent,
+      offer: acceptedOffer.offer,
     };
     pendingPlaybookOfferRef.current = null;
+
     dc.send(JSON.stringify({
       type: "response.create",
       response: {
-        instructions: `The user explicitly accepted your Playbook offer: "${acceptedOffer.offer}". Now produce the complete useful document only. Start with Title:. Do not claim it is saved; the app will persist it and confirm only after success.`,
+        instructions: 'Say exactly: "Absolutely. I’ll build the full written version and save it to your Playbook now."',
+      },
+    }));
+
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        conversation: "none",
+        output_modalities: ["text"],
+        metadata: { response_purpose: "root_playbook_document" },
+        instructions: `Create the complete useful Playbook document for this accepted offer: "${acceptedOffer.offer}". Start directly with Title:. Include the full requested plan, recipes, ingredients, shopping list and budget or supermarket comparison where requested. Treat supermarket prices as estimates unless a live source is available. Do not include conversational preambles or any save confirmation. This output is written content only and will not be spoken aloud.`,
       },
     }));
     return;
@@ -860,6 +873,54 @@ dc.onmessage = async (event) => {
       setVoiceTranscript(
         (prev) => prev + (message.delta || "")
       );
+    }
+
+    if (message.type === "response.output_text.delta") {
+      setVoiceTranscript((prev) => prev + (message.delta || ""));
+    }
+
+    if (message.type === "response.output_text.done" && pendingPlaybookSaveRef.current) {
+      const writtenDocument = String(message.text || "").trim();
+      const pending = pendingPlaybookSaveRef.current;
+
+      if (!isCompleteVoicePlaybookContent(writtenDocument)) {
+        throw new Error("Root did not produce a complete Playbook document.");
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        throw new Error("Root could not verify your signed-in account.");
+      }
+
+      const cleanPlaybookContent = cleanVoicePlaybookContent(writtenDocument);
+      const saveResult = await persistVoicePlaybookEntry({
+        accessToken,
+        profileKey,
+        userIntent: pending.userIntent,
+        title: pending.title,
+        category: pending.category,
+        content: cleanPlaybookContent,
+      });
+
+      if (!saveResult.ok) {
+        throw new Error(saveResult.error || "Playbook save failed.");
+      }
+
+      pendingPlaybookSaveRef.current = null;
+      setMessages((prev) => [
+        ...prev,
+        { role: "coach", content: cleanPlaybookContent },
+        { role: "coach", content: "Saved to your Playbook." },
+      ]);
+
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions: 'Say exactly: "Done. The full written plan is saved in your Playbook. I’ll only read the recipe details aloud if you ask me to."',
+        },
+      }));
+      return;
     }
 
     if (
