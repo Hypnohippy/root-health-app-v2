@@ -272,7 +272,7 @@ export default function CapacityCheckPage() {
                       Your snapshot is stored with your consent. When you are ready, you
                       can explore the fuller personal Root experience.
                     </p>
-                    <a href="/personal" style={styles.ctaLink}>Explore Root</a>
+                    <a href="/capacity-check/continue" style={styles.ctaLink}>Explore Root</a>
                   </div>
                 )}
               </section>
