@@ -166,6 +166,7 @@ const reviewRef = useRef(null);
 const dictationRef = useRef(null);
 
 const [openEntryId, setOpenEntryId] = useState(null);
+const [versionHistoryByEntry, setVersionHistoryByEntry] = useState({});
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("General");
@@ -446,6 +447,81 @@ const stopReviewVoiceInput = async (
     return new Date(date).toLocaleDateString("en-GB");
   };
 
+  const loadVersionHistory = async (entryId) => {
+    if (!entryId || !profileKey) return [];
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const response = await fetch(
+      `/api/playbook-versions?entryId=${encodeURIComponent(entryId)}&profileKey=${encodeURIComponent(profileKey)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${sessionData?.session?.access_token || ""}`,
+        },
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+    const versions = response.ok && result.ok && Array.isArray(result.versions)
+      ? result.versions
+      : [];
+
+    setVersionHistoryByEntry((current) => ({
+      ...current,
+      [entryId]: versions,
+    }));
+
+    return versions;
+  };
+
+  const restoreLatestVersion = async (entry) => {
+    const versions =
+      versionHistoryByEntry[entry.id] ||
+      (await loadVersionHistory(entry.id));
+
+    const latestVersion = versions?.[0];
+    if (!latestVersion) {
+      alert("There is no earlier version to restore.");
+      return;
+    }
+
+    if (!window.confirm(`Restore the previous version of "${entry.title}"? The current version will also be kept in history.`)) {
+      return;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const response = await fetch("/api/playbook-versions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionData?.session?.access_token || ""}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        profileKey,
+        entryId: entry.id,
+        versionId: latestVersion.id,
+      }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok || !result.entry) {
+      alert(result.error || "Root could not restore the previous version.");
+      return;
+    }
+
+    setEntries((current) =>
+      current.map((item) =>
+        item.id === entry.id ? { ...item, ...result.entry } : item
+      )
+    );
+
+    if (reviewEntry?.id === entry.id) {
+      setReviewEntry(result.entry);
+      setReviewPreview(result.entry.content || "");
+    }
+
+    await loadVersionHistory(entry.id);
+  };
+
   return (
   <RootAtmosphere type="reflection">
     <main style={styles.page}>
@@ -611,12 +687,16 @@ const stopReviewVoiceInput = async (
                     {lineCount > 0 ? `${lineCount} items` : "Saved"}
                   </span>
 
-                  <span style={styles.listMeta}>{formatDate(entry.created_at)}</span>
+                  <span style={styles.listMeta}>{formatDate(entry.updated_at || entry.created_at)}</span>
 
                   <div className="playbook-list-actions" style={styles.listActions}>
                     <button
                       style={styles.smallViewButton}
-                      onClick={() => setOpenEntryId(isOpen ? null : entry.id)}
+                      onClick={() => {
+                        const nextId = isOpen ? null : entry.id;
+                        setOpenEntryId(nextId);
+                        if (nextId) loadVersionHistory(entry.id);
+                      }}
                     >
                       {isOpen ? "Hide" : "View"}
                     </button>
@@ -880,7 +960,7 @@ const stopReviewVoiceInput = async (
                     </span>
 
                     <span style={styles.metaPill}>
-                      {formatDate(entry.created_at)}
+                      {formatDate(entry.updated_at || entry.created_at)}
                     </span>
                   </div>
 
@@ -893,7 +973,11 @@ const stopReviewVoiceInput = async (
                   <div style={styles.actionRow}>
                     <button
                       style={styles.viewButton}
-                      onClick={() => setOpenEntryId(isOpen ? null : entry.id)}
+                      onClick={() => {
+                        const nextId = isOpen ? null : entry.id;
+                        setOpenEntryId(nextId);
+                        if (nextId) loadVersionHistory(entry.id);
+                      }}
                     >
                       {isOpen ? "Hide full plan" : "View full plan"}
                     </button>
@@ -916,6 +1000,24 @@ const stopReviewVoiceInput = async (
 >
                        Review with Root Voice
                         </button>}
+
+                    {versionHistoryByEntry[entry.id]?.length > 0 && (
+                      <button
+                        style={styles.smallViewButton}
+                        onClick={() => restoreLatestVersion(entry)}
+                      >
+                        Restore previous version
+                      </button>
+                    )}
+
+                    {versionHistoryByEntry[entry.id]?.length > 0 && (
+                      <button
+                        style={styles.viewButton}
+                        onClick={() => restoreLatestVersion(entry)}
+                      >
+                        Restore previous version
+                      </button>
+                    )}
 
                     <button
                       style={{

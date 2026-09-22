@@ -77,20 +77,72 @@ export async function PATCH(req) {
     const body = await req.json();
     const ownership = await resolveOwnedPersonalProfile(req, body);
     if (ownership.response) return ownership.response;
+
     const entryId = String(body.entryId || "").trim();
-    if (!entryId || typeof body.content !== "string") return Response.json({ ok: false, error: "Entry and content are required." }, { status: 400 });
-    const update = buildOwnedPlaybookUpdate({ authenticatedUserId: ownership.userId, content: body.content });
+    if (!entryId || typeof body.content !== "string") {
+      return Response.json({ ok: false, error: "Entry and content are required." }, { status: 400 });
+    }
+
+    const { data: existingEntry, error: existingError } = await ownership.client
+      .from("playbook_entries")
+      .select("id, title, category, content, source, created_at, updated_at")
+      .eq("id", entryId)
+      .eq("user_id", ownership.userId)
+      .eq("profile_key", ownership.profileKey)
+      .maybeSingle();
+
+    if (existingError) {
+      return Response.json({ ok: false, error: existingError.message }, { status: 500 });
+    }
+
+    if (!existingEntry?.id) {
+      return Response.json({ ok: false, error: "Root could not find an owned Playbook entry to update." }, { status: 404 });
+    }
+
+    const { error: versionError } = await ownership.client
+      .from("playbook_entry_versions")
+      .insert([
+        {
+          playbook_entry_id: existingEntry.id,
+          user_id: ownership.userId,
+          profile_key: ownership.profileKey,
+          title: existingEntry.title,
+          category: existingEntry.category,
+          content: existingEntry.content,
+          source: existingEntry.source,
+          original_created_at: existingEntry.created_at,
+          original_updated_at: existingEntry.updated_at,
+        },
+      ]);
+
+    if (versionError) {
+      return Response.json(
+        { ok: false, error: versionError.message || "Root could not preserve the previous Playbook version." },
+        { status: 500 }
+      );
+    }
+
+    const update = {
+      ...buildOwnedPlaybookUpdate({
+        authenticatedUserId: ownership.userId,
+        content: body.content,
+      }),
+      updated_at: new Date().toISOString(),
+    };
+
     const { data, error } = await ownership.client
       .from("playbook_entries")
       .update(update)
       .eq("id", entryId)
       .eq("user_id", ownership.userId)
       .eq("profile_key", ownership.profileKey)
-      .select("id")
+      .select("id, updated_at")
       .maybeSingle();
+
     if (error) return Response.json({ ok: false, error: error.message }, { status: 500 });
     if (!data?.id) return Response.json({ ok: false, error: "Root could not find an owned Playbook entry to update." }, { status: 404 });
-    return Response.json({ ok: true, id: data.id });
+
+    return Response.json({ ok: true, id: data.id, updatedAt: data.updated_at || null });
   } catch (error) {
     return Response.json({ ok: false, error: error?.message || "Playbook entry was not updated." }, { status: 500 });
   }
