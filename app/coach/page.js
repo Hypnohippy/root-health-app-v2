@@ -178,7 +178,6 @@ export default function CoachPage() {
   const pendingPlaybookSaveRef = useRef(null);
   const pendingPlaybookOfferRef = useRef(null);
   const pendingPlaybookRequestRef = useRef(null);
-  const pendingPlaybookTextRef = useRef("");
   const pendingPlaybookSavingRef = useRef(false);
   const pendingFoodClarificationRef = useRef(false);
   const latestAssistantTranscriptRef = useRef("");
@@ -744,87 +743,140 @@ const startVoiceSession = async () => {
 };
 
 const queueWrittenPlaybookDocument = (pending) => {
+  if (!pending || pendingPlaybookSavingRef.current) {
+    if (pendingPlaybookSavingRef.current && dc.readyState === "open") {
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions: 'Say exactly: "I’m already putting the written version together. You can keep talking to me and I’ll tell you when it is actually saved."',
+        },
+      }));
+    }
+    return;
+  }
+
   pendingPlaybookSaveRef.current = pending;
-  pendingPlaybookTextRef.current = "";
-  pendingPlaybookSavingRef.current = false;
+  pendingPlaybookSavingRef.current = true;
 
   setMessages((prev) => [
     ...prev,
     {
       role: "coach",
-      content: "Building the full written plan for your Playbook…",
+      content: "Building the full written resource for your Playbook in the background…",
     },
   ]);
 
-  dc.send(JSON.stringify({
-    type: "response.create",
-    response: {
-      instructions: 'Say exactly: "Perfect. I’ll create the full written version and save it to your Playbook. You can keep talking to me while I do that."',
-    },
-  }));
-
-  dc.send(JSON.stringify({
-    type: "response.create",
-    response: {
-      conversation: "none",
-      metadata: { response_purpose: "root_playbook_document" },
-      output_modalities: ["text"],
-      instructions: `Create the complete useful Playbook document for this request: "${pending.userIntent}". Start directly with Title:. Include the full requested plan, recipes, ingredients, shopping list and budget or supermarket comparison where requested. Treat supermarket prices as estimates unless a live verified source is available. Do not include conversational preambles or any save confirmation. This is written content only; do not address the user conversationally.`,
-    },
-  }));
-};
-
-const saveWrittenPlaybookDocument = async (writtenDocument) => {
-  const pending = pendingPlaybookSaveRef.current;
-  if (!pending || pendingPlaybookSavingRef.current) return false;
-
-  const documentText = String(writtenDocument || "").trim();
-  if (!isCompleteVoicePlaybookContent(documentText)) {
-    throw new Error("Root did not produce a complete Playbook document.");
+  if (dc.readyState === "open") {
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions: 'Say exactly: "I’m putting the full written version together in the background. Keep talking to me if you like — I’ll confirm when it has actually saved."',
+      },
+    }));
   }
 
-  pendingPlaybookSavingRef.current = true;
-  const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData?.session?.access_token;
-  if (!accessToken) {
-    pendingPlaybookSavingRef.current = false;
-    throw new Error("Root could not verify your signed-in account.");
-  }
+  const stillWorkingTimer = window.setTimeout(() => {
+    if (pendingPlaybookSavingRef.current) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "coach",
+          content: "Still building the Playbook resource — Voice remains available while it finishes.",
+        },
+      ]);
+    }
+  }, 12000);
 
-  const cleanPlaybookContent = cleanVoicePlaybookContent(documentText);
-  const saveResult = await persistVoicePlaybookEntry({
-    accessToken,
-    profileKey,
-    userIntent: pending.userIntent,
-    title: pending.title,
-    category: pending.category,
-    content: cleanPlaybookContent,
-  });
+  void (async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        throw new Error("Root could not verify your signed-in account.");
+      }
 
-  if (!saveResult.ok) {
-    pendingPlaybookSavingRef.current = false;
-    throw new Error(saveResult.error || "Playbook save failed.");
-  }
+      const buildResponse = await fetch("/api/voice-playbook-build", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          profileKey,
+          profile,
+          personalKnowledge: personalKnowledgeRef.current || personalKnowledge,
+          userIntent: pending.userIntent,
+          title: pending.title,
+          category: pending.category,
+          recentVoiceContext: latestAssistantTranscriptRef.current || "",
+        }),
+      });
 
-  pendingPlaybookSaveRef.current = null;
-  pendingPlaybookRequestRef.current = null;
-  pendingPlaybookTextRef.current = "";
-  pendingPlaybookSavingRef.current = false;
+      const buildResult = await buildResponse.json().catch(() => ({}));
+      if (!buildResponse.ok || !buildResult.ok || !buildResult.content) {
+        throw new Error(buildResult.error || "Root could not build the written Playbook resource.");
+      }
 
-  setMessages((prev) => [
-    ...prev,
-    { role: "coach", content: cleanPlaybookContent },
-    { role: "coach", content: "Saved to your Playbook." },
-  ]);
+      const writtenDocument = String(buildResult.content || "").trim();
+      if (!isCompleteVoicePlaybookContent(writtenDocument)) {
+        throw new Error("Root did not produce a complete Playbook document.");
+      }
 
-  dc.send(JSON.stringify({
-    type: "response.create",
-    response: {
-      instructions: 'Say exactly: "Done. The full written plan is saved in your Playbook. I’ll only read the recipe details aloud if you ask me to."',
-    },
-  }));
+      const cleanPlaybookContent = cleanVoicePlaybookContent(writtenDocument);
+      const saveResult = await persistVoicePlaybookEntry({
+        accessToken,
+        profileKey,
+        userIntent: pending.userIntent,
+        title: pending.title,
+        category: pending.category,
+        content: cleanPlaybookContent,
+      });
 
-  return true;
+      if (!saveResult.ok) {
+        throw new Error(saveResult.error || "Playbook save failed.");
+      }
+
+      pendingPlaybookSaveRef.current = null;
+      pendingPlaybookRequestRef.current = null;
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "coach", content: cleanPlaybookContent },
+        { role: "coach", content: "Saved to your Playbook." },
+      ]);
+
+      if (dc.readyState === "open") {
+        dc.send(JSON.stringify({
+          type: "response.create",
+          response: {
+            instructions: 'Say exactly: "Saved to your Playbook. I’ve kept the detailed plan written rather than reading it all out."',
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("VOICE PLAYBOOK BACKGROUND SAVE ERROR:", error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "coach",
+          content: "I couldn’t save that to your Playbook. The database write did not complete.",
+        },
+      ]);
+
+      if (dc.readyState === "open") {
+        dc.send(JSON.stringify({
+          type: "response.create",
+          response: {
+            instructions: 'Say exactly: "I couldn’t save that to your Playbook. The save did not complete."',
+          },
+        }));
+      }
+    } finally {
+      window.clearTimeout(stillWorkingTimer);
+      pendingPlaybookSavingRef.current = false;
+    }
+  })();
 };
 
 dc.onmessage = async (event) => {
@@ -960,152 +1012,25 @@ dc.onmessage = async (event) => {
     }
 
     if (
-      message.type === "response.output_text.delta" &&
-      message.response_id &&
-      pendingPlaybookSaveRef.current
-    ) {
-      pendingPlaybookTextRef.current += message.delta || "";
-    }
-
-    if (
-      message.type === "response.output_text.done" &&
-      pendingPlaybookSaveRef.current
-    ) {
-      const writtenDocument =
-        String(message.text || "").trim() ||
-        String(pendingPlaybookTextRef.current || "").trim();
-
-      if (writtenDocument) {
-        await saveWrittenPlaybookDocument(writtenDocument);
-        return;
-      }
-    }
-
-    if (
-      message.type === "response.done" &&
-      message.response?.metadata?.response_purpose === "root_playbook_document" &&
-      pendingPlaybookSaveRef.current
-    ) {
-      const responseText = (message.response?.output || [])
-        .flatMap((item) => item?.content || [])
-        .map((part) => part?.text || part?.transcript || "")
-        .join("\n")
-        .trim();
-
-      const writtenDocument =
-        responseText ||
-        String(pendingPlaybookTextRef.current || "").trim();
-
-      if (!writtenDocument) {
-        throw new Error("Root finished the Playbook document response without returning text.");
-      }
-
-      await saveWrittenPlaybookDocument(writtenDocument);
-      return;
-    }
-
-    if (
   message.type === "response.audio_transcript.done" ||
   message.type === "response.output_audio_transcript.done"
 ) {
   const assistantTranscript = message.transcript || "";
   console.log(
-  "TRANSCRIPT EVENT:",
-  message.type,
-  assistantTranscript.substring(0, 120)
-);
+    "TRANSCRIPT EVENT:",
+    message.type,
+    assistantTranscript.substring(0, 120)
+  );
 
   setVoiceTranscript(assistantTranscript);
   latestAssistantTranscriptRef.current = assistantTranscript;
-  if (!pendingPlaybookSaveRef.current) {
+
+  if (!pendingPlaybookSavingRef.current) {
     const offer = detectVoicePlaybookOffer(assistantTranscript);
     if (offer) pendingPlaybookOfferRef.current = offer;
   }
-if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
-  console.log("PLAYBOOK SAVE BLOCK ENTERED");
-
-  const pending = pendingPlaybookSaveRef.current;
-  const lowerAssistant = assistantTranscript.toLowerCase();
-
-  const isAskingForMoreInfo =
-    assistantTranscript.trim().endsWith("?") ||
-    lowerAssistant.includes("could you tell me") ||
-    lowerAssistant.includes("tell me a bit more") ||
-    lowerAssistant.includes("so we can tailor") ||
-    lowerAssistant.includes("before i create") ||
-    lowerAssistant.includes("before creating");
-
-  const hasCompletePlan = isCompleteVoicePlaybookContent(assistantTranscript);
-
-  const isJustConfirmation =
-    lowerAssistant.includes("saved to your playbook") ||
-    lowerAssistant.includes("i’ve saved") ||
-    lowerAssistant.includes("i've saved") ||
-    lowerAssistant.includes("done. i’ve recorded that") ||
-    lowerAssistant.includes("done. i've recorded that");
-
-  if (
-    !isJustConfirmation &&
-    !isAskingForMoreInfo &&
-    hasCompletePlan &&
-    assistantTranscript.trim()
-  ) {
-   const cleanPlaybookContent = cleanVoicePlaybookContent(assistantTranscript);
-
-    console.log("PLAYBOOK SAVE STARTING");
-
-    console.log("========== ABOUT TO SAVE ==========");
-console.log("PROFILE:", profileKey);
-console.log("PENDING:", pending);
-   const { data: sessionData } = await supabase.auth.getSession();
-   const accessToken = sessionData?.session?.access_token;
-
-   if (!accessToken) {
-     throw new Error("Root could not verify your signed-in account.");
-   }
-
-const saveResult = await persistVoicePlaybookEntry({
-  accessToken,
-  profileKey,
-  userIntent: pending.userIntent,
-  title: pending.title,
-  category: pending.category,
-  content: cleanPlaybookContent,
-});
-console.log("SAVE RESULT:", saveResult);
-
-console.log("PLAYBOOK SAVE RESPONSE:", {
-  profileKey,
-  result: saveResult,
-});
-
-if (!saveResult.ok) {
-  throw new Error(saveResult.error || "Playbook save failed.");
 }
 
-console.log("PLAYBOOK SAVE FINISHED");
-
-setMessages((prev) => [
-  ...prev,
-  {
-    role: "coach",
-    content: "Saved to your Playbook.",
-  },
-]);
-
-pendingPlaybookSaveRef.current = null;
-dc.send(JSON.stringify({
-  type: "response.create",
-  response: { instructions: 'Say exactly: "Saved to your Playbook."' },
-}));
-  } else {
-    console.log(
-      "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
-      assistantTranscript
-    );
-  }
-}
-}
   if (message.type === "response.done") {
   setVoiceState("listening");
 }
