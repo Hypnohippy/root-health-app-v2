@@ -809,25 +809,35 @@ const stopReviewVoiceInput = async (
               return;
             }
 
+            // Re-read the saved row from Supabase so the visible Playbook always
+            // reflects the authoritative persisted version immediately. This is
+            // intentionally local to Playbook review and does not touch Coach or
+            // the shared Root knowledge/evidence engines.
+            const { data: refreshedEntry, error: refreshError } = await supabase
+              .from("playbook_entries")
+              .select("*")
+              .eq("id", reviewEntry.id)
+              .eq("profile_key", profileKey)
+              .maybeSingle();
+
+            const visibleEntry =
+              !refreshError && refreshedEntry
+                ? refreshedEntry
+                : { ...reviewEntry, content: reviewPreview };
+
             setEntries((current) =>
               current.map((item) =>
                 item.id === reviewEntry.id
-                  ? { ...item, content: reviewPreview }
+                  ? { ...item, ...visibleEntry }
                   : item
               )
             );
 
-            setReviewEntry((current) =>
-          current
-           ? {
-        ...current,
-        content: reviewPreview,
-         }
-        : current
-       );
-
-setReviewInstruction("");
-setReviewStatus("saved");
+            setReviewEntry(visibleEntry);
+            setReviewPreview(visibleEntry.content || reviewPreview);
+            setOpenEntryId(reviewEntry.id);
+            setReviewInstruction("");
+            setReviewStatus("saved");
             }}
             >
           Save update

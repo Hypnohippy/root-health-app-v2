@@ -122,6 +122,10 @@ Rules:
 - Preserve all unrelated content unless the requested change genuinely requires modifying it.
 - Do not make additional improvements, substitutions, rewrites, or assumptions beyond the user's instruction unless necessary to keep the document coherent.
 - When adding or revising supermarket or ingredient prices, treat them as estimates unless a live price source is provided. Label them as estimated or indicative, note that prices vary by store, location, offer and date, and never present them as live, current or verified prices without a real live lookup.
+- COMPARISON PRESENTATION RULE: whenever the user asks to compare two or more options, present the comparison as ONE consolidated Markdown table whenever the information can sensibly be tabulated.
+- Do not scatter the same comparison across small tables under individual days, meals, sections, products, providers, supermarkets, or options.
+- Keep the main plan/document readable first, then place one clearly titled comparison table in the most useful location, normally after the relevant plan/shopping list or in a dedicated comparison section.
+- The consolidated table should include all relevant comparison rows and the compared options as clear columns. Avoid duplicating the same comparison again in prose unless a short conclusion is useful.
 - Keep the result clean, practical, and ready to save.
 `;
 
