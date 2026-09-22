@@ -47,6 +47,24 @@ test("an explicit spoken agreement to a clear Playbook offer arms the existing s
   assert.equal(detectVoicePlaybookOffer("I’ll create a log for you now."), null);
 });
 
+
+
+test("natural shall-we offers are recognised without relying on punctuation", () => {
+  const offer = detectVoicePlaybookOffer(
+    "Shall we go ahead and add this meal plan to your Playbook now"
+  );
+  assert.ok(offer);
+  assert.equal(offer.category, "Nutrition");
+});
+
+test("accepted voice Playbook plans are generated as text-only output, not spoken detail", async () => {
+  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  assert.match(coach, /output_modalities:\s*\["text"\]/);
+  assert.match(coach, /response\.output_text\.done/);
+  assert.match(coach, /The full written plan is saved in your Playbook/);
+  assert.match(coach, /only read the recipe details aloud if you ask me to/);
+});
+
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {
   const offer = detectVoicePlaybookOffer("Would you like me to create an Evening Meal and Morning Bloating Log and save it to your Playbook?");
   const userIntent = buildVoicePlaybookConsentIntent(offer, "Yes please");
