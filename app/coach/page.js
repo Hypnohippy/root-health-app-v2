@@ -859,6 +859,8 @@ const queueWrittenPlaybookDocument = (pending) => {
 
       pendingPlaybookSaveRef.current = null;
       pendingPlaybookRequestRef.current = null;
+      pendingPlaybookOfferRef.current = null;
+      latestReusablePlaybookRequestRef.current = null;
 
       setMessages((prev) => [
         ...prev,
@@ -935,9 +937,31 @@ dc.onmessage = async (event) => {
     return;
   }
 
-  const acceptedOffer = pendingPlaybookOfferRef.current && isExplicitVoiceAgreement(transcript)
-    ? pendingPlaybookOfferRef.current
-    : null;
+  const assistantJustOfferedPlaybook =
+    /\bplay\s*book\b/i.test(String(latestAssistantTranscriptRef.current || "")) &&
+    /\b(?:would you like|do you want|shall we|shall i|should we|should i|if you like|if you'd like|want me to|can put|can keep|can add|save|add|put|store|keep)\b/i.test(
+      String(latestAssistantTranscriptRef.current || "")
+    );
+
+  const rememberedRequestForConsent = latestReusablePlaybookRequestRef.current;
+
+  const fallbackOffer =
+    !pendingPlaybookOfferRef.current &&
+    isExplicitVoiceAgreement(transcript) &&
+    assistantJustOfferedPlaybook &&
+    rememberedRequestForConsent
+      ? {
+          offer: String(latestAssistantTranscriptRef.current || "").trim(),
+          ...rememberedRequestForConsent,
+          sourceRequest: rememberedRequestForConsent.transcript,
+        }
+      : null;
+
+  const acceptedOffer =
+    isExplicitVoiceAgreement(transcript)
+      ? pendingPlaybookOfferRef.current || fallbackOffer
+      : null;
+
   const consentIntent = acceptedOffer
     ? buildVoicePlaybookConsentIntent(acceptedOffer, transcript)
     : null;
@@ -974,9 +998,14 @@ dc.onmessage = async (event) => {
       return;
     }
 
+    const rememberedRequest = latestReusablePlaybookRequestRef.current;
+    const directMeta = rememberedRequest || inferVoicePlaybookMeta(transcript, coachMode);
+
     pendingPlaybookRequestRef.current = {
-      ...inferVoicePlaybookMeta(transcript, coachMode),
-      userIntent: transcript,
+      ...directMeta,
+      userIntent: rememberedRequest?.transcript
+        ? `${rememberedRequest.transcript}\n\nCurrent instruction: ${transcript}`
+        : transcript,
     };
   }
 
