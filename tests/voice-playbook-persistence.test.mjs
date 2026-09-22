@@ -133,6 +133,30 @@ test("direct save-it wording keeps the substantive remembered resource request",
   assert.match(coach, /Current instruction:/);
 });
 
+
+
+test("direct create-and-save requests are already authorised", () => {
+  assert.equal(
+    hasExplicitPlaybookSaveIntent("Create me a 2 day meal plan and save it to my Playbook"),
+    true
+  );
+  assert.equal(
+    hasExplicitPlaybookSaveIntent("Put that in my Playbook"),
+    true
+  );
+  assert.equal(
+    hasExplicitPlaybookSaveIntent("Create me a 2 day meal plan"),
+    false
+  );
+});
+
+test("Realtime prompt does not require a second consent after a direct save instruction", async () => {
+  const realtime = await readFile(new URL("../app/api/realtime-session/route.js", import.meta.url), "utf8");
+  assert.match(realtime, /that instruction is already clear authorisation/);
+  assert.match(realtime, /Do not ask "would you like me to save it\?" again/);
+  assert.match(realtime, /Do not freeze, gate, or ignore the rest of the conversation/);
+});
+
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {
   const offer = detectVoicePlaybookOffer("Would you like me to create an Evening Meal and Morning Bloating Log and save it to your Playbook?");
   const userIntent = buildVoicePlaybookConsentIntent(offer, "Yes please");
