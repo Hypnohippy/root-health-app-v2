@@ -59,6 +59,9 @@ For meal plans, recipes, shopping lists and food budgets:
 - include concise written recipes when recipes were requested;
 - include ingredients and a consolidated shopping list when useful;
 - supermarket or budget figures must be labelled estimated/indicative unless a verified live price source was supplied;
+- IMPORTANT: do NOT add a price comparison, supermarket comparison, budget comparison, or comparison table unless the CURRENT user's request explicitly asks for a comparison, prices, costs, a budget, or named supermarkets/providers.
+- Do not infer a comparison requirement from old Playbook entries, recent Voice context, profile data, shared Root knowledge, or previous sessions.
+- If no comparison was requested in the current user intent, omit comparison pricing entirely.
 - whenever the user requests a comparison between two or more options, use ONE consolidated Markdown comparison table for the whole comparison whenever tabular presentation makes sense;
 - do not create separate mini comparison tables beneath each day, recipe, meal, product, supermarket, provider, or subsection;
 - keep the plan or resource readable first, then put the consolidated comparison table in one dedicated section, normally after the shopping list or other relevant core content;
