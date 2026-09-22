@@ -126,6 +126,9 @@ Rules:
 - Do not scatter the same comparison across small tables under individual days, meals, sections, products, providers, supermarkets, or options.
 - Keep the main plan/document readable first, then place one clearly titled comparison table in the most useful location, normally after the relevant plan/shopping list or in a dedicated comparison section.
 - The consolidated table should include all relevant comparison rows and the compared options as clear columns. Avoid duplicating the same comparison again in prose unless a short conclusion is useful.
+- NEVER use placeholder comparison headings such as "Supermarket A", "Supermarket B", "Supermarket C", "Option A", or similar when the actual compared destinations/providers can be named.
+- If the user names supermarkets/providers, preserve those exact names in the table headings.
+- If the instruction asks for a generic comparison across major UK supermarkets without naming them, use a small practical set of specific named supermarkets and display those names explicitly so the user knows where each figure applies.
 - Keep the result clean, practical, and ready to save.
 `;
 

@@ -22,3 +22,14 @@ test("Voice Playbook background builder uses one consolidated comparison table",
   assert.match(route, /ONE consolidated Markdown comparison table/);
   assert.match(route, /do not create separate mini comparison tables/);
 });
+
+
+test("comparison tables name the actual supermarkets or providers", async () => {
+  const builder = await readFile(new URL("../app/api/voice-playbook-build/route.js", import.meta.url), "utf8");
+  const review = await readFile(new URL("../app/api/playbook-review/route.js", import.meta.url), "utf8");
+
+  assert.match(builder, /NEVER label comparison columns with placeholders/);
+  assert.match(builder, /use those exact names as the table column headings/);
+  assert.match(review, /NEVER use placeholder comparison headings/);
+  assert.match(review, /preserve those exact names in the table headings/);
+});
