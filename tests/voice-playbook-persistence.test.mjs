@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   buildVoicePlaybookConsentIntent,
   detectVoicePlaybookOffer,
+  extractVoicePlaybookDocumentTitle,
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
   isCompleteVoicePlaybookContent,
@@ -49,35 +50,52 @@ test("an explicit spoken agreement to a clear Playbook offer arms the existing s
 
 
 
-test("natural shall-we offers are recognised without relying on punctuation", () => {
-  const offer = detectVoicePlaybookOffer(
-    "Shall we go ahead and add this meal plan to your Playbook now"
+test("natural Playbook offers do not depend on a scripted phrase", () => {
+  const examples = [
+    "Shall we go ahead and add this meal plan to your Playbook now",
+    "I can put the written plan in your Playbook if you like.",
+    "Would you like me to save that in your Playbook?",
+  ];
+
+  for (const text of examples) {
+    assert.ok(detectVoicePlaybookOffer(text), text);
+  }
+
+  assert.equal(isExplicitVoiceAgreement("Go for it"), true);
+  assert.equal(isExplicitVoiceAgreement("That would be great"), true);
+});
+
+test("generated Playbook document title becomes the visible entry title", () => {
+  assert.equal(
+    extractVoicePlaybookDocumentTitle(
+      "Title: Two-Day Vegetarian Meal Plan with Recipes and Supermarket Comparison\n\nDay 1\n- Breakfast"
+    ),
+    "Two-Day Vegetarian Meal Plan with Recipes and Supermarket Comparison"
   );
-  assert.ok(offer);
-  assert.equal(offer.category, "Nutrition");
+
+  assert.equal(
+    extractVoicePlaybookDocumentTitle(
+      "ROOT HEALTH PLAYBOOK ENTRY\nTitle: Two-Day Vegan Meal Plan\n\nDay 1"
+    ),
+    "Two-Day Vegan Meal Plan"
+  );
 });
 
-test("accepted voice Playbook plans are generated as text-only output, not spoken detail", async () => {
+test("Coach preserves natural user request context when an offer is accepted", async () => {
   const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /output_modalities:\s*\["text"\]/);
-  assert.match(coach, /response\.output_text\.done/);
-  assert.match(coach, /The full written plan is saved in your Playbook/);
-  assert.match(coach, /only read the recipe details aloud if you ask me to/);
+  assert.match(coach, /latestUserTranscriptRef/);
+  assert.match(coach, /sourceRequest/);
+  assert.match(coach, /Please save this completed resource to my Playbook/);
+  assert.match(coach, /extractVoicePlaybookDocumentTitle/);
+  assert.match(coach, /finalCategory/);
+  assert.match(coach, /finalTitle/);
 });
 
-
-test("direct explicit Playbook requests queue the same written out-of-band document path", async () => {
+test("detailed Playbook generation remains in the isolated background builder", async () => {
   const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /explicitPlaybookSaveRequested/);
-  assert.match(coach, /queueWrittenPlaybookDocument\(pendingPlaybookRequestRef\.current\)/);
-  assert.match(coach, /metadata:\s*\{ response_purpose: "root_playbook_document" \}/);
-});
-
-test("out-of-band Playbook completion is handled from response.done metadata as well as text.done", async () => {
-  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /message\.type === "response\.done"/);
-  assert.match(coach, /message\.response\?\.metadata\?\.response_purpose === "root_playbook_document"/);
-  assert.match(coach, /message\.response\?\.output/);
+  assert.match(coach, /fetch\("\/api\/voice-playbook-build"/);
+  assert.match(coach, /pendingPlaybookSavingRef/);
+  assert.match(coach, /persistVoicePlaybookEntry/);
 });
 
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {
