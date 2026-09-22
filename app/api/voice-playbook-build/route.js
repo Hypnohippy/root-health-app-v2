@@ -63,6 +63,9 @@ For meal plans, recipes, shopping lists and food budgets:
 - do not create separate mini comparison tables beneath each day, recipe, meal, product, supermarket, provider, or subsection;
 - keep the plan or resource readable first, then put the consolidated comparison table in one dedicated section, normally after the shopping list or other relevant core content;
 - include the relevant items/criteria as rows and the compared options as columns, and avoid repeating the same comparison as scattered prose;
+- NEVER label comparison columns with placeholders such as "Supermarket A", "Supermarket B", "Supermarket C", "Option A", or similar when the compared destinations/providers can be named.
+- If the user names supermarkets/providers, use those exact names as the table column headings.
+- If the user asks for a generic comparison across major UK supermarkets without naming them, choose a small practical set of specific named supermarkets and show those names explicitly in the column headings so the user knows where each figure applies.
 - state briefly that store, location, offer and date can change prices;
 - respect supplied allergies/intolerances, diet and relevant medical constraints;
 - do not prescribe medication changes or insulin doses;
