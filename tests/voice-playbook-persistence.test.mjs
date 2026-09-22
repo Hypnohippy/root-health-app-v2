@@ -118,6 +118,21 @@ test("Coach preserves the substantive reusable request across later clarificatio
   assert.match(coach, /sourceRequest/);
 });
 
+
+
+test("natural affirmative save can recover from a missed offer detector when Voice just mentioned Playbook", async () => {
+  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  assert.match(coach, /assistantJustOfferedPlaybook/);
+  assert.match(coach, /fallbackOffer/);
+  assert.match(coach, /pendingPlaybookOfferRef\.current \|\| fallbackOffer/);
+});
+
+test("direct save-it wording keeps the substantive remembered resource request", async () => {
+  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  assert.match(coach, /rememberedRequest\?\.transcript/);
+  assert.match(coach, /Current instruction:/);
+});
+
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {
   const offer = detectVoicePlaybookOffer("Would you like me to create an Evening Meal and Morning Bloating Log and save it to your Playbook?");
   const userIntent = buildVoicePlaybookConsentIntent(offer, "Yes please");
