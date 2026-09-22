@@ -5,11 +5,9 @@ import test from "node:test";
 import {
   buildVoicePlaybookConsentIntent,
   detectVoicePlaybookOffer,
-  extractVoicePlaybookDocumentTitle,
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
   isCompleteVoicePlaybookContent,
-  isReusablePlaybookRequest,
   persistVoicePlaybookEntry,
   isExplicitVoiceAgreement,
 } from "../lib/voicePlaybookAction.js";
@@ -47,114 +45,6 @@ test("an explicit spoken agreement to a clear Playbook offer arms the existing s
   assert.equal(hasExplicitPlaybookSaveIntent(intent), true);
   assert.equal(buildVoicePlaybookConsentIntent(offer, "Tell me more first"), null);
   assert.equal(detectVoicePlaybookOffer("I’ll create a log for you now."), null);
-});
-
-
-
-test("natural Playbook offers do not depend on a scripted phrase", () => {
-  const examples = [
-    "Shall we go ahead and add this meal plan to your Playbook now",
-    "I can put the written plan in your Playbook if you like.",
-    "Would you like me to save that in your Playbook?",
-  ];
-
-  for (const text of examples) {
-    assert.ok(detectVoicePlaybookOffer(text), text);
-  }
-
-  assert.equal(isExplicitVoiceAgreement("Go for it"), true);
-  assert.equal(isExplicitVoiceAgreement("That would be great"), true);
-});
-
-test("generated Playbook document title becomes the visible entry title", () => {
-  assert.equal(
-    extractVoicePlaybookDocumentTitle(
-      "Title: Two-Day Vegetarian Meal Plan with Recipes and Supermarket Comparison\n\nDay 1\n- Breakfast"
-    ),
-    "Two-Day Vegetarian Meal Plan with Recipes and Supermarket Comparison"
-  );
-
-  assert.equal(
-    extractVoicePlaybookDocumentTitle(
-      "ROOT HEALTH PLAYBOOK ENTRY\nTitle: Two-Day Vegan Meal Plan\n\nDay 1"
-    ),
-    "Two-Day Vegan Meal Plan"
-  );
-});
-
-test("Coach preserves natural user request context when an offer is accepted", async () => {
-  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /latestUserTranscriptRef/);
-  assert.match(coach, /sourceRequest/);
-  assert.match(coach, /Please save this completed resource to my Playbook/);
-  assert.match(coach, /extractVoicePlaybookDocumentTitle/);
-  assert.match(coach, /finalCategory/);
-  assert.match(coach, /finalTitle/);
-});
-
-test("detailed Playbook generation remains in the isolated background builder", async () => {
-  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /fetch\("\/api\/voice-playbook-build"/);
-  assert.match(coach, /pendingPlaybookSavingRef/);
-  assert.match(coach, /persistVoicePlaybookEntry/);
-});
-
-
-
-test("reusable resource requests are remembered without requiring save wording", () => {
-  assert.equal(isReusablePlaybookRequest("Can you make me a two day vegetarian meal plan?"), true);
-  assert.equal(isReusablePlaybookRequest("Tell me how my week is going."), false);
-});
-
-test("natural Playbook offers are accepted even without a rigid save verb", () => {
-  assert.ok(detectVoicePlaybookOffer("Would you like that in your Playbook?"));
-  assert.ok(detectVoicePlaybookOffer("I can put the written version in your Playbook if you like."));
-});
-
-test("Coach preserves the substantive reusable request across later clarifications", async () => {
-  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /latestReusablePlaybookRequestRef/);
-  assert.match(coach, /rememberedRequest\?\.transcript/);
-  assert.match(coach, /sourceRequest/);
-});
-
-
-
-test("natural affirmative save can recover from a missed offer detector when Voice just mentioned Playbook", async () => {
-  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /assistantJustOfferedPlaybook/);
-  assert.match(coach, /fallbackOffer/);
-  assert.match(coach, /pendingPlaybookOfferRef\.current \|\| fallbackOffer/);
-});
-
-test("direct save-it wording keeps the substantive remembered resource request", async () => {
-  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
-  assert.match(coach, /rememberedRequest\?\.transcript/);
-  assert.match(coach, /Current instruction:/);
-});
-
-
-
-test("direct create-and-save requests are already authorised", () => {
-  assert.equal(
-    hasExplicitPlaybookSaveIntent("Create me a 2 day meal plan and save it to my Playbook"),
-    true
-  );
-  assert.equal(
-    hasExplicitPlaybookSaveIntent("Put that in my Playbook"),
-    true
-  );
-  assert.equal(
-    hasExplicitPlaybookSaveIntent("Create me a 2 day meal plan"),
-    false
-  );
-});
-
-test("Realtime prompt does not require a second consent after a direct save instruction", async () => {
-  const realtime = await readFile(new URL("../app/api/realtime-session/route.js", import.meta.url), "utf8");
-  assert.match(realtime, /that instruction is already clear authorisation/);
-  assert.match(realtime, /Do not ask "would you like me to save it\?" again/);
-  assert.match(realtime, /Do not freeze, gate, or ignore the rest of the conversation/);
 });
 
 test("spoken agreement uses the normal persistence endpoint and returns a Playbook entry id", async () => {

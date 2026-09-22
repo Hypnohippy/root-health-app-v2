@@ -13,11 +13,9 @@ import {
   cleanVoicePlaybookContent,
   buildVoicePlaybookConsentIntent,
   detectVoicePlaybookOffer,
-  extractVoicePlaybookDocumentTitle,
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
   isCompleteVoicePlaybookContent,
-  isReusablePlaybookRequest,
   isExplicitVoiceAgreement,
   persistVoicePlaybookEntry,
   persistPersonalPlaybookTracker,
@@ -179,11 +177,7 @@ export default function CoachPage() {
   const animationFrameRef = useRef(null);
   const pendingPlaybookSaveRef = useRef(null);
   const pendingPlaybookOfferRef = useRef(null);
-  const pendingPlaybookRequestRef = useRef(null);
-  const latestReusablePlaybookRequestRef = useRef(null);
-  const pendingPlaybookSavingRef = useRef(false);
   const pendingFoodClarificationRef = useRef(false);
-  const latestUserTranscriptRef = useRef("");
   const latestAssistantTranscriptRef = useRef("");
   const personalKnowledgeRef = useRef(null);
   useEffect(() => {
@@ -746,162 +740,6 @@ const startVoiceSession = async () => {
   );
 };
 
-const queueWrittenPlaybookDocument = (pending) => {
-  if (!pending || pendingPlaybookSavingRef.current) {
-    if (pendingPlaybookSavingRef.current && dc.readyState === "open") {
-      dc.send(JSON.stringify({
-        type: "response.create",
-        response: {
-          instructions: 'Say exactly: "I’m already putting the written version together. You can keep talking to me and I’ll tell you when it is actually saved."',
-        },
-      }));
-    }
-    return;
-  }
-
-  pendingPlaybookSaveRef.current = pending;
-  pendingPlaybookSavingRef.current = true;
-
-  setMessages((prev) => [
-    ...prev,
-    {
-      role: "coach",
-      content: "Building the full written resource for your Playbook in the background…",
-    },
-  ]);
-
-  if (dc.readyState === "open") {
-    dc.send(JSON.stringify({
-      type: "response.create",
-      response: {
-        instructions: 'Say exactly: "I’m putting the full written version together in the background. Keep talking to me if you like — I’ll confirm when it has actually saved."',
-      },
-    }));
-  }
-
-  const stillWorkingTimer = window.setTimeout(() => {
-    if (pendingPlaybookSavingRef.current) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "coach",
-          content: "Still building the Playbook resource — Voice remains available while it finishes.",
-        },
-      ]);
-    }
-  }, 12000);
-
-  void (async () => {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) {
-        throw new Error("Root could not verify your signed-in account.");
-      }
-
-      const buildResponse = await fetch("/api/voice-playbook-build", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          profileKey,
-          profile,
-          personalKnowledge: personalKnowledgeRef.current || personalKnowledge,
-          userIntent: pending.userIntent,
-          title: pending.title,
-          category: pending.category,
-          recentVoiceContext: latestAssistantTranscriptRef.current || "",
-        }),
-      });
-
-      const buildResult = await buildResponse.json().catch(() => ({}));
-      if (!buildResponse.ok || !buildResult.ok || !buildResult.content) {
-        throw new Error(buildResult.error || "Root could not build the written Playbook resource.");
-      }
-
-      const writtenDocument = String(buildResult.content || "").trim();
-      if (!isCompleteVoicePlaybookContent(writtenDocument)) {
-        throw new Error("Root did not produce a complete Playbook document.");
-      }
-
-      const cleanPlaybookContent = cleanVoicePlaybookContent(writtenDocument);
-      const generatedTitle = extractVoicePlaybookDocumentTitle(
-        cleanPlaybookContent,
-        pending.title
-      );
-      const inferredMeta = inferVoicePlaybookMeta(
-        `${pending.userIntent || ""}\n${cleanPlaybookContent}`,
-        coachMode
-      );
-      const finalCategory =
-        pending.category && pending.category !== "General"
-          ? pending.category
-          : inferredMeta.category;
-      const finalTitle =
-        generatedTitle && generatedTitle !== "Voice Coach Playbook Entry"
-          ? generatedTitle
-          : inferredMeta.title || pending.title;
-
-      const saveResult = await persistVoicePlaybookEntry({
-        accessToken,
-        profileKey,
-        userIntent: pending.userIntent,
-        title: finalTitle,
-        category: finalCategory,
-        content: cleanPlaybookContent,
-      });
-
-      if (!saveResult.ok) {
-        throw new Error(saveResult.error || "Playbook save failed.");
-      }
-
-      pendingPlaybookSaveRef.current = null;
-      pendingPlaybookRequestRef.current = null;
-      pendingPlaybookOfferRef.current = null;
-      latestReusablePlaybookRequestRef.current = null;
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "coach", content: cleanPlaybookContent },
-        { role: "coach", content: "Saved to your Playbook." },
-      ]);
-
-      if (dc.readyState === "open") {
-        dc.send(JSON.stringify({
-          type: "response.create",
-          response: {
-            instructions: 'Say exactly: "Saved to your Playbook. I’ve kept the detailed plan written rather than reading it all out."',
-          },
-        }));
-      }
-    } catch (error) {
-      console.error("VOICE PLAYBOOK BACKGROUND SAVE ERROR:", error);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "coach",
-          content: "I couldn’t save that to your Playbook. The database write did not complete.",
-        },
-      ]);
-
-      if (dc.readyState === "open") {
-        dc.send(JSON.stringify({
-          type: "response.create",
-          response: {
-            instructions: 'Say exactly: "I couldn’t save that to your Playbook. The save did not complete."',
-          },
-        }));
-      }
-    } finally {
-      window.clearTimeout(stillWorkingTimer);
-      pendingPlaybookSavingRef.current = false;
-    }
-  })();
-};
-
 dc.onmessage = async (event) => {
   try {
     const message = JSON.parse(event.data);
@@ -915,15 +753,6 @@ dc.onmessage = async (event) => {
   "conversation.item.input_audio_transcription.completed"
 ) {
  const transcript = message.transcript || "";
-  latestUserTranscriptRef.current = transcript;
-
-  if (isReusablePlaybookRequest(transcript)) {
-    latestReusablePlaybookRequestRef.current = {
-      transcript,
-      ...inferVoicePlaybookMeta(transcript, coachMode),
-    };
-  }
-
   console.log("USER SAID:", transcript);
 
   const investigationResult = await persistInvestigationIntent(transcript);
@@ -937,31 +766,9 @@ dc.onmessage = async (event) => {
     return;
   }
 
-  const assistantJustOfferedPlaybook =
-    /\bplay\s*book\b/i.test(String(latestAssistantTranscriptRef.current || "")) &&
-    /\b(?:would you like|do you want|shall we|shall i|should we|should i|if you like|if you'd like|want me to|can put|can keep|can add|save|add|put|store|keep)\b/i.test(
-      String(latestAssistantTranscriptRef.current || "")
-    );
-
-  const rememberedRequestForConsent = latestReusablePlaybookRequestRef.current;
-
-  const fallbackOffer =
-    !pendingPlaybookOfferRef.current &&
-    isExplicitVoiceAgreement(transcript) &&
-    assistantJustOfferedPlaybook &&
-    rememberedRequestForConsent
-      ? {
-          offer: String(latestAssistantTranscriptRef.current || "").trim(),
-          ...rememberedRequestForConsent,
-          sourceRequest: rememberedRequestForConsent.transcript,
-        }
-      : null;
-
-  const acceptedOffer =
-    isExplicitVoiceAgreement(transcript)
-      ? pendingPlaybookOfferRef.current || fallbackOffer
-      : null;
-
+  const acceptedOffer = pendingPlaybookOfferRef.current && isExplicitVoiceAgreement(transcript)
+    ? pendingPlaybookOfferRef.current
+    : null;
   const consentIntent = acceptedOffer
     ? buildVoicePlaybookConsentIntent(acceptedOffer, transcript)
     : null;
@@ -974,39 +781,36 @@ dc.onmessage = async (event) => {
       dc.send(JSON.stringify({ type: "response.create", response: { instructions: result.ok ? `Say exactly: "Your ${result.definition.title} is saved in Playbook and ready to use."` : "Tell the user the tracker could not be saved. Do not say it was created, added, or saved." } }));
       return;
     }
-
-    const sourceRequest = String(acceptedOffer.sourceRequest || "").trim();
-    const pending = {
+    pendingPlaybookSaveRef.current = {
       title: acceptedOffer.title,
       category: acceptedOffer.category,
-      userIntent: sourceRequest
-        ? `${sourceRequest}\n\nPlease save this completed resource to my Playbook. I explicitly agreed to the offer: ${acceptedOffer.offer}`
-        : consentIntent,
-      offer: acceptedOffer.offer,
+      userIntent: consentIntent,
     };
     pendingPlaybookOfferRef.current = null;
-    queueWrittenPlaybookDocument(pending);
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions: `The user explicitly accepted your Playbook offer: "${acceptedOffer.offer}". Now produce the complete useful document only. Start with Title:. Do not claim it is saved; the app will persist it and confirm only after success.`,
+      },
+    }));
     return;
   }
 
-  const explicitPlaybookSaveRequested = hasExplicitPlaybookSaveIntent(transcript);
-  if (explicitPlaybookSaveRequested) {
+  if (hasExplicitPlaybookSaveIntent(transcript)) {
     if (isTrackerCreationRequest(transcript)) {
       const { data } = await supabase.auth.getSession();
       const result = await persistPersonalPlaybookTracker({ accessToken: data.session?.access_token, profileKey, userIntent: transcript });
       dc.send(JSON.stringify({ type: "response.create", response: { instructions: result.ok ? `Say exactly: "Your ${result.definition.title} is saved in Playbook and ready to use."` : "Tell the user the tracker could not be saved. Do not say it was created, added, or saved." } }));
       return;
     }
-
-    const rememberedRequest = latestReusablePlaybookRequestRef.current;
-    const directMeta = rememberedRequest || inferVoicePlaybookMeta(transcript, coachMode);
-
-    pendingPlaybookRequestRef.current = {
-      ...directMeta,
-      userIntent: rememberedRequest?.transcript
-        ? `${rememberedRequest.transcript}\n\nCurrent instruction: ${transcript}`
-        : transcript,
+    pendingPlaybookSaveRef.current = {
+      ...inferVoicePlaybookMeta(transcript, coachMode),
+      userIntent: transcript,
     };
+    console.log(
+      "PLAYBOOK SAVE PENDING:",
+      pendingPlaybookSaveRef.current
+    );
   }
 
   const foodSafety = pendingFoodClarificationRef.current
@@ -1029,27 +833,12 @@ dc.onmessage = async (event) => {
 
   if (foodSafety.clarificationWasAsked && foodSafety.allergy.resolved) {
     pendingFoodClarificationRef.current = false;
-
-    if (pendingPlaybookRequestRef.current) {
-      const pending = {
-        ...pendingPlaybookRequestRef.current,
-        userIntent: `${pendingPlaybookRequestRef.current.userIntent}\nAllergy/intolerance clarification: ${foodSafety.allergy.value}`,
-      };
-      queueWrittenPlaybookDocument(pending);
-      return;
-    }
-
     dc.send(JSON.stringify({
       type: "response.create",
       response: {
         instructions: `The user has clarified their allergy/intolerance context for this immediate request as: ${foodSafety.allergy.value}. Do not update or imply an update to their persistent Profile. Continue the earlier food request now, treating this answer as a safety constraint and following the Root Health Education Policy.`,
       },
     }));
-    return;
-  }
-
-  if (explicitPlaybookSaveRequested && pendingPlaybookRequestRef.current) {
-    queueWrittenPlaybookDocument(pendingPlaybookRequestRef.current);
     return;
   }
 
@@ -1079,36 +868,102 @@ dc.onmessage = async (event) => {
 ) {
   const assistantTranscript = message.transcript || "";
   console.log(
-    "TRANSCRIPT EVENT:",
-    message.type,
-    assistantTranscript.substring(0, 120)
-  );
+  "TRANSCRIPT EVENT:",
+  message.type,
+  assistantTranscript.substring(0, 120)
+);
 
   setVoiceTranscript(assistantTranscript);
   latestAssistantTranscriptRef.current = assistantTranscript;
-
-  if (!pendingPlaybookSavingRef.current) {
+  if (!pendingPlaybookSaveRef.current) {
     const offer = detectVoicePlaybookOffer(assistantTranscript);
-    if (offer) {
-      const rememberedRequest = latestReusablePlaybookRequestRef.current;
-      const fallbackRequest = String(latestUserTranscriptRef.current || "").trim();
-      const sourceRequest = String(
-        rememberedRequest?.transcript || fallbackRequest
-      ).trim();
-      const contextualMeta = rememberedRequest || inferVoicePlaybookMeta(
-        `${sourceRequest}\n${assistantTranscript}`,
-        coachMode
-      );
-
-      pendingPlaybookOfferRef.current = {
-        ...offer,
-        ...contextualMeta,
-        sourceRequest,
-      };
-    }
+    if (offer) pendingPlaybookOfferRef.current = offer;
   }
+if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
+  console.log("PLAYBOOK SAVE BLOCK ENTERED");
+
+  const pending = pendingPlaybookSaveRef.current;
+  const lowerAssistant = assistantTranscript.toLowerCase();
+
+  const isAskingForMoreInfo =
+    assistantTranscript.trim().endsWith("?") ||
+    lowerAssistant.includes("could you tell me") ||
+    lowerAssistant.includes("tell me a bit more") ||
+    lowerAssistant.includes("so we can tailor") ||
+    lowerAssistant.includes("before i create") ||
+    lowerAssistant.includes("before creating");
+
+  const hasCompletePlan = isCompleteVoicePlaybookContent(assistantTranscript);
+
+  const isJustConfirmation =
+    lowerAssistant.includes("saved to your playbook") ||
+    lowerAssistant.includes("i’ve saved") ||
+    lowerAssistant.includes("i've saved") ||
+    lowerAssistant.includes("done. i’ve recorded that") ||
+    lowerAssistant.includes("done. i've recorded that");
+
+  if (
+    !isJustConfirmation &&
+    !isAskingForMoreInfo &&
+    hasCompletePlan &&
+    assistantTranscript.trim()
+  ) {
+   const cleanPlaybookContent = cleanVoicePlaybookContent(assistantTranscript);
+
+    console.log("PLAYBOOK SAVE STARTING");
+
+    console.log("========== ABOUT TO SAVE ==========");
+console.log("PROFILE:", profileKey);
+console.log("PENDING:", pending);
+   const { data: sessionData } = await supabase.auth.getSession();
+   const accessToken = sessionData?.session?.access_token;
+
+   if (!accessToken) {
+     throw new Error("Root could not verify your signed-in account.");
+   }
+
+const saveResult = await persistVoicePlaybookEntry({
+  accessToken,
+  profileKey,
+  userIntent: pending.userIntent,
+  title: pending.title,
+  category: pending.category,
+  content: cleanPlaybookContent,
+});
+console.log("SAVE RESULT:", saveResult);
+
+console.log("PLAYBOOK SAVE RESPONSE:", {
+  profileKey,
+  result: saveResult,
+});
+
+if (!saveResult.ok) {
+  throw new Error(saveResult.error || "Playbook save failed.");
 }
 
+console.log("PLAYBOOK SAVE FINISHED");
+
+setMessages((prev) => [
+  ...prev,
+  {
+    role: "coach",
+    content: "Saved to your Playbook.",
+  },
+]);
+
+pendingPlaybookSaveRef.current = null;
+dc.send(JSON.stringify({
+  type: "response.create",
+  response: { instructions: 'Say exactly: "Saved to your Playbook."' },
+}));
+  } else {
+    console.log(
+      "PLAYBOOK SAVE WAITING FOR USEFUL CONTENT:",
+      assistantTranscript
+    );
+  }
+}
+}
   if (message.type === "response.done") {
   setVoiceState("listening");
 }
