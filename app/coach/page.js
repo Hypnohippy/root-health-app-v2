@@ -13,6 +13,7 @@ import {
   cleanVoicePlaybookContent,
   buildVoicePlaybookConsentIntent,
   detectVoicePlaybookOffer,
+  extractVoicePlaybookDocumentTitle,
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
   isCompleteVoicePlaybookContent,
@@ -180,6 +181,7 @@ export default function CoachPage() {
   const pendingPlaybookRequestRef = useRef(null);
   const pendingPlaybookSavingRef = useRef(false);
   const pendingFoodClarificationRef = useRef(false);
+  const latestUserTranscriptRef = useRef("");
   const latestAssistantTranscriptRef = useRef("");
   const personalKnowledgeRef = useRef(null);
   useEffect(() => {
@@ -823,12 +825,29 @@ const queueWrittenPlaybookDocument = (pending) => {
       }
 
       const cleanPlaybookContent = cleanVoicePlaybookContent(writtenDocument);
+      const generatedTitle = extractVoicePlaybookDocumentTitle(
+        cleanPlaybookContent,
+        pending.title
+      );
+      const inferredMeta = inferVoicePlaybookMeta(
+        `${pending.userIntent || ""}\n${cleanPlaybookContent}`,
+        coachMode
+      );
+      const finalCategory =
+        pending.category && pending.category !== "General"
+          ? pending.category
+          : inferredMeta.category;
+      const finalTitle =
+        generatedTitle && generatedTitle !== "Voice Coach Playbook Entry"
+          ? generatedTitle
+          : inferredMeta.title || pending.title;
+
       const saveResult = await persistVoicePlaybookEntry({
         accessToken,
         profileKey,
         userIntent: pending.userIntent,
-        title: pending.title,
-        category: pending.category,
+        title: finalTitle,
+        category: finalCategory,
         content: cleanPlaybookContent,
       });
 
@@ -892,6 +911,7 @@ dc.onmessage = async (event) => {
   "conversation.item.input_audio_transcription.completed"
 ) {
  const transcript = message.transcript || "";
+  latestUserTranscriptRef.current = transcript;
   console.log("USER SAID:", transcript);
 
   const investigationResult = await persistInvestigationIntent(transcript);
@@ -921,10 +941,13 @@ dc.onmessage = async (event) => {
       return;
     }
 
+    const sourceRequest = String(acceptedOffer.sourceRequest || "").trim();
     const pending = {
       title: acceptedOffer.title,
       category: acceptedOffer.category,
-      userIntent: consentIntent,
+      userIntent: sourceRequest
+        ? `${sourceRequest}\n\nPlease save this completed resource to my Playbook. I explicitly agreed to the offer: ${acceptedOffer.offer}`
+        : consentIntent,
       offer: acceptedOffer.offer,
     };
     pendingPlaybookOfferRef.current = null;
@@ -1027,7 +1050,18 @@ dc.onmessage = async (event) => {
 
   if (!pendingPlaybookSavingRef.current) {
     const offer = detectVoicePlaybookOffer(assistantTranscript);
-    if (offer) pendingPlaybookOfferRef.current = offer;
+    if (offer) {
+      const sourceRequest = String(latestUserTranscriptRef.current || "").trim();
+      const contextualMeta = inferVoicePlaybookMeta(
+        `${sourceRequest}\n${assistantTranscript}`,
+        coachMode
+      );
+      pendingPlaybookOfferRef.current = {
+        ...offer,
+        ...contextualMeta,
+        sourceRequest,
+      };
+    }
   }
 }
 
