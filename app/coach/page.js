@@ -896,11 +896,14 @@ if (pendingPlaybookSaveRef.current && assistantTranscript.trim()) {
   const hasCompletePlan = isCompleteVoicePlaybookContent(assistantTranscript);
 
   const isJustConfirmation =
-    lowerAssistant.includes("saved to your playbook") ||
-    lowerAssistant.includes("i’ve saved") ||
-    lowerAssistant.includes("i've saved") ||
-    lowerAssistant.includes("done. i’ve recorded that") ||
-    lowerAssistant.includes("done. i've recorded that");
+    !hasCompletePlan &&
+    (
+      lowerAssistant.includes("saved to your playbook") ||
+      lowerAssistant.includes("i’ve saved") ||
+      lowerAssistant.includes("i've saved") ||
+      lowerAssistant.includes("done. i’ve recorded that") ||
+      lowerAssistant.includes("done. i've recorded that")
+    );
 
   if (
     !isJustConfirmation &&
