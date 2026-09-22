@@ -12,6 +12,7 @@ import { detectPersonalInvestigationIntent } from "../../lib/personalInvestigati
 import {
   cleanVoicePlaybookContent,
   buildVoicePlaybookConsentIntent,
+  classifyPlaybookConflictChoice,
   detectVoicePlaybookOffer,
   hasExplicitPlaybookSaveIntent,
   inferVoicePlaybookMeta,
@@ -177,6 +178,7 @@ export default function CoachPage() {
   const animationFrameRef = useRef(null);
   const pendingPlaybookSaveRef = useRef(null);
   const pendingPlaybookOfferRef = useRef(null);
+  const pendingPlaybookConflictRef = useRef(null);
   const pendingFoodClarificationRef = useRef(false);
   const latestAssistantTranscriptRef = useRef("");
   const personalKnowledgeRef = useRef(null);
@@ -755,6 +757,65 @@ dc.onmessage = async (event) => {
  const transcript = message.transcript || "";
   console.log("USER SAID:", transcript);
 
+  if (pendingPlaybookConflictRef.current) {
+    const conflict = pendingPlaybookConflictRef.current;
+    const choice = classifyPlaybookConflictChoice(transcript);
+
+    if (!choice) {
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions:
+            `The user is choosing what to do with an existing Playbook entry called "${conflict.existingEntry?.title || conflict.title}". Ask naturally whether they want to replace the existing entry or keep it and save this as a new entry. Mention that replacing it keeps the previous version recoverable. Do not discuss anything else until the choice is clear.`,
+        },
+      }));
+      return;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) {
+      throw new Error("Root could not verify your signed-in account.");
+    }
+
+    const resolvedSave = await persistVoicePlaybookEntry({
+      accessToken,
+      profileKey,
+      userIntent: conflict.userIntent,
+      title: conflict.title,
+      category: conflict.category,
+      content: conflict.content,
+      conflictResolution: choice,
+    });
+
+    if (!resolvedSave.ok) {
+      throw new Error(resolvedSave.error || "Playbook save failed.");
+    }
+
+    pendingPlaybookConflictRef.current = null;
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "coach",
+        content:
+          choice === "overwrite"
+            ? "Updated in your Playbook. The previous version is still recoverable."
+            : "Saved as a new Playbook entry.",
+      },
+    ]);
+
+    dc.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions:
+          choice === "overwrite"
+            ? 'Say exactly: "Updated in your Playbook. I kept the previous version so you can restore it if you ever want to."'
+            : 'Say exactly: "Saved as a new entry in your Playbook."',
+      },
+    }));
+    return;
+  }
+
   const investigationResult = await persistInvestigationIntent(transcript);
   if (!investigationResult.ok) {
     dc.send(JSON.stringify({
@@ -940,6 +1001,24 @@ console.log("PLAYBOOK SAVE RESPONSE:", {
   result: saveResult,
 });
 
+if (saveResult.conflict) {
+  pendingPlaybookConflictRef.current = {
+    ...pending,
+    content: cleanPlaybookContent,
+    existingEntry: saveResult.existingEntry,
+  };
+  pendingPlaybookSaveRef.current = null;
+
+  dc.send(JSON.stringify({
+    type: "response.create",
+    response: {
+      instructions:
+        `You already have a Playbook entry called "${saveResult.existingEntry?.title || pending.title}". Ask naturally: would they like to replace that existing entry, keeping the previous version recoverable, or save this as a new entry? Do not claim anything has been saved yet.`,
+    },
+  }));
+  return;
+}
+
 if (!saveResult.ok) {
   throw new Error(saveResult.error || "Playbook save failed.");
 }
@@ -980,6 +1059,7 @@ if (message.type === "error") {
 
   pendingPlaybookSaveRef.current = null;
   pendingPlaybookOfferRef.current = null;
+  pendingPlaybookConflictRef.current = null;
 
   setMessages((prev) => [
     ...prev,
