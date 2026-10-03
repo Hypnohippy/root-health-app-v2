@@ -252,6 +252,14 @@ export async function POST(request) {
         .NEXT_PUBLIC_SITE_URL ||
       "https://roothealth.app";
 
+    const admin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: attributionId, error: attributionError } = await admin.rpc("prepare_personal_referral", {
+      p_user_id: user.id, p_code: String(requestBody?.referralCode || "").slice(0, 120),
+    });
+    if (attributionError) throw attributionError;
+    const referralMetadata = attributionId ? { personal_attribution_id: attributionId } : {};
     const session =
       await stripe.checkout.sessions.create(
         {
@@ -275,6 +283,7 @@ export async function POST(request) {
             user.id,
 
           metadata: {
+            ...referralMetadata,
             root_product:
               "personal",
 
@@ -290,6 +299,7 @@ export async function POST(request) {
 
           subscription_data: {
             metadata: {
+              ...referralMetadata,
               root_product:
                 "personal",
 

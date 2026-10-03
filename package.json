@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "test:referrals": "node --experimental-default-type=module --test tests/personal-referrals.test.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -16,6 +17,9 @@
     "test:personal-integration-5b": "node --experimental-default-type=module --test tests/personal-integration-pass-5b.test.mjs",
     "test:personal-investigations": "node --experimental-default-type=module --test tests/personal-investigation-continuity.test.mjs",
     "test:hr-coach-security": "node --experimental-default-type=module --test tests/hr-coach-security.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",

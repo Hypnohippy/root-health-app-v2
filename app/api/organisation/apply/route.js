@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supportsMarket } from "../../../../lib/introducerMarkets";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl =
@@ -492,7 +493,8 @@ export async function POST(request) {
           vat_number,
           status,
           agreement_start_date,
-          agreement_end_date
+          agreement_end_date,
+          introducer_market
         `)
         .eq(
           "referral_code",
@@ -511,7 +513,7 @@ export async function POST(request) {
         );
       }
 
-      if (introducer) {
+      if (introducer && supportsMarket(introducer, "corporate")) {
         const today =
           new Date()
             .toISOString()

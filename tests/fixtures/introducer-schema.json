@@ -1,0 +1,3146 @@
+[
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0002 user_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0003 organisation_name",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0004 contact_name",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0005 contact_email",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0006 employee_count",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0007 industry",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0008 status",
+    "definition": "type=text; udt=text; nullable=NO; default='pending'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0009 reviewed_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0010 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0011 admin_email",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0012 legal_entity_number",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0013 organisation_domain",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0014 root_customer_group_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0015 trial_eligibility_status",
+    "definition": "type=text; udt=text; nullable=YES; default='unchecked'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0016 trial_eligibility_reason",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0017 trial_eligibility_checked_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0018 trial_override",
+    "definition": "type=boolean; udt=bool; nullable=NO; default=false"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0019 organisation_type",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0020 associated_business_declared",
+    "definition": "type=boolean; udt=bool; nullable=NO; default=false"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0021 associated_business_name",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0022 pilot_decision",
+    "definition": "type=text; udt=text; nullable=NO; default='pending'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0023 pilot_decision_reason",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0024 pilot_decision_note",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0025 pilot_decided_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0026 pilot_decided_by",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0027 decline_email_sent_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0028 access_path",
+    "definition": "type=text; udt=text; nullable=NO; default='trial'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0029 payment_status",
+    "definition": "type=text; udt=text; nullable=NO; default='not_started'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0030 stripe_checkout_session_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0031 stripe_customer_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0032 stripe_subscription_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0033 paid_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0034 introducer_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0035 introducer_campaign_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0036 referral_code",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0037 referral_campaign_code",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0038 commission_percent_at_conversion",
+    "definition": "type=numeric; udt=numeric; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0039 commission_basis_at_conversion",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0040 referral_attributed_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0041 commission_structure_at_conversion",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0042 introducer_vat_registered_at_conversion",
+    "definition": "type=boolean; udt=bool; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0043 introducer_vat_number_at_conversion",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_applications",
+    "item": "0044 introducer_vat_rate_at_conversion",
+    "definition": "type=numeric; udt=numeric; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0002 document_number",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0003 document_type",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0004 introducer_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0005 commission_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0006 application_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0007 organisation_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0008 organisation_name",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0009 recipient_name",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0010 recipient_email",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0011 currency",
+    "definition": "type=text; udt=text; nullable=NO; default='gbp'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0012 amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO; default=0"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0013 commission_percent",
+    "definition": "type=numeric; udt=numeric; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0014 payment_reference",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0015 document_status",
+    "definition": "type=text; udt=text; nullable=NO; default='generated'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0016 generated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0017 sent_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0018 notes",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0019 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0020 updated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commercial_documents",
+    "item": "0021 metadata",
+    "definition": "type=jsonb; udt=jsonb; nullable=NO; default='{}'::jsonb"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0002 revenue_event_id",
+    "definition": "type=uuid; udt=uuid; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0003 introducer_id",
+    "definition": "type=uuid; udt=uuid; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0004 introducer_campaign_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0005 application_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0006 organisation_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0007 organisation_name",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0008 referral_code",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0009 referral_campaign_code",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0010 commission_percent",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0011 commission_basis",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0012 commission_structure",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0013 commission_event",
+    "definition": "type=text; udt=text; nullable=NO; default='initial_payment'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0014 currency",
+    "definition": "type=text; udt=text; nullable=NO; default='gbp'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0015 collected_amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0016 qualifying_amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0017 commission_amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0018 status",
+    "definition": "type=text; udt=text; nullable=NO; default='earned'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0019 earned_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0020 clearance_until",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0021 payable_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0022 approved_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0023 paid_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0024 payout_provider",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0025 payout_reference",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0026 provider_payout_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0027 reversal_of_commission_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0028 notes",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0029 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0030 updated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0031 invoice_requested_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0032 invoice_received_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0033 invoice_reference",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0034 remittance_document_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0035 vat_registered",
+    "definition": "type=boolean; udt=bool; nullable=NO; default=false"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0036 vat_rate",
+    "definition": "type=numeric; udt=numeric; nullable=NO; default=0"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0037 vat_amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO; default=0"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_commissions",
+    "item": "0038 total_payable",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0002 introducer_id",
+    "definition": "type=uuid; udt=uuid; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0003 campaign_code",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0004 campaign_name",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0005 status",
+    "definition": "type=text; udt=text; nullable=NO; default='active'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0006 starts_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0007 ends_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0008 notes",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0009 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "0010 updated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0002 introducer_id",
+    "definition": "type=uuid; udt=uuid; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0003 commission_percent",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0004 commission_basis",
+    "definition": "type=text; udt=text; nullable=NO; default='collected_subscription_revenue'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0005 commission_structure",
+    "definition": "type=text; udt=text; nullable=NO; default='one_off'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0006 effective_from",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0007 effective_until",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0008 change_reason",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0009 notes",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducer_policies",
+    "item": "0010 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0002 name",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0003 referral_code",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0004 commission_percent",
+    "definition": "type=numeric; udt=numeric; nullable=NO; default=0"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0005 commission_basis",
+    "definition": "type=text; udt=text; nullable=NO; default='collected_subscription_revenue'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0006 status",
+    "definition": "type=text; udt=text; nullable=NO; default='active'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0007 agreement_start_date",
+    "definition": "type=date; udt=date; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0008 agreement_end_date",
+    "definition": "type=date; udt=date; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0009 contact_name",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0010 contact_email",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0011 notes",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0012 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0013 updated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0014 commission_structure",
+    "definition": "type=text; udt=text; nullable=NO; default='one_off'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0015 payment_document_method",
+    "definition": "type=text; udt=text; nullable=YES; default='introducer_invoice'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0016 vat_registered",
+    "definition": "type=boolean; udt=bool; nullable=NO; default=false"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_introducers",
+    "item": "0017 vat_number",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0002 organisation_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0003 application_id",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0004 event_type",
+    "definition": "type=text; udt=text; nullable=NO; default='payment_received'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0005 payment_source",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0006 currency",
+    "definition": "type=text; udt=text; nullable=NO; default='gbp'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0007 gross_amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0008 refunded_amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO; default=0"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0009 net_collected_amount",
+    "definition": "type=numeric; udt=numeric; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0010 received_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0011 stripe_checkout_session_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0012 stripe_customer_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0013 stripe_subscription_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0014 stripe_invoice_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0015 stripe_payment_intent_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0016 external_payment_reference",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0017 verified_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0018 verified_by",
+    "definition": "type=uuid; udt=uuid; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0019 notes",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0020 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "organisation_revenue_events",
+    "item": "0021 updated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0001 id",
+    "definition": "type=uuid; udt=uuid; nullable=NO; default=gen_random_uuid()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0002 user_id",
+    "definition": "type=uuid; udt=uuid; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0003 plan",
+    "definition": "type=text; udt=text; nullable=NO"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0004 subscription_status",
+    "definition": "type=text; udt=text; nullable=NO; default='pending'::text"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0005 subscription_active",
+    "definition": "type=boolean; udt=bool; nullable=NO; default=false"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0006 stripe_customer_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0007 stripe_subscription_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0008 stripe_checkout_session_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0009 stripe_price_id",
+    "definition": "type=text; udt=text; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0010 current_period_start",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0011 current_period_end",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0012 cancel_at_period_end",
+    "definition": "type=boolean; udt=bool; nullable=NO; default=false"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0013 subscription_activated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0014 subscription_cancelled_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=YES"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0015 subscription_updated_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "01_COLUMN",
+    "object_name": "personal_subscriptions",
+    "item": "0016 created_at",
+    "definition": "type=timestamp with time zone; udt=timestamptz; nullable=NO; default=now()"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "organisation_applications",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "organisation_commercial_documents",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "organisation_commissions",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "organisation_introducer_policies",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "organisation_introducers",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "organisation_revenue_events",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "02_TABLE_SECURITY",
+    "object_name": "personal_subscriptions",
+    "item": "RLS",
+    "definition": "rls_enabled=t; force_rls=f"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_access_path_check",
+    "definition": "type=CHECK; CHECK (access_path = ANY (ARRAY['trial'::text, 'paid'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_commission_percent_check",
+    "definition": "type=CHECK; CHECK (commission_percent_at_conversion IS NULL OR commission_percent_at_conversion >= 0::numeric AND commission_percent_at_conversion <= 100::numeric)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_commission_structure_check",
+    "definition": "type=CHECK; CHECK (commission_structure_at_conversion IS NULL OR (commission_structure_at_conversion = ANY (ARRAY['one_off'::text, 'recurring'::text, 'renewal'::text, 'recurring_and_renewal'::text])))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_introducer_campaign_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (introducer_campaign_id) REFERENCES organisation_introducer_campaigns(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_introducer_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (introducer_id) REFERENCES organisation_introducers(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_payment_status_check",
+    "definition": "type=CHECK; CHECK (payment_status = ANY (ARRAY['not_started'::text, 'checkout_started'::text, 'paid'::text, 'payment_issue'::text, 'cancelled'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_status_check",
+    "definition": "type=CHECK; CHECK (status = ANY (ARRAY['pending'::text, 'approved'::text, 'declined'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_user_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_amount_check",
+    "definition": "type=CHECK; CHECK (amount >= 0::numeric)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_application_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (application_id) REFERENCES organisation_applications(id) ON DELETE SET NULL"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_commission_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (commission_id) REFERENCES organisation_commissions(id) ON DELETE SET NULL"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_document_number_key",
+    "definition": "type=UNIQUE; UNIQUE (document_number)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_document_status_check",
+    "definition": "type=CHECK; CHECK (document_status = ANY (ARRAY['draft'::text, 'generated'::text, 'sent'::text, 'cancelled'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_document_type_check",
+    "definition": "type=CHECK; CHECK (document_type = ANY (ARRAY['commission_remittance'::text, 'self_billing_invoice'::text, 'introducer_invoice'::text, 'customer_receipt'::text, 'statement'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_introducer_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (introducer_id) REFERENCES organisation_introducers(id) ON DELETE SET NULL"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_organisation_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (organisation_id) REFERENCES organisations(id) ON DELETE SET NULL"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_amount_check",
+    "definition": "type=CHECK; CHECK (collected_amount >= 0::numeric AND qualifying_amount >= 0::numeric AND commission_amount >= 0::numeric)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_application_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (application_id) REFERENCES organisation_applications(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_event_check",
+    "definition": "type=CHECK; CHECK (commission_event = ANY (ARRAY['initial_payment'::text, 'recurring_payment'::text, 'reversal'::text, 'manual_adjustment'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_introducer_campaign_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (introducer_campaign_id) REFERENCES organisation_introducer_campaigns(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_introducer_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (introducer_id) REFERENCES organisation_introducers(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_organisation_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (organisation_id) REFERENCES organisations(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_percent_check",
+    "definition": "type=CHECK; CHECK (commission_percent >= 0::numeric AND commission_percent <= 100::numeric)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_remittance_document_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (remittance_document_id) REFERENCES organisation_commercial_documents(id) ON DELETE SET NULL"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_revenue_event_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (revenue_event_id) REFERENCES organisation_revenue_events(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_reversal_of_commission_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (reversal_of_commission_id) REFERENCES organisation_commissions(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_status_check",
+    "definition": "type=CHECK; CHECK (status = ANY (ARRAY['earned'::text, 'clearance'::text, 'payable'::text, 'approved'::text, 'paid'::text, 'reversed'::text, 'cancelled'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_structure_check",
+    "definition": "type=CHECK; CHECK (commission_structure = ANY (ARRAY['one_off'::text, 'recurring'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaign_dates_check",
+    "definition": "type=CHECK; CHECK (ends_at IS NULL OR starts_at IS NULL OR ends_at >= starts_at)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaign_status_check",
+    "definition": "type=CHECK; CHECK (status = ANY (ARRAY['active'::text, 'inactive'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaign_unique",
+    "definition": "type=UNIQUE; UNIQUE (introducer_id, campaign_code)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaigns_introducer_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (introducer_id) REFERENCES organisation_introducers(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaigns_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_policies",
+    "item": "organisation_introducer_policies_introducer_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (introducer_id) REFERENCES organisation_introducers(id) ON DELETE CASCADE"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_policies",
+    "item": "organisation_introducer_policies_percent_check",
+    "definition": "type=CHECK; CHECK (commission_percent >= 0::numeric AND commission_percent <= 100::numeric)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_policies",
+    "item": "organisation_introducer_policies_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducer_policies",
+    "item": "organisation_introducer_policies_structure_check",
+    "definition": "type=CHECK; CHECK (commission_structure = ANY (ARRAY['one_off'::text, 'recurring'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_commission_basis_check",
+    "definition": "type=CHECK; CHECK (commission_basis = 'collected_subscription_revenue'::text)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_commission_percent_check",
+    "definition": "type=CHECK; CHECK (commission_percent >= 0::numeric AND commission_percent <= 100::numeric)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_commission_structure_check",
+    "definition": "type=CHECK; CHECK (commission_structure = ANY (ARRAY['one_off'::text, 'recurring'::text, 'renewal'::text, 'recurring_and_renewal'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_payment_document_method_check",
+    "definition": "type=CHECK; CHECK (payment_document_method = ANY (ARRAY['introducer_invoice'::text, 'self_billing'::text, 'remittance_only'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_referral_code_key",
+    "definition": "type=UNIQUE; UNIQUE (referral_code)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_status_check",
+    "definition": "type=CHECK; CHECK (status = ANY (ARRAY['active'::text, 'inactive'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_amount_check",
+    "definition": "type=CHECK; CHECK (gross_amount >= 0::numeric AND refunded_amount >= 0::numeric AND net_collected_amount >= 0::numeric)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_application_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (application_id) REFERENCES organisation_applications(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_organisation_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (organisation_id) REFERENCES organisations(id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_source_check",
+    "definition": "type=CHECK; CHECK (payment_source = ANY (ARRAY['stripe_checkout'::text, 'stripe_subscription'::text, 'stripe_invoice'::text, 'stripe_bank_transfer'::text, 'direct_bank_transfer'::text, 'manual'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_type_check",
+    "definition": "type=CHECK; CHECK (event_type = ANY (ARRAY['payment_received'::text, 'refund'::text, 'chargeback'::text, 'manual_adjustment'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_pkey",
+    "definition": "type=PRIMARY KEY; PRIMARY KEY (id)"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_plan_check",
+    "definition": "type=CHECK; CHECK (plan = ANY (ARRAY['monthly'::text, 'annual'::text]))"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_user_id_fkey",
+    "definition": "type=FOREIGN KEY; FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+  },
+  {
+    "object_type": "03_CONSTRAINT",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_user_id_key",
+    "definition": "type=UNIQUE; UNIQUE (user_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_associated_business_idx",
+    "definition": "CREATE INDEX organisation_applications_associated_business_idx ON public.organisation_applications USING btree (associated_business_declared)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_campaign_idx",
+    "definition": "CREATE INDEX organisation_applications_campaign_idx ON public.organisation_applications USING btree (introducer_campaign_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_customer_group_idx",
+    "definition": "CREATE INDEX organisation_applications_customer_group_idx ON public.organisation_applications USING btree (root_customer_group_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_introducer_idx",
+    "definition": "CREATE INDEX organisation_applications_introducer_idx ON public.organisation_applications USING btree (introducer_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_pilot_decision_idx",
+    "definition": "CREATE INDEX organisation_applications_pilot_decision_idx ON public.organisation_applications USING btree (pilot_decision)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_pkey",
+    "definition": "CREATE UNIQUE INDEX organisation_applications_pkey ON public.organisation_applications USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_status_idx",
+    "definition": "CREATE INDEX organisation_applications_status_idx ON public.organisation_applications USING btree (status)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_trial_status_idx",
+    "definition": "CREATE INDEX organisation_applications_trial_status_idx ON public.organisation_applications USING btree (trial_eligibility_status)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_applications",
+    "item": "organisation_applications_user_id_idx",
+    "definition": "CREATE INDEX organisation_applications_user_id_idx ON public.organisation_applications USING btree (user_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_commission_idx",
+    "definition": "CREATE INDEX organisation_commercial_documents_commission_idx ON public.organisation_commercial_documents USING btree (commission_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_document_number_idx",
+    "definition": "CREATE INDEX organisation_commercial_documents_document_number_idx ON public.organisation_commercial_documents USING btree (document_number)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_document_number_key",
+    "definition": "CREATE UNIQUE INDEX organisation_commercial_documents_document_number_key ON public.organisation_commercial_documents USING btree (document_number)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_introducer_idx",
+    "definition": "CREATE INDEX organisation_commercial_documents_introducer_idx ON public.organisation_commercial_documents USING btree (introducer_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_pkey",
+    "definition": "CREATE UNIQUE INDEX organisation_commercial_documents_pkey ON public.organisation_commercial_documents USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commercial_documents",
+    "item": "organisation_commercial_documents_status_idx",
+    "definition": "CREATE INDEX organisation_commercial_documents_status_idx ON public.organisation_commercial_documents USING btree (document_status)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_introducer_idx",
+    "definition": "CREATE INDEX organisation_commissions_introducer_idx ON public.organisation_commissions USING btree (introducer_id, earned_at DESC)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_org_idx",
+    "definition": "CREATE INDEX organisation_commissions_org_idx ON public.organisation_commissions USING btree (organisation_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_pkey",
+    "definition": "CREATE UNIQUE INDEX organisation_commissions_pkey ON public.organisation_commissions USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_revenue_introducer_unique",
+    "definition": "CREATE UNIQUE INDEX organisation_commissions_revenue_introducer_unique ON public.organisation_commissions USING btree (revenue_event_id, introducer_id) WHERE (commission_event <> ALL (ARRAY['reversal'::text, 'manual_adjustment'::text]))"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_status_idx",
+    "definition": "CREATE INDEX organisation_commissions_status_idx ON public.organisation_commissions USING btree (status, payable_at)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_commissions",
+    "item": "organisation_commissions_unique_revenue_event",
+    "definition": "CREATE UNIQUE INDEX organisation_commissions_unique_revenue_event ON public.organisation_commissions USING btree (revenue_event_id) WHERE (revenue_event_id IS NOT NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaign_code_lower_unique_idx",
+    "definition": "CREATE UNIQUE INDEX organisation_introducer_campaign_code_lower_unique_idx ON public.organisation_introducer_campaigns USING btree (introducer_id, lower(campaign_code))"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaign_unique",
+    "definition": "CREATE UNIQUE INDEX organisation_introducer_campaign_unique ON public.organisation_introducer_campaigns USING btree (introducer_id, campaign_code)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaigns_introducer_idx",
+    "definition": "CREATE INDEX organisation_introducer_campaigns_introducer_idx ON public.organisation_introducer_campaigns USING btree (introducer_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "organisation_introducer_campaigns_pkey",
+    "definition": "CREATE UNIQUE INDEX organisation_introducer_campaigns_pkey ON public.organisation_introducer_campaigns USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducer_policies",
+    "item": "organisation_introducer_policies_introducer_idx",
+    "definition": "CREATE INDEX organisation_introducer_policies_introducer_idx ON public.organisation_introducer_policies USING btree (introducer_id, effective_from DESC)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducer_policies",
+    "item": "organisation_introducer_policies_one_open_policy_idx",
+    "definition": "CREATE UNIQUE INDEX organisation_introducer_policies_one_open_policy_idx ON public.organisation_introducer_policies USING btree (introducer_id) WHERE (effective_until IS NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducer_policies",
+    "item": "organisation_introducer_policies_pkey",
+    "definition": "CREATE UNIQUE INDEX organisation_introducer_policies_pkey ON public.organisation_introducer_policies USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_pkey",
+    "definition": "CREATE UNIQUE INDEX organisation_introducers_pkey ON public.organisation_introducers USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_referral_code_key",
+    "definition": "CREATE UNIQUE INDEX organisation_introducers_referral_code_key ON public.organisation_introducers USING btree (referral_code)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_introducers",
+    "item": "organisation_introducers_referral_code_lower_unique_idx",
+    "definition": "CREATE UNIQUE INDEX organisation_introducers_referral_code_lower_unique_idx ON public.organisation_introducers USING btree (lower(referral_code))"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_application_idx",
+    "definition": "CREATE INDEX organisation_revenue_events_application_idx ON public.organisation_revenue_events USING btree (application_id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_org_idx",
+    "definition": "CREATE INDEX organisation_revenue_events_org_idx ON public.organisation_revenue_events USING btree (organisation_id, received_at DESC)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_payment_intent_unique",
+    "definition": "CREATE UNIQUE INDEX organisation_revenue_events_payment_intent_unique ON public.organisation_revenue_events USING btree (stripe_payment_intent_id) WHERE (stripe_payment_intent_id IS NOT NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_pkey",
+    "definition": "CREATE UNIQUE INDEX organisation_revenue_events_pkey ON public.organisation_revenue_events USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_stripe_invoice_unique",
+    "definition": "CREATE UNIQUE INDEX organisation_revenue_events_stripe_invoice_unique ON public.organisation_revenue_events USING btree (stripe_invoice_id) WHERE (stripe_invoice_id IS NOT NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_unique_checkout_session",
+    "definition": "CREATE UNIQUE INDEX organisation_revenue_events_unique_checkout_session ON public.organisation_revenue_events USING btree (stripe_checkout_session_id) WHERE (stripe_checkout_session_id IS NOT NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "organisation_revenue_events",
+    "item": "organisation_revenue_events_unique_invoice",
+    "definition": "CREATE UNIQUE INDEX organisation_revenue_events_unique_invoice ON public.organisation_revenue_events USING btree (stripe_invoice_id) WHERE (stripe_invoice_id IS NOT NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_pkey",
+    "definition": "CREATE UNIQUE INDEX personal_subscriptions_pkey ON public.personal_subscriptions USING btree (id)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_stripe_customer_id_key",
+    "definition": "CREATE UNIQUE INDEX personal_subscriptions_stripe_customer_id_key ON public.personal_subscriptions USING btree (stripe_customer_id) WHERE (stripe_customer_id IS NOT NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_stripe_subscription_id_key",
+    "definition": "CREATE UNIQUE INDEX personal_subscriptions_stripe_subscription_id_key ON public.personal_subscriptions USING btree (stripe_subscription_id) WHERE (stripe_subscription_id IS NOT NULL)"
+  },
+  {
+    "object_type": "04_INDEX",
+    "object_name": "personal_subscriptions",
+    "item": "personal_subscriptions_user_id_key",
+    "definition": "CREATE UNIQUE INDEX personal_subscriptions_user_id_key ON public.personal_subscriptions USING btree (user_id)"
+  },
+  {
+    "object_type": "05_TRIGGER",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "prevent_introducer_campaign_identity_change_trigger",
+    "definition": "CREATE TRIGGER prevent_introducer_campaign_identity_change_trigger BEFORE UPDATE OF introducer_id, campaign_code ON organisation_introducer_campaigns FOR EACH ROW EXECUTE FUNCTION prevent_introducer_campaign_identity_change()"
+  },
+  {
+    "object_type": "05_TRIGGER",
+    "object_name": "organisation_introducers",
+    "item": "prevent_introducer_referral_identity_change_trigger",
+    "definition": "CREATE TRIGGER prevent_introducer_referral_identity_change_trigger BEFORE UPDATE OF referral_code ON organisation_introducers FOR EACH ROW EXECUTE FUNCTION prevent_introducer_referral_identity_change()"
+  },
+  {
+    "object_type": "06_TRIGGER_FUNCTION",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "prevent_introducer_campaign_identity_change()",
+    "definition": "CREATE OR REPLACE FUNCTION public.prevent_introducer_campaign_identity_change()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n\r\n  if new.introducer_id is distinct from old.introducer_id then\r\n    raise exception\r\n      'A campaign cannot be transferred to another introducer.';\r\n  end if;\r\n\r\n  if new.campaign_code is distinct from old.campaign_code then\r\n    raise exception\r\n      'Campaign codes are permanent and cannot be changed.';\r\n  end if;\r\n\r\n  return new;\r\n\r\nend;\r\n$function$\n"
+  },
+  {
+    "object_type": "06_TRIGGER_FUNCTION",
+    "object_name": "organisation_introducers",
+    "item": "prevent_introducer_referral_identity_change()",
+    "definition": "CREATE OR REPLACE FUNCTION public.prevent_introducer_referral_identity_change()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n\r\n  if new.referral_code is distinct from old.referral_code then\r\n    raise exception\r\n      'Introducer referral codes are permanent and cannot be changed.';\r\n  end if;\r\n\r\n  return new;\r\n\r\nend;\r\n$function$\n"
+  },
+  {
+    "object_type": "07_RLS_POLICY",
+    "object_name": "organisation_applications",
+    "item": "Users can create their own organisation application",
+    "definition": "permissive=PERMISSIVE; roles=authenticated; command=INSERT; using=; with_check=(user_id = auth.uid())"
+  },
+  {
+    "object_type": "07_RLS_POLICY",
+    "object_name": "organisation_applications",
+    "item": "Users can view their own organisation applications",
+    "definition": "permissive=PERMISSIVE; roles=authenticated; command=SELECT; using=(user_id = auth.uid()); with_check="
+  },
+  {
+    "object_type": "07_RLS_POLICY",
+    "object_name": "personal_subscriptions",
+    "item": "Users can view their own personal subscription",
+    "definition": "permissive=PERMISSIVE; roles=authenticated; command=SELECT; using=(auth.uid() = user_id); with_check="
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_applications",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commercial_documents",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_commissions",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_campaigns",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducer_policies",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_introducers",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "organisation_revenue_events",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "anon -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "anon -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "anon -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "anon -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "anon -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "anon -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "anon -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "authenticated -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "authenticated -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "authenticated -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "authenticated -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "authenticated -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "authenticated -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "authenticated -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "postgres -> DELETE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "postgres -> INSERT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "postgres -> REFERENCES",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "postgres -> SELECT",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "postgres -> TRIGGER",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "postgres -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "postgres -> UPDATE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "service_role -> DELETE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "service_role -> INSERT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "service_role -> REFERENCES",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "service_role -> SELECT",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "service_role -> TRIGGER",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "service_role -> TRUNCATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "08_TABLE_PRIVILEGE",
+    "object_name": "personal_subscriptions",
+    "item": "service_role -> UPDATE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "09_REQUIRED_FUNCTION",
+    "object_name": "change_introducer_commercial_terms",
+    "item": "change_introducer_commercial_terms(p_introducer_id uuid, p_commission_percent numeric, p_commission_structure text, p_effective_from timestamp with time zone, p_change_reason text, p_notes text)",
+    "definition": "CREATE OR REPLACE FUNCTION public.change_introducer_commercial_terms(p_introducer_id uuid, p_commission_percent numeric, p_commission_structure text, p_effective_from timestamp with time zone, p_change_reason text DEFAULT NULL::text, p_notes text DEFAULT NULL::text)\n RETURNS organisation_introducer_policies\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_introducer public.organisation_introducers%rowtype;\r\n\r\n  v_policy_at_change public.organisation_introducer_policies%rowtype;\r\n\r\n  v_new_policy public.organisation_introducer_policies%rowtype;\r\n\r\n  v_current_policy public.organisation_introducer_policies%rowtype;\r\n\r\n  v_effective_from timestamptz;\r\n\r\n  v_structure text;\r\n\r\n  v_previous_until timestamptz;\r\nbegin\r\n\r\n  -- ----------------------------------------------------------\r\n  -- NORMALISE + VALIDATE\r\n  -- ----------------------------------------------------------\r\n\r\n  v_effective_from :=\r\n    coalesce(\r\n      p_effective_from,\r\n      now()\r\n    );\r\n\r\n  v_structure :=\r\n    lower(\r\n      trim(\r\n        coalesce(\r\n          p_commission_structure,\r\n          ''\r\n        )\r\n      )\r\n    );\r\n\r\n  if\r\n    p_commission_percent is null\r\n    or p_commission_percent < 0\r\n    or p_commission_percent > 100\r\n  then\r\n    raise exception\r\n      'Commission percentage must be between 0 and 100.';\r\n  end if;\r\n\r\n  if\r\n    v_structure not in (\r\n      'one_off',\r\n      'recurring'\r\n    )\r\n  then\r\n    raise exception\r\n      'Commission structure must be one_off or recurring.';\r\n  end if;\r\n\r\n\r\n  -- ----------------------------------------------------------\r\n  -- LOCK INTRODUCER\r\n  -- ----------------------------------------------------------\r\n\r\n  select *\r\n  into v_introducer\r\n  from public.organisation_introducers\r\n  where id = p_introducer_id\r\n  for update;\r\n\r\n  if not found then\r\n    raise exception\r\n      'Introducer not found.';\r\n  end if;\r\n\r\n\r\n  -- ----------------------------------------------------------\r\n  -- DO NOT CREATE TWO POLICIES STARTING AT THE SAME INSTANT\r\n  -- ----------------------------------------------------------\r\n\r\n  if exists (\r\n    select 1\r\n    from public.organisation_introducer_policies\r\n    where introducer_id = p_introducer_id\r\n      and effective_from = v_effective_from\r\n  ) then\r\n    raise exception\r\n      'Commercial terms already begin at this exact time.';\r\n  end if;\r\n\r\n\r\n  -- ----------------------------------------------------------\r\n  -- FIND THE POLICY THAT APPLIES AT THE REQUESTED CHANGE TIME\r\n  --\r\n  -- This is the critical change from GREEN 2A.\r\n  -- We no longer assume effective_until IS NULL means\r\n  -- \"current\".\r\n  -- ----------------------------------------------------------\r\n\r\n  select *\r\n  into v_policy_at_change\r\n  from public.organisation_introducer_policies\r\n  where introducer_id = p_introducer_id\r\n\r\n    and effective_from <\r\n      v_effective_from\r\n\r\n    and (\r\n      effective_until is null\r\n      or effective_until >\r\n        v_effective_from\r\n    )\r\n\r\n  order by effective_from desc\r\n  limit 1\r\n  for update;\r\n\r\n\r\n  if v_policy_at_change.id is null then\r\n    raise exception\r\n      'No commercial policy covers the requested effective time.';\r\n  end if;\r\n\r\n\r\n  -- Remember when this policy originally ended.\r\n  --\r\n  -- If another scheduled policy already begins later,\r\n  -- the new policy should finish at that same boundary.\r\n  v_previous_until :=\r\n    v_policy_at_change.effective_until;\r\n\r\n\r\n  -- ----------------------------------------------------------\r\n  -- CLOSE THE POLICY APPLYING AT THE CHANGE TIME\r\n  -- ----------------------------------------------------------\r\n\r\n  update public.organisation_introducer_policies\r\n\r\n  set effective_until =\r\n    v_effective_from\r\n\r\n  where id =\r\n    v_policy_at_change.id;\r\n\r\n\r\n  -- ----------------------------------------------------------\r\n  -- CREATE THE REPLACEMENT POLICY\r\n  --\r\n  -- If the policy we split already ended at a future scheduled\r\n  -- change, preserve that future boundary.\r\n  -- ----------------------------------------------------------\r\n\r\n  insert into public.organisation_introducer_policies (\r\n    introducer_id,\r\n    commission_percent,\r\n    commission_basis,\r\n    commission_structure,\r\n    effective_from,\r\n    effective_until,\r\n    change_reason,\r\n    notes\r\n  )\r\n  values (\r\n    p_introducer_id,\r\n\r\n    p_commission_percent,\r\n\r\n    'collected_subscription_revenue',\r\n\r\n    v_structure,\r\n\r\n    v_effective_from,\r\n\r\n    v_previous_until,\r\n\r\n    nullif(\r\n      trim(\r\n        coalesce(\r\n          p_change_reason,\r\n          ''\r\n        )\r\n      ),\r\n      ''\r\n    ),\r\n\r\n    nullif(\r\n      trim(\r\n        coalesce(\r\n          p_notes,\r\n          ''\r\n        )\r\n      ),\r\n      ''\r\n    )\r\n  )\r\n\r\n  returning *\r\n  into v_new_policy;\r\n\r\n\r\n  -- ----------------------------------------------------------\r\n  -- DETERMINE WHAT IS ACTUALLY EFFECTIVE RIGHT NOW\r\n  --\r\n  -- A future scheduled policy must NOT become the introducer's\r\n  -- apparent current terms before its effective date.\r\n  -- ----------------------------------------------------------\r\n\r\n  select *\r\n  into v_current_policy\r\n  from public.organisation_introducer_policies\r\n\r\n  where introducer_id =\r\n    p_introducer_id\r\n\r\n    and effective_from <=\r\n      now()\r\n\r\n    and (\r\n      effective_until is null\r\n      or effective_until >\r\n        now()\r\n    )\r\n\r\n  order by effective_from desc\r\n  limit 1;\r\n\r\n\r\n  if v_current_policy.id is null then\r\n    raise exception\r\n      'Root could not determine the currently effective commercial policy.';\r\n  end if;\r\n\r\n\r\n  -- ----------------------------------------------------------\r\n  -- REFRESH CURRENT CONVENIENCE FIELDS\r\n  -- ----------------------------------------------------------\r\n\r\n  update public.organisation_introducers\r\n\r\n  set\r\n    commission_percent =\r\n      v_current_policy.commission_percent,\r\n\r\n    commission_basis =\r\n      v_current_policy.commission_basis,\r\n\r\n    commission_structure =\r\n      v_current_policy.commission_structure,\r\n\r\n    updated_at =\r\n      now()\r\n\r\n  where id =\r\n    p_introducer_id;\r\n\r\n\r\n  return v_new_policy;\r\n\r\nend;\r\n$function$\n"
+  },
+  {
+    "object_type": "09_REQUIRED_FUNCTION",
+    "object_name": "next_root_commercial_document_number",
+    "item": "next_root_commercial_document_number(document_prefix text)",
+    "definition": "CREATE OR REPLACE FUNCTION public.next_root_commercial_document_number(document_prefix text DEFAULT 'REM'::text)\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  next_number bigint;\r\n  safe_prefix text;\r\nbegin\r\n  next_number :=\r\n    nextval(\r\n      'root_commercial_document_number_seq'\r\n    );\r\n\r\n  safe_prefix :=\r\n    upper(\r\n      regexp_replace(\r\n        coalesce(\r\n          document_prefix,\r\n          'DOC'\r\n        ),\r\n        '[^A-Za-z0-9]',\r\n        '',\r\n        'g'\r\n      )\r\n    );\r\n\r\n  if safe_prefix = '' then\r\n    safe_prefix := 'DOC';\r\n  end if;\r\n\r\n  return\r\n    'RH-' ||\r\n    safe_prefix ||\r\n    '-' ||\r\n    lpad(\r\n      next_number::text,\r\n      6,\r\n      '0'\r\n    );\r\nend;\r\n$function$\n"
+  },
+  {
+    "object_type": "10_FUNCTION_PRIVILEGE",
+    "object_name": "change_introducer_commercial_terms",
+    "item": "postgres -> EXECUTE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "10_FUNCTION_PRIVILEGE",
+    "object_name": "change_introducer_commercial_terms",
+    "item": "service_role -> EXECUTE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "10_FUNCTION_PRIVILEGE",
+    "object_name": "next_root_commercial_document_number",
+    "item": "PUBLIC -> EXECUTE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "10_FUNCTION_PRIVILEGE",
+    "object_name": "next_root_commercial_document_number",
+    "item": "anon -> EXECUTE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "10_FUNCTION_PRIVILEGE",
+    "object_name": "next_root_commercial_document_number",
+    "item": "authenticated -> EXECUTE",
+    "definition": "grantor=postgres; grantable=NO"
+  },
+  {
+    "object_type": "10_FUNCTION_PRIVILEGE",
+    "object_name": "next_root_commercial_document_number",
+    "item": "postgres -> EXECUTE",
+    "definition": "grantor=postgres; grantable=YES"
+  },
+  {
+    "object_type": "10_FUNCTION_PRIVILEGE",
+    "object_name": "next_root_commercial_document_number",
+    "item": "service_role -> EXECUTE",
+    "definition": "grantor=postgres; grantable=NO"
+  }
+]

@@ -168,6 +168,8 @@ async function getCommission(
         `
           id,
           revenue_event_id,
+          personal_attribution_id,
+          personal_vat_number_at_conversion,
           introducer_id,
           introducer_campaign_id,
           application_id,
@@ -642,7 +644,7 @@ async function generateRemittance({
     new Date().toISOString();
 
     let introducerVatNumber =
-    null;
+    commission.personal_vat_number_at_conversion || null;
 
   if (commission.application_id) {
     const {

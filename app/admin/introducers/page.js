@@ -7,8 +7,11 @@ import {
 } from "react";
 
 import { supabase } from "../../../lib/supabase";
+import { introducerTypes, supportsMarket } from "../../../lib/introducerMarkets";
 
 const EMPTY_FORM = {
+  introducerMarket: "corporate",
+  introducerType: "corporate_introducer",
   name: "",
   contactName: "",
   contactEmail: "",
@@ -61,6 +64,7 @@ function formatStructure(value) {
 }
 
 export default function IntroducerAdminPage() {
+  const [marketFilter, setMarketFilter] = useState("");
   const [
     introducers,
     setIntroducers,
@@ -1434,7 +1438,7 @@ async function markCommissionPaid(
 
     return (
       `${window.location.origin}` +
-      `/referral?ref=` +
+      (introducer.introducer_market === "personal" ? "/start?ref=" : "/referral?ref=") +
       encodeURIComponent(
         introducer.referral_code
       )
@@ -1725,6 +1729,22 @@ async function markCommissionPaid(
             </div>
 
             <div style={styles.formGrid}>
+              <Field
+                label="Introducer market"
+              >
+                <select style={styles.input} value={form.introducerMarket}
+                  onChange={event => setForm(current => ({ ...current, introducerMarket: event.target.value }))}>
+                  <option value="corporate">Corporate</option>
+                  <option value="personal">Personal</option>
+                  <option value="both">Both</option>
+                </select>
+              </Field>
+              <Field label="Introducer type">
+                <select style={styles.input} value={form.introducerType}
+                  onChange={event => setForm(current => ({ ...current, introducerType: event.target.value }))}>
+                  {introducerTypes.map(type => <option key={type} value={type}>{type.replaceAll("_", " ")}</option>)}
+                </select>
+              </Field>
               <Field
                 label="Introducer name"
                 required
@@ -2079,6 +2099,11 @@ async function markCommissionPaid(
           </span>
         </div>
 
+        <label>Market
+          <select style={styles.input} value={marketFilter} onChange={event => setMarketFilter(event.target.value)}>
+            <option value="">All</option><option value="corporate">Corporate</option><option value="personal">Personal</option>
+          </select>
+        </label>
         {loading ? (
           <div style={styles.loadingCard}>
             Loading introducers...
@@ -2096,7 +2121,7 @@ async function markCommissionPaid(
         {!loading &&
         introducers.length > 0 ? (
           <div style={styles.grid}>
-            {introducers.map(
+            {introducers.filter(introducer => !marketFilter || supportsMarket(introducer, marketFilter)).map(
               (introducer) => (
                 <article
                   key={
@@ -2907,6 +2932,11 @@ async function markCommissionPaid(
                         >
                           Copy Referral Link
                         </button>
+                        <p>{introducer.introducer_market || "corporate"} / {(introducer.introducer_type || "corporate_introducer").replaceAll("_", " ")}</p>
+                        {introducer.introducer_market === "both" && <button type="button" style={styles.secondaryButton}
+                          onClick={() => copyText(`${window.location.origin}/start?ref=${encodeURIComponent(introducer.referral_code)}`, "Personal referral link copied.")}>
+                          Copy Personal Referral Link
+                        </button>}
                       </div>
 
                       <div

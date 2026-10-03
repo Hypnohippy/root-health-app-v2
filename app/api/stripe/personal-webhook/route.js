@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { recordPersonalReferralInvoice } from "../../../../lib/personalReferralAccounting";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -157,6 +158,11 @@ export async function POST(request) {
       const subscription = await subscriptionFromInvoice(event.data.object);
 
       if (subscription) await syncPersonalSubscription(subscription);
+      if (subscription && event.type === "invoice.paid") {
+        await recordPersonalReferralInvoice({
+          stripe, supabase: buildAdminClient(), subscription, invoice: event.data.object,
+        });
+      }
     }
 
     return NextResponse.json({ received: true });

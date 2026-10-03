@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { introducerMarkets, introducerTypes } from "../../../../lib/introducerMarkets";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -198,6 +199,8 @@ export async function GET(request) {
     id,
     name,
     referral_code,
+    introducer_market,
+    introducer_type,
     commission_percent,
     commission_basis,
     commission_structure,
@@ -346,6 +349,7 @@ export async function GET(request) {
     introducer_id,
     introducer_campaign_id,
     application_id,
+    personal_attribution_id,
     organisation_name,
     referral_code,
     referral_campaign_code,
@@ -623,7 +627,7 @@ const commissionUpcoming =
               (application) =>
                 application.payment_status ===
                 "paid"
-            ).length;
+            ).length + new Set(matchedCommissions.filter(commission => commission.personal_attribution_id).map(commission => commission.personal_attribution_id)).size;
 
           const commissionEarned =
             matchedCommissions.reduce(
@@ -795,6 +799,12 @@ export async function POST(request) {
       cleanText(
         body?.name
       );
+
+    const introducerMarket = body?.introducerMarket ?? "corporate";
+    const introducerType = body?.introducerType ?? "corporate_introducer";
+    if (!introducerMarkets.includes(introducerMarket) || !introducerTypes.includes(introducerType)) {
+      return NextResponse.json({ error: "Invalid introducer market or type." }, { status: 400 });
+    }
 
     const referralCode =
       normaliseReferralCode(
@@ -1026,6 +1036,8 @@ export async function POST(request) {
           "organisation_introducers"
         )
         .insert({
+          introducer_market: introducerMarket,
+          introducer_type: introducerType,
           name,
 
           referral_code:

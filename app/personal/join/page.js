@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
+import { rememberPersonalReferral, personalReferralUrl } from "../../../lib/personalReferralJourney";
 
 const PERSONAL_PLAN_KEY = "root_pending_personal_plan_v1";
 
@@ -42,7 +43,7 @@ export default function PersonalJoinPage() {
         Authorization: `Bearer ${session.access_token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan, referralCode: rememberPersonalReferral(window.location.search, localStorage) }),
     });
 
     const result = await response.json().catch(() => ({}));
@@ -59,6 +60,7 @@ export default function PersonalJoinPage() {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
+    rememberPersonalReferral(window.location.search, localStorage);
     const requestedPlan = searchParams.get("plan");
     const storedPlan = localStorage.getItem(PERSONAL_PLAN_KEY);
     const safePlan = [requestedPlan, storedPlan].find(
@@ -159,7 +161,8 @@ export default function PersonalJoinPage() {
       return;
     }
 
-    const returnUrl = `${window.location.origin}/personal/join?checkout=resume&plan=${encodeURIComponent(selectedPlan)}`;
+    const returnUrl = personalReferralUrl(`${window.location.origin}/personal/join?checkout=resume&plan=${encodeURIComponent(selectedPlan)}`,
+      rememberPersonalReferral(window.location.search, localStorage));
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
