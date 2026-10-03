@@ -9,6 +9,11 @@ export default function PersonalReferralStart() {
   useEffect(() => {
     const controller = new AbortController();
     const candidate = new URLSearchParams(window.location.search).get("ref") || "";
+    if (!candidate.trim()) {
+      rememberPersonalReferral("?ref=", localStorage);
+      setCode(""); setState("direct");
+      return () => controller.abort();
+    }
     fetch("/api/referral/validate", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ referralCode: candidate, market: "personal" }),
@@ -34,7 +39,7 @@ export default function PersonalReferralStart() {
       {state === "loading" && <p role="status">Checking your invitation...</p>}
       {state === "error" && <p role="alert">We could not check this invitation. Please refresh before continuing.</p>}
       {state === "invalid" && <p>This invitation is not active. You can still explore Root directly.</p>}
-      {["valid", "invalid"].includes(state) && <div style={{ display: "flex", flexWrap: "wrap", gap: 20, marginTop: 28 }}>
+      {["direct", "valid", "invalid"].includes(state) && <div style={{ display: "flex", flexWrap: "wrap", gap: 20, marginTop: 28 }}>
         <a href={personalReferralUrl("/capacity-check", code)} style={{ color: "#16634a", fontWeight: 600 }}>Take the Capacity Check</a>
         <a href={personalReferralUrl("/personal/join", code)} style={{ color: "#16634a" }}>Explore personal membership</a>
       </div>}
