@@ -10,7 +10,9 @@ settlement API and remittance PDF generator. It does not create a second revenue
 
 Existing Corporate constraints, indexes, triggers and functions are not replaced or modified.
 The migration tests compare pre/post definitions of every original constraint, index and function
-from the supplied schema. Corporate checkout and workplace webhook files are unchanged.
+from the supplied schema. Corporate checkout and workplace webhook accounting are unchanged.
+Corporate email links now use NEXT_PUBLIC_SITE_URL with no production fallback, including
+application review, administrator setup and workforce invitations. A valid site origin is required.
 The corporate application path gains only market eligibility; public validation defaults to Corporate.
 Corporate introducers predating the migration default to corporate/corporate_introducer.
 
@@ -183,3 +185,20 @@ retain the handler or explicitly arrange monitored event replay before any rollb
 - tests/personal-referrals.test.mjs
 - package.json
 - docs/personal-introducer-review.md
+
+### Corporate email-link follow-up
+
+Additional files: lib/corporateEmailUrl.js, tests/corporate-email-links.test.mjs,
+app/api/organisation/applications/route.js, app/api/organisation/workforce-invitations/route.js,
+app/api/stripe/workplace-webhook/route.js and tests/workforce-invitations-phase-3b.test.mjs.
+The already-listed organisation apply route also uses the helper for review notification links.
+No accounting logic, migration or financial settings changed in this follow-up.
+
+Verification: Corporate link and workforce invitation suites: 21 passed, one existing
+Windows CRLF-sensitive migration-text assertion failed. The delivery harness now verifies
+the configured Preview origin in actual mocked email text. No staging run has occurred:
+isolated Supabase and Stripe test configuration is still required.
+Other staging caveats remain: the existing Formspree notification destination is hard-coded,
+and Personal Capacity Check emails still contain production links. Do not use real recipients
+or follow those Personal email links during isolated verification; review outbound destinations
+before enabling staging email. These are not changed by the Corporate email-link follow-up.

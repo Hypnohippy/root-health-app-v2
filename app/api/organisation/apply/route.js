@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { corporateEmailUrl } from "../../../../lib/corporateEmailUrl";
 import { supportsMarket } from "../../../../lib/introducerMarkets";
 import { createClient } from "@supabase/supabase-js";
 
@@ -262,7 +263,7 @@ async function notifyFormspree(
   "trial",
 
   review_application:
-  "https://roothealth.app/workplace-applications",
+  corporateEmailUrl("/workplace-applications"),
 
 message:
   `New Root Workplace ${
@@ -272,7 +273,7 @@ message:
   } from ${application.organisation_name}.
 
 Review and approve this application here:
-https://roothealth.app/workplace-applications`,
+${corporateEmailUrl("/workplace-applications")}`,
           }),
         }
       );
