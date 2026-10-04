@@ -87,8 +87,10 @@ async function deliveryHarness({ denied = false, missingKey = false, smtpFailure
     assert.equal(name, "list_workforce_invitations");
     calls.push({ name }); return { data: { rows: [] } };
   } };
-  const build = new Function("crypto", "nodemailer", "createClient", "requireOrganisationAdmin", "organisationAdminErrorResponse", "process", `${source}\nreturn { GET, POST };`);
-  const handlers = build(crypto, { createTransport: () => ({ sendMail: async () => {
+  const { corporateEmailUrl } = await import("../lib/corporateEmailUrl.js");
+  const build = new Function("crypto", "nodemailer", "createClient", "requireOrganisationAdmin", "organisationAdminErrorResponse", "process", "corporateEmailUrl", `${source}\nreturn { GET, POST };`);
+  const handlers = build(crypto, { createTransport: () => ({ sendMail: async (mail) => {
+    assert.ok(mail.text.includes("https://preview.example.test/organisation/join?"));
     calls.push({ name: "mock-mail" }); if (smtpFailure) throw new Error("Mock SMTP uncertainty"); return { messageId: "mock-message" };
   } }) }, (url, key, options) => {
     calls.push({ name: "service-client" });
@@ -101,7 +103,7 @@ async function deliveryHarness({ denied = false, missingKey = false, smtpFailure
   }, () => Response.json({ error: "Unavailable" }, { status: 403 }), { env: {
     NEXT_PUBLIC_SUPABASE_URL: "https://example.invalid", SUPABASE_SERVICE_ROLE_KEY: missingKey ? "" : "mock-service-key",
     ROOT_SMTP_USER: "mock@example.invalid", ROOT_SMTP_PASSWORD: "mock-only",
-  } });
+  } }, path => corporateEmailUrl(path, "https://preview.example.test"));
   const request = { url: "https://example.invalid/api/organisation/workforce-invitations?organisation_id=org", json: async () => ({ organisation_id: "org", person_ids: ["person"], p_actor: "forged-actor" }) };
   return { handlers, request, calls };
 }

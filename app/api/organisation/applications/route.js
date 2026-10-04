@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { corporateEmailUrl } from "../../../../lib/corporateEmailUrl";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
@@ -1399,7 +1400,7 @@ async function sendSetupAccess(
   }
 
   const setupUrl =
-    `https://roothealth.app/workplace-setup` +
+    corporateEmailUrl("/workplace-setup") +
     `?token=${encodeURIComponent(
       rawToken
     )}`;

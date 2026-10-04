@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { supportsMarket } from "../../../../lib/introducerMarkets";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -46,6 +47,11 @@ export async function POST(request) {
         body?.referralCode
       );
 
+    const market = body?.market ?? "corporate";
+    if (!["corporate", "personal"].includes(market)) {
+      return NextResponse.json({ valid: false, error: "Invalid referral market." }, { status: 400 });
+    }
+
     const campaignCode =
       normaliseCode(
         body?.campaignCode
@@ -79,6 +85,7 @@ export async function POST(request) {
         .select(
           `
             id,
+            introducer_market,
             referral_code,
             status,
             agreement_start_date,
@@ -97,7 +104,8 @@ export async function POST(request) {
 
     if (
       !introducer ||
-      introducer.status !== "active"
+      introducer.status !== "active" ||
+      !supportsMarket(introducer, market)
     ) {
       return NextResponse.json({
         success: true,

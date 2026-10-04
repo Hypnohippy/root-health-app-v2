@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { rememberPersonalReferral, personalReferralUrl } from "../../lib/personalReferralJourney";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import RootInUseFilm from "../../components/RootInUseFilm";
@@ -58,6 +59,8 @@ function buildSnapshot(scores) {
 }
 
 export default function CapacityCheckPage() {
+  const [referralCode, setReferralCode] = useState("");
+  useEffect(() => { setReferralCode(rememberPersonalReferral(window.location.search, localStorage)); }, []);
   const [scores, setScores] = useState(initialScores);
   const [stage, setStage] = useState("check");
   const [email, setEmail] = useState("");
@@ -272,7 +275,7 @@ export default function CapacityCheckPage() {
                       Your snapshot is stored with your consent. When you are ready, you
                       can explore the fuller personal Root experience.
                     </p>
-                    <a href="/capacity-check/continue" style={styles.ctaLink}>Explore Root</a>
+                    <a href={personalReferralUrl("/capacity-check/continue", referralCode)} style={styles.ctaLink}>Explore Root</a>
                   </div>
                 )}
               </section>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { corporateEmailUrl } from "../../../../lib/corporateEmailUrl";
 import Stripe from "stripe";
 import nodemailer from "nodemailer";
 
@@ -210,7 +211,7 @@ async function sendPaidSetupAccess(
   }
 
   const setupUrl =
-    `https://roothealth.app/workplace-setup` +
+    corporateEmailUrl("/workplace-setup") +
     `?token=${encodeURIComponent(
       rawToken
     )}`;

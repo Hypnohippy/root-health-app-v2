@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { corporateEmailUrl } from "../../../../lib/corporateEmailUrl";
 import nodemailer from "nodemailer";
 import { createClient } from "@supabase/supabase-js";
 import { organisationAdminErrorResponse, requireOrganisationAdmin } from "../../../../lib/organisationAdminServerAuth";
@@ -47,6 +48,7 @@ export async function POST(request) {
     const access = await requireOrganisationAdmin({ request, organisationId });
     const ids = Array.isArray(body?.person_ids) ? [...new Set(body.person_ids.map(String))].slice(0, 500) : [];
     if (!ids.length) return Response.json({ error: "Select at least one eligible person." }, { status: 400 });
+    const joinUrl = corporateEmailUrl("/organisation/join");
     const deliveryClient = createDeliveryClient();
     const { from, transporter } = mailer();
     const requestId = crypto.randomUUID();
@@ -57,7 +59,7 @@ export async function POST(request) {
       if (claim.error) { results.push({ person_id: personId, status: "failed", error: claim.error.message }); continue; }
       const invite = claim.data;
       if (invite?.skipped) { results.push({ person_id: personId, status: "skipped", reason: invite.reason }); continue; }
-      const link = `${new URL(request.url).origin}/organisation/join?organisation_id=${encodeURIComponent(organisationId)}&code=${encodeURIComponent(invite.organisation_code)}&token=${encodeURIComponent(rawToken)}`;
+      const link = `${joinUrl}?organisation_id=${encodeURIComponent(organisationId)}&code=${encodeURIComponent(invite.organisation_code)}&token=${encodeURIComponent(rawToken)}`;
       try {
         const sent = await transporter.sendMail({ from, to: invite.email, subject: `Join ${invite.organisation_name} on Root`, text: `Hello ${invite.name || "there"},\n\nYou have been invited to join ${invite.organisation_name} on Root Workplace.\n\nAccept securely: ${link}\n\nThis invitation expires in 7 days.\n\nRoot Health` });
         await deliveryClient.rpc("finish_workforce_invitation", { p_id: invite.id, p_request: requestId, p_hash: hash(rawToken), p_outcome: "sent", p_message: sent.messageId || null });

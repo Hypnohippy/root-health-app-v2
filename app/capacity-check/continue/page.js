@@ -1,11 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { rememberPersonalReferral, personalReferralUrl } from "../../../lib/personalReferralJourney";
 import RootAtmosphere from "../../../components/RootAtmosphere";
 import RootEnso from "../../../components/RootEnso";
 
 export default function CapacityContinuePage() {
   const router = useRouter();
+  function join(plan) {
+    router.push(personalReferralUrl("/personal/join?plan=" + plan,
+      rememberPersonalReferral(window.location.search, localStorage)));
+  }
 
   return (
     <RootAtmosphere type="reflection">
@@ -34,12 +39,12 @@ export default function CapacityContinuePage() {
             </div>
 
             <div className="plans">
-              <button onClick={() => router.push("/personal/join?plan=monthly")}>
+              <button onClick={() => join("monthly")}>
                 <span>Monthly</span>
                 <strong>£19.99</strong>
                 <small>per month</small>
               </button>
-              <button className="annual" onClick={() => router.push("/personal/join?plan=annual")}>
+              <button className="annual" onClick={() => join("annual")}>
                 <em>BEST VALUE</em>
                 <span>Annual</span>
                 <strong>£199</strong>
@@ -49,7 +54,7 @@ export default function CapacityContinuePage() {
           </section>
 
           <div className="actions">
-            <button className="buy" onClick={() => router.push("/personal/join?plan=annual")}>
+            <button className="buy" onClick={() => join("annual")}>
               Start with Root
             </button>
             <button className="more" onClick={() => router.push("/personal")}>

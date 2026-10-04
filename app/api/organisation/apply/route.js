@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { corporateEmailUrl } from "../../../../lib/corporateEmailUrl";
+import { supportsMarket } from "../../../../lib/introducerMarkets";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl =
@@ -261,7 +263,7 @@ async function notifyFormspree(
   "trial",
 
   review_application:
-  "https://roothealth.app/workplace-applications",
+  corporateEmailUrl("/workplace-applications"),
 
 message:
   `New Root Workplace ${
@@ -271,7 +273,7 @@ message:
   } from ${application.organisation_name}.
 
 Review and approve this application here:
-https://roothealth.app/workplace-applications`,
+${corporateEmailUrl("/workplace-applications")}`,
           }),
         }
       );
@@ -492,7 +494,8 @@ export async function POST(request) {
           vat_number,
           status,
           agreement_start_date,
-          agreement_end_date
+          agreement_end_date,
+          introducer_market
         `)
         .eq(
           "referral_code",
@@ -511,7 +514,7 @@ export async function POST(request) {
         );
       }
 
-      if (introducer) {
+      if (introducer && supportsMarket(introducer, "corporate")) {
         const today =
           new Date()
             .toISOString()
