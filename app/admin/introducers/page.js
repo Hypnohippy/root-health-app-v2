@@ -8,6 +8,7 @@ import {
 
 import { supabase } from "../../../lib/supabase";
 import { introducerTypes, supportsMarket } from "../../../lib/introducerMarkets";
+import IntroducerAgreementAdmin from "../../../components/IntroducerAgreementAdmin";
 
 const EMPTY_FORM = {
   introducerMarket: "corporate",
@@ -22,7 +23,7 @@ const EMPTY_FORM = {
   vatNumber: "",
   agreementStartDate: "",
   agreementEndDate: "",
-  status: "active",
+  status: "inactive",
   notes: "",
 };
 const EMPTY_CAMPAIGN_FORM = {
@@ -1814,6 +1815,7 @@ async function markCommissionPaid(
               >
                 <input
                   type="email"
+                  required
                   style={styles.input}
                   value={
                     form.contactEmail
@@ -1985,6 +1987,7 @@ async function markCommissionPaid(
                 label="Status"
               >
                 <select
+                  disabled
                   style={styles.input}
                   value={
                     form.status
@@ -1998,12 +2001,8 @@ async function markCommissionPaid(
                       )
                   }
                 >
-                  <option value="active">
-                    Active
-                  </option>
-
                   <option value="inactive">
-                    Inactive
+                    Awaiting acceptance
                   </option>
                 </select>
               </Field>
@@ -2048,6 +2047,7 @@ async function markCommissionPaid(
 
             <div style={styles.formFooter}>
               <p style={styles.formFootnote}>
+                New introducers remain inactive until their accepted agreement is archived.
                 These are the starting
                 commercial terms. Root
                 will preserve them in
@@ -2890,6 +2890,7 @@ async function markCommissionPaid(
                         : "Change Commercial Terms"}
                     </button>
                   </div>
+                  <IntroducerAgreementAdmin introducer={introducer} />
                                       {campaignManagerId ===
                   introducer.id ? (
                     <div
