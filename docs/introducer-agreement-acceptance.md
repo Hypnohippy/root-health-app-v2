@@ -1,6 +1,6 @@
 # Introducer agreement acceptance: draft review
 
-Stacked on PR #65 (`codex/personal-introducer-referrals`). No deployment or live migration is authorised by this change. Branch-specific Vercel Git deployment is disabled in `vercel.json`; other branches are unchanged.
+PR #65 has merged and this draft now targets `main`. The temporary branch-specific Vercel Git deployment suppression has been removed so normal Preview checks can run. No Production deployment or live migration is authorised by this change.
 
 ## Contract and scope
 
@@ -71,5 +71,7 @@ Font provenance: the four unmodified Noto Sans regular WOFF subsets are from `@f
 Final local verification: 39 tests passed (12 agreement, 9 Personal referral/accounting, 4 Personal start, 3 Corporate email-link, 11 HR security). Synthetic three-page PDF visually checked for long accented names, commercial terms, acceptance details, version and page footers. Unsigned review screen checked at desktop and mobile sizes; no browser console errors. No authenticated end-to-end test against real Auth/Storage was performed.
 
 Production build compiled and passed lint/type checking; page-data collection stopped in the unchanged `/api/generate-audio` route because `OPENAI_API_KEY` was unavailable. No live credentials were added to bypass this. Font assets were confirmed in Next's server tracing output. Full deployment/runtime verification remains outstanding.
+
+After retargeting to `main`: the original 39-test suite passed again. The complete 40-file repository suite ran 371 tests: 365 passed and 6 failed. Three Playbook comparison tests reference the absent `app/api/voice-playbook-build/route.js`; two Voice persistence tests expect a response without the existing `mode`/`updatedAt` fields; one workforce SQL grant assertion includes a Windows CRLF mismatch. The relevant tests/source match `main`, where the missing route is also absent. These unrelated failures were not changed. The former PR #65 head and merged `main` have identical file trees; retargeting introduced no implementation diff, and the merge-tree conflict check passed. Only temporary deployment suppression and its documentation changed during this follow-up.
 
 `npm run test:introducer-agreements` reconstructs the supplied schema in local PGlite, applies PR #65 and this migration, and tests binding, immutable evidence, duplicates, RLS, Storage policy restrictions, archive failures, activation, legacy preservation and replacement terms. Storage HTTP behaviour is mocked; a live isolated Storage test is still required. Existing Personal referral, start, Corporate email and HR security suites are also run. No live acceptance, account sign-in email, payment or accounting operation is performed by these tests.
