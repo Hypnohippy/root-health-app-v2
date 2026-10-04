@@ -253,6 +253,16 @@ test('Google generation copies once, replaces all placeholders and grants only i
   assert.ok(f.calls.some(c=>c.url.includes('sendNotificationEmail=false')));
   assert.ok(f.calls.some(c=>c.url.includes('ignoreDefaultVisibility=true')));
 });
+test('legacy manually shared draft with one safe recipient is reconciled by permission ID',async()=>{
+  const f=googleFixture({aliasRecipient:true});
+  const op={id:'op',payload:{terms:terms()},progress:{}};
+  const checkpoint=async patch=>Object.assign(op.progress,patch);
+  await f.drive.generate(op,checkpoint);
+  // Simulate a pre-fix draft by removing the remembered permission id while keeping the one recipient grant.
+  const file=f.calls.find(c=>c.method==='PATCH' && c.url.includes('/files/doc?'));
+  assert.ok(file);
+  await f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email);
+});
 test('Google alias recipients are remembered by permission ID without sending a Google share notification',async()=>{
   const f=googleFixture({aliasRecipient:true});const op={id:'op',payload:{terms:terms()},progress:{}};
   const checkpoint=async patch=>Object.assign(op.progress,patch);
