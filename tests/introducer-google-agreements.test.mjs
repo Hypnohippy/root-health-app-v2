@@ -215,17 +215,21 @@ test('real coordinator recovers generation and finalisation failures without rep
   }finally{await db.close();}
 });
 
-function googleFixture({broad=false,lostCopy=false}={}) {
+function googleFixture({broad=false,lostCopy=false,aliasRecipient=false}={}) {
   const values=replacements(terms());let text=Object.keys(values).map(k=>`{{${k}}}`).join('\n');
-  let shared=false,copyCount=0,storedPdf=null;const calls=[];
+  let shared=false,copyCount=0,storedPdf=null,appProperties={rootAgreementOperation:'op'};const calls=[];
   const config={clientId:'fixture',clientSecret:'fixture',refreshToken:'fixture',folderId:'folder'};
   async function fetcher(url,options={}) {
     calls.push({url,method:options.method || 'GET'});
     const json=value=>Response.json(value);
     if(url.includes('oauth2.googleapis'))return json({access_token:'mock'});
     if(url.includes('/permissions')) {
-      if(options.method==='POST'){shared=true;return json({id:'recipient'});}
-      return json({permissions:[{type:'user',role:'owner',emailAddress:'root@example.test'},...(broad?[{type:'anyone',role:'reader'}]:[]),...(shared && url.includes('/doc/')?[{type:'user',role:'writer',emailAddress:intro.contact_email}]:[])]});
+      if(options.method==='POST'){shared=true;return json({id:'recipient',type:'user',role:'writer',emailAddress:aliasRecipient?'primary@example.test':intro.contact_email});}
+      return json({permissions:[{id:'owner',type:'user',role:'owner',emailAddress:'root@example.test'},...(broad?[{id:'anyone',type:'anyone',role:'reader'}]:[]),...(shared && url.includes('/doc/')?[{id:'recipient',type:'user',role:'writer',emailAddress:aliasRecipient?'primary@example.test':intro.contact_email}]:[])]});
+    }
+    if(options.method==='PATCH' && url.includes('/files/doc?')) {
+      appProperties={...appProperties,...JSON.parse(options.body).appProperties};
+      return json({id:'doc',appProperties});
     }
     if(url.includes('/files?q='))return json({files:lostCopy?[{id:'doc'}]:[]});
     if(url.includes('/copy?')){copyCount++;return json({id:'doc'});}
@@ -237,7 +241,7 @@ function googleFixture({broad=false,lostCopy=false}={}) {
     if(url.includes('alt=media'))return new Response(storedPdf);
     if(url.includes('/files/pdf') && !storedPdf)return new Response('{}',{status:404});
     return json({id:url.includes('/folder?')?'folder':'doc',name:'Root Health Introducer Agreements',mimeType:url.includes('/folder?')?'application/vnd.google-apps.folder':url.includes('/files/pdf')?'application/pdf':'application/vnd.google-apps.document',
-      ownedByMe:true,capabilities:{canCopy:true},version:'1',appProperties:{rootAgreementOperation:'op'}});
+      ownedByMe:true,capabilities:{canCopy:true},version:'1',appProperties});
   }
   return {drive:createAgreementDrive(config,fetcher),calls,copyCount:()=>copyCount};
 }
@@ -248,6 +252,14 @@ test('Google generation copies once, replaces all placeholders and grants only i
   await f.drive.generate(op,checkpoint);assert.equal(f.copyCount(),1);
   assert.ok(f.calls.some(c=>c.url.includes('sendNotificationEmail=false')));
   assert.ok(f.calls.some(c=>c.url.includes('ignoreDefaultVisibility=true')));
+});
+test('Google alias recipients are remembered by permission ID without sending a Google share notification',async()=>{
+  const f=googleFixture({aliasRecipient:true});const op={id:'op',payload:{terms:terms()},progress:{}};
+  const checkpoint=async patch=>Object.assign(op.progress,patch);
+  await f.drive.generate(op,checkpoint);
+  await f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email);
+  assert.ok(f.calls.some(c=>c.url.includes('sendNotificationEmail=false')));
+  assert.ok(f.calls.some(c=>c.method==='PATCH' && c.url.includes('/files/doc?')));
 });
 test('unsafe folder sharing is rejected before copying or sending',async()=>{
   const f=googleFixture({broad:true});
