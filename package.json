@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "test:google-agreements": "node --experimental-default-type=module --test tests/introducer-google-agreements.test.mjs tests/introducer-google-agreements-ui.test.mjs",
     "test:referrals": "node --experimental-default-type=module --test tests/personal-referrals.test.mjs",
     "dev": "next dev",
     "build": "next build",
