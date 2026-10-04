@@ -215,17 +215,26 @@ test('real coordinator recovers generation and finalisation failures without rep
   }finally{await db.close();}
 });
 
-function googleFixture({broad=false,lostCopy=false,aliasRecipient=false}={}) {
+function googleFixture({broad=false,lostCopy=false,aliasRecipient=false,recipientRole='writer',preexistingRecipient=false,
+  missingId=false,getMissing=false,unlisted=false,createDenied=false,legacyBinding=false}={}) {
   const values=replacements(terms());let text=Object.keys(values).map(k=>`{{${k}}}`).join('\n');
-  let shared=false,copyCount=0,storedPdf=null,appProperties={rootAgreementOperation:'op'};const calls=[];
+  let shared=preexistingRecipient,copyCount=0,storedPdf=null,appProperties={rootAgreementOperation:'op'};const calls=[];
+  if(legacyBinding)appProperties.rootAgreementRecipientPermissionId='recipient';
   const config={clientId:'fixture',clientSecret:'fixture',refreshToken:'fixture',folderId:'folder'};
   async function fetcher(url,options={}) {
     calls.push({url,method:options.method || 'GET'});
     const json=value=>Response.json(value);
     if(url.includes('oauth2.googleapis'))return json({access_token:'mock'});
     if(url.includes('/permissions')) {
-      if(options.method==='POST'){shared=true;return json({id:'recipient',type:'user',role:'writer',emailAddress:aliasRecipient?'primary@example.test':intro.contact_email});}
-      return json({permissions:[{id:'owner',type:'user',role:'owner',emailAddress:'root@example.test'},...(broad?[{id:'anyone',type:'anyone',role:'reader'}]:[]),...(shared && url.includes('/doc/')?[{id:'recipient',type:'user',role:'writer',emailAddress:aliasRecipient?'primary@example.test':intro.contact_email}]:[])]});
+      if(options.method==='POST'){
+        assert.equal(new URL(url).searchParams.get('fields'),'id');
+        assert.equal(new URL(url).searchParams.get('sendNotificationEmail'),'false');
+        assert.deepEqual(JSON.parse(options.body),{type:'user',role:'writer',emailAddress:intro.contact_email});
+        if(createDenied)return new Response('not logged',{status:403});
+        shared=true;return json(missingId?{}:{id:recipientRole==='owner'?'owner':'recipient'});
+      }
+      if(/\/permissions\/[^/?]+\?/.test(url))return getMissing?new Response('{}',{status:404}):json({id:recipientRole==='owner'?'owner':'recipient',type:'user',role:recipientRole,emailAddress:aliasRecipient?'primary@example.test':intro.contact_email});
+      return json({permissions:[{id:'owner',type:'user',role:'owner',emailAddress:'root@example.test'},...(broad?[{id:'anyone',type:'anyone',role:'reader'}]:[]),...(shared && !unlisted && recipientRole!=='owner' && url.includes('/doc/')?[{id:'recipient',type:'user',role:recipientRole,emailAddress:aliasRecipient?'primary@example.test':intro.contact_email}]:[])]});
     }
     if(options.method==='PATCH' && url.includes('/files/doc?')) {
       appProperties={...appProperties,...JSON.parse(options.body).appProperties};
@@ -243,7 +252,7 @@ function googleFixture({broad=false,lostCopy=false,aliasRecipient=false}={}) {
     return json({id:url.includes('/folder?')?'folder':'doc',name:'Root Health Introducer Agreements',mimeType:url.includes('/folder?')?'application/vnd.google-apps.folder':url.includes('/files/pdf')?'application/pdf':'application/vnd.google-apps.document',
       ownedByMe:true,capabilities:{canCopy:true},version:'1',appProperties});
   }
-  return {drive:createAgreementDrive(config,fetcher),calls,copyCount:()=>copyCount};
+  return {drive:createAgreementDrive(config,fetcher),calls,copyCount:()=>copyCount,forgetRecipient:()=>{delete appProperties.rootAgreementRecipientPermissionId;}};
 }
 test('Google generation copies once, replaces all placeholders and grants only intended editor access',async()=>{
   const f=googleFixture();const op={id:'op',payload:{terms:terms()},progress:{}};
@@ -253,7 +262,7 @@ test('Google generation copies once, replaces all placeholders and grants only i
   assert.ok(f.calls.some(c=>c.url.includes('sendNotificationEmail=false')));
   assert.ok(f.calls.some(c=>c.url.includes('ignoreDefaultVisibility=true')));
 });
-test('legacy manually shared draft with one safe recipient is reconciled by permission ID',async()=>{
+test('legacy alias without recipient binding fails closed instead of adopting the sole user',async()=>{
   const f=googleFixture({aliasRecipient:true});
   const op={id:'op',payload:{terms:terms()},progress:{}};
   const checkpoint=async patch=>Object.assign(op.progress,patch);
@@ -261,7 +270,8 @@ test('legacy manually shared draft with one safe recipient is reconciled by perm
   // Simulate a pre-fix draft by removing the remembered permission id while keeping the one recipient grant.
   const file=f.calls.find(c=>c.method==='PATCH' && c.url.includes('/files/doc?'));
   assert.ok(file);
-  await f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email);
+  f.forgetRecipient();
+  await assert.rejects(f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email),/broader/);
 });
 test('Google alias recipients are remembered by permission ID without sending a Google share notification',async()=>{
   const f=googleFixture({aliasRecipient:true});const op={id:'op',payload:{terms:terms()},progress:{}};
@@ -276,6 +286,59 @@ test('unsafe folder sharing is rejected before copying or sending',async()=>{
   await assert.rejects(f.drive.generate({id:'op',payload:{terms:terms()},progress:{}},async()=>{}),/broader/);
   assert.equal(f.copyCount(),0);
 });
+
+test('diagnostic: owner-resolving recipient reproduces recipient_access before appProperties are stored',async()=>{
+  const f=googleFixture({aliasRecipient:true,recipientRole:'owner'});
+  const op={id:'op',payload:{terms:terms()},progress:{}};
+  await assert.rejects(f.drive.generate(op,async patch=>Object.assign(op.progress,patch)),/Recipient does not have access/);
+  assert.equal(op.progress.merged,true);
+  assert.ok(f.calls.some(c=>c.url.includes('/permissions/owner?')));
+  assert.equal(f.calls.some(c=>c.method==='PATCH'),false);
+  assert.equal(op.progress.recipient_stage,'get_returned');
+  assert.equal(op.progress.recipient_role,'owner');
+});
+
+test('unrelated sole recipient must not be adopted as the stored contact without identity evidence',async()=>{
+  const f=googleFixture({aliasRecipient:true,preexistingRecipient:true});
+  const op={id:'op',payload:{terms:terms()},progress:{}};
+  await assert.rejects(f.drive.generate(op,async patch=>Object.assign(op.progress,patch)),/broader|Recipient/);
+  assert.equal(f.calls.some(c=>c.method==='POST' && c.url.includes('/permissions')),false);
+});
+
+test('old appProperties populated by sole-user fallback do not legitimise an unrelated recipient',async()=>{
+  const f=googleFixture({aliasRecipient:true,preexistingRecipient:true,legacyBinding:true});
+  await assert.rejects(f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email),/broader/);
+  assert.equal(f.calls.some(c=>c.method==='PATCH'),false);
+});
+
+test('recipient diagnostics distinguish missing create ID, denied create, missing read-back and absent durable share',async()=>{
+  for(const [config,stage,status] of [
+    [{missingId:true,unlisted:true},'create_returned',null],
+    [{createDenied:true},'create_requested',403],
+    [{getMissing:true,unlisted:true},'get_requested',404],
+    [{unlisted:true},'list_verification',null],
+  ]) {
+    const f=googleFixture(config);const op={id:'op',payload:{terms:terms()},progress:{}};
+    const save=async patch=>Object.assign(op.progress,patch);
+    await assert.rejects(f.drive.generate(op,save));
+    assert.equal(op.progress.recipient_stage,stage);assert.equal(op.progress.recipient_http_status,status);
+    assert.equal(op.progress.merged,true);assert.equal(f.calls.some(c=>c.method==='PATCH'),false);
+    await assert.rejects(f.drive.generate(op,save));
+    assert.equal(f.calls.filter(c=>c.method==='POST' && c.url.includes('/permissions')).length,1);
+    assert.equal(f.copyCount(),1);
+  }
+});
+
+test('permission creation receipt survives interrupted verification and retry does not create another permission',async()=>{
+  const f=googleFixture({aliasRecipient:true});const op={id:'op',payload:{terms:terms()},progress:{}};
+  let fail=true;
+  const save=async patch=>{Object.assign(op.progress,patch);if(fail && patch.recipient_stage==='create_returned')throw Error('interrupted');};
+  await assert.rejects(f.drive.generate(op,save));fail=false;
+  await f.drive.generate(op,save);
+  assert.equal(op.progress.recipient_stage,'verified');
+  assert.equal(f.calls.filter(c=>c.method==='POST' && c.url.includes('/permissions')).length,1);
+  await assert.rejects(f.drive.verifyDocument({...draft(),document_id:'doc'},'someone-else@example.test'),/broader/);
+});
 test('lost copy response recovers tagged copy; missing uncertain copy never creates a second one',async()=>{
   const f=googleFixture({lostCopy:true});const op={id:'op',payload:{terms:terms()},progress:{copy_started:true}};
   await f.drive.generate(op,async patch=>Object.assign(op.progress,patch));assert.equal(f.copyCount(),0);
@@ -285,12 +348,13 @@ test('lost copy response recovers tagged copy; missing uncertain copy never crea
 test('accepted PDF has a separate fixed ID, readback hash and retry does not upload again',async()=>{
   const f=googleFixture();const gen={id:'generate',payload:{terms:terms()},progress:{}};
   await f.drive.generate(gen,async patch=>Object.assign(gen.progress,patch));
+  const archiveStart=f.calls.length;
   const a={...draft(),document_id:'doc'};const op={id:'op',progress:{}};
   const checkpoint=async patch=>Object.assign(op.progress,patch);
   const first=await f.drive.archive(op,a,checkpoint);const second=await f.drive.archive(op,a,checkpoint);
   assert.deepEqual(first,second);assert.equal(first.pdf_sha256,hash(Buffer.from('%PDF-fixture')));
   assert.equal(f.calls.filter(c=>c.url.includes('/upload/')).length,1);
-  assert.equal(f.calls.filter(c=>c.method==='PATCH' || c.method==='DELETE').length,0);
+  assert.equal(f.calls.slice(archiveStart).filter(c=>c.method==='PATCH' || c.method==='DELETE').length,0);
 });
 test('Google credentials fail closed and are not part of browser code',()=>{
   assert.throws(()=>googleAgreementConfig({}),/not configured/);
