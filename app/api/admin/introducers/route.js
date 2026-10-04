@@ -820,6 +820,9 @@ export async function POST(request) {
       normaliseEmail(
         body?.contactEmail
       ) || null;
+    if (!contactEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+      return NextResponse.json({ error: "A valid contact email is required for verified agreement acceptance." }, { status: 400 });
+    }
 
     const commissionPercent =
       Number(
@@ -849,13 +852,8 @@ export async function POST(request) {
           )
         : null;
 
-    const status =
-      String(
-        body?.status ||
-          "active"
-      )
-        .trim()
-        .toLowerCase();
+    // New introducers qualify only after the agreement archive is complete.
+    const status = "inactive";
 
     const agreementStartDate =
       cleanText(
