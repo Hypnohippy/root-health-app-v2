@@ -215,9 +215,56 @@ test('real coordinator recovers generation and finalisation failures without rep
   }finally{await db.close();}
 });
 
+test('reported failed merged operation resumes under its original identity and checkpoints using a new lease',async()=>{
+  const db=await database();try{
+    const id='c1e4fb5c-4b17-410d-9a6e-9f0ca24c4758';
+    const introducerId='2fc71a5f-1e53-4928-8ab1-aa53b38639af';
+    const progress={merged:true,document_id:'151MRw3eX2wxmxmTkSUZcqWzaygSHbw-kyp-8Xjnu-JU',copy_started:true,
+      merge_started:true,failure_reason:'recipient_access',template_revision:'synthetic-revision'};
+    await db.query('insert into organisation_introducers(id) values($1)',[introducerId]);
+    const oldLease=randomUUID(),agreementId=randomUUID();
+    const payload={terms:terms(),terms_hash:termsHash(terms()),template_id:MASTER_DOCUMENT_ID,version:1,previous_id:null};
+    await db.query(`insert into introducer_google_agreement_operations
+      (id,introducer_id,agreement_id,action,actor_id,payload,progress,state,lease_id,lease_until)
+      values($1,$2,$3,'generate',$4,$5,$6,'failed',$7,null)`,[id,introducerId,agreementId,actor,JSON.stringify(payload),JSON.stringify(progress),oldLease]);
+    const service=serviceAdapter(db);
+    const read=async()=> (await db.query('select * from introducer_google_agreement_operations where id=$1',[id])).rows[0];
+    const original=await read();let driveCalls=0;
+    const load=async()=>({introducer:{...intro,id:introducerId},policies:[policy],agreements:[],operations:[]});
+    const body={requestId:id,action:'generate',introducerId,agreementId,confirmed:true,specialTerms:'None'};
+    const args={db:service,user:{id:actor},body,load,drive:{generate:async(op,save)=>{
+      driveCalls++;assert.deepEqual(op.progress,progress);assert.deepEqual(op.payload,payload);
+      assert.equal(op.id,id);assert.equal(op.agreement_id,agreementId);assert.equal(op.state,'running');
+      assert.notEqual(op.lease_id,oldLease);
+      await save({recipient_stage:'create_requested'});
+      throw Error('Recipient does not have access to this agreement.');
+    }}};
+    // An actor mismatch fails before the RPC and leaves the entire row untouched.
+    await assert.rejects(runGoogleAgreement({...args,user:{id:randomUUID()}}),/identity mismatch/);
+    assert.deepEqual(await read(),original);assert.equal(driveCalls,0);
+    // Fresh-term validation is another pre-RPC failure, even though frozen terms exist.
+    await assert.rejects(runGoogleAgreement({...args,load:async()=>({...await load(),policies:[]})}),/effective commercial policy/);
+    assert.deepEqual(await read(),original);assert.equal(driveCalls,0);
+    // SQL rejects an unexpired lease; queryResult currently hides its precise reason.
+    await db.query("update introducer_google_agreement_operations set lease_until=now()+interval '3 minutes' where id=$1",[id]);
+    const leased=await read();
+    await assert.rejects(runGoogleAgreement(args),/database operation failed/);
+    assert.deepEqual(await read(),leased);assert.equal(driveCalls,0);
+    await db.query('update introducer_google_agreement_operations set lease_until=null where id=$1',[id]);
+    // Use the same role used by Supabase's service client, not a table-owner shortcut.
+    await db.exec('set role service_role');
+    await assert.rejects(runGoogleAgreement(args),/Recipient does not have access/);
+    const resumed=await read();assert.equal(driveCalls,1);
+    assert.equal(resumed.progress.recipient_stage,'create_requested');assert.equal(resumed.state,'failed');
+    assert.equal(resumed.lease_until,null);assert.notEqual(resumed.lease_id,oldLease);
+    assert.deepEqual(resumed.payload,payload);assert.equal(resumed.agreement_id,agreementId);
+  }finally{await db.close();}
+});
+
 function googleFixture({broad=false,lostCopy=false,aliasRecipient=false,recipientRole='writer',preexistingRecipient=false,
-  missingId=false,getMissing=false,unlisted=false,createDenied=false,legacyBinding=false}={}) {
+  missingId=false,getMissing=false,unlisted=false,createDenied=false,legacyBinding=false,mismatchedReadback=false,extraRecipient=false,mergedDocument=false}={}) {
   const values=replacements(terms());let text=Object.keys(values).map(k=>`{{${k}}}`).join('\n');
+  if(mergedDocument)text=Object.values(values).join('\n');
   let shared=preexistingRecipient,copyCount=0,storedPdf=null,appProperties={rootAgreementOperation:'op'};const calls=[];
   if(legacyBinding)appProperties.rootAgreementRecipientPermissionId='recipient';
   const config={clientId:'fixture',clientSecret:'fixture',refreshToken:'fixture',folderId:'folder'};
@@ -233,8 +280,8 @@ function googleFixture({broad=false,lostCopy=false,aliasRecipient=false,recipien
         if(createDenied)return new Response('not logged',{status:403});
         shared=true;return json(missingId?{}:{id:recipientRole==='owner'?'owner':'recipient'});
       }
-      if(/\/permissions\/[^/?]+\?/.test(url))return getMissing?new Response('{}',{status:404}):json({id:recipientRole==='owner'?'owner':'recipient',type:'user',role:recipientRole,emailAddress:aliasRecipient?'primary@example.test':intro.contact_email});
-      return json({permissions:[{id:'owner',type:'user',role:'owner',emailAddress:'root@example.test'},...(broad?[{id:'anyone',type:'anyone',role:'reader'}]:[]),...(shared && !unlisted && recipientRole!=='owner' && url.includes('/doc/')?[{id:'recipient',type:'user',role:recipientRole,emailAddress:aliasRecipient?'primary@example.test':intro.contact_email}]:[])]});
+      if(/\/permissions\/[^/?]+\?/.test(url))return getMissing?new Response('{}',{status:404}):json({id:mismatchedReadback?'different-owner':recipientRole==='owner'?'owner':'recipient',type:'user',role:recipientRole,emailAddress:aliasRecipient?'primary@example.test':intro.contact_email});
+      return json({permissions:[{id:'owner',type:'user',role:'owner',emailAddress:'root@example.test'},...(broad?[{id:'anyone',type:'anyone',role:'reader'}]:[]),...(shared && extraRecipient && url.includes('/doc/')?[{id:'unrelated',type:'user',role:'writer',emailAddress:'unrelated@example.test'}]:[]),...(shared && !unlisted && recipientRole!=='owner' && url.includes('/doc/')?[{id:'recipient',type:'user',role:recipientRole,emailAddress:aliasRecipient?'primary@example.test':intro.contact_email}]:[])]});
     }
     if(options.method==='PATCH' && url.includes('/files/doc?')) {
       appProperties={...appProperties,...JSON.parse(options.body).appProperties};
@@ -287,15 +334,55 @@ test('unsafe folder sharing is rejected before copying or sending',async()=>{
   assert.equal(f.copyCount(),0);
 });
 
-test('diagnostic: owner-resolving recipient reproduces recipient_access before appProperties are stored',async()=>{
+test('owner-resolving alias is accepted only through the returned ID and persisted recipient-hash binding',async()=>{
   const f=googleFixture({aliasRecipient:true,recipientRole:'owner'});
   const op={id:'op',payload:{terms:terms()},progress:{}};
-  await assert.rejects(f.drive.generate(op,async patch=>Object.assign(op.progress,patch)),/Recipient does not have access/);
+  await f.drive.generate(op,async patch=>Object.assign(op.progress,patch));
   assert.equal(op.progress.merged,true);
   assert.ok(f.calls.some(c=>c.url.includes('/permissions/owner?')));
-  assert.equal(f.calls.some(c=>c.method==='PATCH'),false);
-  assert.equal(op.progress.recipient_stage,'get_returned');
+  assert.equal(f.calls.some(c=>c.method==='PATCH'),true);
+  assert.equal(op.progress.recipient_stage,'verified');
   assert.equal(op.progress.recipient_role,'owner');
+  assert.equal(op.progress.recipient_permission_id,'owner');
+  assert.equal(op.progress.recipient_email_hash,hash(intro.contact_email));
+  await f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email);
+  await f.drive.generate(op,async patch=>Object.assign(op.progress,patch));
+  assert.equal(f.calls.filter(c=>c.method==='POST' && c.url.includes('/permissions')).length,1);
+  await assert.rejects(f.drive.verifyDocument({...draft(),document_id:'doc'},'another@example.test'),/Recipient does not have access/);
+  f.forgetRecipient();
+  await assert.rejects(f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email),/Recipient does not have access/);
+});
+
+test('failed owner-alias operation resumes its recorded binding without copying or sharing again',async()=>{
+  const f=googleFixture({aliasRecipient:true,recipientRole:'owner',mergedDocument:true});
+  const op={id:'c1e4fb5c-4b17-410d-9a6e-9f0ca24c4758',payload:{terms:terms()},progress:{
+    merged:true,document_id:'doc',copy_started:true,merge_started:true,recipient_create_started:true,
+    recipient_stage:'get_returned',recipient_type:'user',recipient_role:'owner',recipient_id_matches:true,
+    recipient_permission_id:'owner',recipient_email_hash:hash(intro.contact_email)}};
+  await f.drive.generate(op,async patch=>Object.assign(op.progress,patch));
+  assert.equal(op.progress.recipient_stage,'verified');assert.equal(f.copyCount(),0);
+  assert.equal(f.calls.filter(c=>c.method==='POST' && !c.url.includes('oauth2.googleapis.com')).length,0);
+  await f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email);
+});
+
+test('unbound owner, mismatched read-back ID and additional recipients remain rejected',async()=>{
+  const unbound=googleFixture({recipientRole:'owner'});
+  await assert.rejects(unbound.drive.verifyDocument({...draft(),document_id:'doc'},'root@example.test'),/Recipient does not have access/);
+  for(const options of [{mismatchedReadback:true},{extraRecipient:true},{broad:true}]) {
+    const f=googleFixture({aliasRecipient:true,recipientRole:'owner',...options});
+    const op={id:'op',payload:{terms:terms()},progress:{}};
+    await assert.rejects(f.drive.generate(op,async patch=>Object.assign(op.progress,patch)),/Recipient does not have access|broader/);
+    assert.equal(f.calls.some(c=>c.method==='PATCH'),false);
+  }
+});
+
+test('writer and reader recipient access continues to work',async()=>{
+  for(const recipientRole of ['writer','reader']) {
+    const f=googleFixture({recipientRole});const op={id:'op',payload:{terms:terms()},progress:{}};
+    await f.drive.generate(op,async patch=>Object.assign(op.progress,patch));
+    await f.drive.verifyDocument({...draft(),document_id:'doc'},intro.contact_email);
+    assert.equal(op.progress.recipient_stage,'verified');
+  }
 });
 
 test('unrelated sole recipient must not be adopted as the stored contact without identity evidence',async()=>{
