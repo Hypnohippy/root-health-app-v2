@@ -1,7 +1,0 @@
-{
-  "git": {
-    "deploymentEnabled": {
-      "codex/introducer-google-doc-agreements": false
-    }
-  }
-}
