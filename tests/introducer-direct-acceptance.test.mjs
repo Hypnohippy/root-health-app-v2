@@ -10,10 +10,58 @@ import { agreementAcceptanceNotifier,agreementMail } from '../lib/introducerAgre
 import { hash } from '../lib/introducerGoogleAgreementTerms.js';
 import { getRootDestination } from '../lib/rootNavigator.js';
 import { POST } from '../app/api/introducer-agreement/accept/route.js';
+import { loadAgreementState } from '../lib/introducerGoogleAgreementServer.js';
 
 const intro=randomUUID(),actor=randomUUID();
 const terms={introducer_name:'Synthetic Partner',contact_name:'Jo Test',contact_email:'jo@example.test',special_terms:'None'};
 const evidence=()=>acceptanceEvidence({full_name:'Jo Test',role:'Director',organisation:'Synthetic Partner',email:terms.contact_email,date:'2026-10-05',confirmed:true,authority:true},terms.contact_email);
+function historyClient(db,{empty=false,acceptanceError=false}={}) {
+  const calls=[];
+  return {calls,from(table){
+    const call={table};calls.push(call);
+    const query={
+      select(columns){call.columns=columns;assert.ok(!columns.includes('('),'No inferred PostgREST relationship');return query;},
+      eq(key,value){call.eq=[key,value];return query;},
+      in(key,value){call.in=[key,value];return query;},
+      order(key,options){call.order=[key,options];return query;},
+      not(){return query;},single(){return query;},
+      async then(resolve,reject){try {
+        let data=[];
+        if(table==='organisation_introducers')data={id:intro};
+        if(table==='organisation_introducer_agreements'){
+          assert.deepEqual(call.eq,['introducer_id',intro]);assert.deepEqual(call.order,['version',{ascending:false}]);
+          data=empty ? [] : (await db.query('select * from organisation_introducer_agreements where introducer_id=$1 order by version desc',[intro])).rows;
+        }
+        if(table==='introducer_agreement_acceptances'){
+          assert.equal(call.in[0],'agreement_id');
+          if(acceptanceError)return resolve({error:Error('Unavailable')});
+          data=(await db.query(`select ${call.columns} from introducer_agreement_acceptances where agreement_id=any($1::uuid[])`,[call.in[1]])).rows;
+        }
+        resolve({data});
+      }catch(error){reject(error);}}
+    };return query;
+  }};
+}
+test('history loads direct-acceptance schema separately and preserves ordered public acceptance metadata',async()=>{
+  const f=await fixture();try {
+    await f.accept();
+    const newer=randomUUID();
+    await f.db.query(`insert into organisation_introducer_agreements(id,introducer_id,version,status,document_id,document_url,template_document_id,terms_snapshot,terms_hash,created_by)
+      values($1,$2,2,'draft','new-doc','https://docs.google.com/document/d/new-doc/edit','master',$3,$4,$5)`,[newer,intro,terms,hash(JSON.stringify(terms)),actor]);
+    const fk=await f.db.query("select confrelid::regclass::text target from pg_constraint where conrelid='introducer_agreement_acceptances'::regclass and contype='f'");
+    assert.ok(fk.rows.some(r=>r.target==='introducer_agreement_review_copies'));
+    const client=historyClient(f.db),state=await loadAgreementState(client,intro);
+    assert.deepEqual(state.agreements.map(a=>a.id),[newer,f.agreement]);
+    assert.equal(state.agreements[0].acceptance,null);
+    const expected=(await f.db.query('select id,accepted_at,evidence,archive_state,deliveries from introducer_agreement_acceptances where agreement_id=$1',[f.agreement])).rows[0];
+    assert.deepEqual(state.agreements[1].acceptance,expected);
+    assert.deepEqual(client.calls.find(c=>c.table==='introducer_agreement_acceptances').in,['agreement_id',[newer,f.agreement]]);
+    const empty=historyClient(f.db,{empty:true});
+    assert.deepEqual((await loadAgreementState(empty,intro)).agreements,[]);
+    assert.ok(!empty.calls.some(c=>c.table==='introducer_agreement_acceptances'));
+    await assert.rejects(loadAgreementState(historyClient(f.db,{acceptanceError:true}),intro),/Agreement database operation failed/);
+  }finally{await f.db.close();}
+});
 async function fixture() {
   const db=new PGlite();
   await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create table organisation_introducers(id uuid primary key,status text default \'active\');');
