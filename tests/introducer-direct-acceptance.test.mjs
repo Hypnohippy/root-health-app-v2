@@ -86,11 +86,27 @@ function adapter(db) {
   return {from:()=>({select:()=>({eq:(_key,id)=>({single:async()=>({data:(await db.query('select * from introducer_agreement_review_copies where agreement_id=$1',[id])).rows[0]})})})}),
     rpc:async(_name,args)=>{try{return{data:(await db.query('select fulfil_introducer_acceptance($1,$2,$3,$4) e',[args.p_agreement,args.p_lease,args.p_action,args.p_data])).rows[0].e};}catch(error){return{error};}}};
 }
-test('only the acceptance path is public; Preview origins cannot fall back to Production',()=>{
+test('only the acceptance path is public; Preview uses the current Vercel deployment origin',()=>{
   assert.equal(getRootDestination(null,'/introducer-agreement/accept'),null);
   for(const path of ['/admin/introducers','/coach','/introducer-agreement/complete'])assert.equal(getRootDestination(null,path),'/welcome');
-  assert.equal(acceptanceOrigin({NEXT_PUBLIC_SITE_URL:'https://preview.example.test',VERCEL_ENV:'preview'}),'https://preview.example.test');
-  assert.throws(()=>acceptanceOrigin({NEXT_PUBLIC_SITE_URL:'https://roothealth.app',VERCEL_ENV:'preview'}),/Production/);
+  assert.equal(acceptanceOrigin({
+    NEXT_PUBLIC_SITE_URL:'https://stale-preview.example.test',
+    VERCEL_ENV:'preview',
+    VERCEL_URL:'root-health-app-v2-current.vercel.app'
+  }),'https://root-health-app-v2-current.vercel.app');
+  assert.equal(acceptanceOrigin({
+    NEXT_PUBLIC_SITE_URL:'https://roothealth.app',
+    VERCEL_ENV:'production',
+    VERCEL_URL:'ignored-preview.vercel.app'
+  }),'https://roothealth.app');
+  assert.throws(()=>acceptanceOrigin({
+    NEXT_PUBLIC_SITE_URL:'https://roothealth.app',
+    VERCEL_ENV:'preview'
+  }),/configured/);
+  assert.throws(()=>acceptanceOrigin({
+    VERCEL_ENV:'preview',
+    VERCEL_URL:'roothealth.app'
+  }),/Production/);
   assert.throws(()=>acceptanceOrigin({}),/configured/);
   assert.throws(()=>invitationHash('guessable'),/unavailable/);
 });
