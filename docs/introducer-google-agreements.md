@@ -109,3 +109,18 @@ Run `npm run test:google-agreements` after installing the existing dependencies;
 - Private copy default visibility: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/copy
 - Local OAuth client login: https://docs.cloud.google.com/sdk/gcloud/reference/auth/application-default/login
 - Refresh token expiry: https://developers.google.com/identity/protocols/oauth2
+# Returned-for-review handoff (2026-10-05)
+
+Deployment prerequisites (not applied automatically): apply `20261005_introducer_agreement_returns.sql` after the existing agreement migration, and set server-only `GOOGLE_AGREEMENTS_RETURN_SECRET` to a cryptographically random value of at least 32 characters. `NEXT_PUBLIC_SITE_URL` must be the correct HTTPS site origin. Rotating the secret invalidates outstanding completion links; explicitly resend to issue a fresh link. Do not put this secret in any public variable.
+
+State flow: no record -> draft -> sent -> returned (derived from the immutable handoff row) -> admin-confirmed accepted/PDF. A new revision supersedes an unaccepted version but preserves its handoff evidence. Accepted versions remain immutable. Neither a page visit nor customer completion accepts a contract or creates a PDF. Existing accepted agreements are unaffected; existing sent agreements need a deliberate resend to obtain the new completion link before admin acceptance.
+
+The email includes a 90-day signed capability bound to the agreement ID, frozen terms hash and stored email. It is a bearer link, not proof of the sender's identity or a legal signature; anyone it is forwarded to can request review, never accept. The fragment keeps the token out of HTTP request URLs/referrers; the page removes it from browser history and does not persist it. Completion requires a checkbox and same-origin JSON POST. The service-only RPC checks the current sent version and serialises with agreement operations. Anonymous/authenticated clients cannot read/write handoff rows or invoke RPCs.
+
+Root sees `Returned - review required`, timestamp and notification uncertainty. A durable one-time notification claim precedes Resend; delivery failures/crashes leave the return intact and cannot trigger duplicate automatic emails. `started` or `unconfirmed` means check Resend and the admin queue, not retry blindly. Notification goes only to enquiries@roothealth.app, from Root Health <enquiries@roothealth.app>, with the same reply-to. No commercial terms are included in the public page/API response. Admin must review the editable Doc and explicitly Accept Agreement to use the existing PDF archive flow.
+
+Branding: fresh generation calls Drive `files.copy` on the current master, then only Docs `replaceAllText` requests. This preserves native image/header/layout objects rather than reconstructing a document. Archive exports that exact generated document. An embedded-image fixture covers this request path; it is not visual proof of the live template/logo or Google PDF rendering. Fresh live Doc and PDF visual checks remain required before merge readiness. Old generated/accepted documents are intentionally not updated.
+
+Legal-review wording: `Draft for legal review` belongs to the Google master template, not application-generated text. It is intentionally retained. After solicitor approval, edit only the master wording and generate a new version; never rewrite historic accepted Docs/PDFs. No legal approval is implied by marking a test agreement accepted.
+
+Rollback: revert application changes before removing the new migration guards. Do not drop returned evidence or bypass the handoff requirement for pending accept operations. No Stripe, commission, settlement, remittance or accounting changes are included.

@@ -37,7 +37,7 @@ export async function POST(request) {
     const result=await runGoogleAgreement({...access,body,drive,mail});
     return reply({success:true,...result});
   } catch(error) {
-    if(['Root agreement email is not configured.','Root agreement email delivery is unconfirmed. Check Resend before an explicit resend.'].includes(error.message))
+    if(['Agreement completion link is not configured.','Agreement must be returned before acceptance.','Root agreement email is not configured.','Root agreement email delivery is unconfirmed. Check Resend before an explicit resend.'].includes(error.message))
       return reply({error:error.message},409);
     // Only our fixed messages may reach the browser; provider/network diagnostics may contain credentials.
     const safe=/^(Google agreement connection|Root SMTP|Agreement needs updating|Confirm |Refresh and select|An effective commercial|A name and valid|Unsupported commercial|Agreement fields|Operation identity|Agreement database|Copy outcome uncertain|Multiple operation|Master |The agreement still|Root must own|Agreement sharing|Select the private|Recipient does not|Document changed|Archive hash|Archive identity|Invalid or oversized|Uploaded PDF|Google authorisation|Google agreement operation|Email outcome uncertain)/;

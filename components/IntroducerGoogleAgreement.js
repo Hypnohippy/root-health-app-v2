@@ -63,7 +63,8 @@ export default function IntroducerGoogleAgreement({introducer}) {
   const unavailable=busy || !data?.googleConfigured || Boolean(data?.configurationError);
   const retryBody=pending?{requestId:pending.id,action:pending.action,introducerId:introducer.id,agreementId:pending.agreement_id,confirmed:true,specialTerms:special}:failedRequest;
   return <section aria-label={`Agreement for ${introducer.name}`} style={{borderTop:'1px solid #dce3e7',marginTop:18,paddingTop:16,minWidth:0}}>
-    <h3 style={{fontSize:16,margin:'0 0 10px'}}>Agreement: {data?label(latest?.status):'Loading'}</h3>
+    <h3 style={{fontSize:16,margin:'0 0 10px'}}>Agreement: {data?(latest?.status==='sent' && latest.returned_at?'Returned - review required':label(latest?.status)):'Loading'}</h3>
+    {latest?.returned_at && <p>Returned: {date(latest.returned_at)}{latest.status==='sent' && latest.return_notification_state!=='confirmed'?' | Root notification unconfirmed; review required.':''}</p>}
     {error && <p role="alert" style={{color:'#a32335',overflowWrap:'anywhere'}}>{error}</p>}
     {message && <p role="status">{message}</p>}
     {data && !data.googleConfigured && <p>Google agreement connection not configured.</p>}
@@ -81,7 +82,7 @@ export default function IntroducerGoogleAgreement({introducer}) {
           <button style={button} onClick={copy}>Copy Link</button></>}
         {latest?.status==='draft' && <button style={button} disabled={unavailable || mismatch || !!pending} onClick={()=>run('send')}>{uncertain?'Resend':'Send Agreement'}</button>}
         {latest?.status==='sent' && <><button style={button} disabled={unavailable || mismatch || !!pending} onClick={()=>run('send')}>Resend</button>
-          <button style={button} disabled={unavailable || !!pending} onClick={()=>run('accept')}>Mark Accepted</button></>}
+          {latest.returned_at && <button style={button} disabled={unavailable || !!pending} onClick={()=>run('accept')}>Accept Agreement</button>}</>}
         {latest?.pdf_document_url && <a style={button} href={latest.pdf_document_url} target="_blank" rel="noopener noreferrer">Open PDF</a>}
         {latest && (mismatch || latest.status==='accepted') && <button style={button} disabled={unavailable || !!pending} onClick={()=>run('generate')}>
           {latest.status==='accepted'?'Create Amendment':latest.status==='draft'?'Update Agreement':'Create Revised Agreement'}</button>}
@@ -94,8 +95,8 @@ export default function IntroducerGoogleAgreement({introducer}) {
           <dt style={{fontWeight:600}}>{key.replaceAll('_',' ')}</dt><dd style={{marginLeft:0}}>{String(value) || 'Not specified'}</dd></div>)}</dl></details>}
       {data.agreements.length>0 && <details style={{marginTop:12}}><summary>Agreement history ({data.agreements.length})</summary>
         <ul style={{paddingLeft:20}}>{data.agreements.map(a=><li key={a.id} style={{marginTop:10,overflowWrap:'anywhere'}}>
-          <a href={a.document_url} target="_blank" rel="noopener noreferrer">Version {a.version}</a> - {label(a.status)}
-          <div>Generated: {date(a.generated_at)}{a.sent_at?` | Sent: ${date(a.sent_at)}`:''}{a.accepted_at?` | Accepted: ${date(a.accepted_at)}`:''}</div>
+          <a href={a.document_url} target="_blank" rel="noopener noreferrer">Version {a.version}</a> - {a.status==='sent' && a.returned_at?'Returned - review required':label(a.status)}
+          <div>Generated: {date(a.generated_at)}{a.sent_at?` | Sent: ${date(a.sent_at)}`:''}{a.returned_at?` | Returned: ${date(a.returned_at)}`:''}{a.accepted_at?` | Accepted: ${date(a.accepted_at)}`:''}</div>
           {a.pdf_document_url && <a href={a.pdf_document_url} target="_blank" rel="noopener noreferrer">Accepted PDF</a>}
         </li>)}</ul></details>}
     </>}
