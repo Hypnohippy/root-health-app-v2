@@ -1,48 +1,54 @@
 # Introducer Google Docs agreements
 
-## Delivery provider update
+## One-stage customer acceptance
 
-Introducer agreement delivery now uses the Resend REST API with server-only `RESEND_API_KEY`, from `Root Health <enquiries@roothealth.app>` and reply-to `enquiries@roothealth.app`. Other mailers are unchanged. A successful API response with a message ID is the receipt, not proof of inbox delivery. Requests use an operation-based idempotency key and no automatic retry. Legacy `smtp_started`/`smtp_receipt` operation fields are deliberately retained for compatibility; uncertain historical SMTP attempts must still be reconciled before an explicit resend. For new attempts, check Resend. Google sharing remains `sendNotificationEmail=false`. The original SMTP setup references below describe the earlier implementation, not the current agreement sender.
+Root generates a native private Google Docs copy from the existing master using the current effective commercial policy and the dedicated Special Terms field (default `None`). Internal notes are excluded. The existing 14-placeholder checks, recipient hash/permission binding and `sendNotificationEmail=false` are unchanged. Root still reviews drafts before sending.
 
-Draft implementation from main after PR #65. PR #66 is not a dependency: none of its signing screens, activation gates, acceptance tables or Supabase archive are used. No deployment, migration, Google authorisation or real email send has been performed. `vercel.json` temporarily suppresses automatic deployments for this new branch only; remove that setting when a Preview deployment is explicitly approved.
+Send freezes a private PDF review snapshot of that version before sending its invitation. Review PDFs are capped at 3 MB to keep the base64 public response below the serverless response-size limit; oversized documents fail before sending. A resend uses the same frozen snapshot, not subsequent Google edits. To change the agreement, generate and send a new version. The invitation email opens `/introducer-agreement/accept`; it does not ask the recipient to edit/return a Google Doc or create a Root account.
 
-The branch-specific deployment suppression is temporary and must be removed before merge, in coordination with an explicitly approved Preview deployment. It does not disable Production or other branches.
+The public form displays the frozen Agreement and Commercial Terms as a PDF, and collects full name, optional organisation, role/capacity, bound contact email, date, explicit acceptance and organisation authority when relevant. One Accept Agreement POST commits the acceptance evidence immediately. The customer sees the acceptance confirmation. There is no Root review/acceptance step afterward.
 
-## Admin workflow
+The authoritative acceptance timestamp is server UTC; the customer-entered date is separate evidence. The frozen terms, reviewed PDF hash, consent wording and identity/authority assertions are immutable. The server does not independently verify the person's identity or organisational authority: the private invitation is a bearer capability, not qualified electronic-signature or identity verification. Legal review remains required.
 
-The existing Introducers page gains one Agreement section per card. Root-admin verification happens server-side on every read/write, using confirmed Supabase email and `ROOT_ADMIN_EMAIL`. Ordinary authenticated users cannot access agreement metadata or trigger Google/SMTP calls. Google credentials never reach the browser.
+## State and failure boundaries
 
-Generate uses the current effective policy, not future policies, alongside the introducer's market, identity, contact, VAT and agreement dates. There is no fallback to stale commission values if a policy is missing. The separate Special Terms field defaults to `None`; internal notes never leave Ops. The master already supplies the percent symbol, so the replacement contains only the number.
+Draft -> sent -> accepted (PDF pending if necessary) -> archived accepted PDF and notifications. The separate acceptance row is authoritative immediately. The original agreement row becomes `accepted` when the PDF archive completes, retaining its existing archive-required constraint. Admin shows `Accepted - PDF pending` in the meantime. The legacy `accepted_by` UUID is the new acceptance evidence ID for this flow, NOT a fabricated Root user ID. Historical admin acceptances retain their original meaning.
 
-Each generation creates a fresh native Google Docs copy, preserving layout. All 14 placeholders must exist and unknown placeholders cause failure. The entire copied document, including tabs, headers/footers and tables, is checked for unresolved placeholders. Changes to the master require review; its source revision is recorded with each generation. The master itself is never modified.
+Final PDF creation preserves the reviewed PDF pages, including embedded logos/fonts, and appends acceptance details and hashes. Full original Unicode evidence is also embedded as JSON; unsupported evidence-page glyphs use explicit Unicode code points rather than silently dropping characters. The exact final bytes are checkpointed before upload. The existing private Root-owned Drive archive reserves a fixed ID, uses create-only upload and verifies SHA-256 readback. Retries reuse the same evidence/bytes/file ID. Neither the mutable Google Doc nor current commercial policy is re-exported/re-read as accepted content.
 
-The OAuth user must own the private destination folder named `Root Health Introducer Agreements`. The application rejects public, domain, group or additional-user sharing. The master may be owned by another account if the Root account can copy it. Generated copies are owned by Root, with resharing disabled for editors, and shared as editor with only the frozen stored contact email. Google permission notification emails are disabled; the explicit Send action uses Root SMTP. Because sharing happens during generation, a recipient may see a draft in Shared with me before the email is sent. Non-Google recipients may require Workspace visitor-sharing support; failure to grant access stops generation rather than making a file public.
+The customer receives the accepted PDF attachment at the frozen contact email. Root receives its own confirmation/PDF at enquiries@roothealth.app. Both use Resend: `Root Health <enquiries@roothealth.app>`, reply-to `enquiries@roothealth.app`. Each channel has a durable pre-send claim and confirmed message-ID receipt. Started/unconfirmed deliveries are NEVER automatically resent. Check Resend manually before operational reconciliation. Existing invitation SMTP-era checkpoint fields remain compatible; other mailers are unchanged.
 
-Open/Copy Link do not mutate documents. Send/Resend always use the stored contact, never a browser-supplied email. Sending is blocked if effective commercial data has changed. SMTP acceptance, recipient and message ID are audited; SMTP acceptance is not proof of inbox delivery. Explicit resend is confirmed and logged separately, preserving the original sent timestamp/snapshot.
+If archiving fails, acceptance remains recorded. Root's Retry PDF / Notifications action resumes fulfilment; it cannot create consent, overwrite evidence or blindly resend a claimed email. A process crash can leave a three-minute lease; retry after expiry. Until fulfilment runs successfully, the customer-copy promise is pending. No background scheduler is installed. Monitor pending/uncertain states operationally.
 
-Draft updates and sent revisions create new copies. The old draft/sent row becomes superseded only after successful replacement generation. Accepted rows remain accepted even after amendments. The UI warns that manual edits are not copied into a regenerated document.
+## Public security
 
-Mark Accepted requires a sent agreement and explicit Root-admin confirmation that the returned document was reviewed and matches the displayed frozen commercial terms. The system cannot infer changes made manually inside Google Docs. If those terms were changed externally, create a correctly recorded revision first; do not attest to a mismatching snapshot. Acceptance records the existing frozen terms, not a silently refreshed current policy. This is a manual evidence record, not an introducer electronic-signature service or proof of signer identity/authority.
+Invitations use 32 random bytes, stored only as SHA-256 hashes in a private table, expiring after 90 days. A new explicit send can issue another invitation; existing valid invitations still target the same frozen version. Superseded versions cannot accept. Already accepted versions remain idempotent. Replacing commercial terms requires a new version, not an overwrite.
 
-A separate PDF is exported, saved privately in the Root folder, downloaded for SHA-256 readback verification, and then recorded with acceptance time/admin identity. The editable Doc remains separate. Accepted PDF uploads are create-only, never update/delete. Root can open the retained PDF directly in Drive. There is no Supabase Storage requirement. Drive owners/Workspace administrators can still edit/delete files outside this application: this is not WORM storage or a legal guarantee of perpetual retention. Establish backup, access, retention and legal-hold procedures before operational use.
+Tokens travel only in URL fragments then memory and same-origin JSON POST bodies. They are removed from the address bar using the existing browser history state, not placed in query strings, logs, local storage or referrers. Review requests do not accept or send emails. No admin endpoint or Supabase service key is exposed to the customer. Email is validated against the stored recipient. The configured HTTPS `NEXT_PUBLIC_SITE_URL` supplies links; Preview explicitly rejects roothealth.app instead of silently sending invitations to Production. No Vercel hostname is hard-coded.
 
-## Data and failure boundaries
+All new tables use RLS and deny public/anon/authenticated access. Service role has SELECT only; writes go through service-only RPCs. Acceptance and version changes lock the introducer, and agreement-ID uniqueness prevents duplicate acceptance. Legacy admin-accept operations are disabled server-side and in SQL.
 
-Migration: `20261004_introducer_google_agreements.sql`, after the existing schema and PR #65 migration.
+## Migrations and retirement
 
-- `organisation_introducer_agreements`: versioned Doc identity, source template/revision, frozen generated/sent/accepted terms, actor/time stamps and accepted PDF identity/hash. Unique introducer/version and document IDs. No row represents `not_generated`; `Needs updating` is a derived hash comparison.
-- `introducer_google_agreement_operations`: durable generation/send/accept operation IDs, progress checkpoints, three-minute leases and delivery receipts. Cancellation preserves its audit row and any partial Drive copy; it never deletes agreement evidence.
-- RPCs: `begin_introducer_google_operation`, `checkpoint_introducer_google_operation`, `finish_introducer_google_operation`, `cancel_introducer_google_operation`.
-- `guard_introducer_google_history` and its trigger prevent deletion, alteration of frozen identities/terms, alteration of first-sent evidence and any mutation of accepted/superseded rows.
-- RLS on both tables, no public/anon/authenticated grants, service-role SELECT only. Mutation is through the service-only RPCs. All operations lock the introducer before changing agreement state; unique request IDs and agreement version constraints prevent duplicate final records.
+Apply in order on the approved environment only:
+1. Existing PR #65 prerequisites.
+2. `20261004_introducer_google_agreements.sql`.
+3. `20261005_introducer_agreement_returns.sql` (retain the applied migration history).
+4. `20261006_introducer_direct_acceptance.sql`.
 
-External Google/SMTP calls cannot join a PostgreSQL transaction. A durable lease/checkpoint is written before each non-repeatable action. A retry uses the same operation ID. Tagged native Doc copies can be recovered after a lost copy response. If a copy was attempted but its identity cannot be recovered, the app fails closed: Root must reconcile the partial Drive state or explicitly cancel the unfinished operation before generating anew. No background retries or cleanup jobs run.
+The forward migration removes the return RPCs/acceptance gates, cancels unfinished legacy admin-accept operations while preserving their progress audit, and retains `introducer_google_agreement_returns` as immutable retired history. It never converts returned rows into acceptance. Apply during a maintenance window with no active agreement operations; reconcile any partial legacy PDF operation separately.
 
-PDF IDs are reserved and stored before upload. A failed database finalisation reuses the uploaded PDF after hash verification. A missing upload can retry under the same ID only while the source revision and PDF bytes still match the recorded expected hash. If not, manual reconciliation is required; the app never replaces an existing PDF. These interrupted-upload edge cases require live Google verification before release.
+New private tables: `introducer_agreement_review_copies`, `introducer_agreement_invitations`, `introducer_agreement_acceptances`. Review/final PDF bytes are private database snapshots; the final file also uses the existing Drive folder, not a new Supabase Storage bucket. New RPCs: `prepare_introducer_acceptance`, `accept_introducer_agreement`, `fulfil_introducer_acceptance`, plus evidence/operation guards. No accounting table/function changes or introducer activation changes.
 
-An SMTP-start checkpoint without a stored receipt means delivery is uncertain. Same-operation retry cannot send again. Root checks sent mail and explicitly chooses Resend if needed. If the receipt exists but finalisation failed, Retry only commits that receipt. Safe failed operations can be cancelled after their lease expires; uncertain delivery or started PDF archives cannot be cancelled through this UI.
+The old completion page/API/HMAC code is removed. `GOOGLE_AGREEMENTS_RETURN_SECRET` is unused and can be removed from environment configuration separately. No replacement signing secret is required. Previously sent completion links are obsolete: deliberately resend a new acceptance invitation after migration/configuration verification. Existing accepted agreements remain untouched.
 
-Agreement workflows do not alter introducer active/inactive status, policies, Stripe, commissions, revenue, settlement or remittance. The existing Change Commercial Terms workflow remains authoritative. Changes during an external operation may make a completed draft immediately stale; the server rechecks before send. No live accounting RPC is called by this feature.
+Do not roll the application back across these migrations while customers can accept. Disable new agreement sends/acceptance endpoints for rollback; retain all evidence, review snapshots, tokens, operations and Drive PDFs. Never cascade-delete accepted history.
+
+## Branding and legal wording
+
+Native `files.copy` plus text-only `replaceAllText` preserves template image/header objects. The review PDF is exported from that copy; final PDF assembly retains those pages and appends evidence. Automated tests exercise native-copy/image handling and PDF page preservation. A fresh live Google Doc and PDF still need visual verification; mocked coverage is not proof of live Google rendering.
+
+`Draft for legal review` remains in the Google master and frozen review pages. After solicitor approval, update the master and generate new versions. Never rewrite historical accepted copies.
 
 ## OAuth setup: stop here until authorised
 
@@ -84,43 +90,11 @@ Add these through the deployment provider's secret environment settings, first i
 | `GOOGLE_AGREEMENTS_REFRESH_TOKEN` | Local credential JSON `refresh_token` |
 | `GOOGLE_AGREEMENTS_FOLDER_ID` | Private Root folder ID |
 
-Reuse existing `ROOT_SMTP_USER`, `ROOT_SMTP_PASSWORD`, `ROOT_SMTP_FROM`, `ROOT_ADMIN_EMAIL` and Supabase URL/keys. Do not replace or broaden their existing Production configuration. No Google value uses a `NEXT_PUBLIC_` prefix. The master ID is a non-secret constant in code. No application OAuth callback, browser Google token, Google sign-in for introducers or new Supabase Auth redirect is needed.
+Reuse `RESEND_API_KEY`, `ROOT_ADMIN_EMAIL`, `NEXT_PUBLIC_SITE_URL` and the existing Supabase URL/keys. Do not replace or broaden their existing Production configuration. No Google value uses a `NEXT_PUBLIC_` prefix. The master ID is a non-secret constant in code. No application OAuth callback, browser Google token, Google sign-in for introducers or new Supabase Auth redirect is needed.
 
-### 5. Verify before enabling real operation
 
-Use synthetic recipients and an isolated database. Verify private permissions, literal replacement, editor access, email receipt, uncertain-delivery handling, manual acceptance and PDF readback/retry. Confirm no unsolicited Google sharing notifications and no production/customer messages. OAuth access, actual Drive permissions, SMTP and deployment have NOT been live verified by the mock suite. Keep the PR draft until these checks and the scope/retention decisions are resolved.
+## Verification
 
-## Rollback
+Run `npm run test:google-agreements` and the Personal referral/accounting, start, Corporate email-link and HR security suites. Local tests use synthetic data, mocked Google/Resend and PGlite. The direct-acceptance suite covers retirement, RLS, expiry, stale versions, explicit consent/authority, immutable evidence, duplicate submits, PDF integrity and interrupted fulfilment without blind email retries. Browser fixtures cover admin controls and the public form.
 
-Before records exist, revert the UI/routes and review a reverse migration. Once history exists, retain agreement/operation tables and Drive documents/PDFs; do not drop or cascade-delete evidence. Disable new operations by removing the Google connection from the affected environment, not by changing accounting or legacy introducer status. No rollback has been run.
-
-## Local verification
-
-48 tests passed: 21 agreement/desktop/mobile UI tests plus 27 existing Personal referral/accounting, start-page, Corporate email-link and HR security regressions. These use mocked Google/SMTP and local PGlite, not live infrastructure. Both 390px and 1280px screenshots were inspected. `git diff --check` passed.
-
-Compilation and lint/type validation passed. The production build stopped during page-data collection for the existing `/api/stripe/personal-checkout` route because no Stripe API key was supplied locally. No Stripe credentials were added and that route was not changed. A full credentialed build and live Google/SMTP verification remain outstanding.
-
-Run `npm run test:google-agreements` after installing the existing dependencies; the UI tests use Chrome (`CHROME_PATH` can override its location). The complete focused run also includes `tests/personal-referrals.test.mjs`, `tests/personal-start.test.mjs`, `tests/corporate-email-links.test.mjs` and `tests/hr-coach-security.test.mjs` with Node's `--experimental-default-type=module --test` flags. This Windows checkout used the existing temporary module loader to resolve PGlite from the local verification dependency directory; no dependency versions were changed.
-
-## References
-
-- Native template copy/replacement: https://developers.google.com/workspace/docs/api/how-tos/merge
-- Scope boundaries: https://developers.google.com/workspace/drive/api/guides/api-specific-auth
-- Private copy default visibility: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/copy
-- Local OAuth client login: https://docs.cloud.google.com/sdk/gcloud/reference/auth/application-default/login
-- Refresh token expiry: https://developers.google.com/identity/protocols/oauth2
-# Returned-for-review handoff (2026-10-05)
-
-Deployment prerequisites (not applied automatically): apply `20261005_introducer_agreement_returns.sql` after the existing agreement migration, and set server-only `GOOGLE_AGREEMENTS_RETURN_SECRET` to a cryptographically random value of at least 32 characters. `NEXT_PUBLIC_SITE_URL` must be the correct HTTPS site origin. Rotating the secret invalidates outstanding completion links; explicitly resend to issue a fresh link. Do not put this secret in any public variable.
-
-State flow: no record -> draft -> sent -> returned (derived from the immutable handoff row) -> admin-confirmed accepted/PDF. A new revision supersedes an unaccepted version but preserves its handoff evidence. Accepted versions remain immutable. Neither a page visit nor customer completion accepts a contract or creates a PDF. Existing accepted agreements are unaffected; existing sent agreements need a deliberate resend to obtain the new completion link before admin acceptance.
-
-The email includes a 90-day signed capability bound to the agreement ID, frozen terms hash and stored email. It is a bearer link, not proof of the sender's identity or a legal signature; anyone it is forwarded to can request review, never accept. The fragment keeps the token out of HTTP request URLs/referrers; the page removes it from browser history and does not persist it. Completion requires a checkbox and same-origin JSON POST. The service-only RPC checks the current sent version and serialises with agreement operations. Anonymous/authenticated clients cannot read/write handoff rows or invoke RPCs.
-
-Root sees `Returned - review required`, timestamp and notification uncertainty. A durable one-time notification claim precedes Resend; delivery failures/crashes leave the return intact and cannot trigger duplicate automatic emails. `started` or `unconfirmed` means check Resend and the admin queue, not retry blindly. Notification goes only to enquiries@roothealth.app, from Root Health <enquiries@roothealth.app>, with the same reply-to. No commercial terms are included in the public page/API response. Admin must review the editable Doc and explicitly Accept Agreement to use the existing PDF archive flow.
-
-Branding: fresh generation calls Drive `files.copy` on the current master, then only Docs `replaceAllText` requests. This preserves native image/header/layout objects rather than reconstructing a document. Archive exports that exact generated document. An embedded-image fixture covers this request path; it is not visual proof of the live template/logo or Google PDF rendering. Fresh live Doc and PDF visual checks remain required before merge readiness. Old generated/accepted documents are intentionally not updated.
-
-Legal-review wording: `Draft for legal review` belongs to the Google master template, not application-generated text. It is intentionally retained. After solicitor approval, edit only the master wording and generate a new version; never rewrite historic accepted Docs/PDFs. No legal approval is implied by marking a test agreement accepted.
-
-Rollback: revert application changes before removing the new migration guards. Do not drop returned evidence or bypass the handoff requirement for pending accept operations. No Stripe, commission, settlement, remittance or accounting changes are included.
+This change does not configure OAuth/environment variables, apply live migrations, send real messages or deploy Production. Before rollout verify the configured Preview origin, real private PDF export/upload, fresh logo appearance, deliverability, archive retry and legal/privacy/retention requirements. Drive owners can still change/delete files outside this application; it is not WORM storage.

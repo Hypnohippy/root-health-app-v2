@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { publicAgreementState } from '../lib/introducerGoogleAgreementServer.js';
+import { ACCEPTANCE_TEXT,AUTHORITY_TEXT } from '../lib/introducerAgreementConsent.js';
 
 const failedOperation={id:'c1e4fb5c-4b17-410d-9a6e-9f0ca24c4758',introducer_id:'2fc71a5f-1e53-4928-8ab1-aa53b38639af',
   agreement_id:'33333333-3333-4333-8333-333333333333',action:'generate',state:'failed',lease_until:null,
@@ -73,10 +74,9 @@ const click=label=>{const button=[...document.querySelectorAll('button')].find(b
   shouldConfirm=false;click('Send Agreement');await wait();const declined=writes.length===1;
   shouldConfirm=true;click('Send Agreement');await wait();const sent=document.body.textContent.includes('Agreement: Sent');
   if([...document.querySelectorAll('button')].some(b=>b.textContent==='Accept Agreement'))throw Error('Acceptance available before return');
-  row={...row,returned_at:'2026-10-05T12:00:00Z',return_notification_state:'confirmed'};
+  row={...row,status:'accepted',accepted_at:'2026-10-05T12:00:00Z',pdf_document_url:'https://drive.google.com/file/d/fixture-pdf/view',acceptance:{accepted_at:'2026-10-05T12:00:00Z',archive_state:'archived',evidence:{full_name:'Jo Test',email:'test@example.test'},deliveries:{}}};
   click('Refresh');await wait();
-  if(!document.body.textContent.includes('Returned - review required'))throw Error('Return not visible');
-  click('Accept Agreement');await wait();const accepted=document.body.textContent.includes('Agreement: Accepted');
+  const accepted=document.body.textContent.includes('Agreement: Accepted');
   document.getElementById('result').textContent=JSON.stringify({draft,sent,accepted,declined,actions:writes.map(w=>w.action),confirmed:writes.filter(w=>w.action!=='generate').every(w=>w.confirmed),pdf:!![...document.querySelectorAll('a')].find(a=>a.textContent==='Open PDF'),overflow:document.documentElement.scrollWidth>innerWidth,confirmations:confirmations.length});
 }catch(error){document.getElementById('result').textContent=JSON.stringify({error:error.message});}})();
 </script></body></html>`;
@@ -104,36 +104,48 @@ for(const [width,retry,scenario='valid'] of [[390,false],[1280,false],[1280,true
   }
   assert.equal(result.error,undefined);assert.equal(result.draft,true);assert.equal(result.sent,true);assert.equal(result.accepted,true);
   assert.equal(result.declined,true);assert.equal(result.confirmed,true);assert.equal(result.pdf,true);assert.equal(result.overflow,false);
-  assert.deepEqual(result.actions,['generate','send','accept']);
+  assert.deepEqual(result.actions,['generate','send']);
   console.log('Agreement UI screenshot: '+path.join(folder,width+'-'+retry+'-'+scenario+'.png'));
 });
 
-test('customer completion page performs no GET-side write and requires explicit checked POST',{skip:!fs.existsSync(chrome)},async()=>{
-  const source=fs.readFileSync('app/introducer-agreement/complete/page.js','utf8');
-  const {code}=await swc.transform(source,{filename:'CompleteAgreement.js',jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'classic'}}},module:{type:'commonjs'}});
+test('public agreement form retains fragment in memory and accepts only after identity and consent',{skip:!fs.existsSync(chrome)},async()=>{
+  const source=fs.readFileSync('app/introducer-agreement/accept/page.js','utf8');
+  const {code}=await swc.transform(source,{filename:'AcceptAgreement.js',jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'classic'}}},module:{type:'commonjs'}});
+  const gate=await swc.transform(fs.readFileSync('components/AuthGate.js','utf8'),{filename:'AuthGate.js',jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'classic'}}},module:{type:'commonjs'}});
+  const navigator=await swc.transform(fs.readFileSync('lib/rootNavigator.js','utf8'),{filename:'rootNavigator.js',jsc:{parser:{syntax:'ecmascript'}},module:{type:'commonjs'}});
   const page=`<!doctype html><html><body><div id="root"></div><pre id="result" hidden></pre><script>${scripts}</script><script>
-    let writes=[];window.fetch=async(url,options)=>{writes.push({url,...options});return {ok:true,json:async()=>({returned:true})};};
-    function require(name){if(name==='react')return React;throw Error(name);}
+    const redirects=[];
+    const navigationModule={exports:{}};(()=>{const module=navigationModule,exports=module.exports;${navigator.code}})();
+    const gateModule={exports:{}};(()=>{const module=gateModule,exports=module.exports;${gate.code}})();
+    let writes=[];window.fetch=async(url,options)=>{const body=JSON.parse(options.body);writes.push({url,body});return {ok:true,json:async()=>body.action==='review'
+      ? {accepted:false,version:1,email:'jo@example.test',pdf_base64:btoa('%PDF-fixture'),review_hash:'review-hash'}:{accepted:true}};};
+    function require(name){if(name==='react')return React;if(name==='next/navigation')return {usePathname:()=>'/introducer-agreement/accept',useRouter:()=>({replace:url=>redirects.push(url)})};
+      if(name.includes('RootContext'))return {useRoot:()=>({identity:null,loading:false})};if(name.includes('rootNavigator'))return navigationModule.exports;
+      if(name.includes('introducerAgreementConsent'))return ${JSON.stringify({ACCEPTANCE_TEXT,AUTHORITY_TEXT})};throw Error(name);}
     const module={exports:{}},exports=module.exports;
     ${code}
-    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(module.exports.default));
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(gateModule.exports.default,null,React.createElement(module.exports.default))));
     const wait=()=>new Promise(resolve=>setTimeout(resolve,50));
     (async()=>{try{
-      for(let i=0;i<30&&!document.querySelector('input');i++)await wait();await wait();
-      const initial=writes.length,disabled=document.querySelector('button').disabled,cleared=location.hash==='';
-      document.querySelector('input').click();await wait();document.querySelector('button').click();await wait();
-      document.getElementById('result').textContent=JSON.stringify({initial,disabled,cleared,writes,
-        done:document.body.textContent.includes('It is not accepted yet.')});
+      for(let i=0;i<30&&!document.querySelector('form');i++)await wait();
+      const initial=writes.map(w=>w.body.action),cleared=location.hash==='';
+      const inputs=[...document.querySelectorAll('input')];
+      const set=(element,value)=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(element,value);element.dispatchEvent(new Event('input',{bubbles:true}));};
+      set(inputs[0],'Jo Test');await wait();set(inputs[2],'Individual');await wait();set(inputs[4],'2026-10-05');await wait();
+      const disabled=document.querySelector('button').disabled;
+      document.querySelector('input[type=checkbox]').click();await wait();document.querySelector('button').click();await wait();
+      document.getElementById('result').textContent=JSON.stringify({initial,cleared,disabled,writes,redirects,done:document.body.textContent.includes('Your Root Health Introducer Agreement has been accepted.')});
     }catch(error){document.getElementById('result').textContent=JSON.stringify({error:error.message});}})();
     </script></body></html>`;
-  const file=path.join(folder,'completion.html');fs.writeFileSync(file,page);
-  const run=spawnSync(chrome,['--headless=new','--disable-gpu','--no-sandbox','--disable-extensions',
-    '--user-data-dir='+path.join(folder,'completion-profile'),'--virtual-time-budget=2500','--dump-dom',pathToFileURL(file).href+'#synthetic-capability'],
-    {encoding:'utf8',timeout:30000,maxBuffer:5000000});
+  const file=path.join(folder,'acceptance.html');fs.writeFileSync(file,page);
+  const run=spawnSync(chrome,['--headless=new','--disable-gpu','--no-sandbox','--disable-extensions','--user-data-dir='+path.join(folder,'acceptance-profile'),
+    '--virtual-time-budget=3500','--dump-dom',pathToFileURL(file).href+'#synthetic-capability'],{encoding:'utf8',timeout:30000,maxBuffer:5000000});
   assert.equal(run.status,0,run.stderr);
   const raw=run.stdout.match(/<pre id="result" hidden="">([^<]+)<\/pre>/)?.[1];assert.ok(raw);
   const result=JSON.parse(raw.replaceAll('&quot;','"').replaceAll('&amp;','&'));
-  assert.equal(result.error,undefined);assert.equal(result.initial,0);assert.equal(result.disabled,true);assert.equal(result.cleared,true);
-  assert.equal(result.writes.length,1);assert.equal(result.writes[0].method,'POST');assert.equal(result.done,true);
-  assert.deepEqual(JSON.parse(result.writes[0].body),{token:'synthetic-capability',confirmed:true});
+  assert.equal(result.error,undefined);assert.deepEqual(result.initial,['review']);assert.equal(result.cleared,true);assert.equal(result.disabled,true);assert.equal(result.done,true);
+  assert.deepEqual(result.redirects,[]);
+  assert.deepEqual(result.writes.map(w=>w.body.action),['review','accept']);
+  assert.ok(result.writes.every(w=>w.body.token==='synthetic-capability' && !w.url.includes('synthetic-capability')));
+  assert.equal(result.writes[1].body.evidence.confirmed,true);assert.equal(result.writes[1].body.evidence.full_name,'Jo Test');
 });

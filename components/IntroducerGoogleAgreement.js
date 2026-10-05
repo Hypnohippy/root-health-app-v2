@@ -39,17 +39,12 @@ export default function IntroducerGoogleAgreement({introducer}) {
       if(!confirmed)return;
     }
     if(action==='send') {
-      confirmed=window.confirm(`${latest?.status==='sent'||uncertain?'Resend':'Send'} this agreement to ${latest?.terms_snapshot.contact_email}?${uncertain?' The previous delivery outcome is uncertain. Check Resend (and Root sent mail for older SMTP attempts) first; this may send a duplicate.':''}`);
-      if(!confirmed)return;
-    }
-    if(action==='accept') {
-      confirmed=window.confirm('Confirm Root has received the completed agreement, reviewed it, and verified its commercial terms match the frozen terms shown below. A separate PDF snapshot will be retained. This does not change commission or payment records.');
+      confirmed=window.confirm(`${latest?.status==='sent'||uncertain?'Resend':'Send'} this agreement to ${latest?.terms_snapshot.contact_email}? Confirm its content matches the frozen commercial terms below. The first send freezes the review PDF; resends use that original copy, not later Google Doc edits.${uncertain?' The previous delivery outcome is uncertain. Check Resend (and Root sent mail for older SMTP attempts) first; this may send a duplicate.':''}`);
       if(!confirmed)return;
     }
     const body=retry || {action,introducerId:introducer.id,agreementId:latest?.id,requestId:crypto.randomUUID(),specialTerms:special,confirmed};
-    if(action==='accept')body.confirmed=true;
     setBusy(true);setError('');setMessage('');
-    try {await api('POST',body);setFailedRequest(null);await load();setMessage(action==='accept'?'Acceptance and PDF recorded.':action==='send'?'Email accepted by Resend.':'Agreement generated.');}
+    try {await api('POST',body);setFailedRequest(null);await load();setMessage(action==='fulfil'?'Fulfilment checked. Review archive and email status below.':action==='send'?'Email accepted by Resend.':'Agreement generated.');}
     catch(e){await load();setError(e.message);setFailedRequest(body);}
     finally {setBusy(false);}
   }
@@ -63,8 +58,10 @@ export default function IntroducerGoogleAgreement({introducer}) {
   const unavailable=busy || !data?.googleConfigured || Boolean(data?.configurationError);
   const retryBody=pending?{requestId:pending.id,action:pending.action,introducerId:introducer.id,agreementId:pending.agreement_id,confirmed:true,specialTerms:special}:failedRequest;
   return <section aria-label={`Agreement for ${introducer.name}`} style={{borderTop:'1px solid #dce3e7',marginTop:18,paddingTop:16,minWidth:0}}>
-    <h3 style={{fontSize:16,margin:'0 0 10px'}}>Agreement: {data?(latest?.status==='sent' && latest.returned_at?'Returned - review required':label(latest?.status)):'Loading'}</h3>
-    {latest?.returned_at && <p>Returned: {date(latest.returned_at)}{latest.status==='sent' && latest.return_notification_state!=='confirmed'?' | Root notification unconfirmed; review required.':''}</p>}
+    <h3 style={{fontSize:16,margin:'0 0 10px'}}>Agreement: {data?(latest?.acceptance?.archive_state==='pending'?'Accepted - PDF pending':label(latest?.status)):'Loading'}</h3>
+    {latest?.acceptance && <><p>Customer accepted: {date(latest.acceptance.accepted_at)} by {latest.acceptance.evidence.full_name} ({latest.acceptance.evidence.email})</p>
+      <p>Customer email: {latest.acceptance.deliveries.customer?.state || 'pending'} | Root email: {latest.acceptance.deliveries.root?.state || 'pending'}</p>
+      <p>Unconfirmed email delivery requires checking Resend; retry does not resend a claimed email.</p></>}
     {error && <p role="alert" style={{color:'#a32335',overflowWrap:'anywhere'}}>{error}</p>}
     {message && <p role="status">{message}</p>}
     {data && !data.googleConfigured && <p>Google agreement connection not configured.</p>}
@@ -81,12 +78,12 @@ export default function IntroducerGoogleAgreement({introducer}) {
         {latest && <><a style={button} href={latest.document_url} target="_blank" rel="noopener noreferrer">{latest.status==='accepted'?'Open Accepted Agreement':'Open Agreement'}</a>
           <button style={button} onClick={copy}>Copy Link</button></>}
         {latest?.status==='draft' && <button style={button} disabled={unavailable || mismatch || !!pending} onClick={()=>run('send')}>{uncertain?'Resend':'Send Agreement'}</button>}
-        {latest?.status==='sent' && <><button style={button} disabled={unavailable || mismatch || !!pending} onClick={()=>run('send')}>Resend</button>
-          {latest.returned_at && <button style={button} disabled={unavailable || !!pending} onClick={()=>run('accept')}>Accept Agreement</button>}</>}
+        {latest?.status==='sent' && !latest.acceptance && <button style={button} disabled={unavailable || mismatch || !!pending} onClick={()=>run('send')}>Resend</button>}
+        {latest?.acceptance && <button style={button} disabled={unavailable} onClick={()=>run('fulfil')}>Retry PDF / Notifications</button>}
         {latest?.pdf_document_url && <a style={button} href={latest.pdf_document_url} target="_blank" rel="noopener noreferrer">Open PDF</a>}
-        {latest && (mismatch || latest.status==='accepted') && <button style={button} disabled={unavailable || !!pending} onClick={()=>run('generate')}>
+        {latest && (mismatch || latest.status==='accepted') && <button style={button} disabled={unavailable || !!pending || latest.acceptance?.archive_state==='pending'} onClick={()=>run('generate')}>
           {latest.status==='accepted'?'Create Amendment':latest.status==='draft'?'Update Agreement':'Create Revised Agreement'}</button>}
-        {retryBody && !uncertain && <button style={button} disabled={unavailable} onClick={()=>run(retryBody.action,retryBody)}>Retry Pending Operation</button>}
+        {retryBody && retryBody.action!=='accept' && !uncertain && <button style={button} disabled={unavailable} onClick={()=>run(retryBody.action,retryBody)}>Retry Pending Operation</button>}
         {pending?.canCancel && <button style={button} disabled={busy} onClick={cancelPending}>Cancel Pending Operation</button>}
         <button style={button} disabled={busy} onClick={load}>Refresh</button>
       </div>
@@ -95,8 +92,8 @@ export default function IntroducerGoogleAgreement({introducer}) {
           <dt style={{fontWeight:600}}>{key.replaceAll('_',' ')}</dt><dd style={{marginLeft:0}}>{String(value) || 'Not specified'}</dd></div>)}</dl></details>}
       {data.agreements.length>0 && <details style={{marginTop:12}}><summary>Agreement history ({data.agreements.length})</summary>
         <ul style={{paddingLeft:20}}>{data.agreements.map(a=><li key={a.id} style={{marginTop:10,overflowWrap:'anywhere'}}>
-          <a href={a.document_url} target="_blank" rel="noopener noreferrer">Version {a.version}</a> - {a.status==='sent' && a.returned_at?'Returned - review required':label(a.status)}
-          <div>Generated: {date(a.generated_at)}{a.sent_at?` | Sent: ${date(a.sent_at)}`:''}{a.returned_at?` | Returned: ${date(a.returned_at)}`:''}{a.accepted_at?` | Accepted: ${date(a.accepted_at)}`:''}</div>
+          <a href={a.document_url} target="_blank" rel="noopener noreferrer">Version {a.version}</a> - {a.acceptance?.archive_state==='pending'?'Accepted - PDF pending':label(a.status)}
+          <div>Generated: {date(a.generated_at)}{a.sent_at?` | Sent: ${date(a.sent_at)}`:''}{a.acceptance?.accepted_at || a.accepted_at?` | Accepted: ${date(a.acceptance?.accepted_at || a.accepted_at)}`:''}</div>
           {a.pdf_document_url && <a href={a.pdf_document_url} target="_blank" rel="noopener noreferrer">Accepted PDF</a>}
         </li>)}</ul></details>}
     </>}

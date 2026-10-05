@@ -1,6 +1,7 @@
 import { rootAgreementAccess, loadAgreementState, publicAgreementState, runGoogleAgreement, queryResult } from '../../../../../lib/introducerGoogleAgreementServer.js';
 import { createAgreementDrive, googleAgreementConfig } from '../../../../../lib/googleAgreementDrive.js';
-import { agreementMailer } from '../../../../../lib/introducerAgreementEmail.js';
+import { agreementMailer,agreementAcceptanceNotifier } from '../../../../../lib/introducerAgreementEmail.js';
+import { acceptanceOrigin,fulfilAcceptance } from '../../../../../lib/introducerAgreementAcceptance.js';
 
 export const runtime='nodejs';
 export const maxDuration=120;
@@ -25,7 +26,7 @@ export async function POST(request) {
     const text=await request.text();
     if(text.length>10000) return reply({error:'Request too large.'},413);
     const body=JSON.parse(text);
-    if(!uuid(body.introducerId) || !uuid(body.requestId) || !['generate','send','accept','cancel'].includes(body.action))
+    if(!uuid(body.introducerId) || !uuid(body.requestId) || !['generate','send','fulfil','cancel'].includes(body.action))
       return reply({error:'Invalid agreement operation.'},400);
     if(body.action==='cancel') {
       if(body.confirmed!==true)return reply({error:'Cancellation confirmation required.'},400);
@@ -33,11 +34,18 @@ export async function POST(request) {
       return reply({success:true});
     }
     const drive=createAgreementDrive(googleAgreementConfig());
+    if(body.action==='fulfil') {
+      const state=await loadAgreementState(access.db,body.introducerId);
+      const agreement=state.agreements.find(a=>a.id===body.agreementId && a.acceptance);
+      if(!agreement)return reply({error:'Customer acceptance required.'},409);
+      return reply({success:true,...await fulfilAcceptance({db:access.db,agreement,drive,notify:(...args)=>agreementAcceptanceNotifier()(...args)})});
+    }
     const mail=body.action==='send'?agreementMailer():null;
-    const result=await runGoogleAgreement({...access,body,drive,mail});
+    const origin=body.action==='send'?acceptanceOrigin():undefined;
+    const result=await runGoogleAgreement({...access,body,drive,mail,origin});
     return reply({success:true,...result});
   } catch(error) {
-    if(['Agreement completion link is not configured.','Agreement must be returned before acceptance.','Root agreement email is not configured.','Root agreement email delivery is unconfirmed. Check Resend before an explicit resend.'].includes(error.message))
+    if(['Agreement acceptance site is not configured.','Agreement acceptance Preview origin must not be Production.','Customer acceptance required.','Root agreement email is not configured.','Root agreement email delivery is unconfirmed. Check Resend before an explicit resend.'].includes(error.message))
       return reply({error:error.message},409);
     // Only our fixed messages may reach the browser; provider/network diagnostics may contain credentials.
     const safe=/^(Google agreement connection|Root SMTP|Agreement needs updating|Confirm |Refresh and select|An effective commercial|A name and valid|Unsupported commercial|Agreement fields|Operation identity|Agreement database|Copy outcome uncertain|Multiple operation|Master |The agreement still|Root must own|Agreement sharing|Select the private|Recipient does not|Document changed|Archive hash|Archive identity|Invalid or oversized|Uploaded PDF|Google authorisation|Google agreement operation|Email outcome uncertain)/;

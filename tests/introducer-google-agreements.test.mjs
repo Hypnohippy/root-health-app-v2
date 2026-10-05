@@ -8,15 +8,11 @@ import { createAgreementDrive,googleAgreementConfig } from '../lib/googleAgreeme
 import { agreementMail,agreementMailer } from '../lib/introducerAgreementEmail.js';
 import { rootAgreementAccess,runGoogleAgreement,publicAgreementState } from '../lib/introducerGoogleAgreementServer.js';
 import { GET,POST } from '../app/api/admin/introducers/google-agreements/route.js';
-import { completionLink,completionId,verifyCompletion,returnConfig,submitAgreementReturn } from '../lib/introducerAgreementReturn.js';
-import { agreementReturnNotifier } from '../lib/introducerAgreementEmail.js';
-import { POST as completePOST } from '../app/api/introducer-agreement/complete/route.js';
 import { getRootDestination } from '../lib/rootNavigator.js';
 
 const intro={id:'11111111-1111-4111-8111-111111111111',name:'Test Partner',contact_name:'Jo Test',contact_email:'jo@example.test',
   introducer_market:'both',introducer_type:'practitioner',referral_code:'jo-test',vat_registered:false,notes:'PRIVATE INTERNAL NOTE'};
 const actor='22222222-2222-4222-8222-222222222222';
-const returnEnv={GOOGLE_AGREEMENTS_RETURN_SECRET:'synthetic-secret-for-tests-only-32-characters',NEXT_PUBLIC_SITE_URL:'https://preview.example.test'};
 const policy={commission_percent:20,commission_basis:'collected_subscription_revenue',commission_structure:'recurring',effective_from:'2020-01-01T00:00:00Z'};
 const terms=()=>agreementTerms(intro,[policy]);
 const draft=()=>({id:randomUUID(),introducer_id:intro.id,version:1,status:'draft',document_id:'doc_1',document_url:'https://docs.google.com/document/d/doc_1/edit',terms_snapshot:terms(),terms_hash:termsHash(terms())});
@@ -49,124 +45,32 @@ test('terms mismatch is derived and accepted history remains visible',()=>{
   assert.equal(termsHash({...terms(),special_terms:'New'} )===a.terms_hash,false);
 });
 
-test('completion links are expiring version/recipient-bound capabilities, never admin authentication',()=>{
-  const a=draft(),config=returnConfig(returnEnv),now=Date.now();
-  const link=completionLink(a,config,now),token=new URL(link).hash.slice(1);
-  assert.equal(new URL(link).search,'');assert.equal(completionId(token),a.id);
-  verifyCompletion(token,a,config,now);
-  for(const changed of [{...a,id:randomUUID()},{...a,terms_hash:'b'.repeat(64)},
-    {...a,terms_snapshot:{...a.terms_snapshot,contact_email:'other@example.test'}}])
-    assert.throws(()=>verifyCompletion(token,changed,config,now),/Invalid/);
-  assert.throws(()=>verifyCompletion(token,a,config,now+91*86400000),/Invalid/);
-  assert.throws(()=>verifyCompletion(token.slice(0,-1)+'!',a,config),/Invalid/);
-  assert.throws(()=>returnConfig({}),/not configured/);
-  assert.equal(getRootDestination(null,'/introducer-agreement/complete'),null);
-});
-
-test('customer mail explains explicit completion and Root notification uses Root-branded Resend only',async()=>{
-  const a=draft(),link=completionLink(a,returnConfig(returnEnv));
-  const message=agreementMail(a,intro.contact_email,link);
-  assert.ok(message.text.includes(link));assert.match(message.text,/Root Health will then review/);
-  assert.doesNotMatch(message.text,/save\/share|return\/share/);
-  let sent;
-  await agreementReturnNotifier({RESEND_API_KEY:'fixture'},async(_url,options)=>{
-    sent=JSON.parse(options.body);return Response.json({id:'notification-id'});
-  })(a,'https://preview.example.test/admin/introducers');
-  assert.deepEqual(sent.to,['enquiries@roothealth.app']);assert.equal(sent.from,'Root Health <enquiries@roothealth.app>');
-  assert.equal(sent.reply_to,'enquiries@roothealth.app');assert.match(sent.text,/Jo|Test Partner/);
-  assert.ok(sent.text.includes(intro.contact_email));assert.match(sent.text,/preview.example.test\/admin\/introducers/);
-});
-
-test('public return is POST-only, rejects cross-origin/unconfirmed requests and has no admin/Drive actions',async()=>{
-  const previous={...process.env};Object.assign(process.env,returnEnv);
-  try {
-    const make=(origin,body)=>new Request('https://preview.example.test/api/introducer-agreement/complete',{
-      method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    assert.equal((await completePOST(make('https://evil.example',{confirmed:true}))).status,403);
-    assert.equal((await completePOST(make('https://preview.example.test',{confirmed:false}))).status,400);
-    const source=fs.readFileSync('app/api/introducer-agreement/complete/route.js','utf8');
-    assert.doesNotMatch(source,/export.*GET|drive\.|runGoogleAgreement|finish_introducer/);
-  } finally {for(const key of Object.keys(returnEnv)) {if(previous[key]===undefined)delete process.env[key];else process.env[key]=previous[key];}}
-});
-
-test('returned handoff is idempotent, immutable and service-only; never creates PDF or accepts',async()=>{
-  const db=await database();try {
-    const a=await generated(db);
-    await assert.rejects(db.query('select return_introducer_google_agreement($1)',[a.id]),/current sent/);
-    const send=await begin(db,'send',{agreement_id:a.id,current_terms_hash:a.terms_hash});
-    await finish(db,send,{message_id:'receipt',recipient:intro.contact_email});
-    const rpc=()=>db.query('select return_introducer_google_agreement($1) claimed',[a.id]);
-    assert.equal((await rpc()).rows[0].claimed,true);assert.equal((await rpc()).rows[0].claimed,false);
-    const evidence=(await db.query('select * from introducer_google_agreement_returns')).rows[0];assert.ok(evidence.returned_at);
-    const row=(await db.query('select * from organisation_introducer_agreements')).rows[0];
-    assert.equal(row.status,'sent');assert.equal(row.pdf_document_id,null);assert.equal(row.accepted_at,null);
-    assert.deepEqual(row.terms_snapshot,a.terms_snapshot);
-    await assert.rejects(db.exec('delete from introducer_google_agreement_returns'),/cannot be deleted/);
-    await assert.rejects(db.exec("update introducer_google_agreement_returns set returned_at=now()+interval '1 day'"),/immutable/);
-    await db.query('select record_introducer_return_notification($1,$2)',[a.id,'notification']);
-    await db.query('select record_introducer_return_notification($1,$2)',[a.id,'replacement']);
-    assert.equal((await db.query('select notification_message_id from introducer_google_agreement_returns')).rows[0].notification_message_id,'notification');
-    for(const role of ['anon','authenticated']) {
-      await db.exec('set role '+role);
-      await assert.rejects(rpc(),/permission denied/);
-      await assert.rejects(db.exec('select * from introducer_google_agreement_returns'),/permission denied/);
-      await db.exec('reset role');
-    }
-  }finally{await db.close();}
-});
-
-test('return notification failure persists return and repeated completion never resends',async()=>{
-  const a=draft(),config=returnConfig(returnEnv),token=new URL(completionLink(a,config)).hash.slice(1);
-  let claimed=false,sends=0,receipt='unset';
-  const db={from:()=>({select:()=>({eq:()=>({single:async()=>({data:a})})})}),rpc:async(name,args)=>{
-    if(name==='return_introducer_google_agreement'){const fresh=!claimed;claimed=true;return{data:fresh};}
-    receipt=args.p_message_id;return {};
-  }};
-  const args={db,token,config,notify:async()=>{sends++;throw Error('ambiguous provider response');}};
-  assert.deepEqual(await submitAgreementReturn(args),{returned:true});
-  assert.deepEqual(await submitAgreementReturn(args),{returned:true});assert.equal(sends,1);assert.equal(receipt,null);
-  await assert.rejects(submitAgreementReturn({...args,token:'invalid'}));assert.equal(sends,1);
-});
-
-test('superseded links and in-progress revisions cannot return; fresh sent versions require their own handoff',async()=>{
-  const db=await database();try {
-    const a=await generated(db),send=await begin(db,'send',{agreement_id:a.id,current_terms_hash:a.terms_hash});
-    await finish(db,send,{message_id:'receipt',recipient:intro.contact_email});
-    const next=await begin(db,'generate',{previous_id:a.id,terms:terms(),terms_hash:a.terms_hash,template_id:MASTER_DOCUMENT_ID});
-    await assert.rejects(db.query('select return_introducer_google_agreement($1)',[a.id]),/current sent/);
-    await checkpoint(db,next,{merged:true});await finish(db,next,{document_id:'next',document_url:'https://docs.google.com/document/d/next/edit'});
-    await assert.rejects(db.query('select return_introducer_google_agreement($1)',[a.id]),/current sent/);
-    const nextSend=await begin(db,'send',{agreement_id:next.agreement_id,current_terms_hash:a.terms_hash});
-    await finish(db,nextSend,{message_id:'next-receipt',recipient:intro.contact_email});
-    await assert.rejects(begin(db,'accept',{agreement_id:next.agreement_id,confirmed:true}),/must be returned/);
-  }finally{await db.close();}
-});
 test('Resend uses only the stored recipient and never automatically retries ambiguous delivery',async()=>{
   const a=draft();const m=agreementMail(a,intro.contact_email);assert.equal(m.to,intro.contact_email);
   assert.match(m.text,/enquiries@roothealth.app/);assert.match(m.text,/Hi Jo Test/);
   assert.throws(()=>agreementMail(a,'attacker@example.test'),/mismatch/);
   assert.throws(()=>agreementMailer({ROOT_SMTP_USER:'fixture',ROOT_SMTP_PASSWORD:'fixture'},()=>({})),/not configured/);
   let calls=0;
-  const send=agreementMailer({...returnEnv,RESEND_API_KEY:'fixture'},async()=>{calls++;throw new Error('timeout containing a secret');});
-  await assert.rejects(send(a,'attacker@example.test',randomUUID()),/mismatch/);assert.equal(calls,0);
-  await assert.rejects(send(a,intro.contact_email,randomUUID()),/^Error: Root agreement email delivery is unconfirmed/);assert.equal(calls,1);
+  const send=agreementMailer({RESEND_API_KEY:'fixture'},async()=>{calls++;throw new Error('timeout containing a secret');});
+  await assert.rejects(send(a,'attacker@example.test',randomUUID(),'https://preview.example.test/introducer-agreement/accept#test'),/mismatch/);assert.equal(calls,0);
+  await assert.rejects(send(a,intro.contact_email,randomUUID(),'https://preview.example.test/introducer-agreement/accept#test'),/^Error: Root agreement email delivery is unconfirmed/);assert.equal(calls,1);
 });
 test('Resend enforces Root sender branding, configuration and confirmed message-ID receipts',async()=>{
   let sent,headers;
-  const env={...returnEnv,RESEND_API_KEY:'fixture',ROOT_SMTP_FROM:'Fuelgeist <other@example.test>'};
+  const env={RESEND_API_KEY:'fixture',ROOT_SMTP_FROM:'Fuelgeist <other@example.test>'};
   const id=randomUUID();
   const send=agreementMailer(env,async(url,options)=>{
     assert.equal(url,'https://api.resend.com/emails');assert.equal(options.method,'POST');
     headers=options.headers;sent=JSON.parse(options.body);return Response.json({id:'resend-receipt'});
   });
-  assert.deepEqual(await send(draft(),intro.contact_email,id),{message_id:'resend-receipt',recipient:intro.contact_email});
+  assert.deepEqual(await send(draft(),intro.contact_email,id,'https://preview.example.test/introducer-agreement/accept#test'),{message_id:'resend-receipt',recipient:intro.contact_email});
   assert.equal(sent.from,'Root Health <enquiries@roothealth.app>');assert.equal(sent.reply_to,'enquiries@roothealth.app');
   assert.deepEqual(sent.to,[intro.contact_email]);assert.doesNotMatch(JSON.stringify(sent),/fuelgeist|fixture/i);
   assert.equal(headers.Authorization,'Bearer fixture');assert.equal(headers['Idempotency-Key'],`root-agreement-${id}`);
   for(const key of [undefined,'','   '])assert.throws(()=>agreementMailer({RESEND_API_KEY:key}),/not configured/);
   for(const response of [Response.json({id:'ignore'},{status:500}),Response.json({}),Response.json({id:42}),new Response('invalid json')]){
     let calls=0;const unconfirmed=agreementMailer(env,async()=>{calls++;return response;});
-    await assert.rejects(unconfirmed(draft(),intro.contact_email,id),/delivery is unconfirmed/);assert.equal(calls,1);
+    await assert.rejects(unconfirmed(draft(),intro.contact_email,id,'https://preview.example.test/introducer-agreement/accept#test'),/delivery is unconfirmed/);assert.equal(calls,1);
   }
 });
 
@@ -181,13 +85,14 @@ test('Root auth denies anonymous, unverified and unrelated users before service 
   assert.equal((await POST(new Request(req,{method:'POST'}))).status,403);
 });
 
-async function database() {
+async function database(historical=false) {
   const db=new PGlite();
   await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
     create table organisation_introducers(id uuid primary key,status text default 'active');`);
   await db.query('insert into organisation_introducers(id) values($1)',[intro.id]);
   await db.exec(fs.readFileSync('supabase/migrations/20261004_introducer_google_agreements.sql','utf8'));
   await db.exec(fs.readFileSync('supabase/migrations/20261005_introducer_agreement_returns.sql','utf8'));
+  if(!historical)await db.exec(fs.readFileSync('supabase/migrations/20261006_introducer_direct_acceptance.sql','utf8'));
   return db;
 }
 async function begin(db,action='generate',payload={},id=randomUUID(),lease=randomUUID()) {
@@ -259,8 +164,8 @@ test('sent terms and document stay frozen; old sent row supersedes only after a 
     assert.equal(b.version,2);assert.equal(b.terms_snapshot.commission_percent,30);
   }finally{await db.close();}
 });
-test('acceptance requires confirmation and PDF; accepted history survives amendments unchanged',async()=>{
-  const db=await database();try{
+test('historical pre-retirement acceptance evidence survives amendments unchanged',async()=>{
+  const db=await database(true);try{
     const a=await generated(db);const send=await begin(db,'send',{agreement_id:a.id,current_terms_hash:a.terms_hash});
     await finish(db,send,{message_id:'smtp1',recipient:intro.contact_email});
     await assert.rejects(begin(db,'accept',{agreement_id:a.id}),/Confirm/);
@@ -323,7 +228,7 @@ test('real coordinator recovers generation and finalisation failures without rep
       await save({merged:true});return{document_id:'recovered',document_url:'https://docs.google.com/document/d/recovered/edit'};
     },verifyDocument:async()=>{}};
     const body={action:'generate',introducerId:intro.id,requestId:randomUUID(),specialTerms:'None'};
-    const args={db:service,user:{id:actor},drive,load,body};
+    const args={db:service,user:{id:actor},drive,load,body,origin:'https://preview.example.test',invite:async()=> 'https://preview.example.test/introducer-agreement/accept#test'};
     await assert.rejects(runGoogleAgreement(args));fail=false;
     const generated=await runGoogleAgreement(args);await runGoogleAgreement(args);assert.equal(copyCount,1);
     const send={...args,body:{action:'send',introducerId:intro.id,agreementId:generated.agreementId,requestId:randomUUID()},
