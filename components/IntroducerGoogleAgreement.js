@@ -61,7 +61,8 @@ export default function IntroducerGoogleAgreement({introducer}) {
     <h3 style={{fontSize:16,margin:'0 0 10px'}}>Agreement: {data?(latest?.acceptance?.archive_state==='pending'?'Accepted - PDF pending':label(latest?.status)):'Loading'}</h3>
     {latest?.acceptance && <><p>Customer accepted: {date(latest.acceptance.accepted_at)} by {latest.acceptance.evidence.full_name} ({latest.acceptance.evidence.email})</p>
       <p>Customer email: {latest.acceptance.deliveries.customer?.state || 'pending'} | Root email: {latest.acceptance.deliveries.root?.state || 'pending'}</p>
-      <p>Unconfirmed email delivery requires checking Resend; retry does not resend a claimed email.</p></>}
+      {(latest.acceptance.deliveries.customer?.state==='unconfirmed' || latest.acceptance.deliveries.root?.state==='unconfirmed') &&
+        <p>Unconfirmed email delivery requires checking Resend; retry does not resend a claimed email.</p>}</>}
     {error && <p role="alert" style={{color:'#a32335',overflowWrap:'anywhere'}}>{error}</p>}
     {message && <p role="status">{message}</p>}
     {data && !data.googleConfigured && <p>Google agreement connection not configured.</p>}
