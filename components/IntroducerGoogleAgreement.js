@@ -39,7 +39,7 @@ export default function IntroducerGoogleAgreement({introducer}) {
       if(!confirmed)return;
     }
     if(action==='send') {
-      confirmed=window.confirm(`${latest?.status==='sent'||uncertain?'Resend':'Send'} this agreement to ${latest?.terms_snapshot.contact_email}?${uncertain?' The previous delivery outcome is uncertain. Check Root sent mail first; this may send a duplicate.':''}`);
+      confirmed=window.confirm(`${latest?.status==='sent'||uncertain?'Resend':'Send'} this agreement to ${latest?.terms_snapshot.contact_email}?${uncertain?' The previous delivery outcome is uncertain. Check Resend (and Root sent mail for older SMTP attempts) first; this may send a duplicate.':''}`);
       if(!confirmed)return;
     }
     if(action==='accept') {
@@ -49,7 +49,7 @@ export default function IntroducerGoogleAgreement({introducer}) {
     const body=retry || {action,introducerId:introducer.id,agreementId:latest?.id,requestId:crypto.randomUUID(),specialTerms:special,confirmed};
     if(action==='accept')body.confirmed=true;
     setBusy(true);setError('');setMessage('');
-    try {await api('POST',body);setFailedRequest(null);await load();setMessage(action==='accept'?'Acceptance and PDF recorded.':action==='send'?'Email accepted by Root SMTP.':'Agreement generated.');}
+    try {await api('POST',body);setFailedRequest(null);await load();setMessage(action==='accept'?'Acceptance and PDF recorded.':action==='send'?'Email accepted by Resend.':'Agreement generated.');}
     catch(e){await load();setError(e.message);setFailedRequest(body);}
     finally {setBusy(false);}
   }
@@ -69,7 +69,7 @@ export default function IntroducerGoogleAgreement({introducer}) {
     {data && !data.googleConfigured && <p>Google agreement connection not configured.</p>}
     {data?.configurationError && <p role="alert">{data.configurationError}</p>}
     {mismatch && <p role="status" style={{color:'#88530b',fontWeight:600}}>Agreement needs updating</p>}
-    {uncertain && <p role="alert">Email delivery is uncertain. Check Root sent mail before resending.</p>}
+    {uncertain && <p role="alert">Email delivery is uncertain. Check Resend (and Root sent mail for older SMTP attempts) before resending.</p>}
     {data && <>
       <label style={{display:'block',fontSize:14}}>Special Terms
         <textarea aria-label={`Special Terms for ${introducer.name}`} value={special} onChange={e=>setSpecial(e.target.value)} maxLength={5000} rows={3}

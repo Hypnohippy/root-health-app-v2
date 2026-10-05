@@ -1,5 +1,9 @@
 # Introducer Google Docs agreements
 
+## Delivery provider update
+
+Introducer agreement delivery now uses the Resend REST API with server-only `RESEND_API_KEY`, from `Root Health <enquiries@roothealth.app>` and reply-to `enquiries@roothealth.app`. Other mailers are unchanged. A successful API response with a message ID is the receipt, not proof of inbox delivery. Requests use an operation-based idempotency key and no automatic retry. Legacy `smtp_started`/`smtp_receipt` operation fields are deliberately retained for compatibility; uncertain historical SMTP attempts must still be reconciled before an explicit resend. For new attempts, check Resend. Google sharing remains `sendNotificationEmail=false`. The original SMTP setup references below describe the earlier implementation, not the current agreement sender.
+
 Draft implementation from main after PR #65. PR #66 is not a dependency: none of its signing screens, activation gates, acceptance tables or Supabase archive are used. No deployment, migration, Google authorisation or real email send has been performed. `vercel.json` temporarily suppresses automatic deployments for this new branch only; remove that setting when a Preview deployment is explicitly approved.
 
 The branch-specific deployment suppression is temporary and must be removed before merge, in coordination with an explicitly approved Preview deployment. It does not disable Production or other branches.

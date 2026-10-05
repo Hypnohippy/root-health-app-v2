@@ -43,15 +43,34 @@ test('terms mismatch is derived and accepted history remains visible',()=>{
   assert.equal(publicAgreementState({...state,policies:[{...policy,commission_percent:25}]}).needsUpdating,true);
   assert.equal(termsHash({...terms(),special_terms:'New'} )===a.terms_hash,false);
 });
-test('email uses only stored recipient and existing SMTP config, without automatic retries',async()=>{
+test('Resend uses only the stored recipient and never automatically retries ambiguous delivery',async()=>{
   const a=draft();const m=agreementMail(a,intro.contact_email);assert.equal(m.to,intro.contact_email);
   assert.match(m.text,/enquiries@roothealth.app/);assert.match(m.text,/Hi Jo Test/);
   assert.throws(()=>agreementMail(a,'attacker@example.test'),/mismatch/);
   let calls=0;
-  const send=agreementMailer({ROOT_SMTP_USER:'fixture',ROOT_SMTP_PASSWORD:'fixture',ROOT_SMTP_FROM:'root@example.test'},
-    opts=>{assert.equal(opts.service,'gmail');return{sendMail:async()=>{calls++;throw new Error('timeout');}};});
-  await assert.rejects(send(a,intro.contact_email,randomUUID()));assert.equal(calls,1);
+  const send=agreementMailer({RESEND_API_KEY:'fixture'},async()=>{calls++;throw new Error('timeout containing a secret');});
+  await assert.rejects(send(a,'attacker@example.test',randomUUID()),/mismatch/);assert.equal(calls,0);
+  await assert.rejects(send(a,intro.contact_email,randomUUID()),/^Error: Root agreement email delivery is unconfirmed/);assert.equal(calls,1);
 });
+test('Resend enforces Root sender branding, configuration and confirmed message-ID receipts',async()=>{
+  let sent,headers;
+  const env={RESEND_API_KEY:'fixture',ROOT_SMTP_FROM:'Fuelgeist <other@example.test>'};
+  const id=randomUUID();
+  const send=agreementMailer(env,async(url,options)=>{
+    assert.equal(url,'https://api.resend.com/emails');assert.equal(options.method,'POST');
+    headers=options.headers;sent=JSON.parse(options.body);return Response.json({id:'resend-receipt'});
+  });
+  assert.deepEqual(await send(draft(),intro.contact_email,id),{message_id:'resend-receipt',recipient:intro.contact_email});
+  assert.equal(sent.from,'Root Health <enquiries@roothealth.app>');assert.equal(sent.reply_to,'enquiries@roothealth.app');
+  assert.deepEqual(sent.to,[intro.contact_email]);assert.doesNotMatch(JSON.stringify(sent),/fuelgeist|fixture/i);
+  assert.equal(headers.Authorization,'Bearer fixture');assert.equal(headers['Idempotency-Key'],`root-agreement-${id}`);
+  for(const key of [undefined,'','   '])assert.throws(()=>agreementMailer({RESEND_API_KEY:key}),/not configured/);
+  for(const response of [Response.json({id:'ignore'},{status:500}),Response.json({}),Response.json({id:42}),new Response('invalid json')]){
+    let calls=0;const unconfirmed=agreementMailer(env,async()=>{calls++;return response;});
+    await assert.rejects(unconfirmed(draft(),intro.contact_email,id),/delivery is unconfirmed/);assert.equal(calls,1);
+  }
+});
+
 test('Root auth denies anonymous, unverified and unrelated users before service access',async()=>{
   const env={ROOT_ADMIN_EMAIL:'admin@example.test',SUPABASE_SERVICE_ROLE_KEY:'service-fixture'};
   for(const user of [null,{email:'admin@example.test'},{email:'other@example.test',email_confirmed_at:'yes'}]) {
