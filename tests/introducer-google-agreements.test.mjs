@@ -47,6 +47,14 @@ test('Resend uses only the stored recipient and never automatically retries ambi
   const a=draft();const m=agreementMail(a,intro.contact_email);assert.equal(m.to,intro.contact_email);
   assert.match(m.text,/enquiries@roothealth.app/);assert.match(m.text,/Hi Jo Test/);
   assert.throws(()=>agreementMail(a,'attacker@example.test'),/mismatch/);
+  assert.throws(()=>agreementMailer({ROOT_SMTP_USER:'fixture',ROOT_SMTP_PASSWORD:'fixture'},()=>({})),/not configured/);
+  let delivered;
+  const branded=agreementMailer({ROOT_SMTP_USER:'fixture',ROOT_SMTP_PASSWORD:'fixture',ROOT_SMTP_FROM:'root@example.test'},
+    opts=>{assert.equal(opts.service,'gmail');return{sendMail:async message=>{delivered=message;return{messageId:'root-message',accepted:[intro.contact_email]};}};});
+  const receipt=await branded(a,intro.contact_email,randomUUID());
+  assert.equal(delivered.from,'Root Health <root@example.test>');
+  assert.equal(delivered.replyTo,'Root Health <enquiries@roothealth.app>');
+  assert.equal(receipt.recipient,intro.contact_email);
   let calls=0;
   const send=agreementMailer({RESEND_API_KEY:'fixture'},async()=>{calls++;throw new Error('timeout containing a secret');});
   await assert.rejects(send(a,'attacker@example.test',randomUUID()),/mismatch/);assert.equal(calls,0);
