@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { recordPersonalReferralInvoice } from "../../../../lib/personalReferralAccounting";
+import { recordPersonalAcquisitionSubscription } from "../../../../lib/personalAcquisitionLifecycle";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -94,6 +95,16 @@ async function syncPersonalSubscription(subscription, checkoutSession = null) {
     .upsert(values, { onConflict: "user_id" });
 
   if (upsertError) throw upsertError;
+
+  await recordPersonalAcquisitionSubscription({
+    supabase,
+    user: userData.user,
+    plan: values.plan,
+    status,
+    active,
+    activatedAt: values.subscription_activated_at,
+    updatedAt: now,
+  });
 }
 
 async function subscriptionFromInvoice(invoice) {
