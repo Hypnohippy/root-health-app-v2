@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { recordPersonalAcquisitionCheckout } from "../../../../lib/personalAcquisitionLifecycle";
 
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY
@@ -339,6 +340,24 @@ export async function POST(request) {
         {
           status: 500,
         }
+      );
+    }
+
+    /*
+     * Acquisition tracking must never block a legitimate checkout.
+     * The webhook also reconciles subscriber state after payment.
+     */
+    try {
+      await recordPersonalAcquisitionCheckout({
+        supabase: admin,
+        user,
+        plan: pricing.plan,
+        checkoutSessionId: session.id,
+      });
+    } catch (trackingError) {
+      console.error(
+        "ROOT PERSONAL ACQUISITION CHECKOUT TRACKING ERROR:",
+        trackingError
       );
     }
 
