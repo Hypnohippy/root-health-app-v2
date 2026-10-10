@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { recordPersonalReferralInvoice } from "../../../../lib/personalReferralAccounting";
+import { recordPaidAcquisitionSubscription } from "../../../../lib/personalAcquisition.server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -162,6 +163,7 @@ export async function POST(request) {
         await recordPersonalReferralInvoice({
           stripe, supabase: buildAdminClient(), subscription, invoice: event.data.object,
         });
+        await recordPaidAcquisitionSubscription({ admin: buildAdminClient(), subscription, invoice: event.data.object });
       }
     }
 
