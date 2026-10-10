@@ -23,6 +23,8 @@ function loadRoute(file, dependencies) {
 async function database() {
   const db = new PGlite();
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); insert into auth.users values('${user}');`);
+  // Reproduce Production defaults: explicit grants must narrow inherited table privileges.
+  await db.exec("alter default privileges in schema public grant all on tables to anon, authenticated, service_role;");
   await db.exec(fs.readFileSync("supabase/migrations/20261010114550_personal_acquisition_events.sql", "utf8"));
   const admin = {
     from(table) {
@@ -137,6 +139,12 @@ test("RLS/grants reject public access; service aggregate exposes only counts and
       await db.exec("reset role");
     }
     await db.exec("set role service_role");
+    const privileges = (await db.query("select privilege_type from information_schema.role_table_grants where table_schema='public' and table_name='personal_acquisition_events' and grantee='service_role' order by privilege_type")).rows;
+    assert.deepEqual(privileges.map(row => row.privilege_type), ["INSERT", "SELECT"]);
+    await db.query("insert into personal_acquisition_events(event_name,attribution_session_id,dedupe_key) values('capacity_check_viewed',$1,'service-insert')", [asset]);
+    await assert.rejects(db.query("update personal_acquisition_events set source='root'"), /permission denied/);
+    await assert.rejects(db.query("delete from personal_acquisition_events"), /permission denied/);
+    await assert.rejects(db.query("truncate personal_acquisition_events"), /permission denied/);
     const rows = (await db.query("select * from personal_acquisition_counts($1::uuid[])", [[acquisition, asset]])).rows;
     assert.equal(rows.find(row => row.acquisition_id === acquisition).capacity_check_completed, 1);
     assert.equal(rows.find(row => row.acquisition_id === asset).capacity_check_completed, 0);

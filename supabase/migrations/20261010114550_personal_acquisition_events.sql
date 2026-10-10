@@ -18,6 +18,7 @@ create index personal_acquisition_events_campaign_idx on public.personal_acquisi
 create index personal_acquisition_events_session_idx on public.personal_acquisition_events(attribution_session_id, event_name);
 alter table public.personal_acquisition_events enable row level security;
 revoke all on public.personal_acquisition_events from public, anon, authenticated;
+revoke all on public.personal_acquisition_events from service_role;
 grant select, insert on public.personal_acquisition_events to service_role;
 -- Explicitly exclude row-level data from the Ops contract, including internal user IDs.
 create function public.personal_acquisition_counts(p_acquisition_ids uuid[])
