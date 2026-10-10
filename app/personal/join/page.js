@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import { rememberPersonalReferral, personalReferralUrl } from "../../../lib/personalReferralJourney";
+import { trackPersonalAcquisition } from "../../../lib/personalAcquisition.client";
 
 const PERSONAL_PLAN_KEY = "root_pending_personal_plan_v1";
 
@@ -37,6 +38,7 @@ export default function PersonalJoinPage() {
       return;
     }
 
+    await trackPersonalAcquisition("signup_completed", { accessToken: session.access_token });
     const response = await fetch("/api/stripe/personal-checkout", {
       method: "POST",
       headers: {
@@ -163,6 +165,8 @@ export default function PersonalJoinPage() {
 
     const returnUrl = personalReferralUrl(`${window.location.origin}/personal/join?checkout=resume&plan=${encodeURIComponent(selectedPlan)}`,
       rememberPersonalReferral(window.location.search, localStorage));
+    // Explicit validated account-creation submission, never a page view or sign-in.
+    await trackPersonalAcquisition("signup_started");
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
@@ -192,6 +196,7 @@ export default function PersonalJoinPage() {
     }
 
     if (data?.session && data?.user?.email_confirmed_at) {
+      await trackPersonalAcquisition("signup_completed", { accessToken: data.session.access_token });
       await startCheckout(selectedPlan);
       return;
     }

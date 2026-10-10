@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { rememberPersonalReferral, personalReferralUrl } from "../../lib/personalReferralJourney";
+import { trackPersonalAcquisition } from "../../lib/personalAcquisition.client";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import RootInUseFilm from "../../components/RootInUseFilm";
@@ -61,6 +62,7 @@ function buildSnapshot(scores) {
 export default function CapacityCheckPage() {
   const [referralCode, setReferralCode] = useState("");
   useEffect(() => { setReferralCode(rememberPersonalReferral(window.location.search, localStorage)); }, []);
+  useEffect(() => { void trackPersonalAcquisition("capacity_check_viewed", { capture: true }); }, []);
   const [scores, setScores] = useState(initialScores);
   const [stage, setStage] = useState("check");
   const [email, setEmail] = useState("");
@@ -71,6 +73,8 @@ export default function CapacityCheckPage() {
   const snapshot = useMemo(() => buildSnapshot(scores), [scores]);
 
   const reveal = () => {
+    // Completion is the revealed snapshot, independent of the optional email save.
+    void trackPersonalAcquisition("capacity_check_completed");
     setError("");
     setStage("result");
     if (typeof window !== "undefined") {
@@ -163,12 +167,13 @@ export default function CapacityCheckPage() {
                         min="0"
                         max="10"
                         value={scores[key]}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          void trackPersonalAcquisition("capacity_check_started");
                           setScores((current) => ({
                             ...current,
                             [key]: Number(event.target.value),
-                          }))
-                        }
+                          }));
+                        }}
                         style={styles.slider}
                       />
                     </div>

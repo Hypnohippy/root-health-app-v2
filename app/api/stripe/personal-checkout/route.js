@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { acquisitionEnabled, journeyFromRequest, stripeAcquisitionMetadata, correlateSignup } from "../../../../lib/personalAcquisition.server";
 
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY
@@ -260,6 +261,13 @@ export async function POST(request) {
     });
     if (attributionError) throw attributionError;
     const referralMetadata = attributionId ? { personal_attribution_id: attributionId } : {};
+    const journey = acquisitionEnabled() ? journeyFromRequest(request) : null;
+    // Commercial introducer attribution stays separate and unchanged.
+    const acquisitionMetadata = stripeAcquisitionMetadata(journey);
+    if (journey) {
+      // Tracking must never block the existing membership checkout.
+      await correlateSignup(admin, journey, user).catch(() => console.warn("Personal acquisition signup storage unavailable."));
+    }
     const session =
       await stripe.checkout.sessions.create(
         {
@@ -284,6 +292,7 @@ export async function POST(request) {
 
           metadata: {
             ...referralMetadata,
+            ...acquisitionMetadata,
             root_product:
               "personal",
 
@@ -300,6 +309,7 @@ export async function POST(request) {
           subscription_data: {
             metadata: {
               ...referralMetadata,
+              ...acquisitionMetadata,
               root_product:
                 "personal",
 
