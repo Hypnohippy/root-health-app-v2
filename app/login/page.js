@@ -73,6 +73,13 @@ export default function LoginPage() {
       return;
     }
 
+    // A single exact destination is permitted for the invited partner demo.
+    // The demo API independently verifies grant, expiry and account isolation.
+    if (new URLSearchParams(window.location.search).get("next") === "/introducer") {
+      window.location.href = "/introducer";
+      return;
+    }
+
     const {
       data: memberships,
       error: membershipError,

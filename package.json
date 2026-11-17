@@ -17,7 +17,8 @@
     "test:personal-integration-5a": "node --experimental-default-type=module --test tests/personal-integration-pass-5a.test.mjs",
     "test:personal-integration-5b": "node --experimental-default-type=module --test tests/personal-integration-pass-5b.test.mjs",
     "test:personal-investigations": "node --experimental-default-type=module --test tests/personal-investigation-continuity.test.mjs",
-    "test:hr-coach-security": "node --experimental-default-type=module --test tests/hr-coach-security.test.mjs"
+    "test:hr-coach-security": "node --experimental-default-type=module --test tests/hr-coach-security.test.mjs",
+    "test:professional-introducer": "node --experimental-default-type=module --test tests/professional-introducer-experience.test.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8"
