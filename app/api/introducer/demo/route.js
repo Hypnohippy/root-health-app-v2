@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { authorizeProfessionalIntroducer, professionalDemoErrorResponse } from "../../../../lib/professionalIntroducerDemoAuth.server.js";
-import { buildIntroducerEmployeeScenario, buildIntroducerEmployerScenario } from "../../../../lib/professionalIntroducerDemoScenario.server.js";
+import { buildIntroducerEmployeeScenario, buildIntroducerEmployerScenario, listIntroducerDemoEmployees } from "../../../../lib/professionalIntroducerDemoScenario.server.js";
+import { createIntroducerDemoAssessment, loadIntroducerDemoState, normalizeIntroducerDemoScores, resetIntroducerDemoCheckins } from "../../../../lib/professionalIntroducerDemoStore.server.js";
 
 export const runtime = "nodejs";
 
@@ -16,15 +17,24 @@ function response(data, status = 200) {
 export async function GET(request) {
   try {
     const session = await authorizeProfessionalIntroducer({ request });
+    const state = await loadIntroducerDemoState({ admin: session.admin, grantId: session.grant.id });
+    const requestedEmployeeKey = new URL(request.url).searchParams.get("employeeKey") || "employee-01";
+    const selectedEmployee = state.members.find((member) => member.employee_key === requestedEmployeeKey);
+    if (!selectedEmployee) return response({ error: "Choose one of the fictional employees in this demonstration." }, 400);
     return response({
       consultantLabel: session.grant.consultantLabel,
       expiresAt: session.grant.expiresAt,
-      employee: buildIntroducerEmployeeScenario(),
-      employer: buildIntroducerEmployerScenario(),
+      selectedEmployeeKey: selectedEmployee.employee_key,
+      employees: listIntroducerDemoEmployees(state.members, state.assessments),
+      employee: buildIntroducerEmployeeScenario({ grantId: session.grant.id, employee: selectedEmployee, assessments: state.assessments }),
+      employer: buildIntroducerEmployerScenario({ grantId: session.grant.id, members: state.members, assessments: state.assessments }),
       modes: ["consultant_learning", "client_presentation"],
       fictional: true,
     });
-  } catch (error) { return professionalDemoErrorResponse(error); }
+  } catch (error) {
+    if (error?.message?.startsWith("The fictional")) return response({ error: error.message }, 503);
+    return professionalDemoErrorResponse(error);
+  }
 }
 
 export async function POST(request) {
@@ -37,12 +47,41 @@ export async function POST(request) {
 
     const session = await authorizeProfessionalIntroducer({ request });
     if (body.action === "sample_checkin") {
-      const scores = body.scores;
-      const keys = ["stress", "sleep", "recovery", "energy", "mood", "focus", "burnout"];
-      if (!scores || keys.some((key) => !Number.isInteger(scores[key]) || scores[key] < 0 || scores[key] > 10)) {
-        return response({ error: "Use a whole-number score from 0 to 10 for each check-in measure." }, 400);
+      if (!normalizeIntroducerDemoScores(body.scores)) return response({ error: "Use a whole-number score from 0 to 10 for each check-in measure." }, 400);
+      const employeeKey = String(body.employeeKey || "");
+      const result = await createIntroducerDemoAssessment({
+        admin: session.admin,
+        grantId: session.grant.id,
+        employeeKey,
+        requestId: body.requestId,
+        scores: body.scores,
+      });
+      if (!result.ok) {
+        const status = result.reason === "employee_not_found" ? 400 : 409;
+        return response({ error: result.reason === "employee_not_found" ? "Choose one of the fictional employees in this demonstration." : "The check-in request could not be confirmed. Review your answers and try again." }, status);
       }
-      return response({ employee: buildIntroducerEmployeeScenario({ scores }), saved: false });
+      const state = await loadIntroducerDemoState({ admin: session.admin, grantId: session.grant.id });
+      const employee = state.members.find((member) => member.employee_key === employeeKey);
+      return response({
+        employee: buildIntroducerEmployeeScenario({ grantId: session.grant.id, employee, assessments: state.assessments }),
+        employer: buildIntroducerEmployerScenario({ grantId: session.grant.id, members: state.members, assessments: state.assessments }),
+        employees: listIntroducerDemoEmployees(state.members, state.assessments),
+        selectedEmployeeKey: employeeKey,
+        saved: true,
+        replayed: result.replayed,
+      });
+    }
+
+    if (body.action === "reset_demo") {
+      const state = await resetIntroducerDemoCheckins({ admin: session.admin, grantId: session.grant.id });
+      const employee = state.members.find((member) => member.employee_key === "employee-01");
+      return response({
+        employee: buildIntroducerEmployeeScenario({ grantId: session.grant.id, employee, assessments: state.assessments }),
+        employer: buildIntroducerEmployerScenario({ grantId: session.grant.id, members: state.members, assessments: state.assessments }),
+        employees: listIntroducerDemoEmployees(state.members, state.assessments),
+        selectedEmployeeKey: "employee-01",
+        reset: true,
+      });
     }
 
     if (body.action !== "introduction_request") return response({ error: "Choose a supported demonstration action." }, 400);
@@ -81,5 +120,10 @@ export async function POST(request) {
     });
     if (error) return response({ error: "Root could not record this introduction request." }, 503);
     return response({ received: true, message: "Introduction request recorded for Root Health follow-up. No message has been sent." }, 201);
-  } catch (error) { return professionalDemoErrorResponse(error); }
+  } catch (error) {
+    if (error?.message?.startsWith("The fictional") || error?.message?.startsWith("The check-in") || error?.message?.startsWith("The demonstration activity")) {
+      return response({ error: error.message }, 503);
+    }
+    return professionalDemoErrorResponse(error);
+  }
 }
