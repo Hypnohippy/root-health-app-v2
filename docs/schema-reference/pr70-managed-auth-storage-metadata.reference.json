@@ -1,0 +1,401 @@
+{
+  "source": "witkwlgldxjwwxmpcyva",
+  "read_only": true,
+  "created_at": "2026-11-18",
+  "note": "Metadata inventory only, no Auth users, passwords, tokens, storage object rows, or customer data. Some managed definitions are omitted. NOT a database dump.",
+  "managed_objects": [
+    {
+      "schema_name": "auth",
+      "object_name": "audit_log_entries",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "custom_oauth_providers",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "flow_state",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "identities",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "instances",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "mfa_amr_claims",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "mfa_challenges",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "mfa_factors",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "mfa_recovery_code_sets",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "mfa_recovery_codes",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "oauth_authorizations",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "oauth_client_states",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "oauth_clients",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "oauth_consents",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "one_time_tokens",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "refresh_tokens",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "saml_providers",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "saml_relay_states",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "schema_migrations",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "scim_tokens",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "scim_users",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "sessions",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "sso_domains",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "sso_providers",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "users",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "webauthn_challenges",
+      "kind": "r"
+    },
+    {
+      "schema_name": "auth",
+      "object_name": "webauthn_credentials",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "buckets",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "buckets_analytics",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "buckets_vectors",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "migrations",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "objects",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "s3_multipart_uploads",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "s3_multipart_uploads_parts",
+      "kind": "r"
+    },
+    {
+      "schema_name": "storage",
+      "object_name": "vector_indexes",
+      "kind": "r"
+    }
+  ],
+  "managed_functions": [
+    {
+      "schema_name": "auth",
+      "function_name": "email",
+      "signature": ""
+    },
+    {
+      "schema_name": "auth",
+      "function_name": "jwt",
+      "signature": ""
+    },
+    {
+      "schema_name": "auth",
+      "function_name": "role",
+      "signature": ""
+    },
+    {
+      "schema_name": "auth",
+      "function_name": "uid",
+      "signature": ""
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "allow_any_operation",
+      "signature": "expected_operations text[]"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "allow_only_operation",
+      "signature": "expected_operation text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "can_insert_object",
+      "signature": "bucketid text, name text, owner uuid, metadata jsonb"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "enforce_bucket_lifecycle_service_role",
+      "signature": ""
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "enforce_bucket_name_length",
+      "signature": ""
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "extension",
+      "signature": "name text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "filename",
+      "signature": "name text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "foldername",
+      "signature": "name text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "get_common_prefix",
+      "signature": "p_key text, p_prefix text, p_delimiter text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "get_size_by_bucket",
+      "signature": "noncurrent_versions text, delete_markers text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "list_multipart_uploads_with_delimiter",
+      "signature": "bucket_id text, prefix_param text, delimiter_param text, max_keys integer, next_key_token text, next_upload_token text, raw_prefix_param text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "list_objects_with_delimiter",
+      "signature": "_bucket_id text, prefix_param text, delimiter_param text, max_keys integer, start_after text, next_token text, sort_order text, noncurrent_versions text, delete_markers text, next_token_archived_at timestamp with time zone, next_token_version text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "operation",
+      "signature": ""
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "protect_bucket_control_columns",
+      "signature": ""
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "protect_delete",
+      "signature": ""
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "search",
+      "signature": "prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text, noncurrent_versions text, delete_markers text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "search_by_timestamp",
+      "signature": "p_prefix text, p_bucket_id text, p_limit integer, p_level integer, p_start_after text, p_sort_order text, p_sort_column text, p_sort_column_after text, noncurrent_versions text, delete_markers text, p_start_after_version text"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "search_v2",
+      "signature": "prefix text, bucket_name text, limits integer, levels integer, start_after text, sort_order text, sort_column text, sort_column_after text, noncurrent_versions text, delete_markers text, start_after_archived_at timestamp with time zone, start_after_version text, start_after_is_continuation boolean"
+    },
+    {
+      "schema_name": "storage",
+      "function_name": "update_updated_at_column",
+      "signature": ""
+    }
+  ],
+  "storage_bucket_structure": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "name",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "owner",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "public",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "avif_autodetection",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "file_size_limit",
+      "data_type": "bigint",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "allowed_mime_types",
+      "data_type": "ARRAY",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "owner_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "type",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "versioning_status",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "lifecycle_configuration",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "lifecycle_configuration_generation",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    }
+  ],
+  "storage_policies": [],
+  "extensions": [
+    {
+      "extname": "pg_stat_statements",
+      "extversion": "1.11",
+      "schema_name": "extensions"
+    },
+    {
+      "extname": "pgcrypto",
+      "extversion": "1.3",
+      "schema_name": "extensions"
+    },
+    {
+      "extname": "plpgsql",
+      "extversion": "1.0",
+      "schema_name": "pg_catalog"
+    },
+    {
+      "extname": "supabase_vault",
+      "extversion": "0.3.1",
+      "schema_name": "vault"
+    },
+    {
+      "extname": "uuid-ossp",
+      "extversion": "1.1",
+      "schema_name": "extensions"
+    }
+  ],
+  "managed_dependencies_error": "Not available through connector: INVALID_ARGUMENT: Error code: INVALID_ARGUMENT; Error: RuntimeException: Error calling MCP tool: [TextContent(type='text', text='{\"error\":{\"name\":\"HttpException\",\"message\":\"Failed "
+}
