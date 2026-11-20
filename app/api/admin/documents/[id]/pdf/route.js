@@ -329,7 +329,7 @@ function drawLabelValue({
 
 export async function GET(
   request,
-  { params }
+  context
 ) {
   try {
     const admin =
@@ -350,8 +350,10 @@ export async function GET(
       );
     }
 
+    const routeParams =
+      await context.params;
     const documentId =
-      params?.id;
+      routeParams?.id;
 
     if (!documentId) {
       return NextResponse.json(

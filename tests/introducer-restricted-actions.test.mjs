@@ -70,8 +70,8 @@ test("every prohibited account, organisation, invitation, entitlement and admin 
   }
 });
 
-test("Next middleware applies the server-side policy and emits a non-cacheable 403", async () => {
-  const source = await readFile(new URL("../middleware.js", import.meta.url), "utf8");
+test("Next proxy applies the server-side policy and emits a non-cacheable 403", async () => {
+  const source = await readFile(new URL("../proxy.js", import.meta.url), "utf8");
   assert.match(source, /introducerRequestDecision\(request\.nextUrl\.pathname\)/);
   assert.match(source, /decision\.type === "misconfigured"/);
   assert.match(source, /status: 503/);
@@ -86,7 +86,7 @@ test("Next middleware applies the server-side policy and emits a non-cacheable 4
 });
 
 test("unmetered AI provider routes fail closed only in introducer Preview while metered Realtime and Production remain available", async () => {
-  const source = await readFile(new URL("../middleware.js", import.meta.url), "utf8");
+  const source = await readFile(new URL("../proxy.js", import.meta.url), "utf8");
   for (const path of UNMETERED_INTRODUCER_AI_ROUTES) assert.equal(isUnmeteredIntroducerAiRoute(path), true, path);
   assert.equal(isUnmeteredIntroducerAiRoute("/api/realtime-session"), false);
   assert.match(source, /isIntroducerDeployment\(process\.env\)\s*&&\s*isUnmeteredIntroducerAiRoute/);

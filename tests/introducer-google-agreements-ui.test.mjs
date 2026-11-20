@@ -1,3 +1,4 @@
+import { reactBrowserScripts } from './helpers/reactBrowserScripts.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -25,7 +26,7 @@ process.env.NEXT_IGNORE_INCORRECT_LOCKFILE='1';
 const swc=require('next/dist/build/swc');await swc.loadBindings();
 const source=fs.readFileSync('components/IntroducerGoogleAgreement.js','utf8');
 const {code}=await swc.transform(source,{filename:'IntroducerGoogleAgreement.js',jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'classic'}}},module:{type:'commonjs'}});
-const scripts=['react/umd/react.development.js','react-dom/umd/react-dom.development.js'].map(p=>fs.readFileSync(path.join(path.dirname(require.resolve(p.split('/')[0]+'/package.json')),...p.split('/').slice(1)),'utf8')).join('\n');
+const scripts = reactBrowserScripts;
 const folder=fs.mkdtempSync(path.join(os.tmpdir(),'root-google-agreement-ui-'));
 const chrome=process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const component=code.replaceAll('</script','<\/script');

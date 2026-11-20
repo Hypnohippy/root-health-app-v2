@@ -1,3 +1,4 @@
+import { reactBrowserScripts } from './helpers/reactBrowserScripts.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -33,7 +34,7 @@ for(const file of files){
  const code=(await swc.transform(source,{filename:file,styledJsx:{},jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'classic'}}},module:{type:'commonjs'}})).code;
  registrations+=`{const module={exports:{}};const exports=module.exports;const require=name=>resolve(${JSON.stringify(file)},name);${code};modules[${JSON.stringify(file)}]=module.exports;}\n`;
 }
-const scripts=['react','react-dom'].map(p=>fs.readFileSync(path.join(path.dirname(require.resolve(p+'/package.json')),'umd',p+'.development.js'),'utf8')).join('\n');
+const scripts = reactBrowserScripts;
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'root-output-journey-'));
 fs.writeFileSync(path.join(directory,'page.html'),`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;font-family:Arial}*{box-sizing:border-box}</style><div id="root"></div><script>${scripts}</script><script>
 const modules={};function resolve(file,name){if(name==='react')return file.endsWith('page.js')?{...React,useEffect(){}}:React;if(name==='styled-jsx/style')return ({children})=>React.createElement('style',null,children);if(name.startsWith('.')){const parts=file.split('/');parts.pop();for(const part of name.split('/')){if(part==='..')parts.pop();else if(part!=='.')parts.push(part);}return modules[parts.join('/')]||{__esModule:true,default:({children})=>children||null};}throw Error(name);}

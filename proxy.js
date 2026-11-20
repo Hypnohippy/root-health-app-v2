@@ -5,7 +5,7 @@ import {
   isUnmeteredIntroducerAiRoute,
 } from "./lib/introducerRestrictedActions.server.js";
 
-export function middleware(request) {
+export function proxy(request) {
   const decision = introducerRequestDecision(request.nextUrl.pathname);
   if (decision.type === "misconfigured") {
     return NextResponse.json(
