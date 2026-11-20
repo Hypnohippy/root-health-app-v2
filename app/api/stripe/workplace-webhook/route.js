@@ -5,10 +5,13 @@ import nodemailer from "nodemailer";
 
 import { createClient } from "@supabase/supabase-js";
 
-const stripe =
-  new Stripe(
-    process.env.STRIPE_SECRET_KEY
-  );
+let stripeClient;
+function getStripe() {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) throw new Error("Stripe is not configured.");
+  if (!stripeClient) stripeClient = new Stripe(secret);
+  return stripeClient;
+}
 
 const supabaseUrl =
   process.env
@@ -860,7 +863,7 @@ async function activateDirectPaidFromCheckout(
 
   if (subscriptionId) {
     const subscription =
-      await stripe.subscriptions.retrieve(
+      await getStripe().subscriptions.retrieve(
         subscriptionId
       );
 
@@ -1020,7 +1023,7 @@ async function activateFromCheckout(
 
   if (subscriptionId) {
     const subscription =
-      await stripe.subscriptions.retrieve(
+      await getStripe().subscriptions.retrieve(
         subscriptionId
       );
 
@@ -1147,7 +1150,7 @@ async function handleInvoicePaid(
   }
 
   const subscription =
-    await stripe.subscriptions.retrieve(
+    await getStripe().subscriptions.retrieve(
       subscriptionId
     );
 
@@ -1731,7 +1734,7 @@ async function handleInvoiceFailed(
   }
 
   const subscription =
-    await stripe.subscriptions.retrieve(
+    await getStripe().subscriptions.retrieve(
       subscriptionId
     );
 
@@ -1769,7 +1772,7 @@ export async function POST(request) {
     process.env
       .STRIPE_WORKPLACE_WEBHOOK_SECRET;
 
-  if (!webhookSecret) {
+  if (!webhookSecret || !process.env.STRIPE_SECRET_KEY) {
     console.error(
       "ROOT WORKPLACE WEBHOOK SECRET MISSING"
     );
@@ -1784,6 +1787,7 @@ export async function POST(request) {
       }
     );
   }
+  const stripe = getStripe();
 
   const signature =
     request.headers.get(

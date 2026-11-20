@@ -18,7 +18,11 @@
     "test:personal-integration-5b": "node --experimental-default-type=module --test tests/personal-integration-pass-5b.test.mjs",
     "test:personal-investigations": "node --experimental-default-type=module --test tests/personal-investigation-continuity.test.mjs",
     "test:hr-coach-security": "node --experimental-default-type=module --test tests/hr-coach-security.test.mjs",
-    "test:professional-introducer": "node --experimental-default-type=module --test tests/professional-introducer-experience.test.mjs"
+    "test:professional-introducer": "node --experimental-default-type=module --test tests/professional-introducer-experience.test.mjs",
+    "test:introducer-provisioning": "node --experimental-default-type=module --test tests/introducer-provisioning.test.mjs tests/stripe-request-time-initialization.test.mjs",
+    "test:introducer-database-rls": "node --experimental-default-type=module --test tests/introducer-database-rls.test.mjs tests/introducer-voice-usage-admin.test.mjs",
+    "test:introducer-voice-termination": "node --experimental-default-type=module --test tests/introducer-voice-termination.test.mjs tests/introducer-voice-multiconnection.integration.test.mjs",
+    "test:root-auth-redirect": "node --experimental-default-type=module --test tests/root-auth-redirect.test.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8"

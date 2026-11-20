@@ -92,8 +92,8 @@ test('only the acceptance path is public; Preview uses the current Vercel deploy
   assert.equal(acceptanceOrigin({
     NEXT_PUBLIC_SITE_URL:'https://stale-preview.example.test',
     VERCEL_ENV:'preview',
-    VERCEL_URL:'root-health-app-v2-current.vercel.app'
-  }),'https://root-health-app-v2-current.vercel.app');
+    VERCEL_URL:'root-health-introducer-demo-current.vercel.app'
+  }),'https://root-health-introducer-demo-current.vercel.app');
   assert.equal(acceptanceOrigin({
     NEXT_PUBLIC_SITE_URL:'https://roothealth.app',
     VERCEL_ENV:'production',

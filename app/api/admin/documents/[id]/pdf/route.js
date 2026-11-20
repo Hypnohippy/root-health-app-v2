@@ -6,6 +6,10 @@ import {
   rgb,
 } from "pdf-lib";
 
+// This document is authorization- and request-specific. Never collect it as a
+// static route during Next.js build or cache a generated PDF across requests.
+export const dynamic = "force-dynamic";
+
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
 

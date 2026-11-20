@@ -399,8 +399,10 @@ export default function LoginPage() {
             type="button"
             style={styles.linkButton}
             onClick={() => {
-              window.location.href =
-                "/forgot-password";
+              const next = new URLSearchParams(window.location.search).get("next");
+              window.location.href = next === "/introducer"
+                ? "/forgot-password?next=%2Fintroducer"
+                : "/forgot-password";
             }}
           >
             Forgot your password?

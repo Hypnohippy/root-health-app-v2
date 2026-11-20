@@ -29,8 +29,8 @@ test("the page uses the existing organisation structure tables and ownership fie
 test("the additive page exposes the approved setup actions", async () => {
   const source = await readFile(pagePath, "utf8");
 
-  assert.match(source, />Add people</);
-  assert.match(source, />Upload staff spreadsheet</);
+  assert.match(source, /: "Add people"/);
+  assert.match(source, /: "Upload staff spreadsheet"/);
   assert.match(source, /setShowWorkforceImport\(true\)/);
   assert.match(source, />Build structure</);
   assert.match(source, /This is where you add your people and organise them into the right departments and teams\./);
@@ -61,8 +61,8 @@ test("Workplace navigation exposes Structure & People only to the active organis
 test("the structure page links visibly back to Organisation Learning", async () => {
   const source = await readFile(pagePath, "utf8");
 
-  assert.match(source, /href="\/organisation-learning"/);
-  assert.match(source, /← Back to Organisation Learning/);
+  assert.match(source, /introducerAdmin \? "\/org-insights" : "\/organisation-learning"/);
+  assert.match(source, /introducerAdmin \? "Workplace Dashboard" : "Organisation Learning"/);
 });
 
 test("the expanded Workplace navigation collapses before narrow desktop widths", async () => {

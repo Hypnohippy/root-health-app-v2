@@ -3,9 +3,11 @@ import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { acquisitionEnabled, journeyFromRequest, stripeAcquisitionMetadata, correlateSignup } from "../../../../lib/personalAcquisition.server";
 
-const stripe = new Stripe(
-  process.env.STRIPE_SECRET_KEY
-);
+function getStripe() {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) throw new Error("Stripe is not configured.");
+  return new Stripe(secret);
+}
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -74,6 +76,7 @@ export async function POST(request) {
         }
       );
     }
+    const stripe = getStripe();
 
     if (
       !supabaseUrl ||
@@ -394,6 +397,10 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ error: "Stripe is not configured." }, { status: 503 });
+    }
+    const stripe = getStripe();
     const accessToken = request.headers
       .get("authorization")
       ?.replace(/^Bearer\s+/i, "");

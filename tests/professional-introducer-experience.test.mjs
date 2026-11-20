@@ -8,21 +8,36 @@ import { getRootDestination } from "../lib/rootNavigator.js";
 import { PGlite } from "@electric-sql/pglite";
 
 function query(result) {
+  const filters = [];
   const value = {
-    select() { return this; }, eq() { return this; }, is() { return this; },
+    select() { return this; }, eq(key, expected) { filters.push((row) => row?.[key] === expected); return this; }, is() { return this; },
     order() { return this; }, limit() { return this; }, gte() { return this; },
-    maybeSingle() { return Promise.resolve(result); },
-    then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
+    maybeSingle() {
+      const data = Array.isArray(result?.data) ? result.data.filter((row) => filters.every((filter) => filter(row))) : result?.data;
+      return Promise.resolve({ ...result, data: Array.isArray(data) ? data[0] || null : data });
+    },
+    then(resolve, reject) {
+      const data = Array.isArray(result?.data) ? result.data.filter((row) => filters.every((filter) => filter(row))) : result?.data;
+      return Promise.resolve({ ...result, data }).then(resolve, reject);
+    },
   };
   return value;
 }
 
-function authFixture({ grant = { id: "grant-1", user_id: "user-1", consultant_label: "Partner", expires_at: "2026-12-01T00:00:00.000Z", revoked_at: null }, memberships = [], subscriptions = [], emailConfirmed = true, errorTable = null, missingTables = [] } = {}) {
+function authFixture({ grant = { id: "grant-1", user_id: "user-1", consultant_label: "Partner", expires_at: "2026-12-01T00:00:00.000Z", revoked_at: null, demo_organisation_id: "fictional-org-1" }, memberships = [], subscriptions = [], emailConfirmed = true, errorTable = null, missingTables = [], orgStatus = "demo", fictionalMemberCount = 6, fictionalBaselineCount = 6 } = {}) {
   const authClientFactory = async () => ({ auth: { getUser: async () => ({ data: { user: { id: "user-1", email: "partner@example.com", email_confirmed_at: emailConfirmed ? "2026-11-17T00:00:00.000Z" : null } }, error: null }) } });
   const data = {
     professional_introducer_demo_access: { data: grant, error: errorTable === "grant" ? new Error("failure") : null },
-    organisation_members: { data: memberships, error: missingTables.includes("organisation_members") ? Object.assign(new Error("missing relation"), { code: "PGRST205" }) : errorTable === "membership" ? new Error("failure") : null },
     personal_subscriptions: { data: subscriptions, error: missingTables.includes("personal_subscriptions") ? Object.assign(new Error("missing relation"), { code: "PGRST205" }) : errorTable === "subscription" ? new Error("failure") : null },
+    organisations: { data: { id: "fictional-org-1", status: orgStatus }, error: null },
+    organisation_members: {
+      data: [
+        ...Array.from({ length: fictionalMemberCount }, (_, index) => ({ id: `fictional-member-${index + 1}`, organisation_id: "fictional-org-1", profile_key: `fictional-${index + 1}`, role: "employee", user_id: null })),
+        ...memberships.map((membership) => ({ user_id: "user-1", ...membership })),
+      ],
+      error: missingTables.includes("organisation_members") ? Object.assign(new Error("missing relation"), { code: "PGRST205" }) : errorTable === "membership" ? new Error("failure") : null,
+    },
+    wellbeing_assessments: { data: Array.from({ length: fictionalBaselineCount }, (_, index) => ({ organisation_id: "fictional-org-1", profile_key: `fictional-${index + 1}`, assessment_type: "baseline" })), error: null },
   };
   const admin = { from(table) { return query(data[table]); } };
   return { authClientFactory, adminClientFactory: async () => admin };
@@ -30,14 +45,16 @@ function authFixture({ grant = { id: "grant-1", user_id: "user-1", consultant_la
 
 const request = (authorization = "Bearer valid-session") => new Request("https://preview.example/introducer", { headers: { authorization } });
 
-test("demo is gated to an explicitly enabled Vercel Preview", () => {
-  const preview = { VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_REF: "codex/professional-introducer-demo", PROFESSIONAL_INTRODUCER_DEMO_ENABLED: "true", PROFESSIONAL_INTRODUCER_DEMO_SUPABASE_PROJECT_REF: "preview123", PROFESSIONAL_INTRODUCER_PRODUCTION_SUPABASE_PROJECT_REF: "prod456", NEXT_PUBLIC_SUPABASE_URL: "https://preview123.supabase.co" };
+test("demo requires verified dedicated Vercel and isolated Supabase identities", () => {
+  const preview = { ROOT_DEPLOYMENT_MODE: "introducer", VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_REF: "codex/professional-introducer-demo", VERCEL_PROJECT_ID: "prj_5FntyaVgI1tQ7Q3IMKfkSTb2ETut", ROOT_INTRODUCER_VERCEL_PROJECT_ID: "prj_5FntyaVgI1tQ7Q3IMKfkSTb2ETut", ROOT_AUTH_PREVIEW_URL: "https://root-health-introducer-demo-preview.vercel.app", PROFESSIONAL_INTRODUCER_DEMO_ENABLED: "true", ROOT_INTRODUCER_SUPABASE_PROJECT_REF: "waluyphoafylzcjuskcl", ROOT_PRODUCTION_SUPABASE_PROJECT_REF: "witkwlgldxjwwxmpcyva", NEXT_PUBLIC_SUPABASE_URL: "https://waluyphoafylzcjuskcl.supabase.co" };
   assert.equal(professionalDemoEnabled(preview), true);
-  assert.equal(professionalDemoEnabled({ ...preview, VERCEL_ENV: "production" }), false);
+  assert.equal(professionalDemoEnabled({ ...preview, VERCEL_ENV: "production" }), true);
+  assert.equal(professionalDemoEnabled({ ...preview, ROOT_DEPLOYMENT_MODE: "production" }), false);
   assert.equal(professionalDemoEnabled({ ...preview, PROFESSIONAL_INTRODUCER_DEMO_ENABLED: "false" }), false);
-  assert.equal(professionalDemoEnabled({ ...preview, VERCEL_GIT_COMMIT_REF: "main" }), false);
-  assert.equal(professionalDemoEnabled({ ...preview, NEXT_PUBLIC_SUPABASE_URL: "https://prod456.supabase.co" }), false);
-  assert.equal(professionalDemoEnabled({ ...preview, PROFESSIONAL_INTRODUCER_DEMO_SUPABASE_PROJECT_REF: "prod456" }), false);
+  assert.equal(professionalDemoEnabled({ ...preview, ROOT_DEPLOYMENT_MODE: undefined, VERCEL_GIT_COMMIT_REF: "main", VERCEL_PROJECT_ID: "prj-unrelated" }), false);
+  assert.equal(professionalDemoEnabled({ ...preview, VERCEL_PROJECT_ID: "prj-customer-production" }), false);
+  assert.equal(professionalDemoEnabled({ ...preview, NEXT_PUBLIC_SUPABASE_URL: "https://witkwlgldxjwwxmpcyva.supabase.co" }), false);
+  assert.equal(professionalDemoEnabled({ ...preview, ROOT_PRODUCTION_SUPABASE_PROJECT_REF: "waluyphoafylzcjuskcl" }), false);
 });
 
 test("verified invite with unexpired grant and no customer entitlement is authorised", async () => {
@@ -45,6 +62,7 @@ test("verified invite with unexpired grant and no customer entitlement is author
   const result = await authorizeProfessionalIntroducer({ request: request(), enabled: true, ...fixture, now: new Date("2026-11-17T12:00:00Z") });
   assert.equal(result.userId, "user-1");
   assert.equal(result.grant.consultantLabel, "Partner");
+  assert.equal(result.grant.demoOrganisationId, "fictional-org-1");
 });
 
 test("missing bearer, unverified email, missing grant, expiry and revoked grants fail closed", async () => {
@@ -58,14 +76,16 @@ test("missing bearer, unverified email, missing grant, expiry and revoked grants
 
 test("any real organisation membership or active personal subscription blocks demo access", async () => {
   await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ memberships: [{ id: "real-membership" }] }) }), (error) => error.status === 403);
-  await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ subscriptions: [{ user_id: "user-1" }] }) }), (error) => error.status === 403);
+  await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ subscriptions: [{ user_id: "user-1", subscription_status: "active", subscription_active: true }] }) }), (error) => error.status === 403);
   await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ errorTable: "membership" }) }), (error) => error.status === 503);
 });
 
-test("fresh isolated Preview may omit production customer tables while other query failures remain closed", async () => {
-  const result = await authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ missingTables: ["organisation_members", "personal_subscriptions"] }), now: new Date("2026-11-17T12:00:00Z") });
-  assert.equal(result.grant.id, "grant-1");
+test("fictional employer access fails closed until Root provisions its mapped organisation and historical baseline", async () => {
+  await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ missingTables: ["organisation_members"] }), now: new Date("2026-11-17T12:00:00Z") }), (error) => error.status === 503);
   await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ errorTable: "subscription" }) }), (error) => error.status === 503);
+  await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ grant: { id: "grant-1", user_id: "user-1", consultant_label: "Partner", expires_at: "2026-12-01T00:00:00.000Z", revoked_at: null, demo_organisation_id: null } }), now: new Date("2026-11-17T12:00:00Z") }), /still preparing your fictional employer/);
+  await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ orgStatus: "active" }) }), /still preparing your fictional employer/);
+  await assert.rejects(() => authorizeProfessionalIntroducer({ request: request(), enabled: true, ...authFixture({ fictionalMemberCount: 4, fictionalBaselineCount: 4 }) }), /still preparing your fictional employer/);
 });
 
 test("employee scenario uses fictional evidence through the existing personal projection engine", () => {
@@ -179,9 +199,16 @@ class MemoryAdmin {
   from(table) { return new MemoryQuery(this, table); }
 }
 
-test("grant-scoped fictional data persists, affects real aggregates, survives reload and resets to its seed", async () => {
+function provisionFictionalDemoFixture(admin, grantId, now) {
+  const seed = buildIntroducerDemoSeed({ grantId, now });
+  admin.rows.professional_introducer_demo_members.push(...seed.members);
+  admin.rows.professional_introducer_demo_assessments.push(...seed.assessments);
+}
+
+test("Root-preprovisioned fictional data persists, affects aggregates, survives reload and resets to its baseline", async () => {
   const admin = new MemoryAdmin();
   const now = new Date("2026-11-17T12:00:00.000Z");
+  provisionFictionalDemoFixture(admin, "grant-a", now);
   const initial = await loadIntroducerDemoState({ admin, grantId: "grant-a", now });
   assert.equal(initial.members.length, 24);
   assert.equal(initial.assessments.length, 23);
@@ -228,7 +255,7 @@ test("grant-scoped fictional data persists, affects real aggregates, survives re
   assert.equal(replay.replayed, true);
   assert.equal((await loadIntroducerDemoState({ admin, grantId: "grant-a", now })).assessments.length, 25);
 
-  await loadIntroducerDemoState({ admin, grantId: "grant-b", now });
+  provisionFictionalDemoFixture(admin, "grant-b", now);
   await resetIntroducerDemoCheckins({ admin, grantId: "grant-a", now });
   const resetA = await loadIntroducerDemoState({ admin, grantId: "grant-a", now });
   const unchangedB = await loadIntroducerDemoState({ admin, grantId: "grant-b", now });
@@ -237,15 +264,45 @@ test("grant-scoped fictional data persists, affects real aggregates, survives re
   assert.equal(unchangedB.assessments.length, 23);
 });
 
+test("opening the demo never creates fictional workforce members or historical assessments", async () => {
+  const admin = new MemoryAdmin();
+  await assert.rejects(() => loadIntroducerDemoState({ admin, grantId: "grant-unprepared" }), /Root Health has not prepared/);
+  assert.equal(admin.rows.professional_introducer_demo_members.length, 0);
+  assert.equal(admin.rows.professional_introducer_demo_assessments.length, 0);
+});
+
+test("optional OpenAI configuration is checked at request time instead of module import", async () => {
+  const route = await readFile(new URL("../app/api/generate-audio/route.js", import.meta.url), "utf8");
+  assert.match(route, /function getOpenAIClient\(\)[\s\S]*process\.env\.OPENAI_API_KEY/);
+  assert.doesNotMatch(route, /^(?:const|let)\s+openai\s*=\s*new OpenAI/m);
+  assert.match(route, /Audio generation is not configured[\s\S]*status:\s*503/);
+});
+
 test("check-in validation and employee selection fail closed", async () => {
   const admin = new MemoryAdmin();
+  provisionFictionalDemoFixture(admin, "grant-1", new Date("2026-11-17T12:00:00.000Z"));
   const base = { admin, grantId: "grant-1", employeeKey: "employee-01", requestId: "4d4c46b2-35ac-46d3-8f79-0837e5a7f9be" };
   assert.equal((await createIntroducerDemoAssessment({ ...base, scores: { stress: 11 } })).reason, "invalid_scores");
   assert.equal((await createIntroducerDemoAssessment({ ...base, employeeKey: "employee-99", scores: Object.fromEntries(["stress", "sleep", "recovery", "energy", "mood", "focus", "burnout"].map((key) => [key, 5])) })).reason, "employee_not_found");
 });
 
-test("introducer shell is reachable but ordinary private routes remain gated", () => {
+test("a verified introducer grant routes into genuine Root journeys and away from the bespoke shell", () => {
+  const identity = {
+    introducerDemo: { enabled: true, organisationId: "fictional-org" },
+    capabilities: { canUseWorkplace: true, canUsePersonal: true },
+    personal: { hasProfile: true, orientationCompleted: true },
+  };
   assert.equal(getRootDestination(null, "/introducer"), null);
+  assert.equal(getRootDestination(identity, "/introducer"), "/");
+  for (const path of ["/", "/orientation", "/assessment", "/check-in", "/insights", "/coach", "/journal", "/body", "/mind", "/playbook", "/profile"]) {
+    assert.equal(getRootDestination(identity, path), null, `${path} should use the real personal route`);
+  }
+  for (const path of ["/org-insights", "/executive-review", "/launch-kit"]) {
+    assert.equal(getRootDestination(identity, path), null, `${path} should use the permitted real employer route`);
+  }
+  for (const path of ["/hr-coach", "/organisation-learning", "/organisation-structure", "/presentation-support", "/organisations/pricing"]) {
+    assert.equal(getRootDestination(identity, path), "/org-insights", `${path} should stay outside the introducer allowlist`);
+  }
   assert.equal(getRootDestination(null, "/org-insights"), "/welcome");
   assert.equal(getRootDestination({ capabilities: { canUseWorkplace: false, canUsePersonal: false } }, "/org-insights"), "/");
 });
@@ -296,6 +353,27 @@ test("expiry polling, watermark, copyright and client presentation controls are 
   assert.match(page, /Do not enter real wellbeing information in this Preview/);
   assert.match(page, /five-participant baseline gate/);
   assert.doesNotMatch(page, /window\.confirm|window\.alert/);
+});
+
+test("Voice Coach availability and recorded playback are explicit, with no inference call on replay", async () => {
+  const access = await readFile(new URL("../app/api/introducer/access/route.js", import.meta.url), "utf8");
+  const identity = await readFile(new URL("../lib/rootIdentity.js", import.meta.url), "utf8");
+  const demo = await readFile(new URL("../app/introducer/page.js", import.meta.url), "utf8");
+  const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
+  const restricted = await readFile(new URL("../lib/introducerRestrictedActions.server.js", import.meta.url), "utf8");
+  assert.match(access, /voiceCoachStatus/);
+  assert.match(access, /root_authorization_required/);
+  assert.match(identity, /voiceCoachStatus: introducerAccess\.voiceCoachStatus/);
+  assert.match(demo, /Prerecorded demonstration · fictional data · not a live consultation/);
+  assert.match(demo, /No approved recording is published yet/);
+  assert.match(demo, /method: "HEAD"/);
+  assert.match(demo, /<video controls playsInline/);
+  assert.match(demo, /Live Voice Coach/);
+  assert.match(coach, /termination_controls_pending/);
+  assert.match(coach, /Ask Root Health to authorise it/);
+  assert.match(restricted, /"\/api\/root-coach"/);
+  assert.match(restricted, /"\/api\/playbook-review"/);
+  assert.doesNotMatch(demo, /api\/realtime-session|api\/root-coach|api\/transcribe|openai\.com/i);
 });
 
 test("demo migration applies with RLS and grants only the server role", async () => {

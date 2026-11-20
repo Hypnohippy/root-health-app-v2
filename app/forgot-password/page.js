@@ -9,28 +9,47 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
 
   async function sendReset() {
-    setLoading(true);
-    setMessage("");
-
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.trim().toLowerCase(),
-      {
-        redirectTo:
-          window.location.origin + "/reset-password",
-      }
-    );
-
-    if (error) {
-      setMessage(error.message);
-      setLoading(false);
+    const normalisedEmail = email.trim().toLowerCase();
+    if (!normalisedEmail) {
+      setMessage("Enter the email address for your Root account.");
       return;
     }
 
-    setMessage(
-      "If an account exists for that email, Root has sent password reset instructions."
-    );
+    setLoading(true);
+    setMessage("");
 
-    setLoading(false);
+    try {
+      const redirectResponse = await fetch("/api/auth/redirect?flow=recovery", {
+        cache: "no-store",
+      });
+      const redirectData = await redirectResponse.json().catch(() => ({}));
+      if (!redirectResponse.ok || !redirectData.redirectTo) {
+        setMessage(
+          redirectData.error || "Password recovery is not configured for this site. Please contact Root Health support."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        normalisedEmail,
+        { redirectTo: redirectData.redirectTo }
+      );
+
+      if (error) {
+        setMessage("Root could not send a password link. Check the address or try again later.");
+        setLoading(false);
+        return;
+      }
+
+      setMessage(
+        "If an account exists for that email, Root has sent password reset instructions."
+      );
+      setLoading(false);
+    } catch {
+      setMessage("Root could not prepare a secure password link. Please try again later.");
+      setLoading(false);
+    }
   }
 
   return (

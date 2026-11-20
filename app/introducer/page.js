@@ -5,10 +5,13 @@ import { supabase } from "../../lib/supabase";
 import RootEnso from "../../components/RootEnso";
 
 const METRICS = ["stress", "sleep", "recovery", "energy", "mood", "focus", "burnout"];
+const VOICE_DEMONSTRATION_ASSET = "/introducer/voice-coach-demo.mp4";
 
 export default function ProfessionalIntroducerPage() {
   const [token, setToken] = useState("");
   const [payload, setPayload] = useState(null);
+  const [voiceAccess, setVoiceAccess] = useState(null);
+  const [voiceRecordingAvailable, setVoiceRecordingAvailable] = useState(false);
   const [employee, setEmployee] = useState(null);
   const [selectedEmployeeKey, setSelectedEmployeeKey] = useState("employee-01");
   const [mode, setMode] = useState("consultant_learning");
@@ -33,6 +36,10 @@ export default function ProfessionalIntroducerPage() {
       setPayload(data);
       setEmployee(data.employee);
       setSelectedEmployeeKey(data.selectedEmployeeKey || employeeKey);
+      try {
+        const accessResponse = await fetch("/api/introducer/access", { headers: { Authorization: `Bearer ${currentToken}` }, cache: "no-store" });
+        setVoiceAccess(accessResponse.ok ? await accessResponse.json() : null);
+      } catch { setVoiceAccess(null); }
       return data;
     } catch (cause) {
       setPayload(null);
@@ -60,6 +67,14 @@ export default function ProfessionalIntroducerPage() {
     initialise();
     return () => { active = false; };
   }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    fetch(VOICE_DEMONSTRATION_ASSET, { method: "HEAD", cache: "no-store" })
+      .then((response) => { if (active) setVoiceRecordingAvailable(response.ok && response.headers.get("content-type")?.startsWith("video/")); })
+      .catch(() => { if (active) setVoiceRecordingAvailable(false); });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (!token) return undefined;
@@ -161,6 +176,16 @@ export default function ProfessionalIntroducerPage() {
           <div className="modeNote">{mode === "client_presentation" ? <><span>Guided presentation · {guidedStep + 1} of 3 — {guidedStep === 0 ? "employee experience" : guidedStep === 1 ? "employer view" : "request a next step"}. Fictional changes are saved in this Preview grant only.</span><button className="quiet" onClick={advancePresentation}>{guidedStep === 2 ? "Return to employee view" : "Next part →"}</button></> : "Learning view: switch between fictional employees and the whole-workforce summary. Fictional check-ins persist in this isolated Preview and can be reset."}</div>
         </section>
 
+        <section className="card voiceDemonstration" aria-labelledby="voice-demo-heading">
+          <p className="eyebrow">ROOT VOICE COACH</p>
+          <h2 id="voice-demo-heading">A recorded consultation, without a live AI call</h2>
+          <p className="muted">The planned prerecorded walkthrough will use a genuine Root Voice Coach session with fictional information. It will show consultation, intervention development, explicit consent and a Playbook save confirmed only after the save succeeds. Replaying the approved static recording will not make inference calls.</p>
+          {voiceRecordingAvailable
+            ? <><p className="recordingLabel">Prerecorded demonstration · fictional data · not a live consultation</p><video controls playsInline preload="metadata" src={VOICE_DEMONSTRATION_ASSET} aria-label="Prerecorded fictional Root Voice Coach demonstration" style={{ display: "block", width: "100%", maxHeight: 560, borderRadius: 16, background: "#171717", marginTop: 12 }} /></>
+            : <p className="voiceAvailability" role="status">No approved recording is published yet. The recording requires a separately approved, budget-reserved Preview session. No provider call has been made for this page.</p>}
+          <div className="liveVoiceStatus"><strong>Live Voice Coach</strong><span>{voiceAccess?.voiceCoachAvailable === true ? "Enabled for this account. Starting a session still requires an available monthly reservation." : voiceAccess?.voiceCoachStatus === "root_authorization_required" ? "Not enabled for this account. Root Health must authorise it explicitly." : voiceAccess?.voiceCoachStatus === "policy_paused" ? "Paused for this Preview." : voiceAccess?.voiceCoachStatus === "termination_controls_pending" ? "Paused until session termination controls pass acceptance." : "Availability is being verified or is currently unavailable."}</span></div>
+          <p className="fine">Other permitted Personal Root and fictional Workplace features remain available. An unavailable live session does not mean your demonstration access has ended.</p>
+        </section>
         <section className="card inventory"><p className="eyebrow">PRODUCT TOUR</p><h2>Three distinct experiences</h2><p className="muted">This partner Preview uses fictional records only. It does not access customer or employee data. The existing personal and workplace product paths are not automatically reproduced by this demonstration.</p><div className="inventoryGrid"><article><span className="pill">Consultant learning · available</span><ul><li>Twenty-four fictional workforce members and historical check-ins</li><li>Select fictional employees and save a baseline or check-in</li><li>Review the selected employee’s own Root feedback and history</li><li>Reset only this access grant’s fictional check-ins</li></ul><p className="fine">Uses the live assessment measure definitions and personal insight engine against grant-scoped fictional records.</p></article><article><span className="pill">Client presentation · available</span><ul><li>Guided fictional employee and employer views</li><li>Employer view recalculated from the same saved fictional assessments</li><li>Whole-workforce output only; no employee or department-level outcome breakdown</li><li>Introduction requests retain consent, attribution and rate limits</li></ul><p className="fine">Uses Root’s existing organisation snapshot engine, including its five-participant baseline gate and five-matched-participant movement gate. Customer administration remains unavailable.</p></article><article><span className="pill">Personal experience · not enabled here</span><ul><li>The main product already has authenticated personal profiles, onboarding, assessment saving, history and personal insights.</li><li>This Preview has no separate, time-limited prospective-client personal evaluation grant.</li><li>Consent copy, health-data retention/deletion handling and isolated account provisioning are not yet approved for collecting real participant data here.</li></ul><p className="fine">Do not enter real wellbeing information in this Preview. A personal evaluation should reuse the existing personal account journey only after a separate isolated Auth environment and privacy/retention review are in place.</p></article></div></section>
 
         <section className="card introduction" id="introduction-request"><p className="eyebrow">A NEXT STEP</p><h2>Request an introduction</h2><p>Share a prospective organisation and what would be helpful next. Root Health will receive the request for follow-up; this form does not send an email.</p><form onSubmit={submitIntroduction} className="introForm">

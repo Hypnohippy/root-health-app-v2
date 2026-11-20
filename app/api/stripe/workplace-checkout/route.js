@@ -7,10 +7,11 @@ import {
   buildRootWorkplacePrice,
 } from "../../../../lib/rootWorkplacePricing";
 
-const stripe =
-  new Stripe(
-    process.env.STRIPE_SECRET_KEY
-  );
+function getStripe() {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) throw new Error("Stripe is not configured.");
+  return new Stripe(secret);
+}
 
 const supabaseUrl =
   process.env
@@ -81,6 +82,7 @@ export async function POST(request) {
         }
       );
     }
+    const stripe = getStripe();
 
     if (
       !supabaseUrl ||

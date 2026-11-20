@@ -2,14 +2,20 @@ import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 import { requireRootAdmin } from "../../../lib/rootAdminAuth";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+  return new OpenAI({ apiKey });
+}
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+function getSupabaseAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceRoleKey) return null;
+  return createClient(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
 
 function safeFileName(value = "") {
   return String(value)
@@ -35,8 +41,18 @@ export async function POST(request) {
       );
     }
 
-  const fileName =
-  `${safeFileName(title)}-${Date.now()}.mp3`;
+    // This optional Root-admin tool must not make builds depend on a provider
+    // credential. Missing runtime configuration is reported without exposing it.
+    const openai = getOpenAIClient();
+    const supabaseAdmin = getSupabaseAdminClient();
+    if (!openai || !supabaseAdmin) {
+      return Response.json(
+        { ok: false, error: "Audio generation is not configured." },
+        { status: 503 }
+      );
+    }
+
+    const fileName = `${safeFileName(title)}-${Date.now()}.mp3`;
 
     const speech = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
