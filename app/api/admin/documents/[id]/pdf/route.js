@@ -1,5 +1,7 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../../../lib/supabaseServerKey.server.js";
+import { getSupabasePublicKeyIfConfigured } from "../../../../../../lib/supabasePublicKey.js";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../../../lib/supabaseKeyCompatibleClient.js";
 import {
   PDFDocument,
   StandardFonts,
@@ -14,10 +16,10 @@ const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  getSupabasePublicKeyIfConfigured();
 
 const supabaseServiceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY;
+  getSupabaseServerKeyIfConfigured();
 
 const rootAdminEmails =
   String(

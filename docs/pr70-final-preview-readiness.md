@@ -130,11 +130,14 @@ Configure these only in the new Vercel project, in the **Preview** environment, 
 - `ROOT_INTRODUCER_SUPABASE_PROJECT_REF=waluyphoafylzcjuskcl`
 - `ROOT_PRODUCTION_SUPABASE_PROJECT_REF=witkwlgldxjwwxmpcyva`
 - `PROFESSIONAL_INTRODUCER_DEMO_ENABLED=true`
-- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` sourced only from the isolated Preview project
-- `SUPABASE_SERVICE_ROLE_KEY` sourced only from the isolated Preview project and kept server-only
+- `NEXT_PUBLIC_ROOT_DEPLOYMENT_MODE=introducer` (public marker used by the browser key selector)
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` sourced only from the isolated Preview project
+- `SUPABASE_SECRET_KEY` sourced only from the isolated Preview project and kept server-only
 - `ROOT_AUTH_PREVIEW_URL` set only after the first generated protected `.vercel.app` URL is independently confirmed
 
 Do not configure `OPENAI_API_KEY`, `ROOT_INTRODUCER_OPENAI_API_KEY`, `ROOT_INTRODUCER_VOICE_TERMINATION_ENABLED`, Stripe, SMTP, Resend, Google agreement, or other provider credentials for this first Voice-disabled Preview. Do not set `CRON_SECRET` while the termination worker is disabled. Vercel SSO must stay enabled for all deployments, with no custom-domain exception and no custom domain attached. The exact project settings and effective variable values are not currently verified in the Vercel dashboard.
+
+For the API-key migration, create the new publishable and secret keys in **only** Supabase project `waluyphoafylzcjuskcl`. Add them to **only** the dedicated Vercel project's Preview scope, restricted to `codex/professional-introducer-demo` where branch scoping is available. Keep `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` out of that Preview configuration once all callers have been verified on the new keys. Do not put either new key in source, logs, build output, a `NEXT_PUBLIC_` server-secret variable, or the original customer Vercel project. First run protected Preview authentication, user-scoped RLS, and server-admin smoke checks with both key generations still active; retire legacy keys only after successful verification and separate approval. Supabase documents that deactivating legacy keys disables both `anon` and `service_role`; its leaked-key guidance also recommends revoking the legacy JWT signing secret after a `service_role` leak. JWT/key revocation is an additional isolated-project auth-impact step and remains outside this local code change.
 
 ### Bootstrap order and release decision
 

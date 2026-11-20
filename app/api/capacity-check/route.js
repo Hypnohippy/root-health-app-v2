@@ -1,9 +1,10 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../lib/supabaseServerKey.server.js";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../lib/supabaseKeyCompatibleClient.js";
 
 function buildAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey = getSupabaseServerKeyIfConfigured();
 
   if (!url || !serviceRoleKey) {
     throw new Error("Capacity-check storage is not configured.");

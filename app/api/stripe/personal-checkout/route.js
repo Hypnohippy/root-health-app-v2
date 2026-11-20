@@ -1,6 +1,8 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
+import { getSupabasePublicKeyIfConfigured } from "../../../../lib/supabasePublicKey.js";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 import { acquisitionEnabled, journeyFromRequest, stripeAcquisitionMetadata, correlateSignup } from "../../../../lib/personalAcquisition.server";
 
 function getStripe() {
@@ -13,7 +15,7 @@ const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  getSupabasePublicKeyIfConfigured();
 
 
 /*
@@ -256,7 +258,7 @@ export async function POST(request) {
         .NEXT_PUBLIC_SITE_URL ||
       "https://roothealth.app";
 
-    const admin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    const admin = createClient(supabaseUrl, getSupabaseServerKeyIfConfigured(), {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const { data: attributionId, error: attributionError } = await admin.rpc("prepare_personal_referral", {

@@ -1,5 +1,6 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
 import { timingSafeEqual } from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 import { introducerDeploymentStatus } from "../../../../lib/introducerRestrictedActions.server.js";
 import { runDueRealtimeTerminations } from "../../../../lib/introducerRealtimeTermination.server.js";
 
@@ -17,7 +18,7 @@ function validCronAuthorization(request, secret) {
 
 function createPreviewAdminClient(env) {
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = getSupabaseServerKeyIfConfigured(env);
   const expectedRef = String(env.ROOT_INTRODUCER_SUPABASE_PROJECT_REF || "").trim();
   let actualRef = "";
   try {

@@ -1,6 +1,7 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 import { recordPersonalReferralInvoice } from "../../../../lib/personalReferralAccounting";
 import { recordPaidAcquisitionSubscription } from "../../../../lib/personalAcquisition.server";
 
@@ -12,7 +13,7 @@ function getStripe() {
   return stripeClient;
 }
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceRoleKey = getSupabaseServerKeyIfConfigured();
 
 function buildAdminClient() {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
