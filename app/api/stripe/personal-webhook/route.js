@@ -1,12 +1,19 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 import { recordPersonalReferralInvoice } from "../../../../lib/personalReferralAccounting";
 import { recordPaidAcquisitionSubscription } from "../../../../lib/personalAcquisition.server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+let stripeClient;
+function getStripe() {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) throw new Error("Stripe is not configured.");
+  if (!stripeClient) stripeClient = new Stripe(secret);
+  return stripeClient;
+}
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceRoleKey = getSupabaseServerKeyIfConfigured();
 
 function buildAdminClient() {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
@@ -102,7 +109,7 @@ async function subscriptionFromInvoice(invoice) {
     stripeId(invoice?.subscription) ||
     stripeId(invoice?.parent?.subscription_details?.subscription);
 
-  return subscriptionId ? stripe.subscriptions.retrieve(subscriptionId) : null;
+  return subscriptionId ? getStripe().subscriptions.retrieve(subscriptionId) : null;
 }
 
 export async function POST(request) {
@@ -111,6 +118,7 @@ export async function POST(request) {
   if (!process.env.STRIPE_SECRET_KEY || !webhookSecret) {
     return NextResponse.json({ error: "Webhook is not configured." }, { status: 500 });
   }
+  const stripe = getStripe();
 
   const signature = request.headers.get("stripe-signature");
 

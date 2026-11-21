@@ -1,7 +1,8 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
 import crypto from "node:crypto";
 import { corporateEmailUrl } from "../../../../lib/corporateEmailUrl";
 import nodemailer from "nodemailer";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 import { organisationAdminErrorResponse, requireOrganisationAdmin } from "../../../../lib/organisationAdminServerAuth";
 
 export const runtime = "nodejs";
@@ -9,9 +10,9 @@ export const runtime = "nodejs";
 const hash = (value) => crypto.createHash("sha256").update(value).digest("hex");
 const emailOk = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 
-function createDeliveryClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+function createDeliveryClient(env = process.env) {
+  const url = env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = getSupabaseServerKeyIfConfigured(env);
   if (!url || !serviceRoleKey) throw new Error("Root workforce invitation delivery is not configured.");
   return createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },

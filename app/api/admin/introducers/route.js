@@ -1,15 +1,17 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
+import { getSupabasePublicKeyIfConfigured } from "../../../../lib/supabasePublicKey.js";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 import { introducerMarkets, introducerTypes } from "../../../../lib/introducerMarkets";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  getSupabasePublicKeyIfConfigured();
 
 const supabaseServiceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY;
+  getSupabaseServerKeyIfConfigured();
 
 const rootAdminEmails =
   String(
@@ -184,13 +186,13 @@ export async function GET(request) {
     const supabase =
       buildAdminClient();
 
-    const {
-      data:
-        introducers,
-      error:
-        introducerError,
-    } =
-      await supabase
+    const lifecycle = new URL(request.url).searchParams.get("lifecycle") || "active";
+    if (!["active", "archived", "all"].includes(lifecycle)) {
+      return NextResponse.json({ error: "Invalid introducer lifecycle filter." }, { status: 400 });
+    }
+
+    let introducerQuery =
+      supabase
         .from(
           "organisation_introducers"
         )
@@ -211,11 +213,23 @@ export async function GET(request) {
     contact_name,
     contact_email,
     notes,
+    archive_requested_at,
+    archived_at,
+    archived_by,
+    archive_previous_status,
     created_at,
     updated_at
   `
-)
-        .order(
+);
+    if (lifecycle === "active") introducerQuery = introducerQuery.is("archived_at", null);
+    if (lifecycle === "archived") introducerQuery = introducerQuery.not("archived_at", "is", null);
+
+    const {
+      data:
+        introducers,
+      error:
+        introducerError,
+    } = await introducerQuery.order(
           "created_at",
           {
             ascending: false,
@@ -1163,6 +1177,29 @@ export async function POST(request) {
         );
 
       throw policyError;
+    }
+
+    // Create the one lifecycle record against the commercial identity already
+    // used by agreements/referrals. This prepares status only: no account is
+    // created, no invitation URL is generated and no email is sent here.
+    const { data: onboarding, error: onboardingError } = await supabase
+      .from("organisation_introducer_onboarding")
+      .insert({ introducer_id: introducer.id, state: "registered" })
+      .select("id")
+      .single();
+    if (onboardingError || !onboarding) {
+      await supabase.from("organisation_introducer_policies").delete().eq("introducer_id", introducer.id);
+      await supabase.from("organisation_introducers").delete().eq("id", introducer.id);
+      throw onboardingError || new Error("Root could not prepare introducer onboarding.");
+    }
+    const { error: onboardingEventError } = await supabase
+      .from("organisation_introducer_onboarding_events")
+      .insert({ onboarding_id: onboarding.id, introducer_id: introducer.id, actor_id: admin.user.id, event_type: "registered", details: {} });
+    if (onboardingEventError) {
+      await supabase.from("organisation_introducer_onboarding").delete().eq("id", onboarding.id);
+      await supabase.from("organisation_introducer_policies").delete().eq("introducer_id", introducer.id);
+      await supabase.from("organisation_introducers").delete().eq("id", introducer.id);
+      throw onboardingEventError;
     }
 
     console.log(

@@ -137,6 +137,7 @@ function buildWelcome(name, history = [], mindEntries = [], journalEntries = [])
 
 export default function CoachPage() {
   const { identity } = useRoot();
+  const introducerVoiceUnavailable = identity?.introducerDemo?.enabled === true && identity?.introducerDemo?.voiceCoachAvailable !== true;
   const [profileKey, setProfileKey] = useState(null);
   const [personalKnowledge, setPersonalKnowledge] = useState(null);
   const [latestVoiceTranscript, setLatestVoiceTranscript] = useState("");
@@ -150,12 +151,14 @@ export default function CoachPage() {
   const [coachMode, setCoachMode] = useState("");
   const [thinking, setThinking] = useState(false);
   const [voiceState, setVoiceState] = useState("ready");
+  const [voiceTimeNotice, setVoiceTimeNotice] = useState("");
   const [voiceEnergy, setVoiceEnergy] = useState(0);
   const [voiceTranscript, setVoiceTranscript] = useState("");
   const [breathMode, setBreathMode] = useState(false);
   const [breathPhase, setBreathPhase] = useState("inhale");
   const [emotionalState, setEmotionalState] = useState("steady");
   const [journey, setJourney] = useState(null);
+  const [mindHandoff, setMindHandoff] = useState(null);
   const [showJourneyNext, setShowJourneyNext] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [pendingJournalSave, setPendingJournalSave] = useState(null);
@@ -171,6 +174,17 @@ export default function CoachPage() {
 }, []);
   const bottomRef = useRef(null);
   const peerConnectionRef = useRef(null);
+  const voiceExpiryTimerRef = useRef(null);
+  const voicePlannedTimerRef = useRef(null);
+  const voiceWarningTimerRef = useRef(null);
+  const voiceExtensionTimersRef = useRef([]);
+  const voiceFinalWarningTimerRef = useRef(null);
+  const voiceWrapUpPendingRef = useRef(false);
+  const voiceResponseInProgressRef = useRef(false);
+  const voiceExtensionInFlightRef = useRef(false);
+  const voiceSessionExtendedRef = useRef(false);
+  const voiceReservationRef = useRef(null);
+  const voiceAccessTokenRef = useRef(null);
   const dataChannelRef = useRef(null);
   const audioElementRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -248,6 +262,7 @@ if (storedJourney) {
 if (pendingCoachContext) {
   try {
     const parsedContext = JSON.parse(pendingCoachContext);
+    setMindHandoff(parsedContext);
 
     setCoachMode("mind");
 
@@ -655,8 +670,20 @@ if (journey && journey.currentStage === "coach") {
 };
 const startVoiceSession = async () => {
   try {
+    setVoiceTimeNotice("");
+    voiceSessionExtendedRef.current = false;
+    voiceExtensionInFlightRef.current = false;
+    voiceReservationRef.current = null;
+    voiceAccessTokenRef.current = null;
     setVoiceState("connecting");
     setVoiceTranscript("");
+
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (sessionError || !accessToken) {
+      throw new Error("Sign in again before starting Root Voice.");
+    }
+    voiceAccessTokenRef.current = accessToken;
 
   
     const pc = new RTCPeerConnection();
@@ -750,6 +777,9 @@ dc.onmessage = async (event) => {
       "VOICE EVENT FULL:",
       JSON.stringify(message, null, 2)
     );
+ if (message.type === "response.created") {
+  voiceResponseInProgressRef.current = true;
+}
  if (
   message.type ===
   "conversation.item.input_audio_transcription.completed"
@@ -1047,7 +1077,17 @@ dc.send(JSON.stringify({
 }
 }
   if (message.type === "response.done") {
+  voiceResponseInProgressRef.current = false;
   setVoiceState("listening");
+  if (voiceWrapUpPendingRef.current && dataChannelRef.current?.readyState === "open") {
+    voiceWrapUpPendingRef.current = false;
+    dataChannelRef.current.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        instructions: "The planned Voice session time has arrived. Gently bring this conversation toward completion. If an agreed action or Playbook save is already underway, finish that action and preserve explicit consent. Do not start a new action. Clearly confirm what was saved, or explain what still needs the user's decision, then offer a concise closing reflection.",
+      },
+    }));
+  }
 }
 
 if (message.type === "error") {
@@ -1080,32 +1120,28 @@ if (message.type === "error") {
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-console.log("VOICE CONTEXT SENT:", {
-  bodySignals: history?.length || 0,
-  mindEntries: mindEntries?.length || 0,
-  journalEntries: journalEntries?.length || 0,
-  coachMode,
-});
   const sdpResponse = await fetch("/api/realtime-session", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
+    Authorization: `Bearer ${accessToken}`,
   },
- body: JSON.stringify({
-  sdp: offer.sdp,
-  coachMode,
-  profile,
-  history,
-  mindEntries,
-  journalEntries,
-  name,
-  journey,
-  personalKnowledge,
-}),
+  body: JSON.stringify({
+    sdp: offer.sdp,
+    coachMode,
+    bodyObservationId: journey?.currentStage === "coach"
+      ? journey.bodyObservation?.id || journey.bodySignalId || ""
+      : "",
+    mindHandoff: mindHandoff && typeof mindHandoff === "object" ? mindHandoff : undefined,
+  }),
 });
     if (!sdpResponse.ok) {
-      const errorText = await sdpResponse.text();
-      throw new Error(errorText);
+      let providerMessage = "";
+      try {
+        const errorBody = await sdpResponse.json();
+        providerMessage = typeof errorBody?.error === "string" ? errorBody.error : "";
+      } catch {}
+      throw new Error(providerMessage || "Root could not start a voice session.");
     }
 
     const answerSdp = await sdpResponse.text();
@@ -1114,8 +1150,113 @@ console.log("VOICE CONTEXT SENT:", {
       type: "answer",
       sdp: answerSdp,
     });
+
+    // The provider-enforced expiry is authoritative; this local timer also
+    // releases browser audio tracks and the peer connection promptly.
+    clearTimeout(voiceExpiryTimerRef.current);
+    clearTimeout(voicePlannedTimerRef.current);
+    clearTimeout(voiceWarningTimerRef.current);
+    clearTimeout(voiceFinalWarningTimerRef.current);
+    voiceExtensionTimersRef.current.forEach((timer) => clearTimeout(timer));
+    voiceExtensionTimersRef.current = [];
+    if (identity?.introducerDemo?.enabled === true) {
+      const plannedSeconds = Number(sdpResponse.headers.get("X-Root-Voice-Planned-Seconds"));
+      const graceSeconds = Number(sdpResponse.headers.get("X-Root-Voice-Completion-Grace-Seconds"));
+      const warningSeconds = Number(sdpResponse.headers.get("X-Root-Voice-Warning-Before-Seconds"));
+      const reservationId = sdpResponse.headers.get("X-Root-Voice-Reservation") || "";
+      if (!Number.isInteger(plannedSeconds) || plannedSeconds < 300
+        || !Number.isInteger(graceSeconds) || graceSeconds < 0
+        || !Number.isInteger(warningSeconds) || warningSeconds < 0 || warningSeconds >= plannedSeconds
+        || plannedSeconds + (2 * graceSeconds) > 3600
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reservationId)) {
+        throw new Error("Voice session duration controls are unavailable.");
+      }
+      voiceReservationRef.current = reservationId;
+      const initialEndSeconds = plannedSeconds + graceSeconds;
+      const providerHardEndSeconds = plannedSeconds + (2 * graceSeconds);
+      const hasAgreedActionInProgress = () => voiceResponseInProgressRef.current
+        || Boolean(pendingPlaybookSaveRef.current)
+        || Boolean(pendingPlaybookConflictRef.current)
+        || Boolean(pendingPlaybookOfferRef.current);
+      const requestCompletionExtension = async () => {
+        if (voiceSessionExtendedRef.current || voiceExtensionInFlightRef.current || !hasAgreedActionInProgress()) return;
+        const currentToken = voiceAccessTokenRef.current;
+        const currentReservation = voiceReservationRef.current;
+        if (!currentToken || !currentReservation) return;
+        voiceExtensionInFlightRef.current = true;
+        try {
+          const extension = await fetch("/api/introducer/voice-session/extend", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${currentToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ reservationId: currentReservation }),
+            cache: "no-store",
+            signal: AbortSignal.timeout(5000),
+          });
+          if (!extension.ok) return;
+          voiceSessionExtendedRef.current = true;
+          setVoiceTimeNotice("A short, server-approved completion extension is active so the action already underway can be finished. No further extension is available.");
+          clearTimeout(voiceExpiryTimerRef.current);
+          clearTimeout(voiceFinalWarningTimerRef.current);
+          voiceFinalWarningTimerRef.current = window.setTimeout(() => {
+            setVoiceTimeNotice("The maximum Voice session is approaching. Please finish and confirm the current agreed action; no further extension is available.");
+            voiceWrapUpPendingRef.current = true;
+            if (!voiceResponseInProgressRef.current && dataChannelRef.current?.readyState === "open") {
+              voiceWrapUpPendingRef.current = false;
+              dataChannelRef.current.send(JSON.stringify({
+                type: "response.create",
+                response: { instructions: "The maximum Voice session is approaching. Do not begin a new action. Finish any agreed action already underway, preserve explicit Playbook consent and saving, confirm what has or has not been saved, then offer a concise closing reflection." },
+              }));
+            }
+          }, Math.max(0, providerHardEndSeconds - 60) * 1000);
+          voiceExpiryTimerRef.current = window.setTimeout(() => {
+            setVoiceTimeNotice("The provider's maximum Voice session has ended. Saved Personal Root and Playbook progress remains available.");
+            stopVoiceSession();
+          }, providerHardEndSeconds * 1000);
+        } finally {
+          voiceExtensionInFlightRef.current = false;
+        }
+      };
+      voiceWarningTimerRef.current = window.setTimeout(() => {
+        setVoiceTimeNotice("Your planned Voice session is nearing its end. Root will warn you before wrap-up and allow a bounded completion window for an action already underway.");
+      }, Math.max(0, plannedSeconds - warningSeconds) * 1000);
+      voicePlannedTimerRef.current = window.setTimeout(() => {
+        setVoiceTimeNotice("The planned time has ended. Please finish the current conversation or agreed Playbook save; a bounded completion window is available, and no new action should be started.");
+        voiceWrapUpPendingRef.current = true;
+        if (!voiceResponseInProgressRef.current && dataChannelRef.current?.readyState === "open") {
+          voiceWrapUpPendingRef.current = false;
+          dataChannelRef.current.send(JSON.stringify({
+            type: "response.create",
+            response: {
+              instructions: "The planned Voice session time has arrived. Gently bring this conversation toward completion. If an agreed action or Playbook save is already underway, finish that action and preserve explicit consent. Do not start a new action. Clearly confirm what was saved, or explain what still needs the user's decision, then offer a concise closing reflection.",
+            },
+          }));
+        }
+      }, plannedSeconds * 1000);
+      if (graceSeconds > 0) {
+        // Two checks make the extension resilient to a delayed browser timer:
+        // the server accepts requests only in the final 60 seconds before the
+        // initial completion deadline, and its RPC is one-time/idempotent.
+        for (const leadSeconds of [60, 15]) {
+          const delaySeconds = initialEndSeconds - leadSeconds;
+          if (delaySeconds <= plannedSeconds) continue;
+          voiceExtensionTimersRef.current.push(window.setTimeout(requestCompletionExtension, delaySeconds * 1000));
+        }
+      }
+      voiceExpiryTimerRef.current = window.setTimeout(() => {
+        setVoiceTimeNotice(voiceSessionExtendedRef.current
+          ? "The maximum Voice session has ended. Saved Personal Root and Playbook progress remains available."
+          : "The completion window has ended. Saved Personal Root and Playbook progress remains available.");
+        stopVoiceSession();
+      }, initialEndSeconds * 1000);
+    } else {
+      // Preserve the existing customer deployment behavior.
+      voiceExpiryTimerRef.current = window.setTimeout(() => stopVoiceSession(), 290_000);
+    }
    
 
+    const introMessage = identity?.introducerDemo?.enabled === true && error?.message
+      ? error.message
+      : "I couldn’t start voice mode yet. Check microphone permissions and the realtime session route.";
     setMessages((prev) => [
       ...prev,
       {
@@ -1133,14 +1274,29 @@ console.log("VOICE CONTEXT SENT:", {
       ...prev,
       {
         role: "coach",
-        content:
-          "I couldn’t start voice mode yet. Check microphone permissions and the realtime session route.",
+        content: introMessage,
       },
     ]);
   }
 };
 
 const stopVoiceSession = () => {
+  clearTimeout(voiceExpiryTimerRef.current);
+  clearTimeout(voicePlannedTimerRef.current);
+  clearTimeout(voiceWarningTimerRef.current);
+  clearTimeout(voiceFinalWarningTimerRef.current);
+  voiceExtensionTimersRef.current.forEach((timer) => clearTimeout(timer));
+  voiceExtensionTimersRef.current = [];
+  voiceExpiryTimerRef.current = null;
+  voicePlannedTimerRef.current = null;
+  voiceWarningTimerRef.current = null;
+  voiceFinalWarningTimerRef.current = null;
+  voiceWrapUpPendingRef.current = false;
+  voiceResponseInProgressRef.current = false;
+  voiceExtensionInFlightRef.current = false;
+  voiceSessionExtendedRef.current = false;
+  voiceReservationRef.current = null;
+  voiceAccessTokenRef.current = null;
   try {
     dataChannelRef.current?.close();
     peerConnectionRef.current?.getSenders()?.forEach((sender) => {
@@ -1259,7 +1415,9 @@ style={{
           <div style={styles.orbWrap}>
   <button
     aria-label={voiceState === "ready" ? "Start Root Voice" : "End Root Voice"}
+    disabled={introducerVoiceUnavailable}
     onClick={() => {
+      if (introducerVoiceUnavailable) return;
       if (voiceState === "ready") {
         startVoiceSession();
       } else {
@@ -1295,7 +1453,15 @@ style={{
   </button>
 
   <p style={styles.voiceStatus}>
-    {breathMode
+    {introducerVoiceUnavailable
+  ? identity?.introducerDemo?.voiceCoachStatus === "root_authorization_required"
+    ? "Live Voice Coach is not enabled for your demonstration account. Ask Root Health to authorise it."
+    : identity?.introducerDemo?.voiceCoachStatus === "policy_paused"
+      ? "Live Voice Coach is paused for this Preview."
+      : identity?.introducerDemo?.voiceCoachStatus === "termination_controls_pending"
+        ? "Live Voice Coach is paused while session-safety controls are completed."
+        : "Live Voice Coach availability could not be verified."
+  : breathMode
   ? breathPhase === "inhale"
     ? "Inhale slowly..."
     : breathPhase === "hold"
@@ -1313,17 +1479,24 @@ style={{
 </p>
 
   <p style={styles.voiceHint}>
-    {voiceState === "ready"
+    {introducerVoiceUnavailable
+      ? "Breath with Root remains available without starting an AI voice session."
+      : voiceState === "ready"
       ? "A calm spoken conversation with Root Coach."
       : "Tap the enso again to end voice mode."}
   </p>
+  {voiceTimeNotice && (
+    <p role="status" aria-live="polite" style={styles.voiceHint}>
+      {voiceTimeNotice}
+    </p>
+  )}
 <button
   style={styles.breathButton}
   onClick={startBreathJourney}
 >
   Breath with Root
 </button>
-   {voiceState !== "ready" && (
+{voiceState !== "ready" && !introducerVoiceUnavailable && (
   <button
     style={styles.resetVoiceButton}
     onClick={() => {

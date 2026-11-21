@@ -73,6 +73,13 @@ export default function LoginPage() {
       return;
     }
 
+    // A single exact destination is permitted for the invited partner demo.
+    // The demo API independently verifies grant, expiry and account isolation.
+    if (new URLSearchParams(window.location.search).get("next") === "/introducer") {
+      window.location.href = "/introducer";
+      return;
+    }
+
     const {
       data: memberships,
       error: membershipError,
@@ -390,10 +397,20 @@ export default function LoginPage() {
 
           <button
             type="button"
+            style={styles.secondaryButton}
+            onClick={() => { window.location.href = "/introducer/activate"; }}
+          >
+            Professional Introducer — Activate your invitation
+          </button>
+
+          <button
+            type="button"
             style={styles.linkButton}
             onClick={() => {
-              window.location.href =
-                "/forgot-password";
+              const next = new URLSearchParams(window.location.search).get("next");
+              window.location.href = next === "/introducer"
+                ? "/forgot-password?next=%2Fintroducer"
+                : "/forgot-password";
             }}
           >
             Forgot your password?

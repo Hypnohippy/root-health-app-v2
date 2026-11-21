@@ -1,19 +1,25 @@
+import { getSupabaseServerKeyIfConfigured } from "../../../../../../lib/supabaseServerKey.server.js";
+import { getSupabasePublicKeyIfConfigured } from "../../../../../../lib/supabasePublicKey.js";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../../../lib/supabaseKeyCompatibleClient.js";
 import {
   PDFDocument,
   StandardFonts,
   rgb,
 } from "pdf-lib";
 
+// This document is authorization- and request-specific. Never collect it as a
+// static route during Next.js build or cache a generated PDF across requests.
+export const dynamic = "force-dynamic";
+
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  getSupabasePublicKeyIfConfigured();
 
 const supabaseServiceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY;
+  getSupabaseServerKeyIfConfigured();
 
 const rootAdminEmails =
   String(
@@ -325,7 +331,7 @@ function drawLabelValue({
 
 export async function GET(
   request,
-  { params }
+  context
 ) {
   try {
     const admin =
@@ -346,8 +352,10 @@ export async function GET(
       );
     }
 
+    const routeParams =
+      await context.params;
     const documentId =
-      params?.id;
+      routeParams?.id;
 
     if (!documentId) {
       return NextResponse.json(

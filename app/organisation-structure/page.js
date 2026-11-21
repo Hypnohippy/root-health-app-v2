@@ -80,6 +80,8 @@ export default function OrganisationStructurePage() {
   const [error, setError] = useState("");
   const [organisation, setOrganisation] = useState(null);
   const [membership, setMembership] = useState(null);
+  const [introducerAdmin, setIntroducerAdmin] = useState(false);
+  const [updatingMemberRole, setUpdatingMemberRole] = useState({});
   const [units, setUnits] = useState([]);
   const [members, setMembers] = useState([]);
   const [people, setPeople] = useState([]);
@@ -119,13 +121,45 @@ export default function OrganisationStructurePage() {
     }
 
     const activeMembership = identity.workplace?.activeOrganisation || null;
-    if (!activeMembership || activeMembership.role !== "organisation_admin") {
+    const demoAdmin = identity.introducerDemo?.employerAdminAvailable === true;
+    if (!demoAdmin && (!activeMembership || activeMembership.role !== "organisation_admin")) {
       window.location.href = activeMembership ? "/org-insights" : "/choose-organisation";
       return;
     }
 
-    const organisationId = activeMembership.organisation_id;
+    const organisationId = demoAdmin ? identity.introducerDemo.organisationId : activeMembership.organisation_id;
+    setIntroducerAdmin(demoAdmin);
     setMembership(activeMembership);
+
+    if (demoAdmin) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError("Your demonstration sign-in could not be verified. Please sign in again.");
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch("/api/introducer/organisation-structure", {
+          headers: { authorization: `Bearer ${session.access_token}` },
+          cache: "no-store",
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "The fictional organisation could not be loaded.");
+        setOrganisation(data.organisation);
+        setUnits(data.units || []);
+        setMembers(data.members || []);
+        setPeople([]);
+        setWorkforceRows(data.workforceRows || []);
+        setInvitationCounts(data.invitationCounts || {});
+        setInvitationPage({ next: null, trail: [], total: (data.workforceRows || []).length, cutoff: new Date().toISOString() });
+        setLoading(false);
+        return;
+      } catch (loadError) {
+        setError(loadError.message || "The fictional organisation could not be loaded.");
+        setLoading(false);
+        return;
+      }
+    }
 
     const [organisationResult, unitResult, memberResult, peopleResult] = await Promise.all([
       supabase.from("organisations").select("*").eq("id", organisationId).maybeSingle(),
@@ -175,6 +209,20 @@ export default function OrganisationStructurePage() {
     setInvitationLoading(true);
     setInvitationLoadError("");
     try {
+      if (introducerAdmin) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) throw new Error("Your demonstration sign-in has expired.");
+        const response = await fetch(`/api/introducer/organisation-structure?search=${encodeURIComponent(search)}`, {
+          headers: { authorization: `Bearer ${session.access_token}` }, cache: "no-store",
+        });
+        const result = await response.json();
+        if (requestId !== invitationRequest.current) return;
+        if (!response.ok) throw new Error(result.error || "The fictional workforce could not be loaded.");
+        setWorkforceRows(result.workforceRows || []);
+        setInvitationCounts(result.invitationCounts || {});
+        setInvitationPage({ next: null, trail: [], total: (result.workforceRows || []).length, cutoff });
+        return;
+      }
       const result = await supabase.rpc("list_workforce_invitations", { p_org: organisation.id, p_search: search, p_status: "all", p_after: trail.at(-1) || null, p_limit: 100, p_cutoff: cutoff, p_eligible_only: false });
       if (requestId !== invitationRequest.current) return;
       if (result.error) throw result.error;
@@ -193,6 +241,24 @@ export default function OrganisationStructurePage() {
     if (!ids.length || !organisation?.id) return;
     setSendingInvitations(true); setInvitationMessage("");
     const { data: { session } } = await supabase.auth.getSession();
+    if (introducerAdmin) {
+      try {
+        const response = await fetch("/api/introducer/organisation-structure", {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token || ""}` },
+          body: JSON.stringify({ type: "invitation.preview", memberIds: ids }),
+        });
+        const result = await response.json();
+        if (!response.ok || result.previewOnly !== true) throw new Error(result.error || "The invitation preview could not be prepared.");
+        setInvitationMessage(`Preview prepared for ${result.recipients.length} fictional employee(s). ${result.message}`);
+        setSelectedPeople(new Set());
+      } catch (previewError) {
+        setInvitationMessage(previewError.message || "The invitation preview could not be prepared.");
+      } finally {
+        setSendingInvitations(false);
+      }
+      return;
+    }
     const response = await fetch("/api/organisation/workforce-invitations", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token || ""}` }, body: JSON.stringify({ organisation_id: organisation.id, person_ids: ids }) });
     const result = await response.json();
     setInvitationMessage(response.ok ? `${(result.results || []).filter((item) => item.status === "sent").length} invitation(s) sent.` : (result.error || "Root could not send invitations."));
@@ -224,7 +290,7 @@ export default function OrganisationStructurePage() {
 
   async function createOrganisationUnit() {
     setUnitError("");
-    if (membership?.role !== "organisation_admin") {
+    if (!introducerAdmin && membership?.role !== "organisation_admin") {
       setUnitError("Only the Organisation Admin can create organisational units.");
       return;
     }
@@ -247,6 +313,20 @@ export default function OrganisationStructurePage() {
 
     setCreatingUnit(true);
     try {
+      if (introducerAdmin) {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch("/api/introducer/organisation-structure", {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token || ""}` },
+          body: JSON.stringify({ type: "unit.create", name: cleanName, unitType: newUnitType, parentUnitId: newUnitParentId || null }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.unit) throw new Error(result.error || "Root could not create this fictional unit.");
+        setUnits((current) => [...current, result.unit].sort((a, b) => a.name.localeCompare(b.name)));
+        setShowUnitModal(false);
+        return;
+      }
+
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
         setUnitError("Root could not verify your signed-in account.");
@@ -277,8 +357,31 @@ export default function OrganisationStructurePage() {
 
       setUnits((current) => [...current, data].sort((a, b) => a.name.localeCompare(b.name)));
       setShowUnitModal(false);
+    } catch (createError) {
+      setUnitError(createError.message || "Root could not create this fictional organisational unit.");
     } finally {
       setCreatingUnit(false);
+    }
+  }
+
+  async function updateFictionalRole(memberId, role) {
+    if (!introducerAdmin) return;
+    setUpdatingMemberRole((current) => ({ ...current, [memberId]: true }));
+    setError("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch("/api/introducer/organisation-structure", {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token || ""}` },
+        body: JSON.stringify({ type: "member.role", memberId, role }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.member) throw new Error(result.error || "The fictional employee role could not be updated.");
+      setMembers((current) => current.map((item) => item.id === memberId ? result.member : item));
+    } catch (roleError) {
+      setError(roleError.message || "The fictional employee role could not be updated.");
+    } finally {
+      setUpdatingMemberRole((current) => ({ ...current, [memberId]: false }));
     }
   }
 
@@ -313,14 +416,16 @@ export default function OrganisationStructurePage() {
       <Nav />
       <main className="page">
         <section className="shell">
-          <a className="backLink" href="/organisation-learning">
-            ← Back to Organisation Learning
+          <a className="backLink" href={introducerAdmin ? "/org-insights" : "/organisation-learning"}>
+            ← Back to {introducerAdmin ? "Workplace Dashboard" : "Organisation Learning"}
           </a>
           <header className="hero">
             <div>
               <p className="kicker">Root Workplace</p>
               <h1>Organisation Structure &amp; People</h1>
-              <p className="intro">This is where you add your people and organise them into the right departments and teams.</p>
+              <p className="intro">{introducerAdmin
+                ? "Manage the structure and roles of this pre-prepared fictional workforce. All changes stay in the isolated demonstration database."
+                : "This is where you add your people and organise them into the right departments and teams."}</p>
             </div>
             <div className="heroMark">
               <RootEnso size={78} />
@@ -334,13 +439,13 @@ export default function OrganisationStructurePage() {
           <section className="actionGrid" aria-label="Organisation setup actions">
             <button type="button" className="actionCard" onClick={() => setShowPeoplePanel((value) => !value)}>
               <span className="actionIcon">＋</span>
-              <strong>Add people</strong>
-              <small>Invite employees into this organisation</small>
+              <strong>{introducerAdmin ? "Preview invitations" : "Add people"}</strong>
+              <small>{introducerAdmin ? "Review a fictional invitation flow; no account or email is created" : "Invite employees into this organisation"}</small>
             </button>
-            <button type="button" className="actionCard" onClick={() => setShowWorkforceImport(true)}>
+            <button type="button" className="actionCard" onClick={() => setShowWorkforceImport(true)} disabled={introducerAdmin} title={introducerAdmin ? "Real workforce imports are disabled in the fictional demonstration." : undefined}>
               <span className="actionIcon">▦</span>
-              <strong>Upload staff spreadsheet</strong>
-              <small>Map and preview your existing workforce export</small>
+              <strong>{introducerAdmin ? "Workforce imports disabled" : "Upload staff spreadsheet"}</strong>
+              <small>{introducerAdmin ? "Only the preloaded fictional workforce can be managed here" : "Map and preview your existing workforce export"}</small>
             </button>
             <button type="button" className="actionCard primary" onClick={() => openCreateUnit()}>
               <span className="actionIcon">⌘</span>
@@ -349,7 +454,7 @@ export default function OrganisationStructurePage() {
             </button>
           </section>
 
-          {showWorkforceImport ? (
+          {showWorkforceImport && !introducerAdmin ? (
             <WorkforceImportPreview
               organisationId={organisation?.id}
               existingMembers={members}
@@ -361,9 +466,11 @@ export default function OrganisationStructurePage() {
           {showPeoplePanel ? (
             <section className="inviteCard workforcePanel" aria-labelledby="workforce-invite-title">
               <header className="workforceHeading">
-                <p className="sectionLabel">Workforce invitations</p>
-                <h2 id="workforce-invite-title">Invite workforce</h2>
-                <p>Send secure, personalised invitations to approved business email addresses. Employee invitations always create employee access.</p>
+                <p className="sectionLabel">{introducerAdmin ? "Fictional invitation preview" : "Workforce invitations"}</p>
+                <h2 id="workforce-invite-title">{introducerAdmin ? "Preview an employee invitation" : "Invite workforce"}</h2>
+                <p>{introducerAdmin
+                  ? "Select fictional workforce members to preview the existing invitation flow. This demonstration sends no email and creates no invitation, account, token or access."
+                  : "Send secure, personalised invitations to approved business email addresses. Employee invitations always create employee access."}</p>
               </header>
               <div className="workforceToolbar">
                 <label className="workforceSearch">
@@ -386,7 +493,7 @@ export default function OrganisationStructurePage() {
                       <tr key={person.id} className={selectedPeople.has(person.id) ? "workforceSelected" : ""}>
                         <td className="selectionColumn"><input type="checkbox" aria-label={`Select ${person.name || person.business_email || "workforce person"}`} disabled={!person.eligible} checked={selectedPeople.has(person.id)} onChange={() => setSelectedPeople((current) => { const next = new Set(current); next.has(person.id) ? next.delete(person.id) : next.add(person.id); return next; })} /></td>
                         <th scope="row" className="workforcePerson"><span className="workforceAvatar" aria-hidden="true">{String(person.name || person.business_email || "R").slice(0, 1).toUpperCase()}</span><strong>{person.name}</strong></th>
-                        <td data-label="Business email" className="workforceEmail">{person.business_email || <span className="workforceMissing">No approved business email</span>}</td>
+                        <td data-label="Business email" className="workforceEmail">{person.business_email || <span className="workforceMissing">{introducerAdmin ? "Fictional member · no address" : "No approved business email"}</span>}</td>
                         <td data-label="Organisational placement">{person.structural_placement}</td>
                         <td data-label="Invitation status"><span className={`workforceStatus ${person.root_status === "joined" ? "joined" : person.root_status === "sent" ? "sent" : "notInvited"}`}><span className="statusDot" aria-hidden="true" />{person.root_status === "not_invited" ? "Not invited" : person.root_status === "sent" ? "Invitation sent" : "Joined"}</span></td>
                       </tr>
@@ -406,17 +513,17 @@ export default function OrganisationStructurePage() {
                 <div className="workforceSelectionSummary"><strong>{selectedPeople.size.toLocaleString()} selected</strong><span>Select all applies to eligible people on this page.</span></div>
                 <div className="workforceActions">
                   <button type="button" className="workforceButton secondary" onClick={() => setSelectedPeople(new Set(workforceRows.filter((person) => person.eligible).map((person) => person.id)))}>Select all not invited</button>
-                  <button type="button" className="workforceButton primary" onClick={sendInvitations} disabled={sendingInvitations || selectedPeople.size === 0}>{sendingInvitations ? "Sending…" : `Send invitations (${selectedPeople.size})`}</button>
+                  <button type="button" className="workforceButton primary" onClick={sendInvitations} disabled={sendingInvitations || selectedPeople.size === 0}>{sendingInvitations ? (introducerAdmin ? "Preparing…" : "Sending…") : introducerAdmin ? `Preview invitations (${selectedPeople.size})` : `Send invitations (${selectedPeople.size})`}</button>
                 </div>
               </div>
               {invitationMessage ? <p className="workforceMessage" role="status">{invitationMessage}</p> : null}
-              <aside className="workforceManual" aria-label="Manual invitation option">
+              {!introducerAdmin ? <aside className="workforceManual" aria-label="Manual invitation option">
                 <div><p className="sectionLabel">Invite manually</p><p>Share the employee join link and organisation code.</p></div>
                 <div className="workforceCode"><span>Organisation code</span><strong>{organisation?.organisation_code || "Not available"}</strong></div>
                 <button type="button" className="workforceButton secondary" onClick={copyJoinLink} disabled={!organisation?.organisation_code}>
                   {copied ? "Join link copied ✓" : "Copy employee join link"}
                 </button>
-              </aside>
+              </aside> : <p className="workforceMessage">Demo boundary: no real employee invitation or join link is available here.</p>}
             </section>
           ) : null}
 
@@ -470,13 +577,22 @@ export default function OrganisationStructurePage() {
                     <div className="person" key={person.id}>
                       <span className="avatar">{String(person.name || person.business_email || person.email || "R").slice(0, 1).toUpperCase()}</span>
                       <div><strong>{person.name || person.business_email || person.email || "Workforce person"}</strong><small>{unit?.name || person.department || "Not placed in structure"}{person.job_title ? ` · ${person.job_title}` : ""}</small></div>
-                      <em>{linkedMember?.role ? memberRoleLabel(linkedMember.role) : "Not invited"}</em>
+                      {introducerAdmin && linkedMember?.id ? (
+                        <label className="demoRoleEditor">
+                          <span className="visuallyHidden">Demonstration role for {person.name || "fictional employee"}</span>
+                          <select value={linkedMember.role || "employee"} disabled={updatingMemberRole[linkedMember.id]} onChange={(event) => updateFictionalRole(linkedMember.id, event.target.value)}>
+                            <option value="employee">Employee</option>
+                            <option value="hr_admin">HR Administrator</option>
+                            <option value="organisation_admin">Organisation Admin</option>
+                          </select>
+                        </label>
+                      ) : <em>{linkedMember?.role ? memberRoleLabel(linkedMember.role) : "Not invited"}</em>}
                     </div>
                   );
                 })}
               </div>
               {displayedPeople.length > 8 ? <p className="muted">And {displayedPeople.length - 8} more people in this organisation.</p> : null}
-              <button type="button" className="wideButton" onClick={() => setShowPeoplePanel(true)}>Add people</button>
+              <button type="button" className="wideButton" onClick={() => setShowPeoplePanel(true)}>{introducerAdmin ? "Preview invitations" : "Add people"}</button>
             </aside>
           </div>
         </section>

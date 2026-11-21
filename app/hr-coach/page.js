@@ -3,18 +3,12 @@ import OrganisationActionPanel from '../../components/OrganisationActionPanel.js
 import CorporateOutputActions from '../../components/CorporateOutputActions.js';
 import ActionReviewCard from '../../components/ActionReviewCard.js';
 import { createHRRealtimeTranscript, realtimeTextTurn, realtimeHistory } from "../../lib/hrRealtimeTranscript.js";
-import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
-
-import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
-
-
 import { requireHRMembership } from "../../lib/authGuard";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
-import { buildOrganisationContext } from "../../lib/rootOrganisationContext";
 
 
 const conversationStarters = {
@@ -343,13 +337,8 @@ function RootContextCard({ context }) {
   export default function HRCoachPage() {
   const [loading, setLoading] = useState(true);
   const [organisation, setOrganisation] = useState(null);
-  const [members, setMembers] = useState([]);
-  const [assessments, setAssessments] = useState([]);
-  const [mindEntries, setMindEntries] = useState([]);
-  const [journalEntries, setJournalEntries] = useState([]);
-  const [voiceSessions, setVoiceSessions] = useState([]);
-  const [organisationReviews, setOrganisationReviews] = useState([]);
-  const [organisationContext, setOrganisationContext] = useState(null);
+  const [organisationSnapshot, setOrganisationSnapshot] = useState(null);
+  const [assessmentCount, setAssessmentCount] = useState(null);
   const [evidenceStatus, setEvidenceStatus] = useState(null);
   const [voiceStatus, setVoiceStatus] = useState("idle");
   const [voiceError, setVoiceError] = useState("");
@@ -413,23 +402,6 @@ function RootContextCard({ context }) {
       organisationId: orgId,
     });
 
-    try {
-  const context =
-    await buildOrganisationContext({
-      supabase,
-      organisationId: orgId,
-    });
-
-  setOrganisationContext(context);
-} catch (contextError) {
-  console.error(
-    "ROOT ORGANISATION CONTEXT ERROR:",
-    contextError
-  );
-
-  setOrganisationContext(null);
-}
-
     localStorage.setItem(
       "root_hr_org_v1",
       JSON.stringify({
@@ -440,61 +412,21 @@ function RootContextCard({ context }) {
 
     localStorage.setItem("root_profile_key_v1", membership.profile_key);
 
-    const { data: org, error: orgError } = await supabase
-      .from("organisations")
-      .select("*")
-      .eq("id", orgId)
-      .maybeSingle();
-
-    if (orgError || !org) {
+    const aggregateResponse = await fetch(
+      `/api/organisation/insights?organisationId=${encodeURIComponent(orgId)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" }
+    );
+    const aggregate = await aggregateResponse.json().catch(() => ({}));
+    if (!aggregateResponse.ok || aggregate.organisationId !== orgId || !aggregate.snapshot) {
       setOrganisation(null);
+      setOrganisationSnapshot(null);
       setLoading(false);
       return;
     }
 
-    setOrganisation(await withWorkforceContext(supabase, org));
-
-    const { data: memberData } = await supabase
-      .from("organisation_members")
-      .select("*")
-      .eq("organisation_id", orgId);
-
-    const { data: assessmentData } = await supabase
-      .from("wellbeing_assessments")
-      .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: true });
-
-    const { data: mindData } = await supabase
-      .from("mind_entries")
-      .select("id, organisation_id, profile_key, created_at")
-      .eq("organisation_id", orgId)
-      .limit(200);
-
-    const { data: journalData } = await supabase
-      .from("journal_entries")
-      .select("id, organisation_id, profile_key, created_at")
-      .eq("organisation_id", orgId)
-      .limit(200);
-
-    const { data: voiceData } = await supabase
-      .from("voice_sessions")
-      .select("id, organisation_id, profile_key, created_at")
-      .eq("organisation_id", orgId)
-      .limit(200);
-      
-      const { data: organisationReviewData } = await latestOrganisationReviews(supabase, orgId);
-
-    setMembers(Array.isArray(memberData) ? memberData : []);
-    setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
-    setMindEntries(Array.isArray(mindData) ? mindData : []);
-    setJournalEntries(Array.isArray(journalData) ? journalData : []);
-    setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
-    setOrganisationReviews(
-  Array.isArray(organisationReviewData)
-    ? organisationReviewData
-    : []
-);
+    setOrganisation(aggregate.organisation || null);
+    setOrganisationSnapshot(aggregate.snapshot);
+    setAssessmentCount(aggregate.assessmentCount);
 
     setLoading(false);
   }
@@ -939,73 +871,30 @@ function stopVoiceConversation() {
   setVoiceError("");
 }
 
-  const activated = members.filter((member) => member.activated_at).length;
-
-  const baselineCompleted = members.filter(
-    (member) => member.baseline_completed_at
-  ).length;
-
-  const supportInteractions =
-    mindEntries.length + journalEntries.length + voiceSessions.length;
-
-  const concernMetrics = [
-    {
-      label: "Stress",
-      field: "stress_score",
-    },
-    {
-      label: "Burnout",
-      field: "burnout_score",
-    },
-    {
-      label: "Sleep difficulty",
-      field: "sleep_score",
-    },
-    {
-      label: "Recovery difficulty",
-      field: "recovery_score",
-    },
-    {
-      label: "Mood difficulty",
-      field: "mood_score",
-    },
-    {
-      label: "Focus difficulty",
-      field: "focus_score",
-    },
-  ]
-    .map((metric) => {
-      const validScores = assessments
-        .map((assessment) => Number(assessment?.[metric.field]))
-        .filter((score) => Number.isFinite(score));
-
-      const average =
-        validScores.length > 0
-          ? validScores.reduce((total, score) => total + score, 0) /
-            validScores.length
-          : null;
-
-      return {
-        ...metric,
-        average,
-        evidenceCount: validScores.length,
-      };
-    })
-    .filter((metric) => metric.average !== null)
+  const participation = organisationSnapshot?.participation || {};
+  const memberCount = Number(participation.invited) || 0;
+  const activated = Number(participation.joined) || 0;
+  const baselineCompleted = Number(participation.baselineCompleted) || 0;
+  const supportInteractions = organisationSnapshot?.supportInteractions;
+  const concernMetrics = (organisationSnapshot?.metricResults || [])
+    .map((metric) => ({
+      label: metric.label,
+      field: metric.key,
+      average: metric.current == null ? null : Number(metric.current),
+      evidenceCount: assessmentCount,
+    }))
+    .filter((metric) => Number.isFinite(metric.average))
     .sort((a, b) => b.average - a.average);
 
   const primaryConcern = concernMetrics[0] || null;
   const secondaryConcern = concernMetrics[1] || null;
 
-  const baselineParticipation =
-    members.length > 0
-      ? Math.round((baselineCompleted / members.length) * 100)
-      : 0;
+  const baselineParticipation = Number(participation.baselineCompletionRate) || 0;
 
   const evidenceStage =
-  assessments.length >= 20
+  assessmentCount >= 20
     ? "Established"
-    : assessments.length >= 8
+    : assessmentCount >= 8
     ? "Developing"
     : "Early Stage";
 
@@ -1081,7 +970,7 @@ function stopVoiceConversation() {
               <div style={styles.snapshotGrid}>
                 <div style={styles.snapshotCard}>
                  <span>Programme members</span>
-                 <strong>{members.length}</strong>
+                 <strong>{memberCount}</strong>
                </div>
 
                 <div style={styles.snapshotCard}>
@@ -1096,7 +985,7 @@ function stopVoiceConversation() {
 
                 <div style={styles.snapshotCard}>
                   <span>Assessments</span>
-                  <strong>{assessments.length}</strong>
+                  <strong>{assessmentCount ?? "Protected"}</strong>
                 </div>
 
                 <div style={styles.snapshotCard}>
@@ -1187,7 +1076,7 @@ function stopVoiceConversation() {
                     </strong>
 
                   <p style={styles.focusText}>
-                    {baselineCompleted} of {members.length} recorded programme members
+                    {baselineCompleted} of {memberCount} recorded programme members
                      have completed a baseline.
                   </p>
                   </div>

@@ -202,6 +202,11 @@ export default function ProfilePage() {
 >
   {saving ? "Saving..." : "Save profile"}
 </button>
+          <p style={{ marginTop: 24 }}>
+            <a href="/password/change" style={{ color: "#52634A", fontWeight: 700 }}>
+              Change your password
+            </a>
+          </p>
         </section>
          </main>
 </RootAtmosphere>

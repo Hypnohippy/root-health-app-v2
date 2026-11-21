@@ -63,7 +63,7 @@ test("spoken agreement uses the normal persistence endpoint and returns a Playbo
     category: offer.category,
     content: "Title: Evening Meal and Morning Bloating Log\n\nDay 1\n- Evening meal:\n- Morning bloating (0-10):",
   });
-  assert.deepEqual(result, { ok: true, id: "playbook-log-1" });
+  assert.deepEqual(result, { ok: true, id: "playbook-log-1", mode: "new", updatedAt: null });
   assert.equal(request.url, "/api/voice-actions");
   assert.equal(request.body.profileKey, "owned-profile");
   assert.match(request.body.userIntent, /save this to my Playbook/i);
@@ -84,7 +84,7 @@ test("successful persistence carries the authenticated profile key and explicit 
     content: stressIntervention,
   });
 
-  assert.deepEqual(result, { ok: true, id: "entry-1" });
+  assert.deepEqual(result, { ok: true, id: "entry-1", mode: "new", updatedAt: null });
   assert.equal(request.url, "/api/voice-actions");
   assert.equal(request.options.headers.Authorization, "Bearer auth-token");
   assert.equal(request.body.profileKey, "owned-profile");

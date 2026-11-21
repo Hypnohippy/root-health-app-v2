@@ -1,10 +1,7 @@
 "use client";
 import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
 
-import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
-
-
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { getRootIdentity } from "../../lib/rootIdentity";
 import Nav from "../../components/Nav";
@@ -12,7 +9,6 @@ import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
 import RootModal from "../../components/workplace/RootModal";
 import { ROOT_PUBLIC_URL } from "../../lib/config";
-import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
 import { buildRootTrialStatus } from "../../lib/rootTrialStatus";
 
 function average(items, key) {
@@ -892,11 +888,9 @@ export default function OrgInsightsPage() {
   const [loading, setLoading] = useState(true);
   const [organisation, setOrganisation] = useState(null);
   const [members, setMembers] = useState([]);
-  const [assessments, setAssessments] = useState([]);
-  const [mindEntries, setMindEntries] = useState([]);
-  const [journalEntries, setJournalEntries] = useState([]);
-  const [voiceSessions, setVoiceSessions] = useState([]);
-  const [organisationReviews, setOrganisationReviews] = useState([]);
+  const [organisationSnapshot, setOrganisationSnapshot] = useState(null);
+  const [themeCounts, setThemeCounts] = useState([]);
+  const [toolCounts, setToolCounts] = useState([]);
   const [showInvite, setShowInvite] = useState(false);
   const [joinLinkCopied, setJoinLinkCopied] =
   useState(false);
@@ -1156,81 +1150,31 @@ if (membership.role === "organisation_admin") {
   );
 }
 
-    const orgFilter = orgId
-  ? `organisation_id.eq.${orgId}`
-  : "organisation_id.eq.__never_match__";
-    
-    const { data: memberData } = await supabase
-  .from("organisation_members")
-  .select("*")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: false });
-
-    const { data: assessmentData, error: assessmentError } = await supabase
-  .from("wellbeing_assessments")
-  .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: true });
-
-
-
-    const { data: mindData } = await supabase
-      .from("mind_entries")
-      .select("id, organisation_id, profile_key, created_at")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-
-    const { data: journalData } = await supabase
-      .from("journal_entries")
-      .select("id, organisation_id, profile_key, created_at")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-
-      const { data: organisationReviewData, error: organisationReviewError } =
-  await latestOrganisationReviews(supabase, orgId);
-
-if (organisationReviewError) {
-  console.error(
-    "Organisation learning review load error:",
-    organisationReviewError
-  );
-}
-
-    const { data: voiceData } = await supabase
-      .from("voice_sessions")
-      .select("id, organisation_id, profile_key, created_at")
-      .eq("organisation_id", orgId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-
-    setMembers(Array.isArray(memberData) ? memberData : []);
-    setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
-
-
-
-    setMindEntries(Array.isArray(mindData) ? mindData : []);
-    setJournalEntries(Array.isArray(journalData) ? journalData : []);
-    setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
-    setOrganisationReviews(
-  Array.isArray(organisationReviewData)
-    ? organisationReviewData
-    : []
-);
+    const { data: { session } = {} } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      window.location.href = "/login";
+      return;
+    }
+    const aggregateResponse = await fetch(
+      `/api/organisation/insights?organisationId=${encodeURIComponent(orgId)}&includeMembers=true`,
+      { headers: { Authorization: `Bearer ${session.access_token}` }, cache: "no-store" }
+    );
+    const aggregate = await aggregateResponse.json().catch(() => ({}));
+    if (!aggregateResponse.ok || aggregate.organisationId !== orgId || !aggregate.snapshot) {
+      console.error("Root could not load privacy-protected organisation insights.");
+      setLoading(false);
+      return;
+    }
+    setMembers(Array.isArray(aggregate.members) ? aggregate.members : []);
+    setOrganisationSnapshot(aggregate.snapshot);
+    setThemeCounts(Array.isArray(aggregate.themeCounts) ? aggregate.themeCounts : []);
+    setToolCounts(Array.isArray(aggregate.toolCounts) ? aggregate.toolCounts : []);
 
     setLoading(false);
   };
 
-  const snapshot = buildOrganisationSnapshot({
-  organisation,
-  members,
-  assessments,
-  mindEntries,
-  journalEntries,
-  voiceSessions,
-  organisationReviews,
-});
+const snapshot = organisationSnapshot || {};
+const assessments = snapshot.assessmentStages || [];
 
 const {
   organisationLearning,
@@ -1547,66 +1491,6 @@ const hrAdoptionRate =
       )
     : 0;
 
-  const baselineRows = assessments.filter(
-  (item) => item.assessment_type === "baseline"
-);
-
-const baseline =
-  baselineRows.length > 0
-    ? baselineRows
-    : assessments.length > 0
-    ? [assessments[0]]
-    : [];
-
-const latest =
-  assessments.length > 0
-    ? [assessments[assessments.length - 1]]
-    : [];
-  const metrics = [
-    ["Stress", "stress_score"],
-    ["Burnout", "burnout_score"],
-    ["Sleep difficulty", "sleep_score"],
-    ["Recovery difficulty", "recovery_score"],
-    ["Mood difficulty", "mood_score"],
-    ["Focus difficulty", "focus_score"],
-  ];
-
-  const themeCounts = useMemo(
-    () =>
-      countBy(
-        mindEntries.filter(
-          (entry) =>
-            entry.thought_theme &&
-            entry.thought_theme !== "Unclear emotional meaning"
-        ),
-        "thought_theme"
-      ),
-    [mindEntries]
-  );
-
-  const toolCounts = useMemo(
-    () =>
-      countBy(
-        mindEntries.filter(
-          (entry) => entry.tool && entry.tool !== "Emotional check-in"
-        ),
-        "tool"
-      ),
-    [mindEntries]
-  );
-
-
-
-  const mappedChallengeCounts = countBy(
-    mindEntries
-      .filter((entry) => entry.thought_theme)
-      .map((entry) => ({
-        challenge: mapChallengeTheme(entry.thought_theme),
-      })),
-    "challenge"
-  );
-
-
   const trialStatus =
   buildRootTrialStatus({
     organisation,
@@ -1622,7 +1506,7 @@ const {
 
 
   const executiveInsight =
-    assessments.length === 0
+    !snapshot.participation?.totalAssessmentInteractions
       ? "Root has not collected enough organisation data yet. Once employees complete baseline and follow-up check-ins, this area will summarise early wellbeing movement, engagement and anonymous themes."
       : `Early data shows a current workforce wellbeing score of ${
           currentScore ?? "—"
@@ -1950,7 +1834,7 @@ if (
       "executive-brief",
 
     reviewKey:
-      `priority-${primaryConcern}-${currentScore ?? "none"}-${assessments.length}`,
+      `priority-${primaryConcern}-${currentScore ?? "none"}-${snapshot.participation?.totalAssessmentInteractions ?? 0}`,
   });
 }
 
@@ -1981,7 +1865,7 @@ if (
       "executive-review",
 
     reviewKey:
-      `executive-review-${currentScore ?? "none"}-${assessments.length}-${organisationLearning?.reviewCount || 0}`,
+      `executive-review-${currentScore ?? "none"}-${snapshot.participation?.totalAssessmentInteractions ?? 0}-${organisationLearning?.reviewCount || 0}`,
   });
 }
 
@@ -4576,6 +4460,8 @@ We look forward to welcoming you.
 )}
           {loading ? (
             <p style={styles.loading}>Loading organisation insights...</p>
+          ) : !organisationSnapshot ? (
+            <p style={styles.loading}>Privacy-protected organisation insights could not be loaded. Please refresh or contact your Root administrator.</p>
           ) : (
             <>
             {organisationLearning?.latestReview ? (
@@ -5256,7 +5142,7 @@ We look forward to welcoming you.
 
                 <ExecutiveCard
                   label="Support engagement"
-                  value={mindEntries.length + journalEntries.length + voiceSessions.length}
+                  value={supportInteractions ?? "—"}
                   detail="Total recorded support interactions"
                 />
               </section>
@@ -5414,7 +5300,7 @@ We look forward to welcoming you.
 
 <div style={styles.confidenceReasonList}>
   <div style={styles.confidenceReason}>
-    {assessments.length} assessments analysed
+    {snapshot.participation?.totalAssessmentInteractions ?? 0} assessments analysed
   </div>
 
   <div style={styles.confidenceReason}>

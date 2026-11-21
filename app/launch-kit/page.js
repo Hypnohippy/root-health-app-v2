@@ -1,14 +1,11 @@
 "use client";
-import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
-import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
-
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Nav from "../../components/Nav";
 import RootAtmosphere from "../../components/RootAtmosphere";
 import RootEnso from "../../components/RootEnso";
-import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
 import { buildLaunchMaterial } from "../../lib/rootLaunchMaterialEngine";
+import { getRootIdentity } from "../../lib/rootIdentity";
 
 const MATERIALS = [
   {
@@ -75,117 +72,52 @@ export default function LaunchKitPage() {
         return;
       }
 
-      const { data: membership, error: membershipError } =
-        await supabase
-          .from("organisation_members")
-          .select(
-            "id, organisation_id, profile_key, email, name, department, role"
-          )
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-      if (membershipError || !membership) {
-        await supabase.auth.signOut();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token || "";
+      if (!accessToken) {
         window.location.href = "/login";
         return;
       }
 
-      const allowedRoles = [
-        "hr_admin",
-        "organisation_admin",
-      ];
-
-      if (!allowedRoles.includes(membership.role)) {
+      const identity = await getRootIdentity();
+      if (!identity?.capabilities?.canUseWorkplace) {
         window.location.href = "/";
         return;
       }
 
-      const organisationId = membership.organisation_id;
-
-      const [
-        organisationResult,
-        membersResult,
-        assessmentsResult,
-        mindResult,
-        journalResult,
-        voiceResult,
-      ] = await Promise.all([
-        supabase
-          .from("organisations")
-          .select("*")
-          .eq("id", organisationId)
-          .maybeSingle(),
-
-        supabase
+      let organisationId = identity.workplace?.activeOrganisation?.organisation_id;
+      if (identity.introducerDemo?.enabled) {
+        // This id is only a display/request hint. The insights API revalidates
+        // the signed-in user, unexpired grant, and exact mapped demo org.
+        organisationId = identity.introducerDemo.organisationId;
+      } else {
+        const { data: membership, error: membershipError } = await supabase
           .from("organisation_members")
-          .select("*")
-          .eq("organisation_id", organisationId),
-
-        supabase
-          .from("wellbeing_assessments")
-          .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
+          .select("id, organisation_id, role")
+          .eq("user_id", user.id)
           .eq("organisation_id", organisationId)
-          .order("created_at", { ascending: true }),
-
-        supabase
-          .from("mind_entries")
-          .select("id, organisation_id, profile_key, created_at")
-          .eq("organisation_id", organisationId)
-          .order("created_at", { ascending: false })
-          .limit(200),
-
-        supabase
-          .from("journal_entries")
-          .select("id, organisation_id, profile_key, created_at")
-          .eq("organisation_id", organisationId)
-          .order("created_at", { ascending: false })
-          .limit(200),
-
-        supabase
-          .from("voice_sessions")
-          .select("id, organisation_id, profile_key, created_at")
-          .eq("organisation_id", organisationId)
-          .order("created_at", { ascending: false })
-          .limit(200),
-      ]);
-
-      if (organisationResult.error) {
-        throw organisationResult.error;
+          .maybeSingle();
+        if (membershipError || !membership || !["hr_admin", "organisation_admin"].includes(membership.role)) {
+          window.location.href = "/";
+          return;
+        }
+      }
+      if (!organisationId) {
+        window.location.href = "/choose-experience";
+        return;
       }
 
-      const loadedOrganisation =
-        await withWorkforceContext(supabase, organisationResult.data);
-      const { data: organisationReviews, error: reviewError } = await latestOrganisationReviews(supabase, organisationId);
-      if (reviewError) throw reviewError;
+      const aggregateResponse = await fetch(
+        `/api/organisation/insights?organisationId=${encodeURIComponent(organisationId)}`,
+        { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" }
+      );
+      const aggregate = await aggregateResponse.json().catch(() => ({}));
+      if (!aggregateResponse.ok || aggregate.organisationId !== organisationId || !aggregate.snapshot) {
+        throw new Error("Authorised organisation aggregates are unavailable.");
+      }
 
-      const organisationSnapshot =
-        buildOrganisationSnapshot({
-          organisationReviews: organisationReviews || [],
-          organisation: loadedOrganisation,
-
-          members: Array.isArray(membersResult.data)
-            ? membersResult.data
-            : [],
-
-          assessments: Array.isArray(assessmentsResult.data)
-            ? assessmentsResult.data
-            : [],
-
-          mindEntries: Array.isArray(mindResult.data)
-            ? mindResult.data
-            : [],
-
-          journalEntries: Array.isArray(journalResult.data)
-            ? journalResult.data
-            : [],
-
-          voiceSessions: Array.isArray(voiceResult.data)
-            ? voiceResult.data
-            : [],
-        });
-
-      setOrganisation(loadedOrganisation);
-      setSnapshot(organisationSnapshot);
+      setOrganisation(aggregate.organisation || null);
+      setSnapshot(aggregate.snapshot);
     } catch (error) {
       console.error("Launch Kit load error:", error);
 

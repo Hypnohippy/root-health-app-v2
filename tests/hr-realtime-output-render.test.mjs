@@ -43,7 +43,9 @@ function harness() {
   const page = modules['app/hr-coach/page.js'].default;
   invoke(page, {});
   const slots = states.get(page);
-  slots[0] = false; slots[21] = { organisationId: 'org', accessToken: 'fixture' };
+  // The HR page now loads the privacy-protected aggregate through the server
+  // bridge and no longer has the old raw-evidence state slots.
+  slots[0] = false; slots[16] = { organisationId: 'org', accessToken: 'fixture' };
   const session = { id: 'voice', transcript: modules['lib/hrRealtimeTranscript.js'].createHRRealtimeTranscript('voice') };
   fixture.sessionRef.current = session;
   return { event: event => fixture.event(event, session), render: () => expand(invoke(page, {})), slots };
@@ -63,9 +65,9 @@ for (const terminal of ['response.output_item.done', 'response.done']) {
     assert.equal(saves(tree).length, 1);
     assert.doesNotMatch(text(tree), /Protected evidence PDF|Document Draft/);
     saves(tree)[0].props.onClick();
-    assert.equal(h.slots[16].entry.content, recommendation);
-    assert.equal(h.slots[16].entry.voiceSessionId, 'voice');
-    assert.equal(h.slots[16].organisationId, 'org');
+    assert.equal(h.slots[11].entry.content, recommendation);
+    assert.equal(h.slots[11].entry.voiceSessionId, 'voice');
+    assert.equal(h.slots[11].organisationId, 'org');
   });
 }
 test('separate items, duplicate completion and interruption keep controls on the eligible item only', () => {
