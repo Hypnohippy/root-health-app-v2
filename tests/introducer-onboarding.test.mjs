@@ -11,6 +11,7 @@ const secret="test-only-onboarding-secret-that-is-not-a-production-credential";
 const introId="11111111-1111-4111-8111-111111111111";
 const agreementId="22222222-2222-4222-8222-222222222222";
 const acceptanceId="33333333-3333-4333-8333-333333333333";
+const northstarOrganisationId="7e700070-0070-4070-8070-000000000070";
 const commercial={id:introId,name:"Jane Introducer",contact_name:"Jane Introducer",contact_email:"jane@example.test",introducer_market:"corporate",introducer_type:"corporate_introducer",referral_code:"jane",vat_registered:false,vat_number:null,agreement_start_date:"2026-11-01",agreement_end_date:null,status:"active"};
 const policy={commission_percent:20,commission_basis:"collected_subscription_revenue",commission_structure:"one_off",effective_from:"2020-01-01T00:00:00.000Z",effective_until:null};
 const evidence=agreementTerms(commercial,[policy],"None");
@@ -19,6 +20,27 @@ function acceptedState(overrides={}) {
   const acceptance={id:acceptanceId,accepted_at:"2026-11-19T10:00:00.000Z",evidence:{full_name:"Jane Introducer",email:"jane@example.test"},terms_snapshot:evidence,terms_hash:hash,archive_state:"archived"};
   const agreement={id:agreementId,version:2,status:"accepted",accepted_at:acceptance.accepted_at,sent_to:"jane@example.test",terms_snapshot:evidence,accepted_terms_snapshot:evidence,terms_hash:hash,acceptance};
   return {introducer:commercial,policies:[policy],agreements:[agreement],...overrides};
+}
+
+async function previewMigrationFixture({organisationId=northstarOrganisationId,name="Northstar Studio (fictional)",status="demo",mappedOrganisationId=organisationId,mappedGrantCount=1}={}) {
+  const preview=new PGlite();
+  const userId="44444444-4444-4444-8444-444444444444";
+  const alternateOrganisationId=organisationId==="7e700070-0070-4070-8070-000000000071" ? "7e700070-0070-4070-8070-000000000072" : "7e700070-0070-4070-8070-000000000071";
+  await preview.exec(`create schema auth;create table auth.users(id uuid primary key);create role anon;create role authenticated;create role service_role;
+    create function public.professional_introducer_access_active() returns boolean language sql security invoker set search_path=pg_catalog as $$ select true $$;
+    revoke all on function public.professional_introducer_access_active() from public,anon,authenticated,service_role;
+    grant execute on function public.professional_introducer_access_active() to authenticated;
+    create table public.organisations(id uuid primary key,name text not null,status text not null);
+    create table public.professional_introducer_demo_access(id uuid primary key default gen_random_uuid(),user_id uuid not null,consultant_label text not null,granted_by uuid,created_at timestamptz not null default now(),expires_at timestamptz not null,revoked_at timestamptz,revoked_by uuid,demo_organisation_id uuid references public.organisations(id),check(expires_at>created_at and expires_at<=created_at+interval '30 days'));
+    alter table public.professional_introducer_demo_access enable row level security;
+    insert into public.organisations values('${organisationId}','${name.replaceAll("'","''")}','${status.replaceAll("'","''")}');
+    insert into public.organisations values('${alternateOrganisationId}','Other fictional organisation','demo');
+    grant select,insert,update on public.professional_introducer_demo_access to service_role;
+    insert into public.professional_introducer_demo_access(user_id,consultant_label,expires_at,demo_organisation_id)
+      select case when n=1 then '${userId}'::uuid else gen_random_uuid() end,'Existing test account','2026-12-01T00:00:00Z','${mappedOrganisationId}'
+      from generate_series(1,${mappedGrantCount}) n;
+    insert into auth.users(id) values('${userId}');`);
+  return {preview,userId};
 }
 
 test("existing Root Demo Access status reflects only the latest verified agreement and lifecycle",()=>{
@@ -327,20 +349,11 @@ test("both onboarding migrations apply additively and Preview activation is tran
   assert.equal((await production.query("select count(*)::int n from organisation_introducer_policies where introducer_id=$1",[blockedId])).rows[0].n,1,
     "a failed transactional removal must preserve policy rows");
 
-  const preview=new PGlite();
-  const userId="44444444-4444-4444-8444-444444444444";
-  await preview.exec(`create schema auth;create table auth.users(id uuid primary key);create role anon;create role authenticated;create role service_role;
-    create function public.professional_introducer_access_active() returns boolean language sql security invoker set search_path=pg_catalog as $$ select true $$;
-    revoke all on function public.professional_introducer_access_active() from public,anon,authenticated,service_role;
-    grant execute on function public.professional_introducer_access_active() to authenticated;
-    create table public.organisations(id uuid primary key,name text not null);
-    create table public.professional_introducer_demo_access(id uuid primary key default gen_random_uuid(),user_id uuid not null,consultant_label text not null,granted_by uuid,created_at timestamptz not null default now(),expires_at timestamptz not null,revoked_at timestamptz,revoked_by uuid,demo_organisation_id uuid references public.organisations(id),check(expires_at>created_at and expires_at<=created_at+interval '30 days'));
-    alter table public.professional_introducer_demo_access enable row level security;
-    insert into public.organisations values('77777777-7777-4777-8777-777777777777','Northstar Studio');
-    grant select,insert,update on public.professional_introducer_demo_access to service_role;
-    insert into public.professional_introducer_demo_access(user_id,consultant_label,expires_at,demo_organisation_id) values('${userId}','Existing test account','2026-12-01T00:00:00Z','77777777-7777-4777-8777-777777777777');
-    insert into auth.users(id) values('${userId}');`);
+  const {preview,userId}=await previewMigrationFixture();
   await preview.exec(await readFile(new URL("../supabase/migrations/20261121130000_pr70_preview_introducer_onboarding.sql",import.meta.url),"utf8"));
+  assert.deepEqual((await preview.query("select o.id,o.name,o.status,count(g.id)::int as mappings from organisations o join professional_introducer_demo_access g on g.demo_organisation_id=o.id group by o.id,o.name,o.status")).rows,
+    [{id:northstarOrganisationId,name:"Northstar Studio (fictional)",status:"demo",mappings:1}],
+    "the existing fictional organisation and its one access mapping must be preserved");
   assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access")).rows[0].n,1);
   assert.equal((await preview.query("select relrowsecurity from pg_class where oid='public.professional_introducer_onboarding'::regclass")).rows[0].relrowsecurity,true);
   assert.equal((await preview.query("select has_table_privilege('anon','public.professional_introducer_onboarding','select') allowed")).rows[0].allowed,false);
@@ -369,7 +382,23 @@ test("both onboarding migrations apply additively and Preview activation is tran
   assert.equal((await preview.query("select state from professional_introducer_onboarding where id=$1",[onboardingId])).rows[0].state,"revoked");
   await assert.rejects(()=>preview.query("select confirm_professional_introducer_onboarding($1,$2,$3)",[onboardingId,userId,first.rows[0].id]));
   assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access where user_id=$1",[userId])).rows[0].n,2);
-  assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access where demo_organisation_id='77777777-7777-4777-8777-777777777777'",[])).rows[0].n,2);
+  assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access where demo_organisation_id=$1",[northstarOrganisationId])).rows[0].n,2);
+});
+
+test("Preview onboarding migration rejects any Northstar identity or access-mapping mismatch",async()=>{
+  const migration=await readFile(new URL("../supabase/migrations/20261121130000_pr70_preview_introducer_onboarding.sql",import.meta.url),"utf8");
+  for(const fixture of [
+    {organisationId:"7e700070-0070-4070-8070-000000000071"},
+    {name:"Northstar Studio"},
+    {status:"active"},
+    {mappedOrganisationId:"7e700070-0070-4070-8070-000000000071"},
+    {mappedGrantCount:0},
+    {mappedGrantCount:2},
+  ]){
+    const {preview}=await previewMigrationFixture(fixture);
+    await assert.rejects(()=>preview.exec(migration),/verified fictional Northstar Studio demo fixture/,
+      `must reject fixture ${JSON.stringify(fixture)}`);
+  }
 });
 
 test("Root atomically consumes only a current archived agreement-bound Preview receipt",async()=>{

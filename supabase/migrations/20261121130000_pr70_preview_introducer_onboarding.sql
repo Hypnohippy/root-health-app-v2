@@ -49,10 +49,13 @@ do $$ begin
       where demo_organisation_id is not null) <> 1
      or not exists (
        select 1 from public.professional_introducer_demo_access g
-       join public.organisations o on o.id=g.demo_organisation_id and o.name='Northstar Studio'
-       where g.demo_organisation_id is not null
+       join public.organisations o on o.id=g.demo_organisation_id
+       where g.demo_organisation_id='7e700070-0070-4070-8070-000000000070'::uuid
+         and o.id='7e700070-0070-4070-8070-000000000070'::uuid
+         and o.name='Northstar Studio (fictional)'
+         and o.status='demo'
      ) then
-    raise exception 'Preview must contain exactly one mapping to the verified Northstar Studio fixture before activation';
+    raise exception 'Preview must contain exactly one existing mapping to the verified fictional Northstar Studio demo fixture before activation';
   end if;
 end $$;
 
