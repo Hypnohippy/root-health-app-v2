@@ -6,6 +6,25 @@ do $$ begin
   if to_regclass('public.professional_introducer_demo_access') is null then
     raise exception 'Isolated introducer access baseline is required';
   end if;
+  if to_regclass('public.organisations') is null or to_regclass('auth.users') is null then
+    raise exception 'Isolated organisation and Auth baselines are required';
+  end if;
+  if to_regprocedure('public.professional_introducer_access_active()') is null
+     or exists (
+       select 1 from pg_proc p
+       where p.oid=to_regprocedure('public.professional_introducer_access_active()')
+         and (p.prosecdef or not coalesce(p.proconfig, array[]::text[]) @> array['search_path=pg_catalog'])
+     )
+     or not has_function_privilege('authenticated','public.professional_introducer_access_active()','EXECUTE')
+     or has_function_privilege('anon','public.professional_introducer_access_active()','EXECUTE')
+     or has_function_privilege('service_role','public.professional_introducer_access_active()','EXECUTE') then
+    raise exception 'Preview active-access helper identity, invoker mode, search path, or grants differ from the reviewed dependency';
+  end if;
+  if not has_table_privilege('service_role','public.professional_introducer_demo_access','SELECT')
+     or not has_table_privilege('service_role','public.professional_introducer_demo_access','INSERT')
+     or not has_table_privilege('service_role','public.professional_introducer_demo_access','UPDATE') then
+    raise exception 'Preview service_role privileges do not satisfy onboarding function dependencies';
+  end if;
   if to_regclass('public.professional_introducer_onboarding') is not null
      or to_regclass('public.professional_introducer_onboarding_events') is not null
      or to_regprocedure('public.activate_professional_introducer_onboarding(uuid,uuid,text)') is not null then
@@ -14,6 +33,26 @@ do $$ begin
   if not exists (select 1 from pg_attribute where attrelid='public.professional_introducer_demo_access'::regclass and attname='demo_organisation_id' and not attisdropped)
      or not exists (select 1 from pg_class where oid='public.professional_introducer_demo_access'::regclass and relrowsecurity) then
     raise exception 'The sanitized Preview baseline must be installed with RLS and organisation mapping';
+  end if;
+  if not exists (
+    select 1 from pg_constraint c
+    join pg_attribute a on a.attrelid=c.conrelid and a.attnum=any(c.conkey)
+    where c.conrelid='public.professional_introducer_demo_access'::regclass
+      and c.confrelid='public.organisations'::regclass and c.contype='f'
+      and a.attname='demo_organisation_id'
+  ) then
+    raise exception 'Preview organisation mapping must have a foreign key to public.organisations';
+  end if;
+  if (select count(*) from public.professional_introducer_demo_access
+      where demo_organisation_id is not null) <> 1
+     or (select count(distinct demo_organisation_id) from public.professional_introducer_demo_access
+      where demo_organisation_id is not null) <> 1
+     or not exists (
+       select 1 from public.professional_introducer_demo_access g
+       join public.organisations o on o.id=g.demo_organisation_id and o.name='Northstar Studio'
+       where g.demo_organisation_id is not null
+     ) then
+    raise exception 'Preview must contain exactly one mapping to the verified Northstar Studio fixture before activation';
   end if;
 end $$;
 
@@ -75,7 +114,7 @@ create unique index if not exists professional_introducer_onboarding_auth_user_i
 create function public.activate_professional_introducer_onboarding(
   p_onboarding_id uuid, p_user_id uuid, p_label text
 ) returns uuid language plpgsql security invoker set search_path=pg_catalog,public as $$
-declare row_data public.professional_introducer_onboarding%rowtype; grant_id uuid;
+declare row_data public.professional_introducer_onboarding%rowtype; grant_id uuid; demo_org_id uuid;
 begin
   select * into strict row_data from public.professional_introducer_onboarding
     where id=p_onboarding_id for update;
@@ -85,10 +124,19 @@ begin
     raise exception 'Introducer activation is not valid';
   end if;
   if row_data.access_grant_id is not null then return row_data.access_grant_id; end if;
+  select demo_organisation_id into strict demo_org_id
+    from public.professional_introducer_demo_access
+    where demo_organisation_id is not null
+    group by demo_organisation_id;
   -- A pending grant is immediately unusable by RLS and server authorization.
   -- Root's signed completion receipt must be accepted before it is activated.
-  insert into public.professional_introducer_demo_access(user_id,consultant_label,granted_by,expires_at,revoked_at,revoked_by)
-    values(p_user_id,trim(p_label),null,now()+interval '30 days',now(),null) returning id into grant_id;
+  -- Bind each introducer to the one Root-provisioned fictional organisation;
+  -- do not infer an employer relationship from their personal account.
+  insert into public.professional_introducer_demo_access(
+    user_id,consultant_label,granted_by,expires_at,revoked_at,revoked_by,demo_organisation_id
+  ) values (
+    p_user_id,trim(p_label),null,now()+interval '30 days',now(),null,demo_org_id
+  ) returning id into grant_id;
   update public.professional_introducer_onboarding set access_grant_id=grant_id,updated_at=now()
     where id=p_onboarding_id;
   return grant_id;

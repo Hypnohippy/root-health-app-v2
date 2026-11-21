@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { agreementTerms,termsHash } from "../lib/introducerGoogleAgreementTerms.js";
-import { PR70_MIGRATION_TARGETS, validatePr70MigrationTarget } from "../lib/pr70MigrationGate.server.js";
+import { PR70_CATALOG_REQUIREMENTS, PR70_MIGRATION_TARGETS, validatePr70MigrationTarget } from "../lib/pr70MigrationGate.server.js";
 import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, ROOT_COMMERCIAL_SUPABASE_REF, ROOT_COMMERCIAL_VERCEL_PROJECT_ID, commercialOnboardingBridgeReady, demoAccessSummary, openActivationLink,parseExactHttpsOrigins,replacementDisposition,sealActivationLink,signOnboardingAssertion,signPreviewActivationReceipt,validateCommercialCallbackUrl,validatePreviewActivationLink,validatePreviewDeployment,verifiedAcceptedAgreement,verifyOnboardingAssertion,verifyPreviewActivationReceipt } from "../lib/professionalIntroducerOnboarding.server.js";
 
 const secret="test-only-onboarding-secret-that-is-not-a-production-credential";
@@ -142,27 +142,80 @@ test("Preview deployment identity fails closed on wrong project, database, envir
   }
 });
 
-test("project-specific migration gate rejects wrong targets, histories, and Production identities",()=>{
+function catalogEvidenceFor(target){
+  const key=target==="root-commercial"?"rootCommercial":target;
+  const requirements=PR70_CATALOG_REQUIREMENTS[key];
+  const tables=Object.fromEntries(Object.entries(requirements.tables).map(([name,item])=>[name,{
+    columns:[...item.columns],rlsEnabled:item.rlsEnabled===true,serviceRolePrivileges:[...(item.serviceRolePrivileges||[])],
+  }]));
+  if(key==="rootCommercial") return {
+    projectRef:PR70_MIGRATION_TARGETS.rootCommercial.supabaseRef,tables,
+    clientSelectDenied:[...requirements.clientSelectDenied],constraints:[...requirements.constraints],
+    absentTables:[...requirements.absentTables],absentColumns:[...requirements.absentColumns],absentFunctions:[...requirements.absentFunctions],
+  };
+  return {
+    projectRef:PR70_MIGRATION_TARGETS.preview.supabaseRef,tables,
+    constraints:[...requirements.constraints],
+    policies:Object.fromEntries(Object.entries(requirements.policies).map(([name,value])=>[name,{...value}])),
+    accessFunction:{...requirements.accessFunction,executableBy:[...requirements.accessFunction.executableBy],deniedTo:[...requirements.accessFunction.deniedTo]},
+    preservedFixtures:{...requirements.preservedFixtures},existingCommercialIdentityValuesUnique:true,
+    mappedGrantOrganisationIsNorthstar:true,
+    absentTables:[...requirements.absentTables],absentFunctions:[...requirements.absentFunctions],
+  };
+}
+
+test("project-specific migration gate accepts the verified ledgers only with complete schema and security evidence",()=>{
   const preview=PR70_MIGRATION_TARGETS.preview;
+  const previewEvidence=catalogEvidenceFor("preview");
   assert.equal(validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
-    migrationHistory:[...preview.requiredHistory],verifiedSchemaObjects:true}).ready,true);
+    migrationHistory:[...preview.requiredHistory],schemaEvidence:previewEvidence}).ready,true);
+  const badPreviewEvidence=[
+    {...previewEvidence,projectRef:"witkwlgldxjwwxmpcyva"},
+    {...previewEvidence,tables:{...previewEvidence.tables,"public.professional_introducer_demo_access":{...previewEvidence.tables["public.professional_introducer_demo_access"],rlsEnabled:false}}},
+    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,securityDefiner:true}},
+    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,deniedTo:["public"]}},
+    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,deniedTo:["public","anon"]}},
+    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,deniedTo:["public","anon","authenticated"]}},
+    {...previewEvidence,policies:{...previewEvidence.policies,assessment_insert_self:{ownerScoped:false,activeGrantRequired:true}}},
+    {...previewEvidence,preservedFixtures:{...previewEvidence.preservedFixtures,fictionalAssessments:54}},
+    {...previewEvidence,mappedGrantOrganisationIsNorthstar:false},
+    {...previewEvidence,constraints:previewEvidence.constraints.filter(name=>name!=="professional_introducer_demo_access.demo_organisation_id.foreign_key")},
+    {...previewEvidence,absentTables:previewEvidence.absentTables.filter(name=>name!=="public.professional_introducer_onboarding")},
+    {...previewEvidence,tables:{...previewEvidence.tables,"public.professional_introducer_demo_access":{...previewEvidence.tables["public.professional_introducer_demo_access"],serviceRolePrivileges:["SELECT"]}}},
+  ];
+  for(const schemaEvidence of badPreviewEvidence) assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,
+    projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,migrationHistory:[...preview.requiredHistory],schemaEvidence}));
   for(const bad of [
     {projectRef:"witkwlgldxjwwxmpcyva"},
     {vercelProjectId:"prj_XRyykP2byrJeHZ5hkI3QpGOjF2oO"},
     {migration:"20261120130000_introducer_onboarding_admin.sql"},
-    {migrationHistory:[...preview.requiredHistory,"20261120131000"]},
-    {migrationHistory:[preview.requiredHistory[0]]},
-    {verifiedSchemaObjects:false},
-  ]) assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,migrationHistory:[...preview.requiredHistory],verifiedSchemaObjects:true,...bad}));
+    {migrationHistory:[...preview.requiredHistory,"20261121130000"]},
+    {migrationHistory:["20261118150000","20261118153000"]},
+    {schemaEvidence:undefined},
+  ]) assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,
+    vercelProjectId:preview.vercelProjectId,migrationHistory:[...preview.requiredHistory],schemaEvidence:previewEvidence,...bad}));
+
   const root=PR70_MIGRATION_TARGETS.rootCommercial;
+  const rootEvidence=catalogEvidenceFor("root-commercial");
   assert.equal(validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:root.supabaseRef,vercelProjectId:root.vercelProjectId,
-    migrationHistory:[...root.requiredHistory],verifiedSchemaObjects:true}).ready,true);
+    migrationHistory:[...root.requiredHistory],schemaEvidence:rootEvidence}).ready,true);
+  const badRootEvidence=[
+    {...rootEvidence,projectRef:INTRODUCER_PREVIEW_SUPABASE_REF},
+    {...rootEvidence,clientSelectDenied:rootEvidence.clientSelectDenied.filter(name=>name!=="public.introducer_agreement_acceptances")},
+    {...rootEvidence,constraints:rootEvidence.constraints.filter(name=>name!=="introducer_agreement_acceptances.archive_state.check")},
+    {...rootEvidence,absentTables:rootEvidence.absentTables.filter(name=>name!=="public.organisation_introducer_onboarding_events")},
+    {...rootEvidence,absentColumns:rootEvidence.absentColumns.filter(name=>name!=="public.organisation_introducers.archived_at")},
+    {...rootEvidence,absentFunctions:rootEvidence.absentFunctions.filter(name=>name!=="public.remove_test_organisation_introducer(uuid,uuid)")},
+    {...rootEvidence,tables:{...rootEvidence.tables,"public.organisation_introducers":{...rootEvidence.tables["public.organisation_introducers"],serviceRolePrivileges:["SELECT"]}}},
+  ];
+  for(const schemaEvidence of badRootEvidence) assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,
+    projectRef:root.supabaseRef,vercelProjectId:root.vercelProjectId,migrationHistory:[...root.requiredHistory],schemaEvidence}));
   assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:INTRODUCER_PREVIEW_SUPABASE_REF,
-    vercelProjectId:INTRODUCER_PREVIEW_PROJECT_ID,migrationHistory:[...root.requiredHistory],verifiedSchemaObjects:true}));
+    vercelProjectId:INTRODUCER_PREVIEW_PROJECT_ID,migrationHistory:[...root.requiredHistory],schemaEvidence:rootEvidence}));
   assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:root.supabaseRef,
-    vercelProjectId:root.vercelProjectId,migrationHistory:[],verifiedSchemaObjects:true}));
+    vercelProjectId:root.vercelProjectId,migrationHistory:["20261004","20261005","20261006"],schemaEvidence:rootEvidence}));
   assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
-    migrationHistory:[...preview.requiredHistory,...preview.requiredHistory],verifiedSchemaObjects:true}));
+    migrationHistory:[...preview.requiredHistory,...preview.requiredHistory],schemaEvidence:previewEvidence}));
 });
 
 test("signed onboarding assertion is short lived, tamper evident and validates identity fields",()=>{
@@ -225,24 +278,69 @@ test("account activation and API secrets are not rendered by the Root admin comp
 
 test("both onboarding migrations apply additively and Preview activation is transactionally serialized",async()=>{
   const production=new PGlite();
-  await production.exec(`create schema auth; create table auth.users(id uuid primary key); create role anon;create role authenticated;create role service_role;
-    create table public.organisation_introducers(id uuid primary key);
-    create table public.organisation_introducer_agreements(id uuid primary key);
-    create table public.introducer_agreement_acceptances(id uuid unique);
-    insert into public.organisation_introducers values('${introId}');`);
+  await production.exec(`create schema auth; create table auth.users(id uuid primary key); create role anon;create role authenticated;create role service_role bypassrls;
+    create table public.organisation_introducers(id uuid primary key,name text not null,notes text,status text not null,agreement_start_date date,agreement_end_date date);
+    create table public.organisation_introducer_policies(id uuid primary key default gen_random_uuid(),introducer_id uuid not null);
+    create table public.organisation_applications(id uuid primary key,introducer_id uuid);
+    create table public.organisation_commissions(id uuid primary key,introducer_id uuid);
+    create table public.organisation_commercial_documents(id uuid primary key,introducer_id uuid);
+    create table public.personal_referral_attributions(id uuid primary key,introducer_id uuid);
+    create table public.organisation_introducer_campaigns(id uuid primary key,introducer_id uuid);
+    create table public.introducer_google_agreement_operations(id uuid primary key,introducer_id uuid);
+    create table public.organisation_introducer_agreements(id uuid primary key,introducer_id uuid,version integer,status text,superseded_at timestamptz,accepted_at timestamptz,accepted_by uuid,terms_hash text,terms_snapshot jsonb,accepted_terms_snapshot jsonb);
+    create table public.introducer_agreement_acceptances(id uuid unique,agreement_id uuid,accepted_at timestamptz,archive_state text,terms_hash text,evidence jsonb);
+    alter table public.organisation_introducer_agreements enable row level security;
+    alter table public.introducer_agreement_acceptances enable row level security;
+    grant select,update on public.organisation_introducers to service_role;
+    grant select on public.organisation_introducer_agreements,public.introducer_agreement_acceptances to service_role;
+    insert into auth.users values('88888888-8888-4888-8888-888888888888');
+    insert into public.organisation_introducers(id,name,notes,status,agreement_start_date,agreement_end_date) values('${introId}','Existing Root test','', 'active',current_date-1,current_date+30);`);
   await production.exec(await readFile(new URL("../supabase/migrations/20261120130000_introducer_onboarding_admin.sql",import.meta.url),"utf8"));
   assert.equal((await production.query("select count(*)::int n from organisation_introducers")).rows[0].n,1);
   assert.equal((await production.query("select relrowsecurity from pg_class where oid='public.organisation_introducer_onboarding'::regclass")).rows[0].relrowsecurity,true);
   assert.equal((await production.query("select has_table_privilege('authenticated','public.organisation_introducer_onboarding','select') allowed")).rows[0].allowed,false);
+  assert.equal((await production.query("select relrowsecurity from pg_class where oid='public.organisation_introducer_lifecycle_events'::regclass")).rows[0].relrowsecurity,true);
+  assert.equal((await production.query("select has_table_privilege('anon','public.organisation_introducer_lifecycle_events','select') allowed")).rows[0].allowed,false);
+  assert.equal((await production.query("select has_function_privilege('service_role','public.remove_test_organisation_introducer(uuid,uuid)','execute') allowed")).rows[0].allowed,true);
+  assert.equal((await production.query("select has_function_privilege('authenticated','public.remove_test_organisation_introducer(uuid,uuid)','execute') allowed")).rows[0].allowed,false);
+  assert.deepEqual((await production.query("select attname from pg_attribute where attrelid='public.organisation_introducers'::regclass and attname like 'archive_%' and not attisdropped order by attname")).rows.map(row=>row.attname),
+    ["archive_previous_status","archive_requested_at","archived_at","archived_by"]);
+  const testRecordId="99999999-9999-4999-8999-999999999999";
+  await production.query("insert into organisation_introducers(id,name,notes,status) values($1,'Unused test','[TEST RECORD] unused','inactive')",[testRecordId]);
+  await production.query("insert into organisation_introducer_policies(introducer_id) values($1)",[testRecordId]);
+  await production.exec("select set_config('request.jwt.claim.role','service_role',false)");
+  assert.equal((await production.query("select public.remove_test_organisation_introducer($1,$2) ok",[testRecordId,"88888888-8888-4888-8888-888888888888"])).rows[0].ok,true);
+  assert.equal((await production.query("select count(*)::int n from organisation_introducer_policies where introducer_id=$1",[testRecordId])).rows[0].n,0);
+  assert.equal((await production.query("select count(*)::int n from organisation_introducers where id=$1",[testRecordId])).rows[0].n,0);
+  assert.equal((await production.query("select count(*)::int n from organisation_introducer_lifecycle_events where introducer_ref=$1 and event_type='removed'",[testRecordId])).rows[0].n,1);
+  await production.exec("select set_config('request.jwt.claim.role','anon',false)");
+  const deniedId="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  await production.query("insert into organisation_introducers(id,name,notes,status) values($1,'Denied test','[TEST RECORD] denied','inactive')",[deniedId]);
+  await assert.rejects(()=>production.query("select public.remove_test_organisation_introducer($1,$2)",[deniedId,"88888888-8888-4888-8888-888888888888"]),/service_role is required/);
+  await production.exec("select set_config('request.jwt.claim.role','service_role',false)");
+
+  const blockedId="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  await production.query("insert into organisation_introducers(id,name,notes,status) values($1,'Dependent test','[TEST RECORD] dependent','inactive')",[blockedId]);
+  await production.query("insert into organisation_introducer_policies(introducer_id) values($1)",[blockedId]);
+  await production.query("insert into organisation_commissions(id,introducer_id) values(gen_random_uuid(),$1)",[blockedId]);
+  await assert.rejects(()=>production.query("select public.remove_test_organisation_introducer($1,$2)",[blockedId,"88888888-8888-4888-8888-888888888888"]),/Related legal, referral, financial/);
+  assert.equal((await production.query("select count(*)::int n from organisation_introducer_policies where introducer_id=$1",[blockedId])).rows[0].n,1,
+    "a failed transactional removal must preserve policy rows");
 
   const preview=new PGlite();
   const userId="44444444-4444-4444-8444-444444444444";
   await preview.exec(`create schema auth;create table auth.users(id uuid primary key);create role anon;create role authenticated;create role service_role;
-    create table public.professional_introducer_demo_access(id uuid primary key default gen_random_uuid(),user_id uuid not null,consultant_label text not null,granted_by uuid,created_at timestamptz not null default now(),expires_at timestamptz not null,revoked_at timestamptz,revoked_by uuid,demo_organisation_id uuid);
+    create function public.professional_introducer_access_active() returns boolean language sql security invoker set search_path=pg_catalog as $$ select true $$;
+    revoke all on function public.professional_introducer_access_active() from public,anon,authenticated,service_role;
+    grant execute on function public.professional_introducer_access_active() to authenticated;
+    create table public.organisations(id uuid primary key,name text not null);
+    create table public.professional_introducer_demo_access(id uuid primary key default gen_random_uuid(),user_id uuid not null,consultant_label text not null,granted_by uuid,created_at timestamptz not null default now(),expires_at timestamptz not null,revoked_at timestamptz,revoked_by uuid,demo_organisation_id uuid references public.organisations(id),check(expires_at>created_at and expires_at<=created_at+interval '30 days'));
     alter table public.professional_introducer_demo_access enable row level security;
-    insert into public.professional_introducer_demo_access(user_id,consultant_label,expires_at) values('${userId}','Existing test account','2026-12-01T00:00:00Z');
+    insert into public.organisations values('77777777-7777-4777-8777-777777777777','Northstar Studio');
+    grant select,insert,update on public.professional_introducer_demo_access to service_role;
+    insert into public.professional_introducer_demo_access(user_id,consultant_label,expires_at,demo_organisation_id) values('${userId}','Existing test account','2026-12-01T00:00:00Z','77777777-7777-4777-8777-777777777777');
     insert into auth.users(id) values('${userId}');`);
-  await preview.exec(await readFile(new URL("../supabase/migrations/20261120131000_pr70_preview_introducer_onboarding.sql",import.meta.url),"utf8"));
+  await preview.exec(await readFile(new URL("../supabase/migrations/20261121130000_pr70_preview_introducer_onboarding.sql",import.meta.url),"utf8"));
   assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access")).rows[0].n,1);
   assert.equal((await preview.query("select relrowsecurity from pg_class where oid='public.professional_introducer_onboarding'::regclass")).rows[0].relrowsecurity,true);
   assert.equal((await preview.query("select has_table_privilege('anon','public.professional_introducer_onboarding','select') allowed")).rows[0].allowed,false);
@@ -250,6 +348,9 @@ test("both onboarding migrations apply additively and Preview activation is tran
   assert.equal((await preview.query("select has_function_privilege('service_role','public.activate_professional_introducer_onboarding(uuid,uuid,text)','execute') allowed")).rows[0].allowed,true);
   assert.equal((await preview.query("select has_function_privilege('authenticated','public.confirm_professional_introducer_onboarding(uuid,uuid,uuid)','execute') allowed")).rows[0].allowed,false);
   assert.equal((await preview.query("select has_function_privilege('authenticated','public.revoke_professional_introducer_onboarding(uuid,uuid)','execute') allowed")).rows[0].allowed,false);
+  assert.equal((await preview.query("select has_function_privilege('authenticated','public.professional_introducer_access_active()','execute') allowed")).rows[0].allowed,true);
+  assert.equal((await preview.query("select has_function_privilege('anon','public.professional_introducer_access_active()','execute') allowed")).rows[0].allowed,false);
+  assert.equal((await preview.query("select has_function_privilege('service_role','public.professional_introducer_access_active()','execute') allowed")).rows[0].allowed,false);
 
   const onboardingId="55555555-5555-4555-8555-555555555555";
   const requestId="66666666-6666-4666-8666-666666666666";
@@ -268,16 +369,27 @@ test("both onboarding migrations apply additively and Preview activation is tran
   assert.equal((await preview.query("select state from professional_introducer_onboarding where id=$1",[onboardingId])).rows[0].state,"revoked");
   await assert.rejects(()=>preview.query("select confirm_professional_introducer_onboarding($1,$2,$3)",[onboardingId,userId,first.rows[0].id]));
   assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access where user_id=$1",[userId])).rows[0].n,2);
-  assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access where demo_organisation_id is null",[])).rows[0].n,2);
+  assert.equal((await preview.query("select count(*)::int n from professional_introducer_demo_access where demo_organisation_id='77777777-7777-4777-8777-777777777777'",[])).rows[0].n,2);
 });
 
 test("Root atomically consumes only a current archived agreement-bound Preview receipt",async()=>{
   const db=new PGlite();
-  await db.exec(`create schema auth;create table auth.users(id uuid primary key);create role anon;create role authenticated;create role service_role;
-    create table public.organisation_introducers(id uuid primary key,status text not null,agreement_start_date date,agreement_end_date date);
+  await db.exec(`create schema auth;create table auth.users(id uuid primary key);create role anon;create role authenticated;create role service_role bypassrls;
+    create table public.organisation_introducers(id uuid primary key,name text not null,notes text,status text not null,agreement_start_date date,agreement_end_date date);
+    create table public.organisation_introducer_policies(id uuid primary key default gen_random_uuid(),introducer_id uuid not null);
+    create table public.organisation_applications(id uuid primary key,introducer_id uuid);
+    create table public.organisation_commissions(id uuid primary key,introducer_id uuid);
+    create table public.organisation_commercial_documents(id uuid primary key,introducer_id uuid);
+    create table public.personal_referral_attributions(id uuid primary key,introducer_id uuid);
+    create table public.organisation_introducer_campaigns(id uuid primary key,introducer_id uuid);
+    create table public.introducer_google_agreement_operations(id uuid primary key,introducer_id uuid);
     create table public.organisation_introducer_agreements(id uuid primary key,introducer_id uuid,version int,status text,superseded_at timestamptz,accepted_at timestamptz,accepted_by uuid,terms_hash text,terms_snapshot jsonb,accepted_terms_snapshot jsonb);
     create table public.introducer_agreement_acceptances(id uuid unique,agreement_id uuid,accepted_at timestamptz,archive_state text,terms_hash text,evidence jsonb);
-    insert into public.organisation_introducers values('${introId}','active',current_date-1,current_date+30);`);
+    alter table public.organisation_introducer_agreements enable row level security;
+    alter table public.introducer_agreement_acceptances enable row level security;
+    grant select,update on public.organisation_introducers to service_role;
+    grant select on public.organisation_introducer_agreements,public.introducer_agreement_acceptances to service_role;
+    insert into public.organisation_introducers(id,name,notes,status,agreement_start_date,agreement_end_date) values('${introId}','Jane','', 'active',current_date-1,current_date+30);`);
   const sql=await readFile(new URL("../supabase/migrations/20261120130000_introducer_onboarding_admin.sql",import.meta.url),"utf8");
   await db.exec(sql);
   const onboardingId=randomUUID(),requestId=randomUUID(),previewUser=randomUUID(),previewGrant=randomUUID(),receiptJti=randomUUID();
@@ -292,6 +404,7 @@ test("Root atomically consumes only a current archived agreement-bound Preview r
   await db.query(`insert into public.organisation_introducer_onboarding
     (id,introducer_id,state,agreement_id,agreement_version,acceptance_id,recipient_email,accepted_terms_hash,accepted_at,activation_request_id,activation_nonce_hash,activation_expires_at)
     values($1,$2,'activation_sent',$3,2,$4,'jane@example.test',$5,$6,$7,$8,$9)`,[onboardingId,introId,agreementId,acceptanceId,termsHashValue,acceptedAt,requestId,nonceHash,expiresAt]);
+  await db.exec("set role service_role");
   const args=[receiptJti,onboardingId,introId,requestId,nonceHash,agreementId,2,acceptanceId,acceptedAt,termsHashValue,"jane@example.test",previewUser,previewGrant,grantExpiresAt,receiptHash];
   assert.equal((await db.query(`select public.complete_professional_introducer_onboarding(${args.map((_,i)=>`$${i+1}`).join(",")}) ok`,args)).rows[0].ok,true);
   const row=(await db.query("select state,preview_user_id,preview_grant_id from public.organisation_introducer_onboarding where id=$1",[onboardingId])).rows[0];
@@ -301,13 +414,18 @@ test("Root atomically consumes only a current archived agreement-bound Preview r
   assert.equal((await db.query(`select public.complete_professional_introducer_onboarding(${retry.map((_,i)=>`$${i+1}`).join(",")}) ok`,retry)).rows[0].ok,true);
   const mismatch=[randomUUID(),...args.slice(1)];mismatch[11]=randomUUID();
   await assert.rejects(()=>db.query(`select public.complete_professional_introducer_onboarding(${mismatch.map((_,i)=>`$${i+1}`).join(",")})`,mismatch),/conflicts with completed access/i);
+  await db.exec("reset role");
 });
 
 test("new onboarding SQL is additive and never applies or copies customer rows",async()=>{
   const fs=await import("node:fs/promises");
   const root=await fs.readFile(new URL("../supabase/migrations/20261120130000_introducer_onboarding_admin.sql",import.meta.url),"utf8");
-  const demo=await fs.readFile(new URL("../supabase/migrations/20261120131000_pr70_preview_introducer_onboarding.sql",import.meta.url),"utf8");
-  for(const sql of [root,demo]) assert.doesNotMatch(sql,/\b(drop\s+table|truncate\s|delete\s+from)\b/i);
+  const demo=await fs.readFile(new URL("../supabase/migrations/20261121130000_pr70_preview_introducer_onboarding.sql",import.meta.url),"utf8");
+  assert.doesNotMatch(root,/\b(drop\s+table|truncate\s)\b/i);
+  assert.match(root,/delete from public\.organisation_introducer_policies where introducer_id=p_introducer_id/);
+  assert.match(root,/delete from public\.organisation_introducers where id=p_introducer_id/);
+  assert.match(root,/organisation_commissions where introducer_id=p_introducer_id/);
+  assert.doesNotMatch(demo,/\b(drop\s+table|truncate\s|delete\s+from)\b/i);
   assert.match(root,/organisation_introducer_agreements/);assert.match(root,/introducer_agreement_acceptances/);
   assert.match(demo,/professional_introducer_demo_access/);assert.doesNotMatch(demo,/witkwlgldxjwwxmpcyva|SUPABASE_SERVICE_ROLE_KEY|service_role_key/);
 });

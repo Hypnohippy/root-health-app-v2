@@ -186,13 +186,13 @@ export async function GET(request) {
     const supabase =
       buildAdminClient();
 
-    const {
-      data:
-        introducers,
-      error:
-        introducerError,
-    } =
-      await supabase
+    const lifecycle = new URL(request.url).searchParams.get("lifecycle") || "active";
+    if (!["active", "archived", "all"].includes(lifecycle)) {
+      return NextResponse.json({ error: "Invalid introducer lifecycle filter." }, { status: 400 });
+    }
+
+    let introducerQuery =
+      supabase
         .from(
           "organisation_introducers"
         )
@@ -213,11 +213,23 @@ export async function GET(request) {
     contact_name,
     contact_email,
     notes,
+    archive_requested_at,
+    archived_at,
+    archived_by,
+    archive_previous_status,
     created_at,
     updated_at
   `
-)
-        .order(
+);
+    if (lifecycle === "active") introducerQuery = introducerQuery.is("archived_at", null);
+    if (lifecycle === "archived") introducerQuery = introducerQuery.not("archived_at", "is", null);
+
+    const {
+      data:
+        introducers,
+      error:
+        introducerError,
+    } = await introducerQuery.order(
           "created_at",
           {
             ascending: false,

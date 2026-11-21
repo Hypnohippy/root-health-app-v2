@@ -6,16 +6,63 @@ do $$
 begin
   if to_regclass('public.organisation_introducers') is null
      or to_regclass('public.organisation_introducer_agreements') is null
-     or to_regclass('public.introducer_agreement_acceptances') is null then
+     or to_regclass('public.introducer_agreement_acceptances') is null
+     or to_regclass('auth.users') is null then
     raise exception 'Root commercial introducer and accepted-agreement schema is required';
+  end if;
+  if to_regclass('public.organisation_introducer_policies') is null
+     or to_regclass('public.organisation_applications') is null
+     or to_regclass('public.organisation_commissions') is null
+     or to_regclass('public.organisation_commercial_documents') is null
+     or to_regclass('public.personal_referral_attributions') is null
+     or to_regclass('public.organisation_introducer_campaigns') is null
+     or to_regclass('public.introducer_google_agreement_operations') is null then
+    raise exception 'Root introducer dependency tables required for safe test-record removal are missing';
+  end if;
+  -- The completion function runs as service_role (SECURITY INVOKER). It locks
+  -- the introducer row to serialize with the existing Google-agreement and
+  -- acceptance workflows, then reads their immutable evidence without row
+  -- locks because those source tables intentionally grant service_role SELECT
+  -- only. Fail before creating anything if the lock's real privileges are absent.
+  if not has_table_privilege('service_role','public.organisation_introducers','SELECT')
+     or not has_table_privilege('service_role','public.organisation_introducers','UPDATE')
+     or not has_table_privilege('service_role','public.organisation_introducer_agreements','SELECT')
+     or not has_table_privilege('service_role','public.introducer_agreement_acceptances','SELECT') then
+    raise exception 'Root service_role privileges do not satisfy onboarding function dependencies';
+  end if;
+  if not exists (select 1 from pg_class where oid='public.organisation_introducer_agreements'::regclass and relrowsecurity)
+     or not exists (select 1 from pg_class where oid='public.introducer_agreement_acceptances'::regclass and relrowsecurity)
+     or has_table_privilege('anon','public.organisation_introducer_agreements','SELECT')
+     or has_table_privilege('authenticated','public.organisation_introducer_agreements','SELECT')
+     or has_table_privilege('anon','public.introducer_agreement_acceptances','SELECT')
+     or has_table_privilege('authenticated','public.introducer_agreement_acceptances','SELECT') then
+    raise exception 'Root agreement evidence must remain RLS-protected and unavailable to client roles';
   end if;
   if to_regclass('public.organisation_introducer_onboarding') is not null
      or to_regclass('public.organisation_introducer_onboarding_events') is not null
      or to_regclass('public.organisation_introducer_onboarding_receipts') is not null
+     or to_regclass('public.organisation_introducer_lifecycle_events') is not null
      or to_regprocedure('public.complete_professional_introducer_onboarding(uuid,uuid,uuid,uuid,text,uuid,integer,uuid,timestamptz,text,text,uuid,uuid,timestamptz,text)') is not null then
     raise exception 'Introducer onboarding objects already exist; inspect before applying this migration';
   end if;
+  if to_regprocedure('public.remove_test_organisation_introducer(uuid,uuid)') is not null then
+    raise exception 'Test-record removal function already exists; inspect before applying this migration';
+  end if;
+  if exists (select 1 from pg_attribute where attrelid='public.organisation_introducers'::regclass
+      and attname in ('archive_requested_at','archived_at','archived_by','archive_previous_status') and not attisdropped) then
+    raise exception 'Introducer archive fields already exist; inspect the live lifecycle state before applying this migration';
+  end if;
 end $$;
+
+alter table public.organisation_introducers
+  add column archive_requested_at timestamptz,
+  add column archived_at timestamptz,
+  add column archived_by uuid references auth.users(id) on delete set null,
+  add column archive_previous_status text,
+  add constraint organisation_introducers_archive_previous_status_check
+    check (archive_previous_status is null or archive_previous_status in ('active','inactive')),
+  add constraint organisation_introducers_archive_completion_check
+    check (archived_at is null or archive_requested_at is null);
 
 create table if not exists public.organisation_introducer_onboarding (
   id uuid primary key default gen_random_uuid(),
@@ -87,6 +134,21 @@ create table if not exists public.organisation_introducer_onboarding_receipts (
 create index if not exists organisation_introducer_onboarding_receipts_lookup
   on public.organisation_introducer_onboarding_receipts(onboarding_id, created_at desc);
 
+-- Archive/remove audit remains after a clean test record is permanently removed.
+-- The subject UUID is retained without keeping the introducer's PII or commercial
+-- records alive; archive history is not a dependency that prevents test cleanup.
+create table public.organisation_introducer_lifecycle_events (
+  id uuid primary key default gen_random_uuid(),
+  introducer_id uuid references public.organisation_introducers(id) on delete set null,
+  introducer_ref uuid not null,
+  actor_id uuid references auth.users(id) on delete set null,
+  event_type text not null check (event_type in ('archive_requested','archived','restored','removed')),
+  occurred_at timestamptz not null default now(),
+  details jsonb not null default '{}'::jsonb check (jsonb_typeof(details)='object')
+);
+create index organisation_introducer_lifecycle_events_lookup
+  on public.organisation_introducer_lifecycle_events(introducer_ref, occurred_at desc);
+
 -- Atomic Root-side consume: signature and current agreement are verified by
 -- the server first; this function binds those claims to the exact pending row,
 -- consumes the receipt JTI once, updates the lifecycle and writes the audit.
@@ -119,8 +181,11 @@ begin
      or (intro_data.agreement_end_date is not null and intro_data.agreement_end_date<current_date) then
     raise exception 'Current commercial introducer agreement period is not valid';
   end if;
+  -- Existing agreement writers take the same introducer-row lock first. A
+  -- plain read preserves that serialization without requiring UPDATE grants
+  -- on the immutable agreement table.
   select * into agreement_data from public.organisation_introducer_agreements
-    where introducer_id=p_introducer_id order by version desc limit 1 for update;
+    where introducer_id=p_introducer_id order by version desc limit 1;
   if agreement_data.id is distinct from p_agreement_id or agreement_data.version is distinct from p_agreement_version
      or agreement_data.status<>'accepted' or agreement_data.superseded_at is not null
      or agreement_data.accepted_at is distinct from p_accepted_at or agreement_data.accepted_by is distinct from p_acceptance_id
@@ -129,7 +194,7 @@ begin
     raise exception 'Current accepted agreement is no longer valid';
   end if;
   select * into acceptance_data from public.introducer_agreement_acceptances
-    where agreement_id=p_agreement_id and id=p_acceptance_id for update;
+    where agreement_id=p_agreement_id and id=p_acceptance_id;
   if not found or acceptance_data.archive_state<>'archived'
      or acceptance_data.accepted_at is distinct from p_accepted_at
      or acceptance_data.terms_hash is distinct from p_terms_hash
@@ -199,13 +264,69 @@ revoke all on function public.complete_professional_introducer_onboarding(uuid,u
 grant execute on function public.complete_professional_introducer_onboarding(uuid,uuid,uuid,uuid,text,uuid,integer,uuid,timestamptz,text,text,uuid,uuid,timestamptz,text)
   to service_role;
 
+-- Atomic, narrowly bounded cleanup for an unused explicitly marked test record.
+-- Child policy rows are removed in the same transaction only after every legal,
+-- referral, finance, acceptance, onboarding and operational-audit dependency is
+-- proven absent. The lifecycle removal audit is retained by immutable UUID.
+create function public.remove_test_organisation_introducer(p_introducer_id uuid, p_actor_id uuid)
+returns boolean
+language plpgsql security definer set search_path=pg_catalog,public as $$
+declare intro_data public.organisation_introducers%rowtype; jwt_role text;
+begin
+  jwt_role := coalesce(
+    nullif(current_setting('request.jwt.claim.role', true), ''),
+    nullif(current_setting('request.jwt.claims', true), '')::jsonb->>'role'
+  );
+  if jwt_role is distinct from 'service_role' then
+    raise exception 'service_role is required for test-record removal';
+  end if;
+  select * into strict intro_data from public.organisation_introducers
+    where id=p_introducer_id for update;
+  if intro_data.status <> 'inactive' or btrim(coalesce(intro_data.notes,'')) not like '[TEST RECORD]%' then
+    raise exception 'Only inactive explicitly marked test records may be removed';
+  end if;
+  if p_actor_id is null or not exists(select 1 from auth.users where id=p_actor_id) then
+    raise exception 'A verified Root administrator identity is required for the removal audit';
+  end if;
+  if exists(select 1 from public.organisation_applications where introducer_id=p_introducer_id)
+     or exists(select 1 from public.organisation_commissions where introducer_id=p_introducer_id)
+     or exists(select 1 from public.organisation_commercial_documents where introducer_id=p_introducer_id)
+     or exists(select 1 from public.personal_referral_attributions where introducer_id=p_introducer_id)
+     or exists(select 1 from public.organisation_introducer_agreements where introducer_id=p_introducer_id)
+     or exists(select 1 from public.introducer_agreement_acceptances a
+       join public.organisation_introducer_agreements g on g.id=a.agreement_id where g.introducer_id=p_introducer_id)
+     or exists(select 1 from public.organisation_introducer_campaigns where introducer_id=p_introducer_id)
+     or exists(select 1 from public.introducer_google_agreement_operations where introducer_id=p_introducer_id)
+     or exists(select 1 from public.organisation_introducer_onboarding where introducer_id=p_introducer_id)
+     or exists(select 1 from public.organisation_introducer_onboarding_events where introducer_id=p_introducer_id)
+     or exists(select 1 from public.organisation_introducer_onboarding_receipts where introducer_id=p_introducer_id) then
+    raise exception 'Related legal, referral, financial, acceptance, onboarding or audit records exist; archive this introducer instead';
+  end if;
+
+  -- An unused initial policy is configuration, not signed/legal evidence. Its
+  -- deletion and the parent deletion are transactional; any unknown FK or race
+  -- aborts the statement and rolls both changes back.
+  delete from public.organisation_introducer_policies where introducer_id=p_introducer_id;
+  insert into public.organisation_introducer_lifecycle_events(
+    introducer_id,introducer_ref,actor_id,event_type,details
+  ) values (null,p_introducer_id,p_actor_id,'removed','{}'::jsonb);
+  delete from public.organisation_introducers where id=p_introducer_id;
+  if not found then raise exception 'Test record changed during removal'; end if;
+  return true;
+end $$;
+revoke all on function public.remove_test_organisation_introducer(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.remove_test_organisation_introducer(uuid,uuid) to service_role;
+
 alter table public.organisation_introducer_onboarding enable row level security;
 alter table public.organisation_introducer_onboarding_events enable row level security;
 alter table public.organisation_introducer_onboarding_receipts enable row level security;
+alter table public.organisation_introducer_lifecycle_events enable row level security;
 revoke all on public.organisation_introducer_onboarding, public.organisation_introducer_onboarding_events
-  , public.organisation_introducer_onboarding_receipts from public, anon, authenticated;
+  , public.organisation_introducer_onboarding_receipts, public.organisation_introducer_lifecycle_events
+  from public, anon, authenticated;
 grant select, insert, update, delete on public.organisation_introducer_onboarding to service_role;
 grant select, insert on public.organisation_introducer_onboarding_events to service_role;
 grant select, insert on public.organisation_introducer_onboarding_receipts to service_role;
+grant select, insert on public.organisation_introducer_lifecycle_events to service_role;
 
 commit;

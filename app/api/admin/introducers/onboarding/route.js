@@ -6,6 +6,7 @@ import { introducerActivationMailer } from "../../../../../lib/introducerAgreeme
 import { isIntroducerDeployment } from "../../../../../lib/introducerRestrictedActions.server.js";
 import { getSupabaseServerKeyIfConfigured } from "../../../../../lib/supabaseServerKey.server.js";
 import { createSupabaseKeyCompatibleClient } from "../../../../../lib/supabaseKeyCompatibleClient.js";
+import { revokeIntroducerPreviewAccess } from "../../../../../lib/introducerPreviewBridge.server.js";
 
 export const runtime = "nodejs";
 const reply = (body, status=200) => NextResponse.json(body,{status,headers:{"Cache-Control":"no-store"}});
@@ -134,18 +135,10 @@ export async function POST(request) {
       return reply({success:true,state:"activation_sent",message:action==="replace_invitation"?"A replacement activation invitation was sent.":"A secure activation invitation was sent to the agreement's verified recipient."});
     }
 
-    const {row}=await loadOnboarding(access.db,introducerId);
-    if(!row || !["activation_sent","activation_uncertain","activated"].includes(row.state)) return reply({error:"There is no active introducer access to revoke."},409);
-    const requestId=randomUUID();
-    const assertion={introducerId,agreementId:row.agreement_id,agreementVersion:row.agreement_version,
-      acceptanceId:row.acceptance_id,acceptedAt:row.accepted_at,acceptedTermsHash:row.accepted_terms_hash,
-      recipientEmail:row.recipient_email,contactName:"Root administrator",requestId,nonce:randomBytes(32).toString("hex"),
-      activationExpiresAt:new Date(Date.now()+15*60*1000).toISOString()};
-    await signedPreviewCall("revoke",assertion,request);
-    const revokedAt=new Date().toISOString();
-    await queryResult(access.db.from("organisation_introducer_onboarding").update({state:"revoked",revoked_at:revokedAt,revoked_by:access.user.id,updated_at:revokedAt}).eq("id",row.id));
-    await queryResult(access.db.from("organisation_introducer_onboarding_events").insert({onboarding_id:row.id,introducer_id:introducerId,actor_id:access.user.id,event_type:"revoked",agreement_id:row.agreement_id,request_id:requestId,details:{}}));
-    return reply({success:true,state:"revoked"});
+    const revocation=await revokeIntroducerPreviewAccess({db:access.db,introducerId,actorId:access.user.id,request});
+    if(revocation.state==="not_provisioned" || revocation.state==="registered" || revocation.state==="failed")
+      return reply({error:"There is no active introducer access to revoke."},409);
+    return reply({success:true,state:revocation.state});
   } catch(error) {
     return reply({error:error?.message?.includes("agreement acceptance")?error.message:"Onboarding action could not be completed. Refresh the status before retrying."},409);
   }
