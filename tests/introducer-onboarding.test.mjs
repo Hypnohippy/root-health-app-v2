@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { agreementTerms,termsHash } from "../lib/introducerGoogleAgreementTerms.js";
 import { PR70_MIGRATION_TARGETS, validatePr70MigrationTarget } from "../lib/pr70MigrationGate.server.js";
-import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, openActivationLink,parseExactHttpsOrigins,replacementDisposition,sealActivationLink,signOnboardingAssertion,signPreviewActivationReceipt,validateCommercialCallbackUrl,validatePreviewActivationLink,validatePreviewDeployment,verifiedAcceptedAgreement,verifyOnboardingAssertion,verifyPreviewActivationReceipt } from "../lib/professionalIntroducerOnboarding.server.js";
+import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, ROOT_COMMERCIAL_SUPABASE_REF, ROOT_COMMERCIAL_VERCEL_PROJECT_ID, commercialOnboardingBridgeReady, demoAccessSummary, openActivationLink,parseExactHttpsOrigins,replacementDisposition,sealActivationLink,signOnboardingAssertion,signPreviewActivationReceipt,validateCommercialCallbackUrl,validatePreviewActivationLink,validatePreviewDeployment,verifiedAcceptedAgreement,verifyOnboardingAssertion,verifyPreviewActivationReceipt } from "../lib/professionalIntroducerOnboarding.server.js";
 
 const secret="test-only-onboarding-secret-that-is-not-a-production-credential";
 const introId="11111111-1111-4111-8111-111111111111";
@@ -20,6 +20,44 @@ function acceptedState(overrides={}) {
   const agreement={id:agreementId,version:2,status:"accepted",accepted_at:acceptance.accepted_at,sent_to:"jane@example.test",terms_snapshot:evidence,accepted_terms_snapshot:evidence,terms_hash:hash,acceptance};
   return {introducer:commercial,policies:[policy],agreements:[agreement],...overrides};
 }
+
+test("existing Root Demo Access status reflects only the latest verified agreement and lifecycle",()=>{
+  const now=new Date("2026-11-21T12:00:00.000Z");
+  const signed=demoAccessSummary(acceptedState(),null,now);
+  assert.equal(signed.agreement.status,"signed_verified");
+  assert.equal(signed.agreement.verified,true);
+  assert.equal(signed.invitationStatus,"not_issued");
+  assert.equal(signed.accountStatus,"awaiting_activation");
+  const draft=acceptedState();draft.agreements[0].status="draft";
+  assert.equal(demoAccessSummary(draft,null,now).agreement.status,"draft");
+  const sent=acceptedState();sent.agreements[0].status="sent";
+  assert.equal(demoAccessSummary(sent,null,now).agreement.status,"sent");
+  const pendingArchive=acceptedState();pendingArchive.agreements[0].acceptance.archive_state="pending";
+  assert.equal(demoAccessSummary(pendingArchive,null,now).agreement.status,"signed_archive_pending");
+  const duplicateVersion=acceptedState();duplicateVersion.agreements.push({...duplicateVersion.agreements[0],id:randomUUID()});
+  assert.equal(demoAccessSummary(duplicateVersion,null,now).agreement.status,"review_required");
+  const futureInvite={state:"activation_sent",activation_expires_at:"2026-11-21T12:15:00.000Z"};
+  assert.equal(demoAccessSummary(acceptedState(),futureInvite,now).invitationStatus,"sent");
+  assert.equal(demoAccessSummary(acceptedState(),{...futureInvite,activation_expires_at:"2026-11-21T11:59:59.000Z"},now).invitationStatus,"expired");
+  assert.equal(demoAccessSummary(acceptedState(),{state:"activated",preview_grant_expires_at:"2026-11-22T00:00:00.000Z"},now).accountStatus,"active");
+  assert.equal(demoAccessSummary(acceptedState(),{state:"activated",preview_grant_expires_at:"2026-11-20T00:00:00.000Z"},now).accountStatus,"expired");
+  assert.equal(demoAccessSummary(acceptedState(),{state:"activated"},now).accountStatus,"expired");
+  assert.equal(demoAccessSummary(acceptedState(),{state:"revoked"},now).accountStatus,"revoked");
+});
+
+test("commercial Demo Access bridge fails closed outside the exact existing Root production deployment",()=>{
+  const env={ROOT_INTRODUCER_ONBOARDING_ENABLED:"true",VERCEL_ENV:"production",VERCEL_PROJECT_ID:ROOT_COMMERCIAL_VERCEL_PROJECT_ID,
+    VERCEL_GIT_COMMIT_REF:"main",ROOT_PRODUCTION_SUPABASE_PROJECT_REF:ROOT_COMMERCIAL_SUPABASE_REF,
+    NEXT_PUBLIC_SUPABASE_URL:`https://${ROOT_COMMERCIAL_SUPABASE_REF}.supabase.co`,
+    ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS:"https://www.roothealth.app,https://roothealth.app"};
+  assert.equal(commercialOnboardingBridgeReady(env),true);
+  for(const mutate of [e=>delete e.ROOT_INTRODUCER_ONBOARDING_ENABLED,e=>e.ROOT_INTRODUCER_ONBOARDING_ENABLED="false",
+    e=>e.VERCEL_ENV="preview",e=>e.VERCEL_PROJECT_ID="prj_5FntyaVgI1tQ7Q3IMKfkSTb2ETut",e=>e.VERCEL_GIT_COMMIT_REF="codex/professional-introducer-demo",
+    e=>e.ROOT_PRODUCTION_SUPABASE_PROJECT_REF=INTRODUCER_PREVIEW_SUPABASE_REF,e=>e.NEXT_PUBLIC_SUPABASE_URL=`https://${INTRODUCER_PREVIEW_SUPABASE_REF}.supabase.co`,
+    e=>e.ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS="https://root-health-introducer-demo-test.vercel.app"]){
+    const bad={...env};mutate(bad);assert.equal(commercialOnboardingBridgeReady(bad),false);
+  }
+});
 
 test("activation requires the current archived accepted agreement and exact recipient/terms evidence",()=>{
   const result=verifiedAcceptedAgreement(acceptedState(),introId);
@@ -116,10 +154,13 @@ test("project-specific migration gate rejects wrong targets, histories, and Prod
     {migrationHistory:[preview.requiredHistory[0]]},
     {verifiedSchemaObjects:false},
   ]) assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,migrationHistory:[...preview.requiredHistory],verifiedSchemaObjects:true,...bad}));
-  assert.throws(()=>validatePr70MigrationTarget({target:"root-staging",migration:PR70_MIGRATION_TARGETS.rootStaging.migration,
-    projectRef:"witkwlgldxjwwxmpcyva",vercelProjectId:"prj_XRyykP2byrJeHZ5hkI3QpGOjF2oO",
-    migrationHistory:["20261004","20261005","20261006"],verifiedSchemaObjects:true,
-    env:{PR70_ROOT_STAGING_SUPABASE_PROJECT_REF:"witkwlgldxjwwxmpcyva",PR70_ROOT_STAGING_VERCEL_PROJECT_ID:"prj_XRyykP2byrJeHZ5hkI3QpGOjF2oO"}}));
+  const root=PR70_MIGRATION_TARGETS.rootCommercial;
+  assert.equal(validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:root.supabaseRef,vercelProjectId:root.vercelProjectId,
+    migrationHistory:[...root.requiredHistory],verifiedSchemaObjects:true}).ready,true);
+  assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:INTRODUCER_PREVIEW_SUPABASE_REF,
+    vercelProjectId:INTRODUCER_PREVIEW_PROJECT_ID,migrationHistory:[...root.requiredHistory],verifiedSchemaObjects:true}));
+  assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:root.supabaseRef,
+    vercelProjectId:root.vercelProjectId,migrationHistory:[],verifiedSchemaObjects:true}));
   assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
     migrationHistory:[...preview.requiredHistory,...preview.requiredHistory],verifiedSchemaObjects:true}));
 });
@@ -147,7 +188,7 @@ test("prepared activation URL is encrypted at rest and tampering fails closed",(
 test("account activation and API secrets are not rendered by the Root admin component",async()=>{
   const fs=await import("node:fs/promises");
   const ui=await fs.readFile(new URL("../components/IntroducerOnboarding.js",import.meta.url),"utf8");
-  assert.match(ui,/Send activation invitation/);assert.match(ui,/agreementReady/);assert.match(ui,/Revoke demo access/);
+  assert.match(ui,/Send Demo Invitation/);assert.match(ui,/agreement\?\.verified/);assert.match(ui,/agreementLabels/);assert.match(ui,/invitationLabels|inviteLabels/);assert.match(ui,/Revoke demo access/);
   assert.doesNotMatch(ui,/actionLink|SUPABASE_SERVICE_ROLE|ROOT_INTRODUCER_ONBOARDING_SHARED_SECRET/);
   const registration=await fs.readFile(new URL("../app/api/admin/introducers/route.js",import.meta.url),"utf8");
   const post=registration.slice(registration.indexOf("export async function POST"),registration.indexOf("export async function PATCH"));
@@ -156,6 +197,9 @@ test("account activation and API secrets are not rendered by the Root admin comp
   assert.match(preview,/isIntroducerDeployment\(\)/);assert.match(preview,/generateLink\(\{type:"invite"/);assert.match(preview,/sealActivationLink/);
   assert.match(preview,/if\(error\) throw/);
   const rootRoute=await fs.readFile(new URL("../app/api/admin/introducers/onboarding/route.js",import.meta.url),"utf8");
+  assert.match(rootRoute,/commercialOnboardingBridgeReady\(\)/);
+  assert.match(rootRoute,/demoAccessSummary\(agreementState,row\)/);
+  assert.doesNotMatch(rootRoute,/ROOT_INTRODUCER_STAGING_MODE|isolatedRootStagingReady/);
   assert.match(rootRoute,/x-vercel-oidc-token/);assert.match(rootRoute,/x-vercel-trusted-oidc-idp-token/);
   assert.doesNotMatch(rootRoute,/x-vercel-protection-bypass|VERCEL_AUTOMATION_BYPASS_SECRET/);
   const rootVerification=rootRoute.slice(rootRoute.indexOf("export async function PUT"));

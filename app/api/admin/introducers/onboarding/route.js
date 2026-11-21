@@ -1,7 +1,7 @@
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { rootAgreementAccess, loadAgreementState, queryResult } from "../../../../../lib/introducerGoogleAgreementServer.js";
-import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, parseExactHttpsOrigins, validateCommercialCallbackUrl, validatePreviewActivationLink, verifiedAcceptedAgreement, signOnboardingAssertion, verifyOnboardingAssertion, verifyPreviewActivationReceipt } from "../../../../../lib/professionalIntroducerOnboarding.server.js";
+import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, commercialOnboardingBridgeReady, demoAccessSummary, parseExactHttpsOrigins, validateCommercialCallbackUrl, validatePreviewActivationLink, verifiedAcceptedAgreement, signOnboardingAssertion, verifyOnboardingAssertion, verifyPreviewActivationReceipt } from "../../../../../lib/professionalIntroducerOnboarding.server.js";
 import { introducerActivationMailer } from "../../../../../lib/introducerAgreementEmail.js";
 import { isIntroducerDeployment } from "../../../../../lib/introducerRestrictedActions.server.js";
 import { getSupabaseServerKeyIfConfigured } from "../../../../../lib/supabaseServerKey.server.js";
@@ -22,20 +22,6 @@ function previewInternalUrl(env=process.env) {
      env.ROOT_INTRODUCER_SUPABASE_PROJECT_REF!==INTRODUCER_PREVIEW_SUPABASE_REF)
     throw new Error("Dedicated introducer Preview URL is invalid.");
   return `${url.origin}/api/internal/introducer-onboarding`;
-}
-
-function isolatedRootStagingReady(env=process.env) {
-  if(env.ROOT_INTRODUCER_STAGING_MODE!=="true" || env.VERCEL_ENV!=="preview" ||
-      env.VERCEL_GIT_COMMIT_REF!=="codex/professional-introducer-demo" ||
-      !env.ROOT_INTRODUCER_STAGING_VERCEL_PROJECT_ID || env.VERCEL_PROJECT_ID!==env.ROOT_INTRODUCER_STAGING_VERCEL_PROJECT_ID ||
-      !env.ROOT_INTRODUCER_STAGING_SUPABASE_PROJECT_REF || env.ROOT_INTRODUCER_STAGING_SUPABASE_PROJECT_REF==="witkwlgldxjwwxmpcyva") return false;
-  try {
-    const actualRef=new URL(String(env.NEXT_PUBLIC_SUPABASE_URL || "")).hostname.split(".")[0];
-    if(actualRef!==env.ROOT_INTRODUCER_STAGING_SUPABASE_PROJECT_REF) return false;
-    const origins=parseExactHttpsOrigins(env.ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS);
-    if(origins.has("https://roothealth.app") || origins.has("https://www.roothealth.app")) return false;
-    return true;
-  } catch { return false; }
 }
 
 async function signedPreviewCall(action,assertion,request,env=process.env,fetcher=fetch) {
@@ -60,7 +46,7 @@ async function loadOnboarding(db,introducerId) {
 }
 
 export async function GET(request) {
-  if(isIntroducerDeployment() || !isolatedRootStagingReady()) return reply({error:"Root onboarding administration is available only in verified isolated staging."},404);
+  if(isIntroducerDeployment() || !commercialOnboardingBridgeReady()) return reply({error:"Demo access administration is not enabled on this verified Root commercial deployment."},404);
   let access;
   try { access=await rootAgreementAccess(request); } catch { return reply({error:"Verified Root administrator required."},403); }
   const id=new URL(request.url).searchParams.get("introducerId");
@@ -68,18 +54,21 @@ export async function GET(request) {
   try {
     const {row,events}=await loadOnboarding(access.db,id);
     const agreementState=await loadAgreementState(access.db,id);
-    let agreementReady=false;
-    try { verifiedAcceptedAgreement(agreementState,id); agreementReady=true; } catch {}
-    if(!row) return reply({onboarding:{state:"registered",agreementReady,events:[]}});
-    const {activation_nonce_hash,...safe}=row;
+    const summary=demoAccessSummary(agreementState,row);
+    const agreementReady=summary.agreement.verified;
+    if(!row) return reply({onboarding:{state:"registered",agreementReady,...summary,events:[]}});
     const canReplace=["activation_sent","activation_uncertain"].includes(row.state) && row.activation_expires_at && row.activation_expires_at<=new Date().toISOString();
-    const accessExpired=row.state==="activated" && row.preview_grant_expires_at && row.preview_grant_expires_at<=new Date().toISOString();
-    return reply({onboarding:{...safe,agreementReady,canReplace,accessExpired,displayState:accessExpired?"expired":row.state,events}});
+    const {id: onboardingId,state,agreement_id,agreement_version,acceptance_id,recipient_email,accepted_at,
+      activation_expires_at,invite_sent_at,invite_delivery_id,preview_grant_expires_at,activation_completed_at,revoked_at,created_at,updated_at}=row;
+    return reply({onboarding:{id:onboardingId,state,agreement_id,agreement_version,acceptance_id,recipient_email,accepted_at,
+      activation_expires_at,invite_sent_at,invite_delivery_id,preview_grant_expires_at,activation_completed_at,revoked_at,created_at,updated_at,
+      agreementReady,...summary,canReplace,accessExpired:summary.accountStatus==="expired",
+      displayState:summary.accountStatus==="expired"?"expired":state,events}});
   } catch { return reply({error:"Onboarding status is unavailable. Check the approved onboarding migration."},503); }
 }
 
 export async function POST(request) {
-  if(isIntroducerDeployment() || !isolatedRootStagingReady()) return reply({error:"Root onboarding administration is available only in verified isolated staging."},404);
+  if(isIntroducerDeployment() || !commercialOnboardingBridgeReady()) return reply({error:"Demo access administration is not enabled on this verified Root commercial deployment."},404);
   let access;
   try { access=await rootAgreementAccess(request); } catch { return reply({error:"Verified Root administrator required."},403); }
   let body;
@@ -165,7 +154,7 @@ export async function POST(request) {
 // Preview may verify a signed Root request, then complete only with a signed,
 // one-time receipt. Preview Auth IDs are never looked up in Root Auth.
 export async function PUT(request) {
-  if(isIntroducerDeployment() || !isolatedRootStagingReady()) return reply({error:"Root verification is available only in verified isolated staging."},404);
+  if(isIntroducerDeployment() || !commercialOnboardingBridgeReady()) return reply({error:"Demo access verification is not enabled on this verified Root commercial deployment."},404);
   const raw=await request.text();
   if(raw.length>20000) return reply({error:"Request too large."},413);
   let body; try { body=JSON.parse(raw); } catch { body={}; }
@@ -173,7 +162,7 @@ export async function PUT(request) {
   try {
     const allowedOrigins=parseExactHttpsOrigins(process.env.ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS);
     const callback=validateCommercialCallbackUrl(request.url,allowedOrigins);
-    if(!isolatedRootStagingReady()) return reply({error:"Isolated Root staging identity is not verified."},503);
+    if(!commercialOnboardingBridgeReady()) return reply({error:"Root commercial deployment identity is not verified."},503);
     const url=String(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
     const key=getSupabaseServerKeyIfConfigured();
     if(!url || !key) return reply({error:"Root agreement verification is not configured."},503);

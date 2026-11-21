@@ -9,7 +9,6 @@ import {
 import { supabase } from "../../../lib/supabase";
 import { introducerTypes, supportsMarket } from "../../../lib/introducerMarkets";
 import IntroducerGoogleAgreement from "../../../components/IntroducerGoogleAgreement";
-import IntroducerOnboarding from "../../../components/IntroducerOnboarding";
 
 const EMPTY_FORM = {
   introducerMarket: "corporate",
@@ -2893,7 +2892,6 @@ async function markCommissionPaid(
                     </button>
                   </div>
                   <IntroducerGoogleAgreement introducer={introducer} />
-                  <IntroducerOnboarding introducer={introducer} />
                                       {campaignManagerId ===
                   introducer.id ? (
                     <div

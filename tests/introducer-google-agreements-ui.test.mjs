@@ -53,7 +53,7 @@ window.fetch=async(url,options)=>{
   }
   return {ok:true,json:async()=>({...publicState,agreements:row?[row]:[],operations:retryMode&&!row?[pending]:[],googleConfigured:scenario!=='unconfigured'})};
 };
-function require(name){if(name==='react')return React;if(name.includes('supabase'))return {supabase:{auth:{getSession:async()=>{
+function require(name){if(name==='react')return React;if(name.includes('IntroducerOnboarding'))return ()=>React.createElement('section',{'data-demo-access':'fixture'},'Demo Access fixture');if(name.includes('supabase'))return {supabase:{auth:{getSession:async()=>{
   sessionCalls++;
   if(sessionCalls===2 && scenario==='pending_session')return new Promise(()=>{});
   if(sessionCalls===2 && scenario==='missing_session')return {data:{session:null}};

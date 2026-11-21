@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import IntroducerOnboarding from './IntroducerOnboarding';
 
 const label=status=>({draft:'Draft',sent:'Sent',accepted:'Accepted',superseded:'Superseded'}[status] || 'Not generated');
 const button={padding:'9px 13px',border:'1px solid #cbd5e1',borderRadius:6,background:'#fff',color:'#17212b',cursor:'pointer',fontSize:14};
@@ -98,5 +99,6 @@ export default function IntroducerGoogleAgreement({introducer}) {
           {a.pdf_document_url && <a href={a.pdf_document_url} target="_blank" rel="noopener noreferrer">Accepted PDF</a>}
         </li>)}</ul></details>}
     </>}
+    <IntroducerOnboarding introducer={introducer} />
   </section>;
 }
