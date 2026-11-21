@@ -35,6 +35,9 @@ export default function ResetPasswordPage() {
   const [checkingLink, setCheckingLink] =
     useState(true);
 
+  const [passwordSaved, setPasswordSaved] =
+    useState(false);
+
   useEffect(() => {
     const params =
       new URLSearchParams(
@@ -146,7 +149,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!password) {
+    if (!passwordSaved && !password) {
       setMessage(
         "Please enter a new password."
       );
@@ -154,7 +157,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (password.length < 8) {
+    if (!passwordSaved && password.length < 8) {
       setMessage(
         "Passwords must contain at least 8 characters."
       );
@@ -162,7 +165,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (password !== confirm) {
+    if (!passwordSaved && password !== confirm) {
       setMessage(
         "Passwords do not match."
       );
@@ -179,20 +182,29 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
 
-    const {
-      error,
-    } =
-      await supabase.auth.updateUser({
-        password,
+    if (!passwordSaved) {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        setMessage(error.message);
+        setLoading(false);
+        return;
+      }
+      setPasswordSaved(true);
+    }
+
+    if (returnToIntroducer && linkType === "invite") {
+      const { data: { session: currentSession } = {} } = await supabase.auth.getSession();
+      const response = await fetch("/api/introducer/activation/complete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${currentSession?.access_token || ""}` },
+        cache: "no-store",
       });
-
-    if (error) {
-      setMessage(
-        error.message
-      );
-
-      setLoading(false);
-      return;
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setMessage(result.error || "Your password is saved, but Root could not finish access setup. Keep this page open and retry or contact Root Health.");
+        setLoading(false);
+        return;
+      }
     }
 
     setMessage(
@@ -338,7 +350,9 @@ export default function ResetPasswordPage() {
             >
               {loading
                 ? "Updating..."
-                : "Update Password"}
+                : passwordSaved && returnToIntroducer && linkType === "invite"
+                  ? "Complete account activation"
+                  : "Update Password"}
             </button>
 
             {message ? (

@@ -46,7 +46,7 @@ function fixture({ expiresAt = "2026-12-01T00:00:00.000Z", revokedAt = null } = 
       wellbeing_assessments: [],
       professional_introducer_demo_access: [{
         id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", user_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-        expires_at: expiresAt, revoked_at: revokedAt, demo_organisation_id: null, voice_coach_enabled: false,
+        expires_at: expiresAt, revoked_at: revokedAt, revoked_by: null, demo_organisation_id: null, voice_coach_enabled: false,
       }],
     },
     from(table) { return new Query(this, table); },
@@ -60,7 +60,7 @@ function fixture({ expiresAt = "2026-12-01T00:00:00.000Z", revokedAt = null } = 
       return { data: true, error: null };
     },
     auth: { admin: { getUserById: async (id) => ({ data: { user: {
-      id, email: "david@example.test", email_confirmed_at: "2026-11-01T00:00:00.000Z", user_metadata: { name: "David" },
+      id, email: id === "cccccccc-cccc-4ccc-8ccc-cccccccccccc" ? "second@example.test" : "david@example.test", email_confirmed_at: "2026-11-01T00:00:00.000Z", user_metadata: { name: id === "cccccccc-cccc-4ccc-8ccc-cccccccccccc" ? "Sam" : "David" },
     } }, error: null }) } },
   };
   return admin;
@@ -80,17 +80,61 @@ test("Root fictional workforce provisioning is synthetic, historically seeded, a
   const admin = fixture();
   const args = { admin, grantId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", userId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", now };
   const first = await provisionIntroducerFictionalOrganisation(args);
-  const second = await provisionIntroducerFictionalOrganisation(args);
+  const snapshotAfterFirst = structuredClone(admin.rows);
+  const second = await provisionIntroducerFictionalOrganisation({ ...args, now: new Date("2026-11-19T12:00:00.000Z") });
   assert.equal(first.memberCount, 24);
   assert.equal(first.historicalAssessmentCount, 55);
   assert.equal(first.distinctBaselineParticipants, 18);
-  assert.deepEqual(second, first);
+  assert.equal(first.fixturePreserved,false);
+  assert.equal(second.fixturePreserved,true);
+  const {fixturePreserved: _firstPreserved,...firstResult}=first;
+  const {fixturePreserved: _secondPreserved,...secondResult}=second;
+  assert.deepEqual(secondResult, firstResult);
   assert.equal(admin.rows.organisations.length, 1);
   assert.equal(admin.rows.organisation_units.length, 2);
   assert.equal(admin.rows.profiles.length, 25); // one private profile plus 24 fictional profiles
   assert.equal(admin.rows.organisation_members.length, 24);
   assert.equal(admin.rows.wellbeing_assessments.length, 55);
   assert.equal(admin.rows.professional_introducer_demo_access[0].demo_organisation_id, first.organisationId);
+  assert.deepEqual(admin.rows.organisations, snapshotAfterFirst.organisations);
+  assert.deepEqual(admin.rows.organisation_units, snapshotAfterFirst.organisation_units);
+  assert.deepEqual(admin.rows.organisation_members, snapshotAfterFirst.organisation_members);
+  assert.deepEqual(admin.rows.wellbeing_assessments, snapshotAfterFirst.wellbeing_assessments,
+    "an activation retry must preserve every historical assessment timestamp and value");
+  assert.deepEqual(admin.rows.profiles.filter((row) => row.organisation_id), snapshotAfterFirst.profiles.filter((row) => row.organisation_id));
+  assert.deepEqual(admin.rows.professional_introducer_demo_access, snapshotAfterFirst.professional_introducer_demo_access,
+    "an already-correct grant mapping must not be rewritten");
+});
+
+test("two introducers receive distinct private Personal Root profiles while sharing only the fictional workforce", async () => {
+  const admin = fixture();
+  const secondUserId="cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  admin.rows.professional_introducer_demo_access.push({
+    id:"dddddddd-dddd-4ddd-8ddd-dddddddddddd",user_id:secondUserId,consultant_label:"Sam",
+    expires_at:"2026-12-01T00:00:00.000Z",revoked_at:null,revoked_by:null,demo_organisation_id:"7e700070-0070-4070-8070-000000000070",voice_coach_enabled:false,
+  });
+  const now=new Date("2026-11-18T12:00:00.000Z");
+  const one=await provisionIntroducerFictionalOrganisation({admin,grantId:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",userId:"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",now});
+  const before=structuredClone(admin.rows);
+  const two=await provisionIntroducerFictionalOrganisation({admin,grantId:"dddddddd-dddd-4ddd-8ddd-dddddddddddd",userId:secondUserId,now});
+  const personal=admin.rows.profiles.filter((row)=>row.user_id);
+  assert.equal(personal.length,2);
+  assert.notEqual(personal[0].id,personal[1].id);
+  assert.notEqual(personal[0].profile_key,personal[1].profile_key);
+  assert.ok(personal.every((row)=>!row.organisation_id));
+  assert.equal(admin.rows.wellbeing_assessments.length,before.wellbeing_assessments.length);
+  assert.deepEqual(admin.rows.wellbeing_assessments,before.wellbeing_assessments);
+  assert.equal(one.organisationId,two.organisationId);
+  assert.equal(admin.rows.professional_introducer_demo_access[0].demo_organisation_id,one.organisationId);
+  assert.equal(admin.rows.professional_introducer_demo_access[1].demo_organisation_id,one.organisationId);
+});
+
+test("a partial or conflicting existing Northstar fixture is held without repairing or rewriting it", async () => {
+  const admin=fixture();
+  admin.rows.organisations.push({id:"7e700070-0070-4070-8070-000000000070",name:"Northstar Studio (fictional)",status:"demo",industry:"Creative and professional services",organisation_type:"private_company",employee_count:"24",workforce_size:24});
+  const before=structuredClone(admin.rows);
+  await assert.rejects(()=>provisionIntroducerFictionalOrganisation({admin,grantId:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",userId:"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",now:new Date("2026-11-18T12:00:00.000Z")}),/partially present/);
+  assert.deepEqual(admin.rows,before);
 });
 
 test("expired, revoked, mismatched, or real-account memberships prevent provisioning before grant mapping", async () => {

@@ -397,6 +397,14 @@ export default function LoginPage() {
 
           <button
             type="button"
+            style={styles.secondaryButton}
+            onClick={() => { window.location.href = "/introducer/activate"; }}
+          >
+            Professional Introducer — Activate your invitation
+          </button>
+
+          <button
+            type="button"
             style={styles.linkButton}
             onClick={() => {
               const next = new URLSearchParams(window.location.search).get("next");

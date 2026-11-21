@@ -1167,6 +1167,29 @@ export async function POST(request) {
       throw policyError;
     }
 
+    // Create the one lifecycle record against the commercial identity already
+    // used by agreements/referrals. This prepares status only: no account is
+    // created, no invitation URL is generated and no email is sent here.
+    const { data: onboarding, error: onboardingError } = await supabase
+      .from("organisation_introducer_onboarding")
+      .insert({ introducer_id: introducer.id, state: "registered" })
+      .select("id")
+      .single();
+    if (onboardingError || !onboarding) {
+      await supabase.from("organisation_introducer_policies").delete().eq("introducer_id", introducer.id);
+      await supabase.from("organisation_introducers").delete().eq("id", introducer.id);
+      throw onboardingError || new Error("Root could not prepare introducer onboarding.");
+    }
+    const { error: onboardingEventError } = await supabase
+      .from("organisation_introducer_onboarding_events")
+      .insert({ onboarding_id: onboarding.id, introducer_id: introducer.id, actor_id: admin.user.id, event_type: "registered", details: {} });
+    if (onboardingEventError) {
+      await supabase.from("organisation_introducer_onboarding").delete().eq("id", onboarding.id);
+      await supabase.from("organisation_introducer_policies").delete().eq("introducer_id", introducer.id);
+      await supabase.from("organisation_introducers").delete().eq("id", introducer.id);
+      throw onboardingEventError;
+    }
+
     console.log(
       "ROOT INTRODUCER CREATED:",
       introducer.id,
