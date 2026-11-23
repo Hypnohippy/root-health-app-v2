@@ -286,25 +286,47 @@ test("check-in validation and employee selection fail closed", async () => {
   assert.equal((await createIntroducerDemoAssessment({ ...base, employeeKey: "employee-99", scores: Object.fromEntries(["stress", "sleep", "recovery", "energy", "mood", "focus", "burnout"].map((key) => [key, 5])) })).reason, "employee_not_found");
 });
 
-test("a verified introducer grant routes into genuine Root journeys and away from the bespoke shell", () => {
+test("a verified introducer grant routes into genuine Root journeys and only its fictional admin capability", () => {
   const identity = {
-    introducerDemo: { enabled: true, organisationId: "fictional-org" },
+    introducerDemo: { enabled: true, organisationId: "fictional-org", employerAdminAvailable: true },
     capabilities: { canUseWorkplace: true, canUsePersonal: true },
     personal: { hasProfile: true, orientationCompleted: true },
   };
   assert.equal(getRootDestination(null, "/introducer"), null);
-  assert.equal(getRootDestination(identity, "/introducer"), "/");
+  assert.equal(getRootDestination(identity, "/introducer"), "/choose-experience");
   for (const path of ["/", "/orientation", "/assessment", "/check-in", "/insights", "/coach", "/journal", "/body", "/mind", "/playbook", "/profile"]) {
     assert.equal(getRootDestination(identity, path), null, `${path} should use the real personal route`);
   }
   for (const path of ["/org-insights", "/executive-review", "/launch-kit"]) {
     assert.equal(getRootDestination(identity, path), null, `${path} should use the permitted real employer route`);
   }
-  for (const path of ["/hr-coach", "/organisation-learning", "/organisation-structure", "/presentation-support", "/organisations/pricing"]) {
+  assert.equal(getRootDestination(identity, "/organisation-structure"), null, "only the explicit fictional employer-admin grant opens the isolated structure screen");
+  for (const path of ["/hr-coach", "/organisation-learning", "/presentation-support", "/organisations/pricing"]) {
     assert.equal(getRootDestination(identity, path), "/org-insights", `${path} should stay outside the introducer allowlist`);
   }
+  assert.equal(getRootDestination({ ...identity, introducerDemo: { ...identity.introducerDemo, employerAdminAvailable: false } }, "/organisation-structure"), "/org-insights");
   assert.equal(getRootDestination(null, "/org-insights"), "/welcome");
   assert.equal(getRootDestination({ capabilities: { canUseWorkplace: false, canUsePersonal: false } }, "/org-insights"), "/");
+  for (const path of ["/", "/org-insights", "/organisation-structure"]) {
+    assert.equal(getRootDestination(null, path), "/welcome", `${path} denies direct navigation without a currently resolved identity`);
+  }
+});
+
+test("introducer landing is a branded gateway and experience chooser refreshes grant-backed identity", async () => {
+  const [gateway, chooser, identity] = await Promise.all([
+    readFile(new URL("../app/introducer/page.js", import.meta.url), "utf8"),
+    readFile(new URL("../app/choose-experience/page.js", import.meta.url), "utf8"),
+    readFile(new URL("../lib/rootIdentity.js", import.meta.url), "utf8"),
+  ]);
+  assert.match(gateway, /Professional Introducer Preview/);
+  assert.match(gateway, /login\?next=%2Fintroducer/);
+  assert.doesNotMatch(gateway, /professional_introducer_demo_members|sample_checkin|employeeKey|range/);
+  assert.match(chooser, /getRootIdentity\(\)/);
+  assert.match(chooser, /Northstar Studio \(fictional\)/);
+  assert.match(chooser, /introducerDemo\?\.expiresAt/);
+  assert.match(chooser, /employerAdminAvailable === true/);
+  assert.match(identity, /fetch\("\/api\/introducer\/access"/);
+  assert.match(identity, /accessResponse\.status !== 404/);
 });
 
 test("login next destination is exact and route never accepts an arbitrary redirect", async () => {
@@ -340,40 +362,29 @@ test("introduction capture requires explicit permission for contact details and 
   assert.doesNotMatch(route, /nodemailer|sendMail|fetch\("https:/i);
 });
 
-test("expiry polling, watermark, copyright and client presentation controls are present", async () => {
+test("the launch gateway retains Root Health attribution and has no replacement demo controls", async () => {
   const page = await readFile(new URL("../app/introducer/page.js", import.meta.url), "utf8");
-  assert.match(page, /setInterval\(\(\) => load\(token, selectedEmployeeKey\), 30000\)/);
   assert.match(page, /Authorised Root Health Partner Demonstration/);
-  assert.match(page, /© 2024–\{new Date\(\)\.getFullYear\(\)\}/);
-  assert.match(page, /client_presentation/);
-  assert.match(page, /Fictional demonstration data/);
-  assert.match(page, /Reset only this access grant/);
-  assert.match(page, /selectEmployee/);
-  assert.match(page, /Personal experience · not enabled here/);
-  assert.match(page, /Do not enter real wellbeing information in this Preview/);
-  assert.match(page, /five-participant baseline gate/);
-  assert.doesNotMatch(page, /window\.confirm|window\.alert/);
+  assert.match(page, /© 2024–2026 Root Health/);
+  assert.match(page, /private Personal Root/);
+  assert.match(page, /fictional Northstar Studio/);
+  assert.doesNotMatch(page, /sample_checkin|reset_demo|introduction_request|professional_introducer_demo_members|<input type="range"/);
 });
 
-test("Voice Coach availability and recorded playback are explicit, with no inference call on replay", async () => {
+test("Voice Coach remains grant-scoped and provider-backed AI is not exposed by the gateway", async () => {
   const access = await readFile(new URL("../app/api/introducer/access/route.js", import.meta.url), "utf8");
   const identity = await readFile(new URL("../lib/rootIdentity.js", import.meta.url), "utf8");
-  const demo = await readFile(new URL("../app/introducer/page.js", import.meta.url), "utf8");
+  const gateway = await readFile(new URL("../app/introducer/page.js", import.meta.url), "utf8");
   const coach = await readFile(new URL("../app/coach/page.js", import.meta.url), "utf8");
   const restricted = await readFile(new URL("../lib/introducerRestrictedActions.server.js", import.meta.url), "utf8");
   assert.match(access, /voiceCoachStatus/);
   assert.match(access, /root_authorization_required/);
   assert.match(identity, /voiceCoachStatus: introducerAccess\.voiceCoachStatus/);
-  assert.match(demo, /Prerecorded demonstration · fictional data · not a live consultation/);
-  assert.match(demo, /No approved recording is published yet/);
-  assert.match(demo, /method: "HEAD"/);
-  assert.match(demo, /<video controls playsInline/);
-  assert.match(demo, /Live Voice Coach/);
+  assert.doesNotMatch(gateway, /api\/realtime-session|api\/root-coach|api\/transcribe|openai\.com/i);
   assert.match(coach, /termination_controls_pending/);
   assert.match(coach, /Ask Root Health to authorise it/);
   assert.match(restricted, /"\/api\/root-coach"/);
   assert.match(restricted, /"\/api\/playbook-review"/);
-  assert.doesNotMatch(demo, /api\/realtime-session|api\/root-coach|api\/transcribe|openai\.com/i);
 });
 
 test("demo migration applies with RLS and grants only the server role", async () => {
