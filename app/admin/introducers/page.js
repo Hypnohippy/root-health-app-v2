@@ -66,6 +66,8 @@ function formatStructure(value) {
 
 export default function IntroducerAdminPage() {
   const [marketFilter, setMarketFilter] = useState("");
+  const [recordFilter, setRecordFilter] = useState("active");
+  const [housekeepingBusyId, setHousekeepingBusyId] = useState(null);
   const [
     introducers,
     setIntroducers,
@@ -646,7 +648,7 @@ async function markCommissionPaid(
 
       const response =
         await fetch(
-          "/api/admin/introducers",
+          `/api/admin/introducers?lifecycle=${encodeURIComponent(recordFilter)}`,
           {
             headers: {
               Authorization:
@@ -696,7 +698,41 @@ async function markCommissionPaid(
 
   useEffect(() => {
     loadIntroducers();
-  }, []);
+  }, [recordFilter]);
+
+  async function runHousekeeping(introducer, action) {
+    const label = introducer.name || "this introducer";
+    const message = action === "archive"
+      ? `Archive ${label}? This blocks new referrals and invitations and revokes any active demo access. Historical agreements and financial records will be retained.`
+      : action === "restore"
+        ? `Restore ${label} to the active list? Any demo access remains revoked; a new invitation must be issued through the signed-agreement workflow.`
+        : `Permanently remove ${label} only if no agreement, referral, commission, financial or provisioning history exists? The server checks all dependencies and will retain a removal audit entry.`;
+    if (!window.confirm(message)) return;
+
+    setHousekeepingBusyId(introducer.id);
+    setError("");
+    setMessage("");
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Please sign in with your Root administrator account.");
+      const response = action === "remove"
+        ? await fetch(`/api/admin/introducers/housekeeping?introducerId=${encodeURIComponent(introducer.id)}`, {
+            method: "DELETE", headers: { Authorization: `Bearer ${token}` }, cache: "no-store",
+          })
+        : await fetch("/api/admin/introducers/housekeeping", {
+            method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ action, introducerId: introducer.id }), cache: "no-store",
+          });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.error || "Introducer record could not be updated.");
+      setMessage(action === "archive" ? `${label} was archived.` : action === "restore" ? `${label} was restored.` : `${label} was permanently removed.`);
+      await loadIntroducers();
+    } catch (requestError) {
+      setError(requestError?.message || "Introducer record could not be updated.");
+    } finally {
+      setHousekeepingBusyId(null);
+    }
+  }
 
   function updateForm(
     field,
@@ -2100,6 +2136,11 @@ async function markCommissionPaid(
           </span>
         </div>
 
+        <label>Record status
+          <select style={styles.input} value={recordFilter} onChange={event => setRecordFilter(event.target.value)}>
+            <option value="active">Active</option><option value="archived">Archived</option><option value="all">All</option>
+          </select>
+        </label>
         <label>Market
           <select style={styles.input} value={marketFilter} onChange={event => setMarketFilter(event.target.value)}>
             <option value="">All</option><option value="corporate">Corporate</option><option value="personal">Personal</option>
@@ -2892,6 +2933,39 @@ async function markCommissionPaid(
                     </button>
                   </div>
                   <IntroducerGoogleAgreement introducer={introducer} />
+                  <div style={{ ...styles.commercialEditor, marginTop: 12 }}>
+                    <div>
+                      <span style={styles.metricLabel}>RECORD HOUSEKEEPING</span>
+                      <p style={{ margin: "6px 0 0" }}>
+                        {introducer.archive_requested_at
+                          ? "Archive pending: demo access revocation must be confirmed."
+                          : introducer.archived_at
+                            ? `Archived ${new Date(introducer.archived_at).toLocaleDateString("en-GB")}`
+                            : "Active record"}
+                      </p>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {!introducer.archived_at ? (
+                        <button type="button" style={styles.secondaryButton} disabled={housekeepingBusyId === introducer.id}
+                          onClick={() => runHousekeeping(introducer, "archive")}>
+                          {housekeepingBusyId === introducer.id ? "Working…" : introducer.archive_requested_at ? "Retry Archive" : "Archive"}
+                        </button>
+                      ) : (
+                        <button type="button" style={styles.secondaryButton} disabled={housekeepingBusyId === introducer.id}
+                          onClick={() => runHousekeeping(introducer, "restore")}>
+                          {housekeepingBusyId === introducer.id ? "Working…" : "Restore"}
+                        </button>
+                      )}
+                      <button type="button" style={styles.secondaryButton}
+                        title={introducer.status === "inactive" && /^\[TEST RECORD\](?:\s|$)/i.test(String(introducer.notes || "").trim())
+                          ? "The server will also verify that no related records exist."
+                          : "Archive genuine introducers. Permanent removal is limited to inactive [TEST RECORD] entries with no dependencies."}
+                        disabled={housekeepingBusyId === introducer.id || introducer.status !== "inactive" || !/^\[TEST RECORD\](?:\s|$)/i.test(String(introducer.notes || "").trim())}
+                        onClick={() => runHousekeeping(introducer, "remove")}>
+                        Remove test record
+                      </button>
+                    </div>
+                  </div>
                                       {campaignManagerId ===
                   introducer.id ? (
                     <div

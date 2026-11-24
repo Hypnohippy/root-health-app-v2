@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { getSupabasePublicKeyIfConfigured } from "../../../lib/supabasePublicKey.js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../lib/supabaseKeyCompatibleClient.js";
 import { buildOwnedPlaybookInsert, buildOwnedPlaybookUpdate } from "../../../lib/personalPlaybookOwnership.js";
 import { validateTrackerAnswers, validateTrackerDefinition } from "../../../lib/playbookTrackerDefinition.js";
 
@@ -7,10 +8,10 @@ export const dynamic = "force-dynamic";
 
 function authenticatedSupabase(req) {
   const accessToken = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!accessToken || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
+  if (!accessToken || !process.env.NEXT_PUBLIC_SUPABASE_URL || !getSupabasePublicKeyIfConfigured()) return null;
   return {
     accessToken,
-    client: createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    client: createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, getSupabasePublicKeyIfConfigured(), {
       global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     }),

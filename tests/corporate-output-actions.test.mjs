@@ -132,6 +132,15 @@ test('existing pdf-lib generates multipage documents and rejects unsupported gly
   assert.ok((await PDFDocument.load(bytes)).getPageCount() > 1);
   await assert.rejects(renderCorporateDocument({ title: 'Review', content: '😀' }));
 });
+test('commercial PDF endpoint stays per-request, admin-authenticated and non-cacheable', async () => {
+  const source = await readFile(new URL('../app/api/admin/documents/[id]/pdf/route.js', import.meta.url), 'utf8');
+  assert.match(source, /export const dynamic = "force-dynamic"/);
+  const authAt = source.search(/await requireRootAdmin\s*\(\s*request\s*\)/);
+  const adminClientAt = source.search(/const supabase\s*=\s*buildAdminClient\s*\(\s*\)/);
+  assert.ok(authAt >= 0 && authAt < adminClientAt, 'admin authorization precedes service-role client creation');
+  assert.match(source, /"Cache-Control":\s*"private, no-store"/);
+  assert.match(source, /return NextResponse\.json/);
+});
 test('panel is inside main content below conversation; save/export only have explicit submit controls', async () => {
   const read = path => readFile(new URL('../' + path, import.meta.url), 'utf8');
   const page = await read('app/hr-coach/page.js');

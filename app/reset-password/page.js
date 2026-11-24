@@ -23,39 +23,47 @@ export default function ResetPasswordPage() {
   const [tokenHash, setTokenHash] =
     useState("");
 
+  const [linkType, setLinkType] =
+    useState("");
+
+  const [returnToIntroducer, setReturnToIntroducer] =
+    useState(false);
+
   const [recoveryReady, setRecoveryReady] =
     useState(false);
 
   const [checkingLink, setCheckingLink] =
     useState(true);
 
+  const [passwordSaved, setPasswordSaved] =
+    useState(false);
+
   useEffect(() => {
     const params =
       new URLSearchParams(
         window.location.search
       );
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace(/^#/, "")
+    );
 
     const token =
       params.get("token_hash") || "";
 
-    const type =
-      params.get("type") || "";
+    const type = params.get("type") || hashParams.get("type") || "";
+
+    setReturnToIntroducer(params.get("next") === "/introducer");
 
     if (
       token &&
-      type === "recovery"
+      (type === "recovery" || type === "invite")
     ) {
       setTokenHash(token);
+      setLinkType(type);
       setCheckingLink(false);
       return;
     }
 
-    /*
-     * If the user already verified the
-     * recovery token in this browser,
-     * allow the password form to remain
-     * available.
-     */
     async function checkSession() {
       const {
         data: {
@@ -64,8 +72,18 @@ export default function ResetPasswordPage() {
       } =
         await supabase.auth.getSession();
 
-      if (session) {
+      // A normal signed-in session is not enough to reset a password. Only an
+      // explicit Supabase recovery/invite callback can establish this state.
+      const callbackType = hashParams.get("type");
+      if (
+        session &&
+        (callbackType === "recovery" || callbackType === "invite") &&
+        hashParams.has("access_token")
+      ) {
+        setLinkType(callbackType);
         setRecoveryReady(true);
+        const safeReturn = params.get("next") === "/introducer" ? "?next=%2Fintroducer" : "";
+        window.history.replaceState({}, document.title, `/reset-password${safeReturn}`);
       }
 
       setCheckingLink(false);
@@ -74,10 +92,10 @@ export default function ResetPasswordPage() {
     checkSession();
   }, []);
 
-  async function beginRecovery() {
+  async function beginPasswordSetup() {
     if (!tokenHash) {
       setMessage(
-        "This password reset link is not valid. Please request a new reset email."
+        "This password setup link is not valid or has expired. Please request a new secure link."
       );
 
       return;
@@ -91,13 +109,12 @@ export default function ResetPasswordPage() {
     } =
       await supabase.auth.verifyOtp({
         token_hash: tokenHash,
-        type: "recovery",
+        type: linkType,
       });
 
     if (error) {
       setMessage(
-        error.message ||
-        "This password reset link could not be verified."
+        "This password setup link could not be verified. It may have expired; request a new secure link."
       );
 
       setLoading(false);
@@ -109,10 +126,11 @@ export default function ResetPasswordPage() {
      * consumed by the human pressing the
      * button, not by the email scanner.
      */
+    const safeReturn = returnToIntroducer ? "?next=%2Fintroducer" : "";
     window.history.replaceState(
       {},
       document.title,
-      "/reset-password"
+      `/reset-password${safeReturn}`
     );
 
     setTokenHash("");
@@ -131,7 +149,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!password) {
+    if (!passwordSaved && !password) {
       setMessage(
         "Please enter a new password."
       );
@@ -139,7 +157,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (password.length < 8) {
+    if (!passwordSaved && password.length < 8) {
       setMessage(
         "Passwords must contain at least 8 characters."
       );
@@ -147,7 +165,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (password !== confirm) {
+    if (!passwordSaved && password !== confirm) {
       setMessage(
         "Passwords do not match."
       );
@@ -155,22 +173,38 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    const { data: { session } = {} } = await supabase.auth.getSession();
+    if (!recoveryReady || !session) {
+      setMessage("Your secure password link has expired. Request a new one and try again.");
+      setRecoveryReady(false);
+      return;
+    }
+
     setLoading(true);
 
-    const {
-      error,
-    } =
-      await supabase.auth.updateUser({
-        password,
+    if (!passwordSaved) {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        setMessage(error.message);
+        setLoading(false);
+        return;
+      }
+      setPasswordSaved(true);
+    }
+
+    if (returnToIntroducer && linkType === "invite") {
+      const { data: { session: currentSession } = {} } = await supabase.auth.getSession();
+      const response = await fetch("/api/introducer/activation/complete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${currentSession?.access_token || ""}` },
+        cache: "no-store",
       });
-
-    if (error) {
-      setMessage(
-        error.message
-      );
-
-      setLoading(false);
-      return;
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setMessage(result.error || "Your password is saved, but Root could not finish access setup. Keep this page open and retry or contact Root Health.");
+        setLoading(false);
+        return;
+      }
     }
 
     setMessage(
@@ -186,8 +220,9 @@ export default function ResetPasswordPage() {
     setLoading(false);
 
     setTimeout(() => {
-      window.location.href =
-        "/login";
+      window.location.href = returnToIntroducer
+        ? "/login?next=%2Fintroducer"
+        : "/login";
     }, 1500);
   }
 
@@ -222,25 +257,31 @@ export default function ResetPasswordPage() {
         {!recoveryReady ? (
           <>
             <h1 style={styles.title}>
-              Reset your password
+              {linkType === "invite" ? "Set up your password" : "Reset your password"}
             </h1>
 
             <p style={styles.text}>
-              Your reset request is ready.
-              Press the button below to
-              continue securely.
+              {tokenHash
+                ? "Your secure link is ready. Continue to choose a password that only you know."
+                : linkType === "invite"
+                  ? "This invitation link is missing or has expired. Ask Root Health to send a new invitation."
+                  : "This password reset link is missing or has expired. Request a new reset link and open it on this site."}
             </p>
 
             {tokenHash ? (
               <button
                 style={styles.button}
-                onClick={beginRecovery}
+                onClick={beginPasswordSetup}
                 disabled={loading}
               >
                 {loading
                   ? "Verifying..."
-                  : "Continue to reset password"}
+                  : linkType === "invite" ? "Continue to set password" : "Continue to reset password"}
               </button>
+            ) : linkType === "invite" ? (
+              <a href="/login?next=%2Fintroducer" style={styles.buttonLink}>
+                Return to sign in
+              </a>
             ) : (
               <button
                 style={styles.button}
@@ -249,7 +290,7 @@ export default function ResetPasswordPage() {
                     "/forgot-password";
                 }}
               >
-                Request New Reset Link
+              Request a secure password link
               </button>
             )}
 
@@ -262,7 +303,7 @@ export default function ResetPasswordPage() {
         ) : (
           <>
             <h1 style={styles.title}>
-              Choose a new password
+              {linkType === "invite" ? "Create your password" : "Choose a new password"}
             </h1>
 
             <p style={styles.text}>
@@ -282,6 +323,9 @@ export default function ResetPasswordPage() {
                 )
               }
               style={styles.input}
+              autoComplete="new-password"
+              minLength={8}
+              required
             />
 
             <input
@@ -294,6 +338,9 @@ export default function ResetPasswordPage() {
                 )
               }
               style={styles.input}
+              autoComplete="new-password"
+              minLength={8}
+              required
             />
 
             <button
@@ -303,7 +350,9 @@ export default function ResetPasswordPage() {
             >
               {loading
                 ? "Updating..."
-                : "Update Password"}
+                : passwordSaved && returnToIntroducer && linkType === "invite"
+                  ? "Complete account activation"
+                  : "Update Password"}
             </button>
 
             {message ? (
@@ -382,6 +431,18 @@ const styles = {
     color: "#fff",
     fontWeight: "800",
     cursor: "pointer",
+  },
+
+  buttonLink: {
+    display: "block",
+    width: "100%",
+    borderRadius: "999px",
+    padding: "15px",
+    background: "#181818",
+    color: "#fff",
+    fontWeight: "800",
+    textAlign: "center",
+    textDecoration: "none",
   },
 
   message: {

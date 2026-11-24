@@ -65,7 +65,7 @@ test("Phase 3A migration remains separate and unchanged by invitation migration"
 });
 
 test("delivery RPC execution is restricted to service_role while client RPC grants remain authenticated", async () => {
-  const sql = await readFile(migration, "utf8");
+  const sql = (await readFile(migration, "utf8")).replace(/\r\n/g, "\n");
   for (const signature of ["claim_workforce_invitation(uuid,uuid,uuid,uuid,text)", "finish_workforce_invitation(uuid,uuid,text,text,text)"]) {
     assert.ok(sql.includes(`revoke all on function public.${signature} from public, anon, authenticated;`));
     const grants = sql.split("\n").filter((line) => line.startsWith(`grant execute on function public.${signature} `));
@@ -88,7 +88,7 @@ async function deliveryHarness({ denied = false, missingKey = false, smtpFailure
     calls.push({ name }); return { data: { rows: [] } };
   } };
   const { corporateEmailUrl } = await import("../lib/corporateEmailUrl.js");
-  const build = new Function("crypto", "nodemailer", "createClient", "requireOrganisationAdmin", "organisationAdminErrorResponse", "process", "corporateEmailUrl", `${source}\nreturn { GET, POST };`);
+  const build = new Function("crypto", "nodemailer", "createClient", "requireOrganisationAdmin", "organisationAdminErrorResponse", "getSupabaseServerKeyIfConfigured", "process", "corporateEmailUrl", `${source}\nreturn { GET, POST };`);
   const handlers = build(crypto, { createTransport: () => ({ sendMail: async (mail) => {
     assert.ok(mail.text.includes("https://preview.example.test/organisation/join?"));
     calls.push({ name: "mock-mail" }); if (smtpFailure) throw new Error("Mock SMTP uncertainty"); return { messageId: "mock-message" };
@@ -100,7 +100,7 @@ async function deliveryHarness({ denied = false, missingKey = false, smtpFailure
   }, async () => {
     calls.push({ name: "authorize" }); if (denied) throw new Error("Denied");
     return { user: { id: "verified-admin" }, supabase: authenticated };
-  }, () => Response.json({ error: "Unavailable" }, { status: 403 }), { env: {
+  }, () => Response.json({ error: "Unavailable" }, { status: 403 }), env => env.SUPABASE_SERVICE_ROLE_KEY || "", { env: {
     NEXT_PUBLIC_SUPABASE_URL: "https://example.invalid", SUPABASE_SERVICE_ROLE_KEY: missingKey ? "" : "mock-service-key",
     ROOT_SMTP_USER: "mock@example.invalid", ROOT_SMTP_PASSWORD: "mock-only",
   } }, path => corporateEmailUrl(path, "https://preview.example.test"));

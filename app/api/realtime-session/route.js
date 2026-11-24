@@ -4,6 +4,24 @@ import { buildRootCoachInvestigationPolicy } from "../../../lib/rootCoachInvesti
 import { formatHealthContextForPrompt } from "../../../lib/personalHealthContext.js";
 import { summariseStructuredBodyObservation } from "../../../lib/bodySignalModel.js";
 import { buildTrackerCoachContext } from "../../../lib/trackerEvidenceContext.js";
+import { loadPersonalRootKnowledge } from "../../../lib/personalKnowledgeService.js";
+import {
+  authorizeRealtimeSession,
+  consumeCustomerRealtimeAllowance,
+  confirmRealtimeGrantActive,
+  reserveRealtimeSessionAllowance,
+  realtimeProviderApiKey,
+  realtimeSessionAccessResponse,
+  RealtimeSessionAccessError,
+} from "../../../lib/realtimeSessionGuard.server.js";
+import {
+  attachRealtimeCallToReservation,
+  hangupRealtimeCall,
+  immediatelyHangupRealtimeCall,
+  markRealtimeCallTerminated,
+  markRealtimeCallCreationFailed,
+  parseRealtimeCallId,
+} from "../../../lib/introducerRealtimeTermination.server.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -70,38 +88,103 @@ function summariseSharedKnowledge(knowledge = null) {
 
 export async function POST(req) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    let access;
+    let introducerReservation = null;
+    let introducerMaxSessionSeconds = null;
+    let introducerPlannedSessionSeconds = null;
+    let introducerCompletionGraceSeconds = null;
+    let introducerWarningBeforeSeconds = null;
+    try {
+      access = await authorizeRealtimeSession({ request: req });
+    } catch (error) {
+      return realtimeSessionAccessResponse(error);
+    }
+
+    if (access.mode === "customer" && !consumeCustomerRealtimeAllowance(access.user.id)) {
+      return Response.json({ error: "Please wait before starting another Root Voice session." }, { status: 429, headers: { "Cache-Control": "no-store" } });
+    }
+
+    const apiKey = realtimeProviderApiKey(access.mode);
 
     if (!apiKey) {
-      return new Response("Missing OPENAI_API_KEY", { status: 500 });
+      return Response.json(
+        { error: "Voice is not configured." },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
+      );
     }
 
-    const body = await req.json();
-
-    const {
-  sdp,
-  coachMode,
-  profile = null,
-  history = [],
-  mindEntries = [],
-  journalEntries = [],
-  name = "",
-  journey = null,
-  personalKnowledge = null,
-} = body;
-
-    if (!sdp) {
-      return new Response("Missing SDP offer", { status: 400 });
+    let body;
+    try {
+      const requestText = await req.text();
+      if (Buffer.byteLength(requestText, "utf8") > 70 * 1024) {
+        return Response.json({ error: "The voice request is too large." }, { status: 413, headers: { "Cache-Control": "no-store" } });
+      }
+      body = JSON.parse(requestText);
+    } catch {
+      return Response.json({ error: "A valid voice offer is required." }, { status: 400, headers: { "Cache-Control": "no-store" } });
     }
+
+    // The browser may select a supported conversation mode and provide its
+    // WebRTC offer. Personal or organisational evidence is always loaded below
+    // with the verified user's bearer client and is never accepted from JSON.
+    const sdp = typeof body?.sdp === "string" ? body.sdp : "";
+    if (!sdp || Buffer.byteLength(sdp, "utf8") > 64 * 1024) {
+      return Response.json({ error: "The voice offer is missing or too large." }, { status: 400, headers: { "Cache-Control": "no-store" } });
+    }
+    const supportedModes = new Set(["auto", "grounding", "sleep", "reflection", "nutrition", "mind", "trauma", "movement", "lifestyle"]);
+    if (body?.coachMode && !supportedModes.has(body.coachMode)) {
+      return Response.json({ error: "Choose a supported Root Voice mode." }, { status: 400, headers: { "Cache-Control": "no-store" } });
+    }
+    const coachMode = body?.coachMode || "auto";
+
+    const knowledgeResult = await loadPersonalRootKnowledge({
+      client: access.client,
+      verifiedUser: access.user,
+    });
+    if (!knowledgeResult.ok || !knowledgeResult.projections?.coach) {
+      return Response.json({ error: "Root could not load your private Personal Root context." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
+    const personalKnowledge = knowledgeResult.projections.coach;
+    const profile = personalKnowledge.profile || null;
+    const history = personalKnowledge.promptEvidence?.bodySignals || [];
+    const mindEntries = personalKnowledge.promptEvidence?.mindEntries || [];
+    const journalEntries = personalKnowledge.promptEvidence?.journalEntries || [];
+    const name = profile?.name || "";
+    let bodyHandoff = null;
+    const bodyObservationId = typeof body?.bodyObservationId === "string" ? body.bodyObservationId.trim() : "";
+    if (bodyObservationId) {
+      if (!/^[0-9a-f-]{36}$/i.test(bodyObservationId)) {
+        return Response.json({ error: "The Body handoff could not be verified." }, { status: 400, headers: { "Cache-Control": "no-store" } });
+      }
+      const { data, error } = await access.client.from("body_signals").select("*")
+        .eq("id", bodyObservationId)
+        .eq("user_id", access.user.id)
+        .eq("profile_key", personalKnowledge.identity.profileKey)
+        .is("organisation_id", null)
+        .maybeSingle();
+      if (error) return Response.json({ error: "Root could not verify the saved Body handoff." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+      if (!data) return Response.json({ error: "The saved Body handoff is unavailable." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+      bodyHandoff = data;
+    }
+
+    // Thought Work may hand the current unsaved focus into this authenticated
+    // conversation. Treat it as the user's stated intent, never as saved
+    // clinical evidence or a model instruction.
+    const rawMindHandoff = body?.mindHandoff && typeof body.mindHandoff === "object" ? body.mindHandoff : {};
+    const mindHandoff = Object.fromEntries(["situation", "automaticThought", "emotion", "intensity", "reframe", "nextStep"]
+      .map((key) => [key, typeof rawMindHandoff[key] === "string" ? rawMindHandoff[key].trim().slice(0, 500) : ""])
+      .filter(([, value]) => value));
 
     const rootContext = `
 Active mode: ${coachMode || "auto"}
 
-${
-  journey?.currentStage === "coach" && journey?.bodyObservation
-    ? `Current saved Body-to-Coach handoff (prioritise this over older body history):\n${summariseStructuredBodyObservation(journey.bodyObservation)}\nDo not re-ask fields already answered unless they conflict or are ambiguous. Treat the user's note as exploration intent, not evidence of cause, and move to the next unanswered discriminating question.`
-    : "Current Body-to-Coach handoff: none."
-}
+${bodyHandoff
+  ? `Current saved Body-to-Coach handoff, loaded from this authenticated user's record (prioritise this over older body history):\n${summariseStructuredBodyObservation(bodyHandoff)}\nDo not re-ask fields already answered unless they conflict or are ambiguous. Treat the user's note as exploration intent, not evidence of cause, and move to the next unanswered discriminating question.`
+  : "Current Body-to-Coach handoff: none."}
+
+${Object.keys(mindHandoff).length
+  ? `Current user-stated Thought Work handoff (self-reported exploration context, not verified saved evidence):\n${Object.entries(mindHandoff).map(([key, value]) => `${key}: ${value}`).join("\n")}`
+  : "Current Thought Work handoff: none."}
 
 ${summariseProfile(profile)}
 
@@ -344,6 +427,43 @@ Sound like a calm, emotionally regulated human being.
 
     const form = new FormData();
 
+    // Recheck revocation immediately before reserving durable quota and calling
+    // the provider. The RPC also rechecks grant and entitlement atomically.
+    if (access.mode === "introducer") {
+      await confirmRealtimeGrantActive({ admin: access.admin, userId: access.user.id, grantId: access.grant.id });
+      introducerReservation = await reserveRealtimeSessionAllowance({ admin: access.admin, userId: access.user.id, grantId: access.grant.id });
+      if (!introducerReservation.allowed) {
+        const denialMessages = {
+          monthly_fx_rate_unconfigured: "Live Voice Coach is temporarily unavailable while Root updates this month's budget exchange rate. Other available Root features remain usable.",
+          grant_inactive: "Your live Voice Coach access has expired or was revoked. Other available Root features remain usable.",
+          voice_policy_disabled: "Live Voice Coach is paused for this Preview. Other available Root features remain usable.",
+          user_allocation_disabled: "Live Voice Coach is not enabled for your demonstration account. Ask Root Health if you need access.",
+          user_daily_limit: "Your live Voice Coach allocation is used for now. You can continue with other available Root features.",
+          active_session: "A live Voice Coach session is already open for your account.",
+          project_estimated_budget: "Live Voice Coach is paused because the shared monthly demonstration budget is reserved. You can continue with other available Root features.",
+          session_duration_policy_invalid: "Live Voice Coach is temporarily unavailable while its session limits are reviewed.",
+        };
+        return Response.json({ error: denialMessages[introducerReservation.denialReason] || "Live Voice Coach is unavailable under the current demonstration policy." }, { status: 429, headers: { "Cache-Control": "no-store" } });
+      }
+      if (!Number.isInteger(introducerReservation.maxSessionSeconds)
+        || !Number.isInteger(introducerReservation.plannedSessionSeconds)
+        || !Number.isInteger(introducerReservation.completionGraceSeconds)
+        || !Number.isInteger(introducerReservation.warningBeforeSeconds)
+        || introducerReservation.plannedSessionSeconds < 300
+        || introducerReservation.completionGraceSeconds < 0
+        || introducerReservation.maxSessionSeconds !== introducerReservation.plannedSessionSeconds + (2 * introducerReservation.completionGraceSeconds)
+        || introducerReservation.warningBeforeSeconds < 0
+        || introducerReservation.warningBeforeSeconds >= introducerReservation.plannedSessionSeconds
+        || introducerReservation.maxSessionSeconds > 3600
+        || !introducerReservation.reservationId) {
+        return Response.json({ error: "Voice session duration controls are unavailable." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+      }
+      introducerMaxSessionSeconds = introducerReservation.maxSessionSeconds;
+      introducerPlannedSessionSeconds = introducerReservation.plannedSessionSeconds;
+      introducerCompletionGraceSeconds = introducerReservation.completionGraceSeconds;
+      introducerWarningBeforeSeconds = introducerReservation.warningBeforeSeconds;
+    }
+
     form.append("sdp", sdp);
     form.append(
       "session",
@@ -351,6 +471,7 @@ Sound like a calm, emotionally regulated human being.
         type: "realtime",
         model: "gpt-realtime",
         instructions: rootVoicePrompt,
+        ...(access.mode === "introducer" ? { expires_at: Math.floor(Date.now() / 1000) + introducerMaxSessionSeconds } : {}),
        audio: {
   input: {
   transcription: {
@@ -381,17 +502,71 @@ Sound like a calm, emotionally regulated human being.
       body: form,
     });
 
+    if (!response.ok) {
+      if (access.mode === "introducer" && response.status >= 400 && response.status < 500) {
+        try {
+          await markRealtimeCallCreationFailed({
+            admin: access.admin,
+            reservationId: introducerReservation.reservationId,
+            userId: access.user.id,
+          });
+        } catch {
+          // Keep the reservation held when release cannot be verified.
+        }
+      }
+      return Response.json(
+        { error: "Root could not start a voice session. Please try again." },
+        { status: 502, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+    if (access.mode === "introducer") {
+      const callId = parseRealtimeCallId(response.headers.get("location"));
+      if (!callId) {
+        // Never hand an untracked SDP session to the browser. The provider's
+        // documented Location header is required for server-side hang-up.
+        return Response.json({ error: "Root could not establish server-side voice session control." }, { status: 502, headers: { "Cache-Control": "no-store" } });
+      }
+      let attached;
+      try {
+        attached = await attachRealtimeCallToReservation({
+          admin: access.admin,
+          reservationId: introducerReservation.reservationId,
+          userId: access.user.id,
+          grantId: access.grant.id,
+          callId,
+        });
+      } catch {
+        // If durable recording fails after the provider created a call, make
+        // an immediate server-side termination attempt and never return SDP.
+        try {
+          await immediatelyHangupRealtimeCall({ admin: access.admin, reservationId: introducerReservation.reservationId, callId, apiKey });
+        } catch {}
+        return Response.json({ error: "Root could not safely track the voice session." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+      }
+      if (attached.terminateNow) {
+        const stopped = await hangupRealtimeCall({ callId, apiKey });
+        if (stopped.terminated) {
+          await markRealtimeCallTerminated({ admin: access.admin, reservationId: introducerReservation.reservationId, callId });
+        }
+        return Response.json({ error: "Your Voice access has expired or been revoked." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+      }
+    }
     const answer = await response.text();
 
-    return new Response(answer, {
-      status: response.status,
-      headers: {
-        "Content-Type": "application/sdp",
-      },
-    });
+    const responseHeaders = {
+      "Content-Type": "application/sdp",
+      "Cache-Control": "no-store",
+    };
+    if (access.mode === "introducer") {
+      responseHeaders["X-Root-Voice-Planned-Seconds"] = String(introducerPlannedSessionSeconds);
+      responseHeaders["X-Root-Voice-Completion-Grace-Seconds"] = String(introducerCompletionGraceSeconds);
+      responseHeaders["X-Root-Voice-Warning-Before-Seconds"] = String(introducerWarningBeforeSeconds);
+      responseHeaders["X-Root-Voice-Reservation"] = introducerReservation.reservationId;
+    }
+    return new Response(answer, { status: 200, headers: responseHeaders });
   } catch (error) {
-    return new Response(error?.message || "Realtime session failed", {
-      status: 500,
-    });
+    const response = realtimeSessionAccessResponse(error);
+    if (error instanceof RealtimeSessionAccessError) return response;
+    return Response.json({ error: "Root could not start a voice session." }, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
 }

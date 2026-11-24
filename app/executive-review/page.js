@@ -1,12 +1,8 @@
 "use client";
 import { withOrganisationActionContext } from "../../lib/organisationActions.js";
-import { withWorkforceContext } from "../../lib/organisationWorkforceContext.js";
-import { latestOrganisationReviews } from "../../lib/organisationLearningHistory.js";
-
 import { getRootIdentity } from "../../lib/rootIdentity";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { buildOrganisationSnapshot } from "../../lib/rootOrganisationEngine";
 
 function average(items, key) {
   const values = items
@@ -658,12 +654,8 @@ function MiniMetric({ label, value, detail }) {
 export default function ExecutiveReviewPage() {
   const [loading, setLoading] = useState(true);
   const [organisation, setOrganisation] = useState(null);
-  const [organisationReviews, setOrganisationReviews] = useState([]);
-  const [assessments, setAssessments] = useState([]);
-  const [mindEntries, setMindEntries] = useState([]);
-  const [journalEntries, setJournalEntries] = useState([]);
-  const [voiceSessions, setVoiceSessions] = useState([]);
-  const [members, setMembers] = useState([]);
+  const [organisationSnapshot, setOrganisationSnapshot] = useState(null);
+  const [assessmentCount, setAssessmentCount] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -736,69 +728,26 @@ localStorage.setItem(
 
 const orgId = membership.organisation_id;
 
-const { data: org } = await supabase
-  .from("organisations")
-  .select("*")
-  .eq("id", orgId)
-  .single();
-    if (!orgId) {
+const { data: { session } = {} } = await supabase.auth.getSession();
+if (!session?.access_token) {
+  window.location.href = "/login";
+  return;
+}
+const aggregateResponse = await fetch(
+  `/api/organisation/insights?organisationId=${encodeURIComponent(orgId)}`,
+  { headers: { Authorization: `Bearer ${session.access_token}` }, cache: "no-store" }
+);
+const aggregate = await aggregateResponse.json().catch(() => ({}));
+if (!aggregateResponse.ok || aggregate.organisationId !== orgId || !aggregate.snapshot) {
   setOrganisation(null);
-  setAssessments([]);
-  setMindEntries([]);
-  setJournalEntries([]);
-  setVoiceSessions([]);
-  setMembers([]);
+  setOrganisationSnapshot(null);
   setLoading(false);
   return;
 }
 
-    const orgFilter = orgId
-      ? `organisation_id.eq.${orgId},organisation_id.is.null`
-      : "organisation_id.is.null";
-
-   const { data: assessmentData } = await supabase
-  .from("wellbeing_assessments")
-  .select("id, organisation_id, profile_key, assessment_type, created_at, stress_score, burnout_score, sleep_score, recovery_score, mood_score, focus_score")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: true });
-
-const { data: mindData } = await supabase
-  .from("mind_entries")
-  .select("id, organisation_id, profile_key, created_at")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: false })
-  .limit(200);
-
-const { data: journalData } = await supabase
-  .from("journal_entries")
-  .select("id, organisation_id, profile_key, created_at")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: false })
-  .limit(200);
-
-const { data: voiceData } = await supabase
-  .from("voice_sessions")
-  .select("id, organisation_id, profile_key, created_at")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: false })
-  .limit(200);
-
-const { data: memberData } = await supabase
-  .from("organisation_members")
-  .select("*")
-  .eq("organisation_id", orgId)
-  .order("created_at", { ascending: false });
-
-  
-    setOrganisation(await withOrganisationActionContext(supabase, await withWorkforceContext(supabase, org)));
-    const { data: reviews, error: reviewError } = await latestOrganisationReviews(supabase, orgId);
-    if (reviewError) throw reviewError;
-    setOrganisationReviews(reviews || []);
-    setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
-    setMindEntries(Array.isArray(mindData) ? mindData : []);
-    setJournalEntries(Array.isArray(journalData) ? journalData : []);
-    setVoiceSessions(Array.isArray(voiceData) ? voiceData : []);
-    setMembers(Array.isArray(memberData) ? memberData : []);
+setOrganisation(await withOrganisationActionContext(supabase, aggregate.organisation));
+setOrganisationSnapshot(aggregate.snapshot);
+setAssessmentCount(aggregate.assessmentCount);
 
     setLoading(false);
   };
@@ -807,15 +756,7 @@ const { data: memberData } = await supabase
   return <main style={styles.page}>Loading executive review...</main>;
 }
 
-const snapshot = buildOrganisationSnapshot({
-  organisationReviews,
-  organisation,
-  members,
-  assessments,
-  mindEntries,
-  journalEntries,
-  voiceSessions,
-});
+const snapshot = organisationSnapshot || {};
 const organisationName =
   snapshot?.organisation?.name ||
   organisation?.name ||
@@ -903,7 +844,8 @@ const activated =
   Number(
     participation.activated ??
       snapshot.activated ??
-      members.filter((member) => member.activated_at).length
+      participation.joined ??
+      0
   ) || 0;
 
 const stressMetric = metricResults.find(
@@ -1532,10 +1474,8 @@ return (
         </div>
 
         <p>
-          Based on {assessments.length} assessment
-          {assessments.length === 1 ? "" : "s"},{" "}
-          {supportInteractions} support interaction
-          {supportInteractions === 1 ? "" : "s"} and {activated} activated
+          {assessmentCount == null ? "Assessment evidence protected" : `Based on ${assessmentCount} assessment${assessmentCount === 1 ? "" : "s"}`},{" "}
+          {supportInteractions == null ? "support interactions protected" : `${supportInteractions} support interaction${supportInteractions === 1 ? "" : "s"}`} and {activated} activated
           employee{activated === 1 ? "" : "s"}.
         </p>
 

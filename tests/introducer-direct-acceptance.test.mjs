@@ -92,13 +92,14 @@ test('only the acceptance path is public; Preview uses the current Vercel deploy
   assert.equal(acceptanceOrigin({
     NEXT_PUBLIC_SITE_URL:'https://stale-preview.example.test',
     VERCEL_ENV:'preview',
-    VERCEL_URL:'root-health-app-v2-current.vercel.app'
-  }),'https://root-health-app-v2-current.vercel.app');
+    VERCEL_URL:'root-health-introducer-demo-current.vercel.app'
+  }),'https://root-health-introducer-demo-current.vercel.app');
   assert.equal(acceptanceOrigin({
     NEXT_PUBLIC_SITE_URL:'https://roothealth.app',
     VERCEL_ENV:'production',
     VERCEL_URL:'ignored-preview.vercel.app'
-  }),'https://roothealth.app');
+  }),'https://www.roothealth.app');
+  assert.equal(acceptanceOrigin({NEXT_PUBLIC_SITE_URL:'https://www.roothealth.app',VERCEL_ENV:'production'}),'https://www.roothealth.app');
   assert.throws(()=>acceptanceOrigin({
     NEXT_PUBLIC_SITE_URL:'https://roothealth.app',
     VERCEL_ENV:'preview'
@@ -215,8 +216,24 @@ test('invitation and accepted-copy emails remain Root branded; no second complet
   assert.deepEqual(sent.map(x=>x.to[0]),[terms.contact_email,'enquiries@roothealth.app']);
   assert.ok(sent.every(x=>x.from==='Root Health <enquiries@roothealth.app>' && x.reply_to==='enquiries@roothealth.app' && x.attachments.length===1));
 });
-test('public API rejects cross-origin requests and has no GET-side acceptance',async()=>{
+test('acceptance API accepts the canonical post-redirect origin only with JSON and has no GET-side acceptance',async()=>{
   const old=process.env.NEXT_PUBLIC_SITE_URL;process.env.NEXT_PUBLIC_SITE_URL='https://preview.example.test';
-  try {assert.equal((await POST(new Request('https://preview.example.test/api/introducer-agreement/accept',{method:'POST',headers:{origin:'https://other.example','Content-Type':'application/json'},body:'{}'}))).status,403);}
-  finally{if(old===undefined)delete process.env.NEXT_PUBLIC_SITE_URL;else process.env.NEXT_PUBLIC_SITE_URL=old;}
+  const oldVercelEnv=process.env.VERCEL_ENV;
+  try {
+    process.env.NEXT_PUBLIC_SITE_URL='https://roothealth.app';process.env.VERCEL_ENV='production';
+    const post=(origin,contentType='application/json')=>POST(new Request('https://www.roothealth.app/api/introducer-agreement/accept',{
+      method:'POST',headers:{...(origin?{origin}:{}),...(contentType?{'Content-Type':contentType}:{})},body:'{}'}));
+    // Invalid action is returned only after the security guard passes; this
+    // request never reaches Supabase and uses no agreement/token data.
+    assert.equal((await post('https://www.roothealth.app','application/json; charset=utf-8')).status,400);
+    assert.equal((await post('https://roothealth.app')).status,403);
+    assert.equal((await post('https://attacker.example')).status,403);
+    assert.equal((await post(null)).status,403);
+    assert.equal((await post('https://www.roothealth.app','text/plain')).status,403);
+    assert.equal((await post('https://www.roothealth.app',null)).status,403);
+  }
+  finally{
+    if(old===undefined)delete process.env.NEXT_PUBLIC_SITE_URL;else process.env.NEXT_PUBLIC_SITE_URL=old;
+    if(oldVercelEnv===undefined)delete process.env.VERCEL_ENV;else process.env.VERCEL_ENV=oldVercelEnv;
+  }
 });

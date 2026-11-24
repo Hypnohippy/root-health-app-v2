@@ -147,32 +147,35 @@ const journeys = {
     ],
   },
 }; 
+const ROOT_AUDIO_BASE_URL = `${String(process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/$/, "")}/storage/v1/object/public/root-audio`;
+const rootAudioAsset = (fileName) => `${ROOT_AUDIO_BASE_URL}/${encodeURIComponent(fileName)}`;
+
 const calmingTechniques = [
   {
     title: "Safe Place Visualisation",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/safe-place-visualisation-1781348124095.mp3",
+      rootAudioAsset("safe-place-visualisation-1781348124095.mp3"),
     body: `Close your eyes if comfortable...`,
   },
 
   {
     title: "Floating Leaves Exercise",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/floating-leaves-1781348171074.mp3",
+      rootAudioAsset("floating-leaves-1781348171074.mp3"),
     body: `Imagine sitting beside a gentle stream...`,
   },
 
   {
     title: "Future Self Perspective",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/future-self-perspective-1781348220955.mp3",
+      rootAudioAsset("future-self-perspective-1781348220955.mp3"),
     body: `Imagine yourself six months from now...`,
   },
 
   {
     title: "Body Scan Relaxation",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/body-scan-relaxation-1781348251226.mp3",
+      rootAudioAsset("body-scan-relaxation-1781348251226.mp3"),
     body: `Bring your attention to your feet...`,
   },
 ];const outcomeOptions = [
@@ -192,25 +195,25 @@ const groundingTechniques = [
   {
     title: "5-4-3-2-1 Grounding",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/grounding-54321-1781350599311.mp3",
+      rootAudioAsset("grounding-54321-1781350599311.mp3"),
     body: `A simple grounding exercise using the senses to help bring attention back to the present moment.`,
   },
   {
     title: "Room Orientation",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/room-orientation-1781350631246.mp3",
+      rootAudioAsset("room-orientation-1781350631246.mp3"),
     body: `A gentle exercise to help the nervous system recognise where you are now.`,
   },
   {
     title: "Safe Object Anchor",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/safe-object-anchor-1781350662306.mp3",
+      rootAudioAsset("safe-object-anchor-1781350662306.mp3"),
     body: `Use one nearby object as a steady anchor back into the present moment.`,
   },
   {
     title: "Present Moment Anchor",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/present-moment-anchor-1781350712096.mp3",
+      rootAudioAsset("present-moment-anchor-1781350712096.mp3"),
     body: `A short present-moment phrase and breath practice to help the system settle.`,
   },
 ];
@@ -219,25 +222,25 @@ const bodyTechniques = [
   {
     title: "Extended Exhale Breathing",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/extended-exhale-breathing-1781357355630.mp3",
+      rootAudioAsset("extended-exhale-breathing-1781357355630.mp3"),
     body: "A breathing exercise designed to slow the nervous system through a longer exhale.",
   },
   {
     title: "Box Breathing",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/box-breathing-1781357384787.mp3",
+      rootAudioAsset("box-breathing-1781357384787.mp3"),
     body: "A structured breathing pattern used to create steadiness and calm.",
   },
   {
     title: "Progressive Muscle Relaxation",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/progressive-muscle-relaxation-1781357417586.mp3",
+      rootAudioAsset("progressive-muscle-relaxation-1781357417586.mp3"),
     body: "A guided exercise exploring the difference between tension and release.",
   },
   {
     title: "Physical Tension Release",
     audio:
-      "https://witkwlgldxjwwxmpcyva.supabase.co/storage/v1/object/public/root-audio/physical-tension-release-1781357452960.mp3",
+      rootAudioAsset("physical-tension-release-1781357452960.mp3"),
     body: "A gentle body-based exercise for releasing held tension.",
   },
 ];

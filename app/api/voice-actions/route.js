@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js"; 
+import { getSupabasePublicKeyIfConfigured } from "../../../lib/supabasePublicKey.js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../lib/supabaseKeyCompatibleClient.js";
 import { hasExplicitPlaybookSaveIntent } from "../../../lib/voicePlaybookAction";
 import { buildPersonalInvestigationJournalRow } from "../../../lib/personalInvestigationContinuity";
 
@@ -13,7 +14,7 @@ function authenticatedSupabase(req) {
   if (
     !accessToken ||
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    !getSupabasePublicKeyIfConfigured()
   ) {
     return null;
   }
@@ -22,7 +23,7 @@ function authenticatedSupabase(req) {
     accessToken,
     client: createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      getSupabasePublicKeyIfConfigured(),
       {
         global: {
           headers: {

@@ -1,28 +1,29 @@
+import { getSupabasePublicKeyIfConfigured } from "../../../../lib/supabasePublicKey.js";
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 
 import {
   buildRootWorkplacePrice,
 } from "../../../../lib/rootWorkplacePricing";
 
-const stripe =
-  new Stripe(
-    process.env.STRIPE_SECRET_KEY
-  );
+function getStripe() {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) throw new Error("Stripe is not configured.");
+  return new Stripe(secret);
+}
 
 const supabaseUrl =
   process.env
     .NEXT_PUBLIC_SUPABASE_URL;
 
 const supabaseAnonKey =
-  process.env
-    .NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  getSupabasePublicKeyIfConfigured();
 
 const supabaseServiceRoleKey =
-  process.env
-    .SUPABASE_SERVICE_ROLE_KEY;
+  getSupabaseServerKeyIfConfigured();
 
 function applicationWorkforceSize(
   employeeCount
@@ -81,6 +82,7 @@ export async function POST(request) {
         }
       );
     }
+    const stripe = getStripe();
 
     if (
       !supabaseUrl ||

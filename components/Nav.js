@@ -29,11 +29,8 @@ export default function Nav() {
       href: "/org-insights",
       label: "Dashboard",
     },
-    {
-      href: "/organisation-learning",
-      label: "Organisation Learning",
-    },
-    ...(activeWorkplaceMembership?.role === "organisation_admin"
+    ...(!identity?.introducerDemo?.enabled ? [{ href: "/organisation-learning", label: "Organisation Learning" }] : []),
+    ...(activeWorkplaceMembership?.role === "organisation_admin" || identity?.introducerDemo?.employerAdminAvailable === true
       ? [
           {
             href: "/organisation-structure",
@@ -41,22 +38,19 @@ export default function Nav() {
           },
         ]
       : []),
-    {
+    ...(!identity?.introducerDemo?.enabled ? [{
       href: "/hr-coach",
       label: "Ask Root",
-    },
+    }] : []),
     {
       href: "/executive-review",
       label: "Executive Review",
     },
-    {
-      href: "/presentation-support",
-      label: "Interventions",
-    },
-    {
-      href: "/organisations/pricing",
-      label: "Pricing",
-    },
+    ...(identity?.introducerDemo?.enabled ? [{ href: "/launch-kit", label: "Launch Kit" }] : []),
+    ...(!identity?.introducerDemo?.enabled ? [
+      { href: "/presentation-support", label: "Interventions" },
+      { href: "/organisations/pricing", label: "Pricing" },
+    ] : []),
   ];
 
   const links =
@@ -95,6 +89,12 @@ export default function Nav() {
         </button>
       </nav>
 
+      {identity?.introducerDemo?.enabled && (
+        <div style={styles.demoBadge} role="status">
+          Introducer Preview · fictional employer data
+        </div>
+      )}
+
       {open && (
         <div style={styles.mobilePanel}>
           <ExperienceSwitcher />
@@ -130,6 +130,20 @@ export default function Nav() {
 }
 
 const styles = {
+  demoBadge: {
+    position: "fixed",
+    zIndex: 999,
+    top: "76px",
+    right: "18px",
+    padding: "7px 11px",
+    borderRadius: "999px",
+    background: "rgba(238,242,232,0.94)",
+    border: "1px solid rgba(70,81,63,0.16)",
+    color: "#46513f",
+    fontSize: "11px",
+    fontWeight: 650,
+  },
+
   nav: {
     position: "fixed",
     top: "18px",

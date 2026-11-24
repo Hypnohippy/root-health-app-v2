@@ -1,0 +1,7 @@
+node_modules/
+.next/
+.next-pr70-*/
+.env*
+!.env.example
+coverage/
+supabase/.temp/

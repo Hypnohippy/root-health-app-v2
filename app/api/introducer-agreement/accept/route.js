@@ -1,7 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
+import { createSupabaseKeyCompatibleClient as createClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
 import { acceptanceOrigin,invitationReview,acceptanceEvidence,fulfilAcceptance } from '../../../../lib/introducerAgreementAcceptance.js';
 import { createAgreementDrive,googleAgreementConfig } from '../../../../lib/googleAgreementDrive.js';
 import { agreementAcceptanceNotifier } from '../../../../lib/introducerAgreementEmail.js';
+import { sendIntroducerActivation } from '../../../../lib/introducerActivationHandoff.server.js';
 
 export const runtime='nodejs';
 export const maxDuration=120;
@@ -13,7 +15,7 @@ export async function POST(request) {
     const raw=await request.text();if(raw.length>5000)return reply({error:'Request too large.'},413);
     const body=JSON.parse(raw);
     if(!['review','accept'].includes(body.action))return reply({error:'Invalid agreement action.'},400);
-    const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
+    const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,getSupabaseServerKeyIfConfigured(),{auth:{persistSession:false}});
     const {agreement,review,acceptance,tokenHash}=await invitationReview(db,body.token);
     if(body.action==='review')return reply({accepted:Boolean(acceptance),version:agreement.version,email:agreement.terms_snapshot.contact_email,
       pdf_base64:review.pdf_base64,review_hash:review.pdf_sha256});
@@ -26,7 +28,16 @@ export async function POST(request) {
         notify:(...args)=>agreementAcceptanceNotifier()(...args)});
       pending=state.pending;
     } catch { /* Acceptance is durable; Root can retry fulfilment, never recreate consent. */ }
-    return reply({accepted:true,pending});
+    // This coordinator re-reads the current Root agreement and requires its
+    // archived acceptance evidence before it can prepare a Preview identity or
+    // send the activation email. Repeated submissions are idempotent: an
+    // already-started invitation is never sent again automatically.
+    let activationPending=true;
+    try {
+      const activation=await sendIntroducerActivation({db,introducerId:agreement.introducer_id,request,action:'automatic_acceptance'});
+      activationPending=!['activation_sent','activated'].includes(activation.state);
+    } catch { /* Keep the durable acceptance; never roll back consent or retry an uncertain send. */ }
+    return reply({accepted:true,pending,activationPending});
   } catch {
     return reply({error:'Unable to confirm this request. Check your details and retry, or contact enquiries@roothealth.app. If you already submitted, retrying will not create a second acceptance.'},409);
   }

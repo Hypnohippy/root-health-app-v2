@@ -182,9 +182,20 @@ test("launch materials describe invitation delivery separately from recorded wor
 });
 
 test("all six review consumers use the shared loader; no raw wellbeing logging", async () => {
-  for (const file of ["lib/hrCoachServerAuth.js", "lib/rootOrganisationContext.js", "app/hr-coach/page.js", "app/org-insights/page.js", "app/founder/companion/page.js", "app/organisation-learning/page.js", "app/executive-review/page.js", "app/launch-kit/page.js"]) {
+  const serverAggregateRoutes = new Set([
+    "app/hr-coach/page.js",
+    "app/org-insights/page.js",
+    "app/executive-review/page.js",
+    "app/launch-kit/page.js",
+  ]);
+  for (const file of ["lib/hrCoachServerAuth.js", "lib/rootOrganisationContext.js", ...serverAggregateRoutes, "app/founder/companion/page.js", "app/organisation-learning/page.js"]) {
     const source = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(source, /latestOrganisationReviews\(supabase,/);
+    if (serverAggregateRoutes.has(file)) {
+      assert.match(source, /\/api\/organisation\/insights/);
+      assert.doesNotMatch(source, /\.from\(["'](?:wellbeing_assessments|mind_entries|journal_entries|voice_sessions)["']\)/);
+    } else {
+      assert.match(source, /latestOrganisationReviews\(supabase,/);
+    }
     assert.doesNotMatch(source, /console.log\([^\n]*assessment/i);
   }
 });

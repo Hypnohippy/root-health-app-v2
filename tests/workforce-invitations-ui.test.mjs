@@ -4,12 +4,12 @@ import test from "node:test";
 
 const source = await readFile(new URL("../app/organisation-structure/page.js", import.meta.url), "utf8");
 
-function paginationHarness(rpc) {
+function paginationHarness(rpc, { introducerAdmin = false, fetchImpl = globalThis.fetch } = {}) {
   const state = {};
   const body = source.slice(source.indexOf("  async function refreshInvitations("), source.indexOf("  async function sendInvitations("));
-  const build = new Function("organisation", "workforceSearch", "supabase", "invitationRequest", "setInvitationLoading", "setInvitationLoadError", "setWorkforceRows", "setInvitationCounts", "setInvitationPage", `${body}; return refreshInvitations;`);
+  const build = new Function("organisation", "workforceSearch", "introducerAdmin", "fetch", "supabase", "invitationRequest", "setInvitationLoading", "setInvitationLoadError", "setWorkforceRows", "setInvitationCounts", "setInvitationPage", `${body}; return refreshInvitations;`);
   const set = (key) => (value) => { state[key] = value; };
-  return { state, refresh: build({ id: "org" }, "", { rpc }, { current: 0 }, set("loading"), set("error"), set("rows"), set("counts"), set("page")) };
+  return { state, refresh: build({ id: "org" }, "", introducerAdmin, fetchImpl, { rpc }, { current: 0 }, set("loading"), set("error"), set("rows"), set("counts"), set("page")) };
 }
 
 test("workforce presentation has five separate accessible columns and named checkboxes", () => {

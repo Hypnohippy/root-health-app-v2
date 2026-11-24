@@ -1,3 +1,4 @@
+import { reactBrowserScripts } from './helpers/reactBrowserScripts.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,7 +19,7 @@ for (const file of ['lib/actionReviewDraft.js','components/ActionReviewCard.js']
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'root-action-presentation-'));
 const prose = 'Review invitation coverage with the organisation before selecting further support. '.repeat(12);
 const entry = { id:'fixture', role:'assistant', content:`Action title: Review invitation coverage\nRationale: ${prose}\nExpected outcome: ${prose}\nSuccess measure: ${prose}` };
-const scripts = ['react/umd/react.development.js', 'react-dom/umd/react-dom.development.js'].map(p => fs.readFileSync(path.join(path.dirname(require.resolve(p.split('/')[0] + '/package.json')), ...p.split('/').slice(1)), 'utf8')).join('\n');
+const scripts = reactBrowserScripts;
 const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:16px;font-family:Arial;background:#edf2eb}*{box-sizing:border-box}</style><div id="root"></div><pre id="result" hidden></pre><script>${scripts}</script><script>
 const modules={};
 function require(name){if(name==='react')return React;if(name==='styled-jsx/style')return ({children})=>React.createElement('style',null,children);if(name.includes('actionReviewDraft'))return modules.draft;if(name.includes('corporateOutput'))return {saveReviewedAction:()=>{throw Error('No writes permitted')}};throw Error(name)}
