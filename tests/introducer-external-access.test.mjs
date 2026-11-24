@@ -148,3 +148,17 @@ test("never writes resolved Root identity to browser console", async () => {
   assert.doesNotMatch(source, /console\.(?:log|debug|info|warn|error)\s*\(\s*["']ROOT IDENTITY["']/);
   assert.doesNotMatch(source, /console\.(?:log|debug|info)\s*\([^\n]*JSON\.stringify\s*\(\s*latest/);
 });
+
+
+test("introducer login UI is fail-closed on the normal customer domain", async () => {
+  const wrapper = await readFile(new URL("../app/login/page.js", import.meta.url), "utf8");
+  const loginClient = await readFile(new URL("../components/RootLoginClient.js", import.meta.url), "utf8");
+  assert.match(wrapper, /host === "introducers\\.roothealth\\.app"/);
+  assert.match(wrapper, /isIntroducerDeployment\\(process\\.env\\)/);
+  assert.match(wrapper, /isIntroducerCustomer=\\{isIntroducerCustomer\\}/);
+  assert.match(loginClient, /\\{isIntroducerCustomer && \\(/);
+  assert.match(loginClient, /Professional Introducer — Activate your invitation/);
+  assert.match(loginClient, /!isIntroducerCustomer &&/);
+  assert.match(loginClient, /isIntroducerCustomer \\? "Professional Introducer sign in" : "Welcome back"/);
+  assert.doesNotMatch(wrapper, /Professional Introducer — Activate your invitation/);
+});
