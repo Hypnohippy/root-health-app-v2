@@ -23,9 +23,6 @@ export function RootProvider({ children }) {
   setLoading(true);
 
   const latest = await getRootIdentity();
-
- console.log("ROOT IDENTITY", JSON.stringify(latest, null, 2));
-
   setIdentity(latest);
 
   setLoading(false);
