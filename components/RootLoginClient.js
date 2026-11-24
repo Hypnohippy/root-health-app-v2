@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../lib/supabase";
 import {
   getRootIdentity,
   getStoredRootIdentity,
   setActiveOrganisation,
-} from "../../lib/rootIdentity";
+} from "../lib/rootIdentity";
 
 export default function RootLoginClient({ isIntroducerCustomer = false }) {
   const [email, setEmail] = useState("");
