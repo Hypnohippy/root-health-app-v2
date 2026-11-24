@@ -141,3 +141,10 @@ test("personal and workplace data isolation remains owner/grant scoped in the is
   assert.match(rls, /only an unexpired, non-revoked grant can read fictional HR setup/);
   assert.match(rls, /personal evidence cannot be attached to the fictional employer/);
 });
+
+
+test("never writes resolved Root identity to browser console", async () => {
+  const source = await readFile(new URL("../context/RootContext.js", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /console\.(?:log|debug|info|warn|error)\s*\(\s*["']ROOT IDENTITY["']/);
+  assert.doesNotMatch(source, /console\.(?:log|debug|info)\s*\([^\n]*JSON\.stringify\s*\(\s*latest/);
+});
