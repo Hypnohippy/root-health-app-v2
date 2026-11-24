@@ -292,7 +292,7 @@ test("a verified introducer grant routes into genuine Root journeys and only its
     capabilities: { canUseWorkplace: true, canUsePersonal: true },
     personal: { hasProfile: true, orientationCompleted: true },
   };
-  assert.equal(getRootDestination(null, "/introducer"), null);
+  assert.equal(getRootDestination(null, "/introducer"), "/login?next=%2Fintroducer");
   assert.equal(getRootDestination(identity, "/introducer"), "/choose-experience");
   for (const path of ["/", "/orientation", "/assessment", "/check-in", "/insights", "/coach", "/journal", "/body", "/mind", "/playbook", "/profile"]) {
     assert.equal(getRootDestination(identity, path), null, `${path} should use the real personal route`);

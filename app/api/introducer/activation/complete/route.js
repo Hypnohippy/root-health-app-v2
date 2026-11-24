@@ -4,7 +4,7 @@ import { createSupabaseKeyCompatibleClient } from "../../../../../lib/supabaseKe
 import { getSupabasePublicKeyIfConfigured } from "../../../../../lib/supabasePublicKey.js";
 import { getSupabaseServerKeyIfConfigured } from "../../../../../lib/supabaseServerKey.server.js";
 import { isIntroducerDeployment } from "../../../../../lib/introducerRestrictedActions.server.js";
-import { INTRODUCER_PREVIEW_BRANCH, INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, parseExactHttpsOrigins, signPreviewActivationReceipt, validateCommercialCallbackUrl, validatePreviewDeployment, verifyOnboardingAssertion } from "../../../../../lib/professionalIntroducerOnboarding.server.js";
+import { INTRODUCER_PREVIEW_BRANCH, INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, activationRequestOriginAllowed, introducerCustomerOrigin, parseExactHttpsOrigins, signPreviewActivationReceipt, validateCommercialCallbackUrl, validatePreviewDeployment, verifyOnboardingAssertion } from "../../../../../lib/professionalIntroducerOnboarding.server.js";
 import { provisionIntroducerFictionalOrganisation } from "../../../../../lib/provisionIntroducerFictionalWorkforce.server.js";
 
 export const runtime="nodejs";
@@ -41,12 +41,13 @@ export async function POST(request) {
   let rootUrl;
   try { rootUrl=validateCommercialCallbackUrl(verifyUrl,parseExactHttpsOrigins(process.env.ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS)); }
   catch { return reply({error:"Root agreement verification destination is not in the exact isolated callback allowlist."},503); }
-  let previewDeploymentOrigin;
+  let previewDeploymentOrigin,requestOrigin,allowedPreviewOrigins,customerOrigin="";
   try {
-    previewDeploymentOrigin=new URL(request.url).origin;
-    const allowedPreviewOrigins=parseExactHttpsOrigins(process.env.ROOT_INTRODUCER_PREVIEW_ALLOWED_ORIGINS);
-    if(!allowedPreviewOrigins.has(previewDeploymentOrigin) || previewDeploymentOrigin!==new URL(String(process.env.ROOT_AUTH_PREVIEW_URL || "")).origin)
-      return reply({error:"This Preview deployment origin is not the approved activation target."},503);
+    requestOrigin=new URL(request.url).origin;
+    previewDeploymentOrigin=new URL(String(process.env.ROOT_AUTH_PREVIEW_URL || "")).origin;
+    allowedPreviewOrigins=parseExactHttpsOrigins(process.env.ROOT_INTRODUCER_PREVIEW_ALLOWED_ORIGINS);
+    if(!allowedPreviewOrigins.has(previewDeploymentOrigin)) return reply({error:"The exact Preview deployment origin is not configured."},503);
+    try { customerOrigin=introducerCustomerOrigin(process.env); } catch { customerOrigin=""; }
   } catch { return reply({error:"The exact Preview deployment origin is not configured."},503); }
   if(!assertion || !["prepare","replace"].includes(assertion.action) ||
       assertion.introducerId!==onboarding.commercial_introducer_id || assertion.requestId!==onboarding.activation_request_id ||
@@ -55,6 +56,9 @@ export async function POST(request) {
       assertion.acceptedTermsHash!==onboarding.accepted_terms_hash ||
       assertion.recipientEmail?.toLowerCase()!==onboarding.contact_email?.toLowerCase() ||
       !sameInstant(assertion.activationExpiresAt,onboarding.activation_expires_at)) return reply({error:"Stored Root authorisation is invalid."},403);
+  const signedActivationOrigin=assertion.activationOrigin || assertion.customerOrigin;
+  if(!activationRequestOriginAllowed({requestOrigin,signedActivationOrigin,previewOrigin:previewDeploymentOrigin,previewAllowedOrigins,customerOrigin}))
+    return reply({error:"This origin is not the signed activation destination."},403);
   let verification;
   try {
     const response=await fetch(rootUrl,{method:"PUT",redirect:"error",signal:AbortSignal.timeout(15000),headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"verify",assertion:onboarding.signed_assertion})});

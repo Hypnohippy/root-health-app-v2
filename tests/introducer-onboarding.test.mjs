@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { agreementTerms,termsHash } from "../lib/introducerGoogleAgreementTerms.js";
 import { PR70_CATALOG_REQUIREMENTS, PR70_MIGRATION_TARGETS, validatePr70MigrationTarget } from "../lib/pr70MigrationGate.server.js";
-import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, ROOT_COMMERCIAL_SUPABASE_REF, ROOT_COMMERCIAL_VERCEL_PROJECT_ID, commercialOnboardingBridgeReady, demoAccessSummary, openActivationLink,parseExactHttpsOrigins,replacementDisposition,sealActivationLink,signOnboardingAssertion,signPreviewActivationReceipt,validateCommercialCallbackUrl,validatePreviewActivationLink,validatePreviewDeployment,verifiedAcceptedAgreement,verifyOnboardingAssertion,verifyPreviewActivationReceipt } from "../lib/professionalIntroducerOnboarding.server.js";
+import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, ROOT_COMMERCIAL_SUPABASE_REF, ROOT_COMMERCIAL_VERCEL_PROJECT_ID, activationRequestOriginAllowed, commercialOnboardingBridgeReady, demoAccessSummary, introducerActivationOrigin, introducerCustomerOrigin, introducerInternalTargetOrigin, openActivationLink,parseExactHttpsOrigins,replacementDisposition,sealActivationLink,signOnboardingAssertion,signPreviewActivationReceipt,validateCommercialCallbackUrl,validatePreviewActivationLink,validatePreviewDeployment,verifiedAcceptedAgreement,verifyOnboardingAssertion,verifyPreviewActivationReceipt } from "../lib/professionalIntroducerOnboarding.server.js";
 
 const secret="test-only-onboarding-secret-that-is-not-a-production-credential";
 const introId="11111111-1111-4111-8111-111111111111";
@@ -71,12 +71,24 @@ test("commercial Demo Access bridge fails closed outside the exact existing Root
   const env={ROOT_INTRODUCER_ONBOARDING_ENABLED:"true",VERCEL_ENV:"production",VERCEL_PROJECT_ID:ROOT_COMMERCIAL_VERCEL_PROJECT_ID,
     VERCEL_GIT_COMMIT_REF:"main",ROOT_PRODUCTION_SUPABASE_PROJECT_REF:ROOT_COMMERCIAL_SUPABASE_REF,
     NEXT_PUBLIC_SUPABASE_URL:`https://${ROOT_COMMERCIAL_SUPABASE_REF}.supabase.co`,
-    ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS:"https://www.roothealth.app,https://roothealth.app"};
+    ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS:"https://www.roothealth.app,https://roothealth.app",
+    ROOT_INTRODUCER_VERCEL_PROJECT_ID:INTRODUCER_PREVIEW_PROJECT_ID,
+    ROOT_INTRODUCER_SUPABASE_PROJECT_REF:INTRODUCER_PREVIEW_SUPABASE_REF,
+    ROOT_INTRODUCER_HANDOFF_MODE:"preview",
+    ROOT_INTRODUCER_CUSTOMER_URL:"https://partners.roothealth.example",
+    ROOT_INTRODUCER_CUSTOMER_ALLOWED_ORIGINS:"https://partners.roothealth.example",
+    ROOT_AUTH_PREVIEW_URL:"https://root-health-introducer-demo-preview.vercel.app",
+    ROOT_INTRODUCER_PREVIEW_ALLOWED_ORIGINS:"https://root-health-introducer-demo-preview.vercel.app"};
   assert.equal(commercialOnboardingBridgeReady(env),true);
+  const previewOnly={...env};delete previewOnly.ROOT_INTRODUCER_CUSTOMER_URL;delete previewOnly.ROOT_INTRODUCER_CUSTOMER_ALLOWED_ORIGINS;
+  assert.equal(commercialOnboardingBridgeReady(previewOnly),true,"internal Preview operation must not depend on customer-domain configuration");
+  assert.equal(commercialOnboardingBridgeReady({...previewOnly,ROOT_INTRODUCER_HANDOFF_MODE:"customer"}),false);
   for(const mutate of [e=>delete e.ROOT_INTRODUCER_ONBOARDING_ENABLED,e=>e.ROOT_INTRODUCER_ONBOARDING_ENABLED="false",
     e=>e.VERCEL_ENV="preview",e=>e.VERCEL_PROJECT_ID="prj_5FntyaVgI1tQ7Q3IMKfkSTb2ETut",e=>e.VERCEL_GIT_COMMIT_REF="codex/professional-introducer-demo",
     e=>e.ROOT_PRODUCTION_SUPABASE_PROJECT_REF=INTRODUCER_PREVIEW_SUPABASE_REF,e=>e.NEXT_PUBLIC_SUPABASE_URL=`https://${INTRODUCER_PREVIEW_SUPABASE_REF}.supabase.co`,
-    e=>e.ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS="https://root-health-introducer-demo-test.vercel.app"]){
+    e=>e.ROOT_INTRODUCER_ALLOWED_CALLBACK_ORIGINS="https://root-health-introducer-demo-test.vercel.app",
+    e=>{e.ROOT_INTRODUCER_HANDOFF_MODE="customer";e.ROOT_INTRODUCER_CUSTOMER_URL="https://roothealth.app";},
+    e=>{e.ROOT_INTRODUCER_HANDOFF_MODE="customer";e.ROOT_INTRODUCER_CUSTOMER_ALLOWED_ORIGINS="https://elsewhere.example";}]){
     const bad={...env};mutate(bad);assert.equal(commercialOnboardingBridgeReady(bad),false);
   }
 });
@@ -133,9 +145,55 @@ test("callback and Supabase invitation URLs require exact allowlisted identities
   assert.throws(()=>parseExactHttpsOrigins("https://*.vercel.app"));
   const activation="https://waluyphoafylzcjuskcl.supabase.co/auth/v1/verify?token=opaque&type=invite&redirect_to=https%3A%2F%2Froot-health-introducer-demo-abcd.vercel.app%2Freset-password%3Fnext%3D%252Fintroducer";
   assert.equal(validatePreviewActivationLink(activation,{previewOrigin:"https://root-health-introducer-demo-abcd.vercel.app",previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}),true);
+  const customer="https://partners.roothealth.example";
+  const customerActivation=activation.replace(encodeURIComponent("https://root-health-introducer-demo-abcd.vercel.app"),encodeURIComponent(customer));
+  assert.equal(validatePreviewActivationLink(customerActivation,{previewOrigin:"https://root-health-introducer-demo-abcd.vercel.app",activationOrigin:customer,previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}),true);
+  assert.equal(validatePreviewActivationLink(customerActivation,{previewOrigin:"https://root-health-introducer-demo-abcd.vercel.app",activationOrigin:"https://evil.example",previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}),false);
   assert.equal(validatePreviewActivationLink(activation.replace("waluyphoafylzcjuskcl","otherproject"),{previewOrigin:"https://root-health-introducer-demo-abcd.vercel.app",previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}),false);
   assert.equal(validatePreviewActivationLink(activation.replace("type=invite","type=recovery"),{previewOrigin:"https://root-health-introducer-demo-abcd.vercel.app",previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}),false);
   assert.equal(validatePreviewActivationLink(activation.replace("%252Fintroducer","%252Fadmin"),{previewOrigin:"https://root-health-introducer-demo-abcd.vercel.app",previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}),false);
+});
+
+test("customer activation origin is exact, custom-domain-only, and separately pinned from Preview",()=>{
+  const env={ROOT_INTRODUCER_CUSTOMER_URL:"https://partners.roothealth.example",
+    ROOT_INTRODUCER_CUSTOMER_ALLOWED_ORIGINS:"https://partners.roothealth.example"};
+  assert.equal(introducerCustomerOrigin(env),"https://partners.roothealth.example");
+  for(const bad of [
+    {...env,ROOT_INTRODUCER_CUSTOMER_URL:"https://www.roothealth.app"},
+    {...env,ROOT_INTRODUCER_CUSTOMER_URL:"https://root-health-introducer-demo-abc.vercel.app"},
+    {...env,ROOT_INTRODUCER_CUSTOMER_URL:"http://partners.roothealth.example"},
+    {...env,ROOT_INTRODUCER_CUSTOMER_URL:"https://partners.roothealth.example/path"},
+    {...env,ROOT_INTRODUCER_CUSTOMER_ALLOWED_ORIGINS:"https://partners.roothealth.example,https://evil.example"},
+    {...env,ROOT_INTRODUCER_CUSTOMER_URL:"https://evil.example"},
+  ]) assert.throws(()=>introducerCustomerOrigin(bad));
+});
+
+test("Root handoff has explicit protected Preview and dedicated-customer modes with exact project identity",()=>{
+  const preview={ROOT_INTRODUCER_HANDOFF_MODE:"preview",ROOT_AUTH_PREVIEW_URL:"https://root-health-introducer-demo-preview.vercel.app",
+    ROOT_INTRODUCER_PREVIEW_ALLOWED_ORIGINS:"https://root-health-introducer-demo-preview.vercel.app",
+    ROOT_INTRODUCER_VERCEL_PROJECT_ID:INTRODUCER_PREVIEW_PROJECT_ID,ROOT_INTRODUCER_SUPABASE_PROJECT_REF:INTRODUCER_PREVIEW_SUPABASE_REF,
+    ROOT_INTRODUCER_CUSTOMER_URL:"https://partners.roothealth.example",ROOT_INTRODUCER_CUSTOMER_ALLOWED_ORIGINS:"https://partners.roothealth.example"};
+  assert.equal(introducerInternalTargetOrigin(preview),"https://root-health-introducer-demo-preview.vercel.app");
+  const customerMode={...preview,ROOT_INTRODUCER_HANDOFF_MODE:"customer"};
+  assert.equal(introducerInternalTargetOrigin(customerMode),"https://root-health-introducer-demo-preview.vercel.app");
+  assert.equal(introducerActivationOrigin(customerMode),"https://partners.roothealth.example");
+  for(const bad of [
+    {...preview,ROOT_INTRODUCER_HANDOFF_MODE:""},
+    {...preview,ROOT_INTRODUCER_VERCEL_PROJECT_ID:"prj_XRyykP2byrJeHZ5hkI3QpGOjF2oO"},
+    {...preview,ROOT_INTRODUCER_SUPABASE_PROJECT_REF:"witkwlgldxjwwxmpcyva"},
+    {...preview,ROOT_AUTH_PREVIEW_URL:"https://other.vercel.app"},
+  ]) assert.throws(()=>introducerInternalTargetOrigin(bad));
+  assert.throws(()=>introducerActivationOrigin({...customerMode,ROOT_INTRODUCER_CUSTOMER_URL:"https://www.roothealth.app"}));
+});
+
+test("activation completion accepts only the exact signed Preview or customer origin",()=>{
+  const previewOrigin="https://root-health-introducer-demo-preview.vercel.app";
+  const customerOrigin="https://partners.roothealth.example";
+  const previewAllowedOrigins=new Set([previewOrigin]);
+  assert.equal(activationRequestOriginAllowed({requestOrigin:previewOrigin,signedActivationOrigin:previewOrigin,previewOrigin,previewAllowedOrigins,customerOrigin}),true);
+  assert.equal(activationRequestOriginAllowed({requestOrigin:customerOrigin,signedActivationOrigin:customerOrigin,previewOrigin,previewAllowedOrigins,customerOrigin}),true);
+  assert.equal(activationRequestOriginAllowed({requestOrigin:customerOrigin,signedActivationOrigin:previewOrigin,previewOrigin,previewAllowedOrigins,customerOrigin}),false);
+  assert.equal(activationRequestOriginAllowed({requestOrigin:"https://evil.example",signedActivationOrigin:"https://evil.example",previewOrigin,previewAllowedOrigins,customerOrigin}),false);
 });
 
 test("invitation replacement is expiry-gated and retries are recoverable only for the same pending request",()=>{
@@ -169,43 +227,54 @@ function catalogEvidenceFor(target){
   const requirements=PR70_CATALOG_REQUIREMENTS[key];
   const tables=Object.fromEntries(Object.entries(requirements.tables).map(([name,item])=>[name,{
     columns:[...item.columns],rlsEnabled:item.rlsEnabled===true,serviceRolePrivileges:[...(item.serviceRolePrivileges||[])],
+    clientPrivileges:Object.fromEntries(Object.entries(item.clientPrivileges||{}).map(([role,values])=>[role,[...values]])),
   }]));
+  const functions=Object.fromEntries(Object.entries(requirements.functions || {}).map(([name,value])=>[name,{
+    ...value,executableBy:[...value.executableBy],deniedTo:[...value.deniedTo],
+  }]));
+  const installed={presentTables:Object.keys(requirements.tables).filter(name=>name.includes("introducer_onboarding")),
+    presentFunctions:[...requirements.presentFunctions],presentColumns:[...(requirements.presentColumns || [])],functions};
   if(key==="rootCommercial") return {
+    ...installed,
     projectRef:PR70_MIGRATION_TARGETS.rootCommercial.supabaseRef,tables,
     clientSelectDenied:[...requirements.clientSelectDenied],constraints:[...requirements.constraints],
-    absentTables:[...requirements.absentTables],absentColumns:[...requirements.absentColumns],absentFunctions:[...requirements.absentFunctions],
   };
   return {
+    ...installed,
     projectRef:PR70_MIGRATION_TARGETS.preview.supabaseRef,tables,
     constraints:[...requirements.constraints],
     policies:Object.fromEntries(Object.entries(requirements.policies).map(([name,value])=>[name,{...value}])),
-    accessFunction:{...requirements.accessFunction,executableBy:[...requirements.accessFunction.executableBy],deniedTo:[...requirements.accessFunction.deniedTo]},
     preservedFixtures:{...requirements.preservedFixtures},existingCommercialIdentityValuesUnique:true,
     mappedGrantOrganisationIsNorthstar:true,
-    absentTables:[...requirements.absentTables],absentFunctions:[...requirements.absentFunctions],
   };
+}
+
+function validateGate(args){
+  const key=args.target==="root-commercial"?"rootCommercial":args.target;
+  return validatePr70MigrationTarget({...args,migrationLedger:args.migrationLedger || PR70_MIGRATION_TARGETS[key].requiredLedger});
 }
 
 test("project-specific migration gate accepts the verified ledgers only with complete schema and security evidence",()=>{
   const preview=PR70_MIGRATION_TARGETS.preview;
   const previewEvidence=catalogEvidenceFor("preview");
-  assert.equal(validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
+  assert.equal(validateGate({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
     migrationHistory:[...preview.requiredHistory],schemaEvidence:previewEvidence}).ready,true);
   const badPreviewEvidence=[
     {...previewEvidence,projectRef:"witkwlgldxjwwxmpcyva"},
     {...previewEvidence,tables:{...previewEvidence.tables,"public.professional_introducer_demo_access":{...previewEvidence.tables["public.professional_introducer_demo_access"],rlsEnabled:false}}},
-    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,securityDefiner:true}},
-    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,deniedTo:["public"]}},
-    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,deniedTo:["public","anon"]}},
-    {...previewEvidence,accessFunction:{...previewEvidence.accessFunction,deniedTo:["public","anon","authenticated"]}},
+    {...previewEvidence,functions:{...previewEvidence.functions,"public.professional_introducer_access_active()":{...previewEvidence.functions["public.professional_introducer_access_active()"],securityDefiner:true}}},
+    {...previewEvidence,functions:{...previewEvidence.functions,"public.professional_introducer_access_active()":{...previewEvidence.functions["public.professional_introducer_access_active()"],deniedTo:["public"]}}},
+    {...previewEvidence,functions:{...previewEvidence.functions,"public.professional_introducer_access_active()":{...previewEvidence.functions["public.professional_introducer_access_active()"],executableBy:["authenticated","service_role"]}}},
     {...previewEvidence,policies:{...previewEvidence.policies,assessment_insert_self:{ownerScoped:false,activeGrantRequired:true}}},
     {...previewEvidence,preservedFixtures:{...previewEvidence.preservedFixtures,fictionalAssessments:54}},
     {...previewEvidence,mappedGrantOrganisationIsNorthstar:false},
     {...previewEvidence,constraints:previewEvidence.constraints.filter(name=>name!=="professional_introducer_demo_access.demo_organisation_id.foreign_key")},
-    {...previewEvidence,absentTables:previewEvidence.absentTables.filter(name=>name!=="public.professional_introducer_onboarding")},
+    {...previewEvidence,presentTables:previewEvidence.presentTables.filter(name=>name!=="public.professional_introducer_onboarding")},
+    {...previewEvidence,presentFunctions:previewEvidence.presentFunctions.filter(name=>!name.includes("activate_professional_introducer_onboarding"))},
     {...previewEvidence,tables:{...previewEvidence.tables,"public.professional_introducer_demo_access":{...previewEvidence.tables["public.professional_introducer_demo_access"],serviceRolePrivileges:["SELECT"]}}},
+    {...previewEvidence,tables:{...previewEvidence.tables,"public.professional_introducer_onboarding":{...previewEvidence.tables["public.professional_introducer_onboarding"],clientPrivileges:{anon:[],authenticated:["SELECT"]}}}},
   ];
-  for(const schemaEvidence of badPreviewEvidence) assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,
+  for(const schemaEvidence of badPreviewEvidence) assert.throws(()=>validateGate({target:"preview",...preview,
     projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,migrationHistory:[...preview.requiredHistory],schemaEvidence}));
   for(const bad of [
     {projectRef:"witkwlgldxjwwxmpcyva"},
@@ -213,30 +282,43 @@ test("project-specific migration gate accepts the verified ledgers only with com
     {migration:"20261120130000_introducer_onboarding_admin.sql"},
     {migrationHistory:[...preview.requiredHistory,"20261121130000"]},
     {migrationHistory:["20261118150000","20261118153000"]},
+    {migrationLedger:[...preview.requiredLedger.slice(0,2),{version:"20261121102218",name:"20261121130000_pr70_preview_introducer_onboarding.sql"}]},
+    {migrationLedger:[]},
     {schemaEvidence:undefined},
-  ]) assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,
+  ]) assert.throws(()=>validateGate({target:"preview",...preview,projectRef:preview.supabaseRef,
     vercelProjectId:preview.vercelProjectId,migrationHistory:[...preview.requiredHistory],schemaEvidence:previewEvidence,...bad}));
 
   const root=PR70_MIGRATION_TARGETS.rootCommercial;
   const rootEvidence=catalogEvidenceFor("root-commercial");
-  assert.equal(validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:root.supabaseRef,vercelProjectId:root.vercelProjectId,
+  assert.equal(validateGate({target:"root-commercial",...root,projectRef:root.supabaseRef,vercelProjectId:root.vercelProjectId,
     migrationHistory:[...root.requiredHistory],schemaEvidence:rootEvidence}).ready,true);
   const badRootEvidence=[
     {...rootEvidence,projectRef:INTRODUCER_PREVIEW_SUPABASE_REF},
     {...rootEvidence,clientSelectDenied:rootEvidence.clientSelectDenied.filter(name=>name!=="public.introducer_agreement_acceptances")},
     {...rootEvidence,constraints:rootEvidence.constraints.filter(name=>name!=="introducer_agreement_acceptances.archive_state.check")},
-    {...rootEvidence,absentTables:rootEvidence.absentTables.filter(name=>name!=="public.organisation_introducer_onboarding_events")},
-    {...rootEvidence,absentColumns:rootEvidence.absentColumns.filter(name=>name!=="public.organisation_introducers.archived_at")},
-    {...rootEvidence,absentFunctions:rootEvidence.absentFunctions.filter(name=>name!=="public.remove_test_organisation_introducer(uuid,uuid)")},
+    {...rootEvidence,presentTables:rootEvidence.presentTables.filter(name=>name!=="public.organisation_introducer_onboarding_events")},
+    {...rootEvidence,presentColumns:rootEvidence.presentColumns.filter(name=>name!=="public.organisation_introducers.archived_at")},
+    {...rootEvidence,presentFunctions:rootEvidence.presentFunctions.filter(name=>name!=="public.remove_test_organisation_introducer(uuid,uuid)")},
     {...rootEvidence,tables:{...rootEvidence.tables,"public.organisation_introducers":{...rootEvidence.tables["public.organisation_introducers"],serviceRolePrivileges:["SELECT"]}}},
+    {...rootEvidence,tables:{...rootEvidence.tables,"public.organisation_introducer_onboarding":{...rootEvidence.tables["public.organisation_introducer_onboarding"],clientPrivileges:{anon:[],authenticated:["SELECT"]}}}},
   ];
-  for(const schemaEvidence of badRootEvidence) assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,
+  for(const schemaEvidence of badRootEvidence) assert.throws(()=>validateGate({target:"root-commercial",...root,
     projectRef:root.supabaseRef,vercelProjectId:root.vercelProjectId,migrationHistory:[...root.requiredHistory],schemaEvidence}));
-  assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:INTRODUCER_PREVIEW_SUPABASE_REF,
+  const excessRootAcl={...rootEvidence,tables:{...rootEvidence.tables,"public.organisation_introducers":{
+    ...rootEvidence.tables["public.organisation_introducers"],serviceRolePrivileges:["SELECT","UPDATE","TRUNCATE","REFERENCES","TRIGGER","MAINTAIN"],
+  }}};
+  assert.throws(()=>validateGate({target:"root-commercial",...root,projectRef:root.supabaseRef,vercelProjectId:root.vercelProjectId,
+    migrationHistory:[...root.requiredHistory],schemaEvidence:excessRootAcl}),/exact reviewed ACL/);
+  const excessPreviewAcl={...previewEvidence,tables:{...previewEvidence.tables,"public.professional_introducer_demo_access":{
+    ...previewEvidence.tables["public.professional_introducer_demo_access"],serviceRolePrivileges:["SELECT","INSERT","UPDATE","TRUNCATE","REFERENCES","TRIGGER","MAINTAIN"],
+  }}};
+  assert.throws(()=>validateGate({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
+    migrationHistory:[...preview.requiredHistory],schemaEvidence:excessPreviewAcl}),/exact reviewed ACL/);
+  assert.throws(()=>validateGate({target:"root-commercial",...root,projectRef:INTRODUCER_PREVIEW_SUPABASE_REF,
     vercelProjectId:INTRODUCER_PREVIEW_PROJECT_ID,migrationHistory:[...root.requiredHistory],schemaEvidence:rootEvidence}));
-  assert.throws(()=>validatePr70MigrationTarget({target:"root-commercial",...root,projectRef:root.supabaseRef,
+  assert.throws(()=>validateGate({target:"root-commercial",...root,projectRef:root.supabaseRef,
     vercelProjectId:root.vercelProjectId,migrationHistory:["20261004","20261005","20261006"],schemaEvidence:rootEvidence}));
-  assert.throws(()=>validatePr70MigrationTarget({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
+  assert.throws(()=>validateGate({target:"preview",...preview,projectRef:preview.supabaseRef,vercelProjectId:preview.vercelProjectId,
     migrationHistory:[...preview.requiredHistory,...preview.requiredHistory],schemaEvidence:previewEvidence}));
 });
 
@@ -275,15 +357,17 @@ test("account activation and API secrets are not rendered by the Root admin comp
   assert.match(rootRoute,/commercialOnboardingBridgeReady\(\)/);
   assert.match(rootRoute,/demoAccessSummary\(agreementState,row\)/);
   assert.doesNotMatch(rootRoute,/ROOT_INTRODUCER_STAGING_MODE|isolatedRootStagingReady/);
-  assert.match(rootRoute,/x-vercel-oidc-token/);assert.match(rootRoute,/x-vercel-trusted-oidc-idp-token/);
-  assert.doesNotMatch(rootRoute,/x-vercel-protection-bypass|VERCEL_AUTOMATION_BYPASS_SECRET/);
+  assert.match(rootRoute,/sendIntroducerActivation/);
+  const handoff=await fs.readFile(new URL("../lib/introducerActivationHandoff.server.js",import.meta.url),"utf8");
+  assert.match(handoff,/x-vercel-oidc-token/);assert.match(handoff,/x-vercel-trusted-oidc-idp-token/);
+  assert.doesNotMatch(handoff,/x-vercel-protection-bypass|VERCEL_AUTOMATION_BYPASS_SECRET/);
   const rootVerification=rootRoute.slice(rootRoute.indexOf("export async function PUT"));
   assert.match(rootVerification,/verifyPreviewActivationReceipt/);
   assert.match(rootVerification,/complete_professional_introducer_onboarding/);
   assert.doesNotMatch(rootVerification,/auth\.admin\.getUserById\(body\.userId\)|body\.userId/,
     "Preview Auth identifiers must never be resolved through Root Auth");
-  assert.match(rootRoute,/validatePreviewActivationLink/);
-  assert.match(rootRoute,/ROOT_INTRODUCER_VERCEL_PROJECT_ID!==INTRODUCER_PREVIEW_PROJECT_ID/);
+  assert.match(handoff,/validatePreviewActivationLink/);
+  assert.match(handoff,/introducerInternalTargetOrigin/);
   const callback=await fs.readFile(new URL("../app/api/introducer/activation/complete/route.js",import.meta.url),"utf8");
   assert.match(callback,/signPreviewActivationReceipt/);
   assert.match(callback,/verifiedEmail:user\.email\.toLowerCase\(\)/);

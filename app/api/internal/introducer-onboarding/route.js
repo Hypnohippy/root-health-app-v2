@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isIntroducerDeployment } from "../../../../lib/introducerRestrictedActions.server.js";
 import { getSupabaseServerKeyIfConfigured } from "../../../../lib/supabaseServerKey.server.js";
 import { createSupabaseKeyCompatibleClient } from "../../../../lib/supabaseKeyCompatibleClient.js";
-import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, openActivationLink, parseExactHttpsOrigins, replacementDisposition, sealActivationLink, validatePreviewActivationLink, validatePreviewDeployment, verifyOnboardingAssertion } from "../../../../lib/professionalIntroducerOnboarding.server.js";
+import { INTRODUCER_PREVIEW_PROJECT_ID, INTRODUCER_PREVIEW_SUPABASE_REF, introducerCustomerOrigin, openActivationLink, parseExactHttpsOrigins, replacementDisposition, sealActivationLink, validatePreviewActivationLink, validatePreviewDeployment, verifyOnboardingAssertion } from "../../../../lib/professionalIntroducerOnboarding.server.js";
 
 export const runtime="nodejs";
 const reply=(body,status=200)=>NextResponse.json(body,{status,headers:{"Cache-Control":"no-store"}});
@@ -38,6 +38,20 @@ export async function POST(request) {
     if(lookupError) throw lookupError;
 
     if(body.action==="prepare" || body.action==="replace") {
+      let activationOrigin;
+      const signedActivationOrigin=assertion.activationOrigin || assertion.customerOrigin;
+      const previewUrl=new URL(String(process.env.ROOT_AUTH_PREVIEW_URL || ""));
+      const previewOrigins=parseExactHttpsOrigins(process.env.ROOT_INTRODUCER_PREVIEW_ALLOWED_ORIGINS);
+      if(signedActivationOrigin===previewUrl.origin && previewOrigins.has(previewUrl.origin)) activationOrigin=previewUrl.origin;
+      else {
+        try { activationOrigin=introducerCustomerOrigin(process.env); }
+        catch { return reply({error:"Introducer customer activation domain is not configured."},503); }
+      }
+      if(signedActivationOrigin!==activationOrigin ||
+          assertion.customerVercelProjectId!==INTRODUCER_PREVIEW_PROJECT_ID ||
+          assertion.customerSupabaseProjectRef!==INTRODUCER_PREVIEW_SUPABASE_REF) {
+        return reply({error:"Signed activation destination does not match the isolated Introducer project."},403);
+      }
       const matching=existing?.activation_request_id===assertion.requestId;
       const replacement=body.action==="replace" ? replacementDisposition(existing,{requestId:assertion.requestId}) : null;
       const replacementRetry=replacement==="resume";
@@ -100,12 +114,12 @@ export async function POST(request) {
           if(page===50) throw new Error("Preview Auth identity search could not confirm uniqueness.");
         }
         const {data:linkData,error:linkError}=await db.auth.admin.generateLink({type:"invite",email:assertion.recipientEmail,options:{
-          redirectTo:`${previewUrl.origin}/reset-password?next=%2Fintroducer`,
+          redirectTo:`${activationOrigin}/reset-password?next=%2Fintroducer`,
           data:{professional_introducer_invite:true,commercial_introducer_id:assertion.introducerId},
         }});
         if(linkError || !linkData?.user?.id || !linkData?.properties?.action_link || linkData.user.email?.toLowerCase()!==assertion.recipientEmail) throw new Error("A unique verified-email invitation could not be prepared.");
         actionLink=linkData.properties.action_link;
-        if(!validatePreviewActivationLink(actionLink,{previewOrigin:previewUrl.origin,previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}) ||
+        if(!validatePreviewActivationLink(actionLink,{previewOrigin:previewUrl.origin,activationOrigin,previewSupabaseRef:INTRODUCER_PREVIEW_SUPABASE_REF}) ||
            new URL(actionLink).origin!==new URL(url).origin) {
           await db.auth.admin.deleteUser(linkData.user.id,false).catch(()=>{});
           throw new Error("Supabase generated an invitation with an unexpected redirect.");

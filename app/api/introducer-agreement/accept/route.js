@@ -3,6 +3,7 @@ import { createSupabaseKeyCompatibleClient as createClient } from "../../../../l
 import { acceptanceOrigin,invitationReview,acceptanceEvidence,fulfilAcceptance } from '../../../../lib/introducerAgreementAcceptance.js';
 import { createAgreementDrive,googleAgreementConfig } from '../../../../lib/googleAgreementDrive.js';
 import { agreementAcceptanceNotifier } from '../../../../lib/introducerAgreementEmail.js';
+import { sendIntroducerActivation } from '../../../../lib/introducerActivationHandoff.server.js';
 
 export const runtime='nodejs';
 export const maxDuration=120;
@@ -27,7 +28,16 @@ export async function POST(request) {
         notify:(...args)=>agreementAcceptanceNotifier()(...args)});
       pending=state.pending;
     } catch { /* Acceptance is durable; Root can retry fulfilment, never recreate consent. */ }
-    return reply({accepted:true,pending});
+    // This coordinator re-reads the current Root agreement and requires its
+    // archived acceptance evidence before it can prepare a Preview identity or
+    // send the activation email. Repeated submissions are idempotent: an
+    // already-started invitation is never sent again automatically.
+    let activationPending=true;
+    try {
+      const activation=await sendIntroducerActivation({db,introducerId:agreement.introducer_id,request,action:'automatic_acceptance'});
+      activationPending=!['activation_sent','activated'].includes(activation.state);
+    } catch { /* Keep the durable acceptance; never roll back consent or retry an uncertain send. */ }
+    return reply({accepted:true,pending,activationPending});
   } catch {
     return reply({error:'Unable to confirm this request. Check your details and retry, or contact enquiries@roothealth.app. If you already submitted, retrying will not create a second acceptance.'},409);
   }
