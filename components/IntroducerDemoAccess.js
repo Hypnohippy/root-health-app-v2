@@ -79,6 +79,7 @@ export default function IntroducerDemoAccess({ introducer }) {
     setBusy(true);
     setError("");
     setMessage("");
+    let failure = "";
     try {
       const result = await api("POST", {
         introducerId: introducer.id,
@@ -87,12 +88,11 @@ export default function IntroducerDemoAccess({ introducer }) {
       });
       setMessage(result.message || "Activation request accepted. Verify delivery before continuing.");
     } catch (e) {
-      setError(e.message + " Refresh the status and check the inbox before any further attempt.");
-    } finally {
-      setBusy(false);
+      failure = e.message + " Check the inbox and audit before any further attempt.";
     }
     // A follow-up read is authoritative; never assume email arrived from the POST alone.
     await refresh();
+    if (failure) setError(failure);
   }
 
   const state = onboarding?.state || "registered";
