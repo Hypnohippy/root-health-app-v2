@@ -39,6 +39,20 @@ export default function ResetPasswordPage() {
     useState(false);
 
   useEffect(() => {
+    let active = true;
+    // Supabase consumes implicit/PKCE recovery callbacks while establishing a
+    // session. The URL token may already be gone by the time getSession resolves.
+    // Only the explicit PASSWORD_RECOVERY event (not SIGNED_IN) grants this form.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active || event !== "PASSWORD_RECOVERY" || !session) return;
+      setLinkType("recovery");
+      setRecoveryReady(true);
+      setCheckingLink(false);
+      const next = new URLSearchParams(window.location.search).get("next");
+      const safeReturn = next === "/introducer" ? "?next=%2Fintroducer" : "";
+      window.history.replaceState({}, document.title, `/reset-password${safeReturn}`);
+    });
+
     const params =
       new URLSearchParams(
         window.location.search
@@ -61,7 +75,7 @@ export default function ResetPasswordPage() {
       setTokenHash(token);
       setLinkType(type);
       setCheckingLink(false);
-      return;
+      return () => { active = false; subscription.unsubscribe(); };
     }
 
     async function checkSession() {
@@ -89,7 +103,8 @@ export default function ResetPasswordPage() {
       setCheckingLink(false);
     }
 
-    checkSession();
+    void checkSession();
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
   async function beginPasswordSetup() {
