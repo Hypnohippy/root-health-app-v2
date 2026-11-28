@@ -29,13 +29,38 @@ export async function POST(request) {
   if(!bearer || bearer!==body.assertion) return reply({error:"Signed Root onboarding assertion required."},401);
   const secret=String(process.env.ROOT_INTRODUCER_ONBOARDING_SHARED_SECRET || "");
   const assertion=verifyOnboardingAssertion(bearer,secret);
-  if(!assertion || assertion.action!==body.action || !["prepare","replace","sent","revoke"].includes(body.action)) return reply({error:"Invalid or expired Root onboarding assertion."},401);
+  if(!assertion || assertion.action!==body.action || !["preflight","prepare","replace","sent","revoke"].includes(body.action)) return reply({error:"Invalid or expired Root onboarding assertion."},401);
   let db;
   try { db=clients(); } catch { return reply({error:"Introducer onboarding service is unavailable."},503); }
   try {
     const {data:existing,error:lookupError}=await db.from("professional_introducer_onboarding").select("*")
       .eq("commercial_introducer_id",assertion.introducerId).maybeSingle();
     if(lookupError) throw lookupError;
+
+    // Read-only collision check before Root creates an in-progress invitation.
+    // Requires the same signed, short-lived Root assertion as actual prepare.
+    // Never create a user, link an existing user, or send an email here.
+    if(body.action==="preflight") {
+      const signedOrigin=assertion.activationOrigin || assertion.customerOrigin;
+      let expectedOrigin;
+      try { expectedOrigin=introducerCustomerOrigin(process.env); }
+      catch { return reply({error:"Introducer customer activation domain is not configured."},503); }
+      if(signedOrigin!==expectedOrigin ||
+         assertion.customerVercelProjectId!==INTRODUCER_PREVIEW_PROJECT_ID ||
+         assertion.customerSupabaseProjectRef!==INTRODUCER_PREVIEW_SUPABASE_REF) {
+        return reply({error:"Signed activation destination does not match the isolated Introducer project."},403);
+      }
+      if(existing) return reply({code:"onboarding_exists",error:"Introducer onboarding already exists in Preview."},409);
+      for(let page=1;page<=50;page++) {
+        const {data:users,error:userError}=await db.auth.admin.listUsers({page,perPage:1000});
+        if(userError || !Array.isArray(users?.users)) return reply({error:"Preview identities could not be verified."},503);
+        if(users.users.some(user=>user.email?.toLowerCase()===assertion.recipientEmail.toLowerCase())) {
+          return reply({code:"existing_account",error:"This recipient already has a verified or existing Preview account. Existing-account linking requires separate consent."},409);
+        }
+        if(users.users.length<1000) return reply({eligible:true});
+      }
+      return reply({error:"Preview identity search could not confirm uniqueness."},503);
+    }
 
     if(body.action==="prepare" || body.action==="replace") {
       let activationOrigin;
