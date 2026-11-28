@@ -68,3 +68,29 @@ test("other Vercel Preview deployments use their platform URL, not the request H
     "https://other-preview.vercel.app/reset-password",
   );
 });
+
+test("approved introducer customer domain receives recovery and invite callbacks, not the protected Preview URL", () => {
+  for (const flow of ["recovery", "invite"]) {
+    assert.equal(buildRootAuthRedirectUrl({
+      ...preview,
+      flow,
+      previewBaseUrl: "https://root-health-introducer-demo-h6xpnv8po.vercel.app",
+      customerBaseUrl: "https://introducers.roothealth.app",
+      customerAllowedOrigins: "https://introducers.roothealth.app",
+    }), "https://introducers.roothealth.app/reset-password?next=%2Fintroducer");
+  }
+});
+
+test("customer recovery host must be exact, independently allowlisted, and never caller-controlled", () => {
+  const valid = { ...preview, customerBaseUrl: "https://introducers.roothealth.app",
+    customerAllowedOrigins: "https://introducers.roothealth.app" };
+  assert.equal(buildRootAuthRedirectUrl({ ...valid, requestOrigin: "https://attacker.invalid" }),
+    "https://introducers.roothealth.app/reset-password?next=%2Fintroducer");
+  for (const bad of [
+    { customerBaseUrl: "https://attacker.invalid" },
+    { customerAllowedOrigins: "https://attacker.invalid" },
+    { customerBaseUrl: "http://introducers.roothealth.app" },
+    { customerBaseUrl: "" },
+    { customerAllowedOrigins: "" },
+  ]) assert.equal(buildRootAuthRedirectUrl({ ...valid, ...bad }), null);
+});
