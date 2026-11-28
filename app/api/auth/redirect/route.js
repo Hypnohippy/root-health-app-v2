@@ -12,6 +12,8 @@ export async function GET(request) {
     vercelUrl: process.env.VERCEL_URL,
     gitBranch: process.env.VERCEL_GIT_COMMIT_REF,
     previewBaseUrl: process.env.ROOT_AUTH_PREVIEW_URL,
+    customerBaseUrl: process.env.ROOT_INTRODUCER_CUSTOMER_URL,
+    customerAllowedOrigins: process.env.ROOT_INTRODUCER_CUSTOMER_ALLOWED_ORIGINS,
     publicSiteUrl: process.env.NEXT_PUBLIC_ROOT_PUBLIC_URL || "https://roothealth.app",
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     previewProjectRef: process.env.PROFESSIONAL_INTRODUCER_DEMO_SUPABASE_PROJECT_REF,
