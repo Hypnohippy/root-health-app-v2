@@ -195,7 +195,8 @@ test("verified archived acceptance prepares one Preview identity and sends one a
   assert.equal(c.onboarding.acceptance_id, ids.acceptance);
   assert.equal(c.onboarding.recipient_email, introducer.contact_email);
   assert.equal(c.onboarding.activation_expires_at, "2026-11-24T12:15:00.000Z");
-  assert.equal(c.calls.preview.length, 2);
+  assert.equal(c.calls.preview.length, 3);
+  assert.equal(JSON.parse(c.calls.preview[0].options.body).action, "preflight");
   assert.equal(new URL(c.calls.preview[0].url).hostname, "root-health-introducer-demo-fixture.vercel.app");
   assert.equal(c.calls.preview.some(call => call.url.includes("witkwlgldxjwwxmpcyva")), false);
   assert.equal(c.calls.mail.length, 1);
@@ -247,6 +248,18 @@ test("concurrent automatic acceptance requests claim one onboarding row and send
   assert.equal(c.onboarding.state, "activation_sent");
 });
 
+
+test("existing invited email is rejected by signed preflight with no Root onboarding write or email", async () => {
+  const c = collaborators({fetcher: async (_url,options) => {
+    assert.equal(JSON.parse(options.body).action, "preflight");
+    return Response.json({code:"existing_account"}, {status:409});
+  }});
+  await assert.rejects(run(c), /already has an Introducer demo account/);
+  assert.equal(c.onboarding,null);
+  assert.equal(c.events.length,0);
+  assert.equal(c.calls.mail.length,0);
+});
+
 test("missing trusted OIDC fails before onboarding state or outbound requests", async () => {
   const c = collaborators();
   await assert.rejects(run(c, request({ oidc: null })), /trusted OIDC/);
@@ -256,14 +269,18 @@ test("missing trusted OIDC fails before onboarding state or outbound requests", 
 });
 
 test("Preview prepare uncertainty is recorded and automatic retry does not duplicate", async () => {
-  const c = collaborators({ fetcher: async () => Response.json({ error: "synthetic" }, { status: 503 }) });
+  const c = collaborators({ fetcher: async (_url, options) => {
+    return JSON.parse(options.body).action === "preflight"
+      ? Response.json({ eligible: true })
+      : Response.json({ error: "synthetic" }, { status: 503 });
+  } });
   await assert.rejects(run(c), /could not confirm activation preparation/);
   assert.equal(c.onboarding.state, "activation_uncertain");
   assert.equal(c.onboarding.activation_expires_at, "2026-11-24T12:15:00.000Z");
   assert.equal(c.calls.mail.length, 0);
   const count = c.calls.preview.length;
   const second = await run(c);
-  assert.deepEqual(second, { state: "activation_uncertain", alreadyStarted: true });
+  assert.deepEqual(second, {state:"activation_uncertain",alreadyStarted:true});
   assert.equal(c.calls.preview.length, count);
 });
 
@@ -306,8 +323,9 @@ test("expired uncertain invitation can use the existing explicit replacement pat
   } });
   const replaced = await run(expired, request(), "replace_invitation");
   assert.equal(replaced.state, "activation_sent");
-  assert.equal(expired.calls.preview.length, 2);
-  assert.equal(JSON.parse(expired.calls.preview[0].options.body).action, "replace");
+  assert.equal(expired.calls.preview.length, 3);
+  assert.equal(JSON.parse(expired.calls.preview[0].options.body).action, "preflight");
+  assert.equal(JSON.parse(expired.calls.preview[1].options.body).action, "replace");
   assert.equal(expired.calls.mail.length, 1);
 
   const stillLive = collaborators({ row: {
