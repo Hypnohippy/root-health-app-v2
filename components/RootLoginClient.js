@@ -75,8 +75,10 @@ export default function RootLoginClient({ isIntroducerCustomer = false }) {
 
     // A single exact destination is permitted for the invited partner demo.
     // The demo API independently verifies grant, expiry and account isolation.
-    if (new URLSearchParams(window.location.search).get("next") === "/introducer") {
-      window.location.href = "/introducer";
+    if (isIntroducerCustomer && new URLSearchParams(window.location.search).get("next") === "/introducer") {
+      // The gateway is a sign-in invitation, not an authenticated destination.
+      // The chooser re-verifies the grant on the server and fails closed.
+      window.location.href = "/choose-experience";
       return;
     }
 
