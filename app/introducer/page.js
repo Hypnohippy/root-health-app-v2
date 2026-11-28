@@ -1,4 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "../../lib/supabase";
 import RootEnso from "../../components/RootEnso";
 
 /**
@@ -7,6 +11,33 @@ import RootEnso from "../../components/RootEnso";
  * safe landing shown before sign-in or when access cannot be established.
  */
 export default function ProfessionalIntroducerGateway() {
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    // The local session only selects the next page. /choose-experience
+    // verifies current server-issued introducer access before revealing data.
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (!error && data?.session?.access_token) {
+          window.location.replace("/choose-experience");
+        } else {
+          setChecking(false);
+        }
+      })
+      .catch(() => { if (active) setChecking(false); });
+    return () => { active = false; };
+  }, []);
+
+  if (checking) return (
+    <main style={styles.page}>
+      <section style={styles.card} aria-live="polite">
+        Verifying your Root Health demonstration session…
+      </section>
+    </main>
+  );
+
   return (
     <main style={styles.page}>
       <section style={styles.card}>
