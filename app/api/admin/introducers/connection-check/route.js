@@ -14,7 +14,7 @@ export async function GET(request) {
   if (process.env.VERCEL_ENV !== "production" ||
       process.env.VERCEL_PROJECT_ID !== ROOT_COMMERCIAL_VERCEL_PROJECT_ID ||
       process.env.VERCEL_GIT_COMMIT_REF !== "main" ||
-      process.env.ROOT_INTRODUCER_ONBOARDING_ENABLED !== "false") {
+      !["true", "false"].includes(process.env.ROOT_INTRODUCER_ONBOARDING_ENABLED)) {
     return reply({ connected: false, reason: "Unavailable on this deployment." }, 404);
   }
   try { await rootAgreementAccess(request); }
