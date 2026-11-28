@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 
-test("introducer diagnostic is strict Production-only, kill-switch-off and admin-gated", async () => {
+test("introducer diagnostic is strict Production-only, admin-gated and non-mutating while activation is enabled or disabled", async () => {
   const route = await readFile(new URL("../app/api/admin/introducers/connection-check/route.js", import.meta.url), "utf8");
   assert.match(route, /VERCEL_ENV !== "production"/);
-  assert.match(route, /ROOT_INTRODUCER_ONBOARDING_ENABLED !== "false"/);
+  assert.match(route, /!\["true", "false"\]\.includes\(process\.env\.ROOT_INTRODUCER_ONBOARDING_ENABLED\)/);
   assert.match(route, /await rootAgreementAccess\(request\)/);
   assert.match(route, /VERCEL_PROJECT_ID !== ROOT_COMMERCIAL_VERCEL_PROJECT_ID/);
   assert.match(route, /VERCEL_GIT_COMMIT_REF !== "main"/);
