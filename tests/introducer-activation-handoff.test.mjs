@@ -269,14 +269,19 @@ test("missing trusted OIDC fails before onboarding state or outbound requests", 
 });
 
 test("Preview prepare uncertainty is recorded and automatic retry does not duplicate", async () => {
-  const c = collaborators({ fetcher: async () => Response.json({ error: "synthetic" }, { status: 503 }) });
+  const c = collaborators({ fetcher: async (_url, options) => {
+    return JSON.parse(options.body).action === "preflight"
+      ? Response.json({ eligible: true })
+      : Response.json({ error: "synthetic" }, { status: 503 });
+  } });
   await assert.rejects(run(c), /could not confirm activation preparation/);
-  assert.equal(c.onboarding, null);
-  assert.equal(c.events.length, 0);
+  assert.equal(c.onboarding.state, "activation_uncertain");
+  assert.equal(c.onboarding.activation_expires_at, "2026-11-24T12:15:00.000Z");
   assert.equal(c.calls.mail.length, 0);
   const count = c.calls.preview.length;
-  await assert.rejects(run(c), /did not confirm/);
-  assert.equal(c.calls.preview.length, count + 1);
+  const second = await run(c);
+  assert.deepEqual(second, {state:"activation_uncertain",alreadyStarted:true});
+  assert.equal(c.calls.preview.length, count);
 });
 
 test("uncertain email delivery is recorded without blind resend", async () => {
