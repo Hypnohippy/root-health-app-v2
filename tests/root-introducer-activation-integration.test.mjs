@@ -98,7 +98,7 @@ test("acceptance invokes activation only after archive fulfillment succeeds and 
   const base = {
     env: { VERCEL_ENV: "production", NEXT_PUBLIC_SITE_URL: "https://roothealth.app" },
     createDatabase: async () => ({ rpc: async () => ({ data: true, error: null }) }),
-    reviewInvitation: async () => ({ agreement: { introducer_id: ids.introducer, terms_snapshot: { contact_email: introducer.contact_email } }, review: {}, acceptance: null, tokenHash: "synthetic-hash" }),
+    reviewInvitation: async () => ({ agreement: { introducer_id: ids.introducer, terms_snapshot: { contact_email: introducer.contact_email, contact_name: introducer.contact_name, introducer_name: introducer.name } }, review: {}, acceptance: null, tokenHash: "synthetic-hash" }),
     buildEvidence: () => ({ full_name: introducer.contact_name, email: introducer.contact_email }),
     recordAcceptance: async (_db, details) => { accepted.push(details); return { error: null }; },
     activate: async details => { activations.push(details); throw new Error("Preview unavailable"); },
@@ -116,6 +116,23 @@ test("acceptance invokes activation only after archive fulfillment succeeds and 
   assert.equal(activations.length, 1);
   assert.equal(activations[0].introducerId, ids.introducer);
   assert.equal(activations[0].action, "automatic_acceptance");
+});
+
+
+test("accepted authorised representative with frozen organisation matches Root onboarding verifier",()=>{
+  const representative = structuredClone(agreementState);
+  representative.agreements[0].acceptance.evidence = {
+    full_name:"Brian Smith", email:introducer.contact_email, role:"Director",
+    organisation:introducer.name, authority:true,
+    authority_text:"I confirm I am authorised to act for the named organisation.",
+    confirmed:true,
+  };
+  assert.equal(verifiedAcceptedAgreement(representative,ids.introducer,now).contactName,"Brian Smith");
+  for(const override of [{authority:false},{organisation:"Wrong organisation"},{authority_text:null},{role:""},{confirmed:false}]) {
+    const invalid=structuredClone(representative);
+    Object.assign(invalid.agreements[0].acceptance.evidence,override);
+    assert.throws(()=>verifiedAcceptedAgreement(invalid,ids.introducer,now),/matching identity and terms/);
+  }
 });
 
 test("acceptance API rejects the apex after canonical redirect without weakening origin validation", async () => {
